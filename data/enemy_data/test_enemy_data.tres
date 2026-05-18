@@ -7,10 +7,14 @@
 [ext_resource type="Script" uid="uid://60xname88pm3" path="res://scripts/shoot_pattern/shoot_circle_def.gd" id="3_g0kf2"]
 [ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="3_uu3h1"]
 [ext_resource type="Script" uid="uid://yegmkcu2ec8k" path="res://scripts/shoot_pattern/shoot_circle_executor.gd" id="4_m3ld7"]
+[ext_resource type="Script" uid="uid://c1o0pwtn6iy0c" path="res://scripts/shoot_pattern/shoot_aimed_def.gd" id="5_aimed_def"]
+[ext_resource type="Script" uid="uid://dbq7o6e1aouyi" path="res://scripts/shoot_pattern/shoot_aimed_executor.gd" id="6_aimed_exec"]
+[ext_resource type="Script" uid="uid://qrhfvbfx8x5i" path="res://scripts/shoot_pattern/shoot_arc_def.gd" id="7_arc_def"]
+[ext_resource type="Script" uid="uid://c7441erc1kjt0" path="res://scripts/shoot_pattern/shoot_arc_executor.gd" id="8_arc_exec"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_10yxv"]
 atlas = ExtResource("3_uu3h1")
-region = Rect2(144, 64, 16, 16)
+region = Rect2(161, 80, 16, 16)
 
 [sub_resource type="Resource" id="Resource_vsyem"]
 script = ExtResource("2_o1iwf")
@@ -23,10 +27,28 @@ metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
 
 [sub_resource type="Resource" id="ShootCircleDef_circle"]
 script = ExtResource("3_g0kf2")
-bullet_count = 36
+bullet_count = 6
 bullet_data = SubResource("Resource_vsyem")
 interval = 0.1
 executor_script = ExtResource("4_m3ld7")
+
+[sub_resource type="Resource" id="ShootAimedDef_aimed"]
+script = ExtResource("5_aimed_def")
+bullet_count = 4
+spread_angle = 1.0
+speed_multiplier = 2.0
+bullet_data = SubResource("Resource_vsyem")
+interval = 0.3
+executor_script = ExtResource("6_aimed_exec")
+
+[sub_resource type="Resource" id="ShootArcDef_arc"]
+script = ExtResource("7_arc_def")
+bullet_count = 7
+arc_angle = 1.2
+speed_multiplier = 3.0
+bullet_data = SubResource("Resource_vsyem")
+interval = 0.4
+executor_script = ExtResource("8_arc_exec")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
 atlas = ExtResource("2_4dide")
@@ -69,5 +91,5 @@ script = ExtResource("1_jjwni")
 sprite_frames = SubResource("SpriteFrames_10yxv")
 max_hp = 5000
 hitbox_radius = 28.0
-shoot_pattern_defs = Array[ExtResource("2_10yxv")]([SubResource("ShootCircleDef_circle")])
+shoot_pattern_defs = Array[ExtResource("2_10yxv")]([SubResource("ShootCircleDef_circle"), SubResource("ShootAimedDef_aimed"), SubResource("ShootArcDef_arc")])
 metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

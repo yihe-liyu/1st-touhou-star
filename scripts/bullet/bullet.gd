@@ -63,4 +63,3 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 
 func batch_texture() -> Texture2D:
 	return sprite.texture
-

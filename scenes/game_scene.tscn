@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bi0jd81dgbg7b" path="res://scenes/enemy.tscn" id="3_bw6k5"]
 [ext_resource type="Texture2D" uid="uid://dmxqsu00lb26i" path="res://assets/Textures/front/front.png" id="3_ycayy"]
 [ext_resource type="Resource" uid="uid://cb505yupublnp" path="res://data/enemy_data/test_enemy_data.tres" id="4_y3j0m"]
-[ext_resource type="Resource" uid="uid://5i3q0kkqvcog" path="res://data/player_data/marisa_data.tres" id="6_b5spy"]
+[ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="6_rurhu"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_b5spy"]
