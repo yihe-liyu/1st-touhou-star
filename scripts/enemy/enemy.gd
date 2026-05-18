@@ -70,3 +70,6 @@ func die():
 
 func _physics_process(delta):
 	if shoot_pattern: shoot_pattern.update(delta)
+	for exec in executors:
+		if exec._active:
+			exec._process(delta)

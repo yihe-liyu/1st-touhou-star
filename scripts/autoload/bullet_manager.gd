@@ -3,18 +3,38 @@ extends Node
 
 const POOL_SIZE: int = 600
 
+var use_batch_render: bool = false
+var _batch_player: Node2D
+var _batch_enemy: Node2D
+
+const BulletBatchCanvasClass = preload("res://scripts/bullet/bullet_batch_canvas.gd")
+
 var bullet_scene = preload("res://scenes/bullet.tscn")
 var active_bullets: Array = []
 var bullet_pool: Array = []
 
 func _ready():
-	# 提前准备 POOL_SIZE 个弹幕实例放入对象池
+	if use_batch_render:
+		_batch_enemy = BulletBatchCanvasClass.new()
+		_batch_enemy.enabled = true
+		_batch_enemy.faction = Bullet.FACTION_ENEMY
+		_batch_enemy.z_index = 15
+		add_child(_batch_enemy)
+
+		_batch_player = BulletBatchCanvasClass.new()
+		_batch_player.enabled = true
+		_batch_player.faction = Bullet.FACTION_PLAYER
+		_batch_player.z_index = 10
+		add_child(_batch_player)
+
 	for i in range(POOL_SIZE):
-		var b = bullet_scene.instantiate() # 创建 1 个弹幕实例
-		b.visible = false # 使其不可见
-		b.process_mode = PROCESS_MODE_DISABLED # 使其不更新
-		add_child(b) # 把这个实例挂到场景树上
-		bullet_pool.append(b) # 把这个实例的 引用 放进数组
+		var b = bullet_scene.instantiate()
+		b.visible = false
+		b.process_mode = PROCESS_MODE_DISABLED
+		if use_batch_render:
+			b.get_node("Sprite2D").visible = false
+		add_child(b)
+		bullet_pool.append(b)
 
 # ── 发射 ──
 
@@ -23,6 +43,8 @@ func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2, overr
 	
 	if bullet_pool.is_empty():
 		bullet = bullet_scene.instantiate()
+		if use_batch_render:
+			bullet.get_node("Sprite2D").visible = false
 		add_child(bullet)
 	else:
 		bullet = bullet_pool.pop_back()

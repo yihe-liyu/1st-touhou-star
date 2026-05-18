@@ -59,4 +59,8 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		movement = data.movement_script.new()
 	else:
 		movement = MoveLinear.new()
-	movement.bind(self )
+	movement.bind(self)
+
+func batch_texture() -> Texture2D:
+	return sprite.texture
+

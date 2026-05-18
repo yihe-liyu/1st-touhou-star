@@ -25,6 +25,7 @@ metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
 script = ExtResource("3_g0kf2")
 bullet_count = 36
 bullet_data = SubResource("Resource_vsyem")
+interval = 0.1
 executor_script = ExtResource("4_m3ld7")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
