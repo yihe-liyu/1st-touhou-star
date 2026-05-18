@@ -2,9 +2,11 @@
 
 [ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_jjwni"]
 [ext_resource type="Texture2D" uid="uid://bgn5feo55byah" path="res://assets/Textures/enemy/enemy.png" id="2_4dide"]
+[ext_resource type="Script" uid="uid://dnwomdu125tor" path="res://scripts/shoot_pattern/shoot_pattern_def.gd" id="2_10yxv"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_o1iwf"]
-[ext_resource type="Script" uid="uid://kypfrnfd8arg" path="res://scripts/shoot_pattern/stage01/shoot_pattern_circle.gd" id="3_o1iwf"]
+[ext_resource type="Script" uid="uid://60xname88pm3" path="res://scripts/shoot_pattern/shoot_circle_def.gd" id="3_g0kf2"]
 [ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="3_uu3h1"]
+[ext_resource type="Script" uid="uid://yegmkcu2ec8k" path="res://scripts/shoot_pattern/shoot_circle_executor.gd" id="4_m3ld7"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_10yxv"]
 atlas = ExtResource("3_uu3h1")
@@ -19,10 +21,11 @@ can_be_canceled = true
 hitbox_radius = 5.0
 metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
 
-[sub_resource type="Resource" id="Resource_uu3h1"]
-script = ExtResource("3_o1iwf")
+[sub_resource type="Resource" id="ShootCircleDef_circle"]
+script = ExtResource("3_g0kf2")
+bullet_count = 36
 bullet_data = SubResource("Resource_vsyem")
-metadata/_custom_type_script = "uid://kypfrnfd8arg"
+executor_script = ExtResource("4_m3ld7")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
 atlas = ExtResource("2_4dide")
@@ -65,5 +68,5 @@ script = ExtResource("1_jjwni")
 sprite_frames = SubResource("SpriteFrames_10yxv")
 max_hp = 5000
 hitbox_radius = 28.0
-shoot_pattern = SubResource("Resource_uu3h1")
+shoot_pattern_defs = Array[ExtResource("2_10yxv")]([SubResource("ShootCircleDef_circle")])
 metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

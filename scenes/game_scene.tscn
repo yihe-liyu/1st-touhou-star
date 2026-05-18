@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://bwbl2x4t1hpet"]
 
 [ext_resource type="Shader" uid="uid://cr64aki5702jb" path="res://shader/Ground.gdshader" id="1_b5spy"]
-[ext_resource type="Script" uid="uid://cqcolrvgkwqxs" path="res://scripts/background/camera_effect.gd" id="1_utbpp"]
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
 [ext_resource type="Texture2D" uid="uid://dowb4ttes3yka" path="res://assets/Textures/background/stage01/st01a.png" id="2_b5spy"]
 [ext_resource type="PackedScene" uid="uid://bi0jd81dgbg7b" path="res://scenes/enemy.tscn" id="3_bw6k5"]
@@ -66,7 +65,6 @@ stretch = true
 handle_input_locally = false
 size = Vector2i(776, 904)
 render_target_update_mode = 4
-script = ExtResource("1_utbpp")
 
 [node name="Camera3D" type="Camera3D" parent="Background/SubViewportContainer/SubViewport" unique_id=611542005]
 transform = Transform3D(1, 0, 0, 0, -4.371138e-08, 0.9999998, 0, -0.9999998, -4.371138e-08, 0, 2, 8)

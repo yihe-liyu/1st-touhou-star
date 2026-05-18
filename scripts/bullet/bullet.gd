@@ -14,7 +14,7 @@ var can_be_canceled: bool = false
 var hit_effect: PackedScene
 
 # 判定区域
-enum HitboxShape { CIRCLE, RECTANGLE }
+enum HitboxShape {CIRCLE, RECTANGLE}
 var hitbox_shape: int = HitboxShape.CIRCLE
 var hitbox_offset: Vector2 = Vector2.ZERO
 var hitbox_radius: float = 4.0
@@ -27,29 +27,35 @@ var movement: RefCounted = null
 # 额外变量
 var extra: Dictionary = {}
 
-func bind(data: BulletData, direction: Vector2):
+func bind(data: BulletData, direction: Vector2, override: BulletOverride = null):
 	z_index = 10
-	
+
+	var final_dir = direction
+	if override and override.angle_offset != 0.0:
+		final_dir = direction.rotated(override.angle_offset)
+
 	$Sprite2D.texture = data.texture
-	damage = data.damage
-	velocity = direction.normalized() * data.velocity.length()
+	damage = override.damage if override and override.damage >= 0 else data.damage
 	faction = data.faction
-	can_be_canceled = data.can_be_canceled
+	can_be_canceled = override.can_be_canceled if override and override._cancel_set else data.can_be_canceled
 	hit_effect = data.hit_effect
-	
+
 	hitbox_shape = data.hitbox_shape
 	hitbox_offset = data.hitbox_offset
 	hitbox_radius = data.hitbox_radius
 	hitbox_size = data.hitbox_size
 	hitbox_rotation = data.hitbox_rotation
-	
+
 	extra = data.extra.duplicate()
-	
-	self.rotation = direction.angle()
-	
-	# 如果配了自定义移动脚本，就创建脚本实例
+
+	var speed = data.velocity.length()
+	if override and override.speed_mult > 0.0:
+		speed *= override.speed_mult
+	velocity = final_dir.normalized() * speed
+	self.rotation = final_dir.angle()
+
 	if data.movement_script:
 		movement = data.movement_script.new()
 	else:
 		movement = MoveLinear.new()
-	movement.bind(self)
+	movement.bind(self )

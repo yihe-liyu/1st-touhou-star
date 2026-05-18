@@ -13,6 +13,7 @@ var score_value: int
 var death_effect: PackedScene
 
 var shoot_pattern: ShootPattern
+var executors: Array[ShootExecutor] = []
 
 var hp: int
 
@@ -30,7 +31,6 @@ func _apply_enemy_data(data: EnemyData):
 	
 	hp = max_hp
 	
-	# 设置碰撞形状半径
 	var shape = $CollisionShape2D.shape
 	if shape is CircleShape2D: shape.radius = hitbox_radius
 		
@@ -43,6 +43,15 @@ func _apply_enemy_data(data: EnemyData):
 	else:
 		shoot_pattern = null
 
+	for def in data.shoot_pattern_defs:
+		if not def.executor_script:
+			push_error("Enemy: ShootPatternDef 缺少 executor_script: %s" % def.resource_path)
+			continue
+		var exec = def.executor_script.new()
+		add_child(exec)
+		exec.start(def, self)
+		executors.append(exec)
+
 func take_damage(damage: int):
 	hp -= damage
 	if hp <= 0: die()
@@ -50,13 +59,11 @@ func take_damage(damage: int):
 func die():
 	GameState.active_enemies.erase(self)
 	
-	# 死亡特效
 	if death_effect:
 		var effect = death_effect.instantiate()
 		get_tree().current_scene.add_child(effect)
 		effect.global_position = global_position
 	
-	# 通知全局（加分、音效等）
 	GameEvents.enemy_killed.emit(score_value, global_position)
 	
 	queue_free()

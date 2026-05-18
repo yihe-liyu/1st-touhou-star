@@ -10,25 +10,24 @@ var bullet_pool: Array = []
 func _ready():
 	# 提前准备 POOL_SIZE 个弹幕实例放入对象池
 	for i in range(POOL_SIZE):
-		var b = bullet_scene.instantiate()		# 创建 1 个弹幕实例
-		b.visible = false						# 使其不可见
-		b.process_mode = PROCESS_MODE_DISABLED	# 使其不更新
-		add_child(b)								# 把这个实例挂到场景树上
-		bullet_pool.append(b)					# 把这个实例的 引用 放进数组
+		var b = bullet_scene.instantiate() # 创建 1 个弹幕实例
+		b.visible = false # 使其不可见
+		b.process_mode = PROCESS_MODE_DISABLED # 使其不更新
+		add_child(b) # 把这个实例挂到场景树上
+		bullet_pool.append(b) # 把这个实例的 引用 放进数组
 
 # ── 发射 ──
 
-# direction 为发射方向
-func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2):
+func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
 	var bullet: Bullet
 	
-	if bullet_pool.is_empty():				# 如果对象池为空
-		bullet = bullet_scene.instantiate()	# 则创建 1 个弹幕实例
+	if bullet_pool.is_empty():
+		bullet = bullet_scene.instantiate()
 		add_child(bullet)
 	else:
-		bullet = bullet_pool.pop_back()		# 否则从对象池获取 1 个弹幕实例
+		bullet = bullet_pool.pop_back()
 	
-	bullet.bind(data, direction)
+	bullet.bind(data, direction, override)
 	bullet.global_position = position
 	bullet.visible = true
 	bullet.process_mode = PROCESS_MODE_INHERIT
@@ -36,16 +35,14 @@ func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2):
 	
 	return bullet
 
-# ── 便捷方法（给 Player 和敌人用） ──
+func shoot_player_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
+	shoot_bullet(data, position, direction, override)
 
-func shoot_player_bullet(data: BulletData, position: Vector2, direction: Vector2):
-	shoot_bullet(data, position, direction)
+func shoot_enemy_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
+	shoot_bullet(data, position, direction, override)
 
-func shoot_enemy_bullet(data: BulletData, position: Vector2, direction: Vector2):
-	shoot_bullet(data, position, direction)
-
-func shoot_bomb_bullet(data: BulletData, position: Vector2, direction: Vector2):
-	shoot_bullet(data, position, direction)
+func shoot_bomb_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
+	shoot_bullet(data, position, direction, override)
 
 # ── 回收 ──
 
