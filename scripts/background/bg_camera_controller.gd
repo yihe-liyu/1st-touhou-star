@@ -40,9 +40,10 @@ func _update_tilt_from_player(delta):
 		return
 
 	var view_center = get_viewport().get_visible_rect().size * 0.5
-	var offset = (player.global_position - view_center) / view_center
+	var player_screen_pos = get_viewport().get_canvas_transform() * player.global_position
+	var offset = (player_screen_pos - view_center) / view_center
 
-	var target_x = -offset.x * _config.tilt_response
+	var target_x = - offset.x * _config.tilt_response
 	var target_y = offset.y * _config.tilt_response
 
 	_current_tilt_x = move_toward(_current_tilt_x, target_x, _config.tilt_smooth * delta)

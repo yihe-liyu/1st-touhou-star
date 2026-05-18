@@ -7,7 +7,7 @@ class_name BgLayerConfig
 @export var scroll_speed: Vector2 = Vector2(0, -0.1)
 ## 在 3D 空间中的 Z 深度。越远视差越弱
 @export var z_position: float = 10.0
-## QuadMesh 缩放倍数，调整纹理平铺大小
+## QuadMesh 缩放倍数（基础 80×80），越大约广
 @export var scale: float = 2.0
 ## 色调乘算颜色（白色 = 不改变原色）
 @export var tint: Color = Color(1, 1, 1, 1)

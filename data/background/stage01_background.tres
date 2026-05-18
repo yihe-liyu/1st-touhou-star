@@ -4,12 +4,20 @@
 [ext_resource type="Script" uid="uid://dcc0jp021x7tw" path="res://scripts/background/bg_layer_config.gd" id="2_layer_cfg"]
 [ext_resource type="Script" uid="uid://doojwv8vw4mr8" path="res://scripts/background/bg_camera_config.gd" id="3_cam_cfg"]
 [ext_resource type="Texture2D" uid="uid://dowb4ttes3yka" path="res://assets/Textures/background/stage01/st01a.png" id="4_gnd_tex"]
+[ext_resource type="Texture2D" uid="uid://dudt7kr2rhib1" path="res://assets/Textures/background/stage01/st01b.png" id="5_8k4y8"]
 
 [sub_resource type="Resource" id="BgCameraConfig_default"]
 script = ExtResource("3_cam_cfg")
 
+[sub_resource type="Resource" id="Resource_8k4y8"]
+script = ExtResource("2_layer_cfg")
+texture = ExtResource("5_8k4y8")
+scale = 0.5
+metadata/_custom_type_script = "uid://dcc0jp021x7tw"
+
 [resource]
 script = ExtResource("1_script")
+layers = Array[ExtResource("2_layer_cfg")]([SubResource("Resource_8k4y8")])
 ground_texture = ExtResource("4_gnd_tex")
 fog_color = Color(0.49, 0.42, 0.67, 1)
 camera_config = SubResource("BgCameraConfig_default")

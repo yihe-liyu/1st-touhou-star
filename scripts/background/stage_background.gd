@@ -21,34 +21,43 @@ func _ready():
 	if background_data.camera_config:
 		_camera_ctrl.setup(background_data.camera_config, _camera)
 
+func _make_flat_quad(scale_mult: float = 1.0) -> QuadMesh:
+	var q = QuadMesh.new()
+	q.size = Vector2(80, 80) * scale_mult
+	return q
+
+func _spawn_layer(cfg: BgLayerConfig) -> MeshInstance3D:
+	var mesh_node = MeshInstance3D.new()
+	mesh_node.mesh = _make_flat_quad(cfg.scale)
+	mesh_node.rotation_degrees.x = -90
+	var mat = ShaderMaterial.new()
+	mat.shader = LayerScrollShader
+	mat.set_shader_parameter("layer_texture", cfg.texture)
+	mat.set_shader_parameter("scroll_speed", cfg.scroll_speed)
+	mat.set_shader_parameter("tint", cfg.tint)
+	mesh_node.material_override = mat
+	mesh_node.position = Vector3(0, -1, cfg.z_position)
+	return mesh_node
+
 func _apply_data():
 	var bd = background_data
 
 	if bd.sky_texture:
-		_sky_mesh.mesh = QuadMesh.new()
-		_sky_mesh.mesh.size = Vector2(30, 30) * bd.sky_scale
-		var mat = ShaderMaterial.new()
-		mat.shader = LayerScrollShader
-		mat.set_shader_parameter("layer_texture", bd.sky_texture)
-		mat.set_shader_parameter("scroll_speed", bd.sky_scroll)
-		mat.set_shader_parameter("tint", bd.sky_tint)
-		_sky_mesh.material_override = mat
-		_sky_mesh.position.z = 30.0
+		var sky_cfg = BgLayerConfig.new()
+		sky_cfg.texture = bd.sky_texture
+		sky_cfg.scroll_speed = bd.sky_scroll
+		sky_cfg.scale = bd.sky_scale
+		sky_cfg.tint = bd.sky_tint
+		sky_cfg.z_position = 30.0
+		var spawned = _spawn_layer(sky_cfg)
+		spawned.name = "SkyLayer"
+		_sky_mesh.replace_by(spawned)
+		_sky_mesh = spawned
 
 	for cfg in bd.layers:
 		if not cfg.texture:
 			continue
-		var mesh_node = MeshInstance3D.new()
-		mesh_node.mesh = QuadMesh.new()
-		mesh_node.mesh.size = Vector2(20, 20) * cfg.scale
-		var mat = ShaderMaterial.new()
-		mat.shader = LayerScrollShader
-		mat.set_shader_parameter("layer_texture", cfg.texture)
-		mat.set_shader_parameter("scroll_speed", cfg.scroll_speed)
-		mat.set_shader_parameter("tint", cfg.tint)
-		mesh_node.material_override = mat
-		mesh_node.position.z = cfg.z_position
-		_layer_container.add_child(mesh_node)
+		_layer_container.add_child(_spawn_layer(cfg))
 
 	if bd.ground_texture:
 		var mat = ShaderMaterial.new()
