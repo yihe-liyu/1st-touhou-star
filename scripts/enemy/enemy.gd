@@ -4,6 +4,7 @@ class_name Enemy
 
 @onready var animation: AnimatedSprite2D = $AnimatedSprite2D
 
+## 敌人配置数据（生命、判定、弹幕模式等）
 @export var enemy_data: EnemyData
 
 var sprite_frames: SpriteFrames
@@ -20,7 +21,7 @@ var hp: int
 func _ready():
 	if enemy_data: _apply_enemy_data(enemy_data)
 		
-	GameState.active_enemies.append(self)
+	GameState.active_enemies.append(self )
 
 func _apply_enemy_data(data: EnemyData):
 	sprite_frames = data.sprite_frames
@@ -39,7 +40,7 @@ func _apply_enemy_data(data: EnemyData):
 
 	if data.shoot_pattern:
 		shoot_pattern = data.shoot_pattern.duplicate()
-		shoot_pattern.bind(self)
+		shoot_pattern.bind(self )
 	else:
 		shoot_pattern = null
 
@@ -49,7 +50,7 @@ func _apply_enemy_data(data: EnemyData):
 			continue
 		var exec = def.executor_script.new()
 		add_child(exec)
-		exec.start(def, self)
+		exec.start(def, self )
 		executors.append(exec)
 
 func take_damage(damage: int):
@@ -57,7 +58,7 @@ func take_damage(damage: int):
 	if hp <= 0: die()
 
 func die():
-	GameState.active_enemies.erase(self)
+	GameState.active_enemies.erase(self )
 	
 	if death_effect:
 		var effect = death_effect.instantiate()

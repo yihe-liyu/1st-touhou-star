@@ -2,12 +2,13 @@
 extends ShootPattern
 class_name ShootPatternCircle
 
+## 发射的子弹模板
 @export var bullet_data: BulletData
-
+## 射击间隔（秒）
 @export var interval: float = 0.01
-
+## 每圈子弹数量
 @export var bullet_count: int = 2
-
+## 速度倍率
 @export var speed_multiplier: float = 1.0
 
 var _override: BulletOverride

@@ -20,7 +20,7 @@ var hitbox_radius: float = 5.0
 @onready var hitpoint_display: HitPointDisplay = $HitPointDisplay
 @onready var muzzle: Marker2D = $Muzzle
 
-# @export 的机体数据
+## 玩家机体数据（速度、动画、武器等）
 @export var player_data: PlayerData
 var shoot_timer: float = 0.0
 var options: Array = []		# 子机

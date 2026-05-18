@@ -4,9 +4,11 @@
 extends Node2D
 class_name BulletBatchCanvas
 
+## 是否启用批绘制。默认 false（实验性功能）
 @export var enabled: bool = false
 
 @export_group("阵营")
+## 只渲染此阵营的子弹。-1=全部, 0=自机, 1=敌人, 2=Bomb
 @export var faction: int = -1
 
 func _ready():
