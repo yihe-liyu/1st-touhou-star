@@ -1,0 +1,2 @@
+# autoload/game_manager.gd
+extends Node

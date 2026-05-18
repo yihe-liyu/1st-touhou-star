@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://drpnqnuvdtofe"]
+
+[ext_resource type="Script" uid="uid://5gmkcw47drg1" path="res://scripts/bullet/bullet.gd" id="1_mkf8s"]
+
+[node name="Bullet" type="Node2D" unique_id=679847363]
+scale = Vector2(2, 2)
+script = ExtResource("1_mkf8s")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1492511607]

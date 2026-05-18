@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="PlayerData" format=3 uid="uid://dpfnytduqm40y"]
+
+[ext_resource type="SpriteFrames" uid="uid://dwv5hnxn0kxi6" path="res://data/player_data/reimu_anim.tres" id="1_epgkh"]
+[ext_resource type="Resource" uid="uid://dhebh7sfhahl5" path="res://data/bullet_data/reimu_main_bullet.tres" id="2_2kwkw"]
+[ext_resource type="Script" uid="uid://dx1bqbqgr3ujm" path="res://scripts/data/weapon_data.gd" id="3_dnnnb"]
+[ext_resource type="Script" uid="uid://grfvsrralj0y" path="res://scripts/data/player_data.gd" id="4_tumgh"]
+
+[sub_resource type="Resource" id="Resource_6ke8n"]
+script = ExtResource("3_dnnnb")
+bullet_data = ExtResource("2_2kwkw")
+shoot_rate = 0.08
+muzzle_positions = Array[Vector2]([Vector2(-20, 0), Vector2(20, 0)])
+metadata/_custom_type_script = "uid://dx1bqbqgr3ujm"
+
+[resource]
+script = ExtResource("4_tumgh")
+focus_speed = 200
+normal_speed = 450
+animation = ExtResource("1_epgkh")
+main_weapon = SubResource("Resource_6ke8n")
+metadata/_custom_type_script = "uid://grfvsrralj0y"

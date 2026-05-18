@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://cb505yupublnp"]
+
+[ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_jjwni"]
+[ext_resource type="Texture2D" uid="uid://bgn5feo55byah" path="res://assets/Textures/enemy/enemy.png" id="2_4dide"]
+[ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_o1iwf"]
+[ext_resource type="Script" uid="uid://kypfrnfd8arg" path="res://scripts/shoot_pattern/stage01/shoot_pattern_circle.gd" id="3_o1iwf"]
+[ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="3_uu3h1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_10yxv"]
+atlas = ExtResource("3_uu3h1")
+region = Rect2(144, 64, 16, 16)
+
+[sub_resource type="Resource" id="Resource_vsyem"]
+script = ExtResource("2_o1iwf")
+texture = SubResource("AtlasTexture_10yxv")
+velocity = Vector2(0, 100)
+faction = 1
+can_be_canceled = true
+hitbox_radius = 5.0
+metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
+
+[sub_resource type="Resource" id="Resource_uu3h1"]
+script = ExtResource("3_o1iwf")
+bullet_data = SubResource("Resource_vsyem")
+metadata/_custom_type_script = "uid://kypfrnfd8arg"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
+atlas = ExtResource("2_4dide")
+region = Rect2(0, 320, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o1iwf"]
+atlas = ExtResource("2_4dide")
+region = Rect2(32, 320, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uu3h1"]
+atlas = ExtResource("2_4dide")
+region = Rect2(64, 320, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vsyem"]
+atlas = ExtResource("2_4dide")
+region = Rect2(96, 320, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_10yxv"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hxnam")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o1iwf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uu3h1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vsyem")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 10.0
+}]
+
+[resource]
+script = ExtResource("1_jjwni")
+sprite_frames = SubResource("SpriteFrames_10yxv")
+max_hp = 5000
+hitbox_radius = 28.0
+shoot_pattern = SubResource("Resource_uu3h1")
+metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

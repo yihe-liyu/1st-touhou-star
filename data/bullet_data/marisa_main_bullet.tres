@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://d07a884dras2t"]
+
+[ext_resource type="PackedScene" uid="uid://mfo8277i4cxk" path="res://scenes/effect/hit_effect_marisa.tscn" id="1_mlmo4"]
+[ext_resource type="Script" uid="uid://dfwcj1nrous80" path="res://scripts/bullet_movements/move_linear.gd" id="1_vhq46"]
+[ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_hritk"]
+[ext_resource type="Texture2D" uid="uid://66nx3q6rsiax" path="res://assets/Textures/player/pl01.png" id="3_4tnbv"]
+[ext_resource type="Script" uid="uid://dx1bqbqgr3ujm" path="res://scripts/data/weapon_data.gd" id="4_f68yb"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gf50r"]
+atlas = ExtResource("3_4tnbv")
+region = Rect2(0, 144, 32, 16)
+
+[sub_resource type="Resource" id="Resource_en60p"]
+script = ExtResource("2_hritk")
+texture = SubResource("AtlasTexture_gf50r")
+velocity = Vector2(0, -3000)
+hit_effect = ExtResource("1_mlmo4")
+hitbox_shape = 1
+hitbox_radius = 0.0
+hitbox_size = Vector2(48, 24)
+movement_script = ExtResource("1_vhq46")
+metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
+
+[resource]
+script = ExtResource("4_f68yb")
+bullet_data = SubResource("Resource_en60p")
+shoot_rate = 0.08
+muzzle_positions = Array[Vector2]([Vector2(-15, 0), Vector2(15, 0)])
+metadata/_custom_type_script = "uid://dx1bqbqgr3ujm"

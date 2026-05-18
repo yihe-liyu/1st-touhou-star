@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://cuprua8ark5uf"]
+
+[ext_resource type="Script" uid="uid://b8353rmyxuhfn" path="res://scripts/player/player.gd" id="1_abrql"]
+[ext_resource type="Texture2D" uid="uid://bnnwlslhep7qj" path="res://assets/Textures/effect/eff_sloweffect.png" id="2_abrql"]
+[ext_resource type="Script" uid="uid://gak0iy8m5w02" path="res://scripts/player/hit_point_display.gd" id="2_sglur"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sglur"]
+atlas = ExtResource("2_abrql")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bls4j"]
+atlas = ExtResource("2_abrql")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gt4e4"]
+radius = 3.0
+
+[node name="Player" type="Area2D" unique_id=1050493547]
+position = Vector2(447, 0)
+collision_mask = 12
+script = ExtResource("1_abrql")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1344092506]
+scale = Vector2(2, 2)
+autoplay = "idle"
+
+[node name="HitPointDisplay" type="Node2D" parent="." unique_id=1959566309]
+modulate = Color(1, 1, 1, 0.49803922)
+script = ExtResource("2_sglur")
+
+[node name="Yin" type="Sprite2D" parent="HitPointDisplay" unique_id=731464269]
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_sglur")
+
+[node name="Yang" type="Sprite2D" parent="HitPointDisplay" unique_id=1394781452]
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_bls4j")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=20289244]
+scale = Vector2(2, 2)
+shape = SubResource("CircleShape2D_gt4e4")
+
+[node name="Muzzle" type="Marker2D" parent="." unique_id=910671976]
