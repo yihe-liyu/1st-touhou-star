@@ -1,4 +1,4 @@
-# ShootPatternCircle.gd
+# ShootPatternCircle.gd — DEPRECATED: Use ShootCircleDef + ShootCircleExecutor instead.
 extends ShootPattern
 class_name ShootPatternCircle
 

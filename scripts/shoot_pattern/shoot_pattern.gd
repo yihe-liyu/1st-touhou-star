@@ -1,4 +1,4 @@
-# shoot_pattern.gd
+# shoot_pattern.gd — DEPRECATED: Use ShootPatternDef + ShootExecutor instead.
 extends Resource
 class_name ShootPattern
 

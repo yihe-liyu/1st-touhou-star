@@ -21,12 +21,12 @@ func _draw():
 			continue
 		
 		match bullet.hitbox_shape:
-			Bullet.HitboxShape.CIRCLE:
+			BulletData.HitboxShape.CIRCLE:
 				var center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
 				_draw_circle(center, bullet.hitbox_radius, Color.RED, false, 1.0)
-				_draw_circle(center, 1.0, Color.RED, true)  # 中心点
+				_draw_circle(center, 1.0, Color.RED, true) # 中心点
 			
-			Bullet.HitboxShape.RECTANGLE:
+			BulletData.HitboxShape.RECTANGLE:
 				var box_center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
 				var half = bullet.hitbox_size / 2.0
 				var angle = bullet.rotation + deg_to_rad(bullet.hitbox_rotation)
@@ -39,8 +39,8 @@ func _draw():
 		# 画速度方向线
 		var dir = bullet.velocity.normalized()
 		var line_start = bullet.global_position
-		var line_end = bullet.global_position + dir * 40  # 从 20 改成 40，更长
-		draw_line(line_start, line_end, Color.YELLOW, 3.0)  # 线宽从 1.0 改成 3.0
+		var line_end = bullet.global_position + dir * 40 # 从 20 改成 40，更长
+		draw_line(line_start, line_end, Color.YELLOW, 3.0) # 线宽从 1.0 改成 3.0
 
 		# 画箭头尖（三角形）
 		var arrow_size = 8.0
@@ -92,9 +92,9 @@ func _draw_circle(center: Vector2, radius: float, color: Color, filled: bool = f
 func _get_rotated_rect_corners(center: Vector2, half: Vector2, angle: float) -> PackedVector2Array:
 	var corners = PackedVector2Array()
 	corners.append(center + Vector2(-half.x, -half.y).rotated(angle))
-	corners.append(center + Vector2( half.x, -half.y).rotated(angle))
-	corners.append(center + Vector2( half.x,  half.y).rotated(angle))
-	corners.append(center + Vector2(-half.x,  half.y).rotated(angle))
+	corners.append(center + Vector2(half.x, -half.y).rotated(angle))
+	corners.append(center + Vector2(half.x, half.y).rotated(angle))
+	corners.append(center + Vector2(-half.x, half.y).rotated(angle))
 	return corners
 
 func _draw_polygon(corners: PackedVector2Array, color: Color, filled: bool, width: float):

@@ -118,9 +118,9 @@ func _bomb_bullet_vs_enemies(bullet: Bullet):
 
 func _bullet_hits_target(bullet: Bullet, target: Node2D) -> bool:
 	match bullet.hitbox_shape:
-		Bullet.HitboxShape.CIRCLE:
+		BulletData.HitboxShape.CIRCLE:
 			return _check_circle(bullet, target)
-		Bullet.HitboxShape.RECTANGLE:
+		BulletData.HitboxShape.RECTANGLE:
 			return _check_rect(bullet, target)
 	return false
 

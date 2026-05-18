@@ -1,5 +1,6 @@
-# HitEffectMarisa.gd
+# PlayerBulletHitEffect.gd
 extends Node2D
+class_name PlayerBulletHitEffect
 
 @onready var animation: AnimatedSprite2D = $AnimatedSprite2D
 
