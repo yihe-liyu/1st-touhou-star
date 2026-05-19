@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://d1b6hyoghc4m4"]
+
+[ext_resource type="Script" uid="uid://c501m3qpmdk2s" path="res://scripts/ui/main_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dmxqsu00lb26i" path="res://assets/Textures/front/front.png" id="2_front"]
+
+[node name="MainMenu" type="CanvasLayer" unique_id=2093015590]
+layer = 0
+script = ExtResource("1_script")
+container_path = NodePath("Container")
+
+[node name="Background" type="TextureRect" parent="." unique_id=627389897]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_front")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Container" type="VBoxContainer" parent="." unique_id=343449348]
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.65
+anchor_right = 0.5
+anchor_bottom = 0.65
+offset_left = -160.0
+offset_top = -80.0
+offset_right = 160.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="StartLabel" type="Label" parent="Container" unique_id=673846519]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Start Game"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="QuitLabel" type="Label" parent="Container" unique_id=1490098892]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Quit"
+horizontal_alignment = 1
+vertical_alignment = 1

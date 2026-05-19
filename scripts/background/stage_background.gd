@@ -23,7 +23,7 @@ func _ready():
 
 func _make_flat_quad(scale_mult: float = 1.0) -> QuadMesh:
 	var q = QuadMesh.new()
-	q.size = Vector2(80, 80) * scale_mult
+	q.size = Vector2(36, 27) * scale_mult
 	return q
 
 func _spawn_layer(cfg: BgLayerConfig) -> MeshInstance3D:
