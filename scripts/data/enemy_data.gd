@@ -12,7 +12,7 @@ class_name EnemyData
 @export var score_value: int = 100
 ## 死亡时生成的特效 PackedScene
 @export var death_effect: PackedScene
-## [DEPRECATED] 旧版发弹脚本，请改用 shoot_pattern_defs
-@export var shoot_pattern: ShootPattern
 ## 弹幕模式配置数组。按顺序启动 Executor，支持并行
 @export var shoot_pattern_defs: Array[ShootPatternDef] = []
+## 移动模式脚本（EnemyMovement 子类）
+@export var move_pattern: Script

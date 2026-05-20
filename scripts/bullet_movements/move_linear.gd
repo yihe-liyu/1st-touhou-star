@@ -1,11 +1,6 @@
 # MoveLinear.gd
-extends RefCounted
+extends BulletMovement
 class_name MoveLinear
-
-var bullet: Bullet
-
-func bind(b: Bullet):
-	bullet = b
 
 func update(delta: float):
 	bullet.global_position += bullet.velocity * delta

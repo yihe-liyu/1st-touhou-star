@@ -10,6 +10,6 @@ class_name LevelData
 ## 背景音乐路径（预留）
 @export var bgm_path: String = ""
 ## 背景配置数据
-@export var background_data: Resource
+@export var background_data: StageBackgroundData
 ## 难度倍率
 @export var difficulty_mult: float = 1.0

@@ -22,7 +22,7 @@ GameEvents="*uid://crmumkxb3k5uc"
 GameManager="*uid://ekf00dur5yyt"
 BulletManager="*uid://r1cevfo2ay7l"
 GameState="*uid://bd4sn2mxfar2u"
-LevelManager="res://scripts/autoload/level_manager.gd"
+LevelManager="*res://scripts/autoload/level_manager.gd"
 
 [display]
 

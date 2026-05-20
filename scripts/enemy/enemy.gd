@@ -3,6 +3,7 @@ extends Area2D
 class_name Enemy
 
 @onready var animation: AnimatedSprite2D = $AnimatedSprite2D
+@onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 ## 敌人配置数据（生命、判定、弹幕模式等）
 @export var enemy_data: EnemyData
@@ -13,8 +14,8 @@ var hitbox_radius: float
 var score_value: int
 var death_effect: PackedScene
 
-var shoot_pattern: ShootPattern
 var executors: Array[ShootExecutor] = []
+var mover: EnemyMovement
 
 var hp: int
 
@@ -32,17 +33,11 @@ func _apply_enemy_data(data: EnemyData):
 	
 	hp = max_hp
 	
-	var shape = $CollisionShape2D.shape
-	if shape is CircleShape2D: shape.radius = hitbox_radius
+	if collision_shape and collision_shape.shape is CircleShape2D:
+		collision_shape.shape.radius = hitbox_radius
 		
 	if sprite_frames: animation.sprite_frames = sprite_frames
 	animation.play("idle")
-
-	if data.shoot_pattern:
-		shoot_pattern = data.shoot_pattern.duplicate()
-		shoot_pattern.bind(self )
-	else:
-		shoot_pattern = null
 
 	for def in data.shoot_pattern_defs:
 		if not def.executor_script:
@@ -50,8 +45,13 @@ func _apply_enemy_data(data: EnemyData):
 			continue
 		var exec = def.executor_script.new()
 		add_child(exec)
-		exec.start(def, self )
+		exec.start(def, self)
 		executors.append(exec)
+
+	if data.move_pattern:
+		mover = data.move_pattern.new()
+		add_child(mover)
+		mover.start(self, null)
 
 func take_damage(damage: int):
 	hp -= damage
@@ -66,11 +66,8 @@ func die():
 		effect.global_position = global_position
 	
 	GameEvents.enemy_killed.emit(score_value, global_position)
-	
-	queue_free()
 
-func _physics_process(delta):
-	if shoot_pattern: shoot_pattern.update(delta)
-	for exec in executors:
-		if exec._active:
-			exec._process(delta)
+	if mover and is_instance_valid(mover):
+		mover.stop()
+
+	queue_free()

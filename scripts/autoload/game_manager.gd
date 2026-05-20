@@ -19,6 +19,7 @@ var _menu_stack: Array = []
 var _transition_layer: CanvasLayer
 var _transition_rect: ColorRect
 var _pause_menu_instance = null
+var _overlay_menu_stack: Array = []
 
 func _ready():
 	_ensure_input_actions()
@@ -28,7 +29,7 @@ func _ready():
 func _process(_delta):
 	if current_state == AppState.TRANSITIONING:
 		return
-	if _pause_menu_instance or not _menu_stack.is_empty():
+	if _pause_menu_instance or not _menu_stack.is_empty() or not _overlay_menu_stack.is_empty():
 		return
 	if current_state == AppState.PLAYING:
 		if Input.is_action_just_pressed("ui_pause"):
@@ -79,7 +80,7 @@ func _set_state(new_state: AppState):
 	game_state_changed.emit(old, new_state)
 
 func _input(_event: InputEvent):
-	if _pause_menu_instance or not _menu_stack.is_empty():
+	if _pause_menu_instance or not _menu_stack.is_empty() or not _overlay_menu_stack.is_empty():
 		get_viewport().set_input_as_handled()
 
 func is_paused() -> bool:
@@ -139,6 +140,21 @@ func pop_menu():
 func clear_menus():
 	while not _menu_stack.is_empty():
 		pop_menu()
+
+func push_overlay_menu(menu: CanvasLayer):
+	_overlay_menu_stack.append(menu)
+	_set_state(AppState.PAUSED)
+	get_tree().paused = true
+	menu.process_mode = PROCESS_MODE_ALWAYS
+	get_tree().root.add_child(menu)
+
+func pop_overlay_menu(menu: CanvasLayer):
+	_overlay_menu_stack.erase(menu)
+	if is_instance_valid(menu):
+		menu.queue_free()
+	if _overlay_menu_stack.is_empty():
+		_set_state(AppState.PLAYING)
+		get_tree().paused = false
 
 # ── 暂停 / 恢复 ──
 

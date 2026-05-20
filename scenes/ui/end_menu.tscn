@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://cwobn0kmhdkxa"]
+
+[ext_resource type="Script" uid="uid://bhol8u6hom5xl" path="res://scripts/ui/end_menu.gd" id="1_script"]
+
+[node name="EndMenu" type="CanvasLayer" unique_id=792017084]
+process_mode = 1
+layer = 128
+script = ExtResource("1_script")
+title_label = NodePath("Panel/TitleLabel")
+title_text = ""
+container_path = NodePath("Panel/MenuContainer")
+
+[node name="Panel" type="ColorRect" parent="." unique_id=1599365742]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="TitleLabel" type="Label" parent="Panel" unique_id=780668538]
+layout_mode = 0
+anchor_top = 0.15
+anchor_right = 1.0
+anchor_bottom = 0.35
+theme_override_font_sizes/font_size = 36
+text = "Stage Clear!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MenuContainer" type="VBoxContainer" parent="Panel" unique_id=1046373495]
+layout_mode = 0
+anchor_top = 0.4
+anchor_right = 1.0
+anchor_bottom = 0.7
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Restart" type="Button" parent="Panel/MenuContainer" unique_id=1982256563]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "重新开始"
+
+[node name="ReturnTitle" type="Button" parent="Panel/MenuContainer" unique_id=896922865]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "返回标题"

@@ -2,13 +2,13 @@
 
 [ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_jjwni"]
 [ext_resource type="Texture2D" uid="uid://bgn5feo55byah" path="res://assets/Textures/enemy/enemy.png" id="2_4dide"]
-[ext_resource type="Script" uid="uid://dnwomdu125tor" path="res://scripts/shoot_pattern/shoot_pattern_def.gd" id="2_10yxv"]
+[ext_resource type="Script" uid="uid://b305aufpl373n" path="res://scripts/shoot_pattern/shoot_pattern_def.gd" id="2_10yxv"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_o1iwf"]
 [ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="3_uu3h1"]
-[ext_resource type="Script" uid="uid://c1o0pwtn6iy0c" path="res://scripts/shoot_pattern/shoot_aimed_def.gd" id="5_aimed_def"]
-[ext_resource type="Script" uid="uid://dbq7o6e1aouyi" path="res://scripts/shoot_pattern/shoot_aimed_executor.gd" id="6_aimed_exec"]
-[ext_resource type="Script" uid="uid://qrhfvbfx8x5i" path="res://scripts/shoot_pattern/shoot_arc_def.gd" id="7_arc_def"]
-[ext_resource type="Script" uid="uid://c7441erc1kjt0" path="res://scripts/shoot_pattern/shoot_arc_executor.gd" id="8_arc_exec"]
+[ext_resource type="Script" uid="uid://dh3vrtcuabo3h" path="res://scripts/shoot_pattern/shoot_aimed_def.gd" id="5_aimed_def"]
+[ext_resource type="Script" uid="uid://ccwuwp2aatbav" path="res://scripts/shoot_pattern/shoot_aimed_executor.gd" id="6_aimed_exec"]
+[ext_resource type="Script" uid="uid://dsfsjukr0hcb7" path="res://scripts/shoot_pattern/shoot_arc_def.gd" id="7_arc_def"]
+[ext_resource type="Script" uid="uid://d3qnp3mex42yk" path="res://scripts/shoot_pattern/shoot_arc_executor.gd" id="8_arc_exec"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_10yxv"]
 atlas = ExtResource("3_uu3h1")
@@ -79,7 +79,7 @@ animations = [{
 [resource]
 script = ExtResource("1_jjwni")
 sprite_frames = SubResource("SpriteFrames_10yxv")
-max_hp = 5000
+max_hp = 500
 hitbox_radius = 28.0
 shoot_pattern_defs = Array[ExtResource("2_10yxv")]([SubResource("ShootAimedDef_aimed"), SubResource("ShootArcDef_arc")])
 metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

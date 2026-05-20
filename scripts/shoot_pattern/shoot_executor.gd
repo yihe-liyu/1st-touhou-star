@@ -34,7 +34,7 @@ func reset():
 	_elapsed = 0.0
 	_shoot_timer = 0.0
 
-func _process(delta):
+func _physics_process(delta):
 	if not _active:
 		return
 
