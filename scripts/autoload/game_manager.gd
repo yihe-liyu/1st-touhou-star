@@ -1,19 +1,20 @@
 extends Node
 
+enum AppState {MENU, PLAYING, PAUSED, TRANSITIONING}
+
+## 游戏状态变化信号 (old_state, new_state)
+signal game_state_changed(old_state: int, new_state: int)
 ## 场景切换信号：进入新场景
 signal scene_entered(scene_path: String)
 ## 场景切换信号：离开旧场景
 signal scene_left(scene_path: String)
-## 游戏暂停状态变化
-signal pause_toggled(is_paused: bool)
 
 const FADE_DURATION: float = 0.4
 const PAUSE_MENU_SCENE: String = "res://scenes/ui/pause_menu.tscn"
 
 var current_scene_path: String = ""
 var previous_scene_path: String = ""
-var is_paused: bool = false
-var is_transitioning: bool = false
+var current_state: AppState = AppState.MENU
 var _menu_stack: Array = []
 var _transition_layer: CanvasLayer
 var _transition_rect: ColorRect
@@ -25,12 +26,12 @@ func _ready():
 	process_mode = PROCESS_MODE_ALWAYS
 
 func _process(_delta):
-	if is_transitioning:
+	if current_state == AppState.TRANSITIONING:
 		return
 	if _pause_menu_instance or not _menu_stack.is_empty():
 		return
-	if Input.is_action_just_pressed("ui_pause"):
-		if not is_paused and current_scene_path != "":
+	if current_state == AppState.PLAYING:
+		if Input.is_action_just_pressed("ui_pause"):
 			pause_game()
 
 func _ensure_input_actions():
@@ -42,7 +43,6 @@ func _ensure_input_actions():
 	_add_keys_to_action("ui_left", [KEY_LEFT, KEY_A])
 	_add_keys_to_action("ui_right", [KEY_RIGHT, KEY_D])
 
- 
 func _add_keys_to_action(action_name: String, keycodes: Array):
 	if not InputMap.has_action(action_name):
 		InputMap.add_action(action_name)
@@ -71,31 +71,39 @@ func _setup_transition():
 	_transition_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_transition_layer.add_child(_transition_rect)
 
-	process_mode = PROCESS_MODE_ALWAYS
+func _set_state(new_state: AppState):
+	var old = current_state
+	if old == new_state:
+		return
+	current_state = new_state
+	game_state_changed.emit(old, new_state)
 
 func _input(_event: InputEvent):
-	if is_transitioning:
-		return
-
 	if _pause_menu_instance or not _menu_stack.is_empty():
 		get_viewport().set_input_as_handled()
 
+func is_paused() -> bool:
+	return current_state == AppState.PAUSED
+
 # ── 场景切换 ──
 
-func change_scene(path: String):
-	if is_transitioning:
+func change_scene(path: String, target_state: AppState = AppState.PLAYING):
+	if current_state == AppState.TRANSITIONING:
 		return
-	is_transitioning = true
+
+	_set_state(AppState.TRANSITIONING)
+	get_tree().paused = true
 
 	clear_menus()
 	_cleanup_pause()
-	BulletManager.clear_all()
-	GameState.clear_enemies()
 
 	if current_scene_path != "":
 		scene_left.emit(current_scene_path)
 
 	await _fade_out()
+
+	BulletManager.clear_all()
+	GameState.clear_enemies()
 
 	get_tree().change_scene_to_file(path)
 	await get_tree().process_frame
@@ -105,8 +113,9 @@ func change_scene(path: String):
 
 	await _fade_in()
 
+	get_tree().paused = false
+	_set_state(target_state)
 	scene_entered.emit(current_scene_path)
-	is_transitioning = false
 
 func reload_current_scene():
 	if current_scene_path != "":
@@ -134,14 +143,14 @@ func clear_menus():
 # ── 暂停 / 恢复 ──
 
 func pause_game():
-	if is_paused:
+	if current_state != AppState.PLAYING:
 		return
-	is_paused = true
 
 	if not ResourceLoader.exists(PAUSE_MENU_SCENE):
 		push_error("GameManager: pause_menu.tscn 不存在: " + PAUSE_MENU_SCENE)
-		is_paused = false
 		return
+
+	_set_state(AppState.PAUSED)
 
 	var scene = load(PAUSE_MENU_SCENE)
 	_pause_menu_instance = scene.instantiate()
@@ -149,14 +158,10 @@ func pause_game():
 	get_tree().root.add_child(_pause_menu_instance)
 
 	get_tree().paused = true
-	pause_toggled.emit(true)
 
 func resume_game():
-	if not is_paused:
+	if current_state != AppState.PAUSED:
 		return
-	is_paused = false
-
-	get_tree().paused = false
 
 	if _pause_menu_instance:
 		if _pause_menu_instance.has_method("_on_leave"):
@@ -164,12 +169,13 @@ func resume_game():
 		_pause_menu_instance.queue_free()
 		_pause_menu_instance = null
 
-	pause_toggled.emit(false)
+	get_tree().paused = false
+	_set_state(AppState.PLAYING)
 
 func toggle_pause():
-	if is_paused:
+	if current_state == AppState.PAUSED:
 		resume_game()
-	else:
+	elif current_state == AppState.PLAYING:
 		pause_game()
 
 func _cleanup_pause():
@@ -177,9 +183,9 @@ func _cleanup_pause():
 		if is_instance_valid(_pause_menu_instance):
 			_pause_menu_instance.queue_free()
 		_pause_menu_instance = null
-	if is_paused:
+	if current_state == AppState.PAUSED:
 		get_tree().paused = false
-		is_paused = false
+		_set_state(AppState.PLAYING)
 
 # ── 黑场过渡 ──
 

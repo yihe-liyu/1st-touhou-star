@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=2 format=3 uid="uid://testwave001"]
+
+[ext_resource type="Script" uid="uid://b0q0gmqq30m27" path="res://scripts/data/wave_data.gd" id="1_wave"]
+
+[resource]
+script = ExtResource("1_wave")
+trigger_condition = 0
+trigger_time = 3.0
+spawn_position = Vector2(640, 200)
+metadata/_custom_type_script = "uid://b0q0gmqq30m27"

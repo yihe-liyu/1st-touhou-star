@@ -13,6 +13,7 @@ uniform float fov_stretch = 0.0;
 uniform float roll = 0.0;
 uniform float tilt_x = 0.0;
 uniform float tilt_y = 0.0;
+uniform float u_custom_time = 0.0;
 
 void vertex() {
     float rz = roll * 0.3;
@@ -30,7 +31,7 @@ void vertex() {
 }
 
 void fragment() {
-    vec2 scrolled_uv = UV * grid_scale + scroll_speed * camera_speed_mult * TIME;
+    vec2 scrolled_uv = UV * grid_scale + scroll_speed * camera_speed_mult * u_custom_time;
     vec4 base = texture(base_texture, scrolled_uv) * base_tint;
     vec2 grid = abs(fract(scrolled_uv - 0.5) - 0.5) * 2.0;
     float line = min(grid.x, grid.y);

@@ -1,6 +1,8 @@
 extends CanvasLayer
 class_name StageBackground
 
+var _accumulated_time: float = 0.0
+
 const LayerScrollShader = preload("res://shader/bg_layer_scroll.gdshader")
 const GroundShader = preload("res://shader/Ground.gdshader")
 
@@ -85,3 +87,18 @@ func trigger_shake(amplitude: float = 2.0, decay: float = 4.0):
 func set_ground_param(param_name: String, value):
 	if _ground_mesh and _ground_mesh.material_override:
 		_ground_mesh.material_override.set_shader_parameter(param_name, value)
+
+func _process(delta):
+	if GameManager.current_state == GameManager.AppState.PLAYING:
+		_accumulated_time += delta
+	_update_all_shader_time()
+
+func _update_all_shader_time():
+	var t = _accumulated_time
+	if _sky_mesh and _sky_mesh.material_override:
+		_sky_mesh.material_override.set_shader_parameter("u_custom_time", t)
+	for child in _layer_container.get_children():
+		if child is MeshInstance3D and child.material_override:
+			child.material_override.set_shader_parameter("u_custom_time", t)
+	if _ground_mesh and _ground_mesh.material_override:
+		_ground_mesh.material_override.set_shader_parameter("u_custom_time", t)

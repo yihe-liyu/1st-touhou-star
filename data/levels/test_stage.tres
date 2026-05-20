@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=2 format=3 uid="uid://teststage001"]
+
+[ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/level_data.gd" id="1_level"]
+
+[resource]
+script = ExtResource("1_level")
+stage_id = 1
+stage_name = "Test Stage"
+difficulty_mult = 1.0
+metadata/_custom_type_script = "uid://bvlmm7m3gtwc0"

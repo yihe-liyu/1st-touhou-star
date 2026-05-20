@@ -6,7 +6,7 @@ func _on_item_selected(index: int):
 		0:
 			GameManager.resume_game()
 		1:
-			GameManager.change_scene.call_deferred("res://scenes/ui/main_menu.tscn")
+			GameManager.change_scene.call_deferred("res://scenes/ui/main_menu.tscn", GameManager.AppState.MENU)
 		2:
 			get_tree().quit.call_deferred()
 
