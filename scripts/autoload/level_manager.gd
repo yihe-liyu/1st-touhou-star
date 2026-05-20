@@ -33,6 +33,7 @@ func stop_stage():
 	for child in get_children():
 		if child is WaveScript:
 			child.stop()
+			child.queue_free()
 	_current_wave_script = null
 	current_level = null
 	_wave_index = -1
@@ -43,6 +44,8 @@ func _process(_delta):
 	pass
 
 func _advance_wave():
+	if not current_level:
+		return
 	_wave_index += 1
 	if _wave_index >= current_level.waves.size():
 		_stage_active = false
@@ -58,8 +61,6 @@ func _advance_wave():
 	var script_ref = null
 	if "wave_script" in wave and wave.wave_script:
 		script_ref = wave.wave_script
-	elif "stage_script" in wave and wave.stage_script:
-		script_ref = wave.stage_script
 
 	if script_ref:
 		var ws = script_ref.new()

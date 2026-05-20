@@ -71,6 +71,7 @@ func shoot_bomb_bullet(data: BulletData, position: Vector2, direction: Vector2, 
 func return_bullet(bullet: Bullet):
 	if bullet.coroutine_movement and is_instance_valid(bullet.coroutine_movement):
 		bullet.coroutine_movement.stop()
+		bullet.coroutine_movement.queue_free()
 		bullet.coroutine_movement = null
 	bullet.visible = false
 	bullet.process_mode = PROCESS_MODE_DISABLED
@@ -178,7 +179,9 @@ func _spawn_hit_effect(effect_scene: PackedScene, position: Vector2, velocity: V
 	if not effect_scene:
 		return
 	var effect = effect_scene.instantiate()
-	get_tree().current_scene.add_child(effect)
+	var scene = get_tree().current_scene
+	if is_instance_valid(scene):
+		scene.add_child(effect)
 	effect.global_position = position
 
 	# 把速度传给特效，让特效自己决定怎么用

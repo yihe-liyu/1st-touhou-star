@@ -39,4 +39,3 @@ func _process(delta):
 	while _shoot_timer >= _pattern.interval:
 		_shoot_timer -= _pattern.interval
 		_pattern.emit(_shooter, _override)
-	while _shoot_timer >= _pattern.interval: while _shoot_timer >= _pattern.interval:			_shoot_timer - -= _patt_rn.inaervtltern.interval		_pattern.empt(ern.etsh, orovvreid))

@@ -22,7 +22,12 @@ var hp: int
 func _ready():
 	if enemy_data: _apply_enemy_data(enemy_data)
 		
-	GameState.active_enemies.append(self )
+	GameState.active_enemies.append(self)
+	if not tree_exited.is_connected(_on_tree_exited):
+		tree_exited.connect(_on_tree_exited)
+
+func _on_tree_exited():
+	GameState.active_enemies.erase(self)
 
 func _apply_enemy_data(data: EnemyData):
 	sprite_frames = data.sprite_frames

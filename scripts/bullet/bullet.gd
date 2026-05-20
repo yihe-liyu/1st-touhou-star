@@ -56,6 +56,16 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 	velocity = effective_dir.normalized() * speed
 	self.rotation = effective_dir.angle()
 
+	if coroutine_movement and is_instance_valid(coroutine_movement):
+		coroutine_movement.stop()
+		coroutine_movement.queue_free()
+		coroutine_movement = null
+	movement = null
+	for child in get_children():
+		if child is BulletMoveScript:
+			child.stop()
+			child.queue_free()
+
 	if data.movement_script:
 		movement = data.movement_script.new()
 	else:
