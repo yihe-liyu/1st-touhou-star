@@ -3,8 +3,6 @@ class_name TestShoot
 
 func _on_run(api: StageAPI):
 	for _i in range(5):
-		if not is_running:
-			return
 		var parent := get_parent()
 		var node2d := parent as Node2D
 		if not node2d or not is_instance_valid(node2d):
