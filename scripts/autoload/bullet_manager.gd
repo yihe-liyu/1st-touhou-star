@@ -69,6 +69,9 @@ func shoot_bomb_bullet(data: BulletData, position: Vector2, direction: Vector2, 
 # ── 回收 ──
 
 func return_bullet(bullet: Bullet):
+	if bullet.coroutine_movement and is_instance_valid(bullet.coroutine_movement):
+		bullet.coroutine_movement.stop()
+		bullet.coroutine_movement = null
 	bullet.visible = false
 	bullet.process_mode = PROCESS_MODE_DISABLED
 	active_bullets.erase(bullet)
@@ -84,7 +87,8 @@ func _physics_process(delta):
 		_resolve_collisions(bullet)
 		
 		# 移动
-		bullet.movement.update(delta)
+		if bullet.movement and bullet.movement is BulletMovement:
+			bullet.movement.update(delta)
 		
 		# 出屏回收
 		if _is_offscreen(bullet.global_position):

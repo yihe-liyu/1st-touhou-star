@@ -5,10 +5,6 @@
 [ext_resource type="Script" uid="uid://b305aufpl373n" path="res://scripts/shoot_pattern/shoot_pattern_def.gd" id="2_10yxv"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_o1iwf"]
 [ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="3_uu3h1"]
-[ext_resource type="Script" uid="uid://dh3vrtcuabo3h" path="res://scripts/shoot_pattern/shoot_aimed_def.gd" id="5_aimed_def"]
-[ext_resource type="Script" uid="uid://ccwuwp2aatbav" path="res://scripts/shoot_pattern/shoot_aimed_executor.gd" id="6_aimed_exec"]
-[ext_resource type="Script" uid="uid://dsfsjukr0hcb7" path="res://scripts/shoot_pattern/shoot_arc_def.gd" id="7_arc_def"]
-[ext_resource type="Script" uid="uid://d3qnp3mex42yk" path="res://scripts/shoot_pattern/shoot_arc_executor.gd" id="8_arc_exec"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_10yxv"]
 atlas = ExtResource("3_uu3h1")
@@ -23,22 +19,15 @@ can_be_canceled = true
 hitbox_radius = 5.0
 metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
 
-[sub_resource type="Resource" id="ShootAimedDef_aimed"]
-script = ExtResource("5_aimed_def")
-bullet_count = 4
-spread_angle = 1.0
-speed_multiplier = 4.0
-bullet_data = SubResource("Resource_vsyem")
-executor_script = ExtResource("6_aimed_exec")
-
-[sub_resource type="Resource" id="ShootArcDef_arc"]
-script = ExtResource("7_arc_def")
-bullet_count = 7
-arc_angle = 1.2
-speed_multiplier = 3.0
+[sub_resource type="Resource" id="ShootPatternDef_circle"]
+script = ExtResource("2_10yxv")
 bullet_data = SubResource("Resource_vsyem")
 interval = 0.4
-executor_script = ExtResource("8_arc_exec")
+
+[sub_resource type="Resource" id="ShootPatternDef_aimed"]
+script = ExtResource("2_10yxv")
+bullet_data = SubResource("Resource_vsyem")
+interval = 0.3
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
 atlas = ExtResource("2_4dide")
@@ -81,5 +70,5 @@ script = ExtResource("1_jjwni")
 sprite_frames = SubResource("SpriteFrames_10yxv")
 max_hp = 500
 hitbox_radius = 28.0
-shoot_pattern_defs = Array[ExtResource("2_10yxv")]([SubResource("ShootAimedDef_aimed"), SubResource("ShootArcDef_arc")])
+shoot_pattern_defs = Array[ExtResource("2_10yxv")]([SubResource("ShootPatternDef_circle"), SubResource("ShootPatternDef_aimed")])
 metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

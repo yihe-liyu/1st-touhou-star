@@ -14,5 +14,5 @@ class_name EnemyData
 @export var death_effect: PackedScene
 ## 弹幕模式配置数组。按顺序启动 Executor，支持并行
 @export var shoot_pattern_defs: Array[ShootPatternDef] = []
-## 移动模式脚本（EnemyMovement 子类）
+## 移动模式脚本（MoveScript 子类，协程方式）
 @export var move_pattern: Script

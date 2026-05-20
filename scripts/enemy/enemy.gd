@@ -14,8 +14,8 @@ var hitbox_radius: float
 var score_value: int
 var death_effect: PackedScene
 
-var executors: Array[ShootExecutor] = []
-var mover: EnemyMovement
+var _shoot_scripts: Array[ShootScript] = []
+var _move_script: MoveScript
 
 var hp: int
 
@@ -40,18 +40,20 @@ func _apply_enemy_data(data: EnemyData):
 	animation.play("idle")
 
 	for def in data.shoot_pattern_defs:
-		if not def.executor_script:
-			push_error("Enemy: ShootPatternDef 缺少 executor_script: %s" % def.resource_path)
+		if not def.shoot_script:
+			push_warning("Enemy: ShootPatternDef 缺少 shoot_script: %s" % def.resource_path)
 			continue
-		var exec = def.executor_script.new()
-		add_child(exec)
-		exec.start(def, self)
-		executors.append(exec)
+		var ss = def.shoot_script.new()
+		add_child(ss)
+		var api = StageAPI.new(ss)
+		ss.start_shooting(api, def)
+		_shoot_scripts.append(ss)
 
 	if data.move_pattern:
-		mover = data.move_pattern.new()
-		add_child(mover)
-		mover.start(self, null)
+		_move_script = data.move_pattern.new()
+		add_child(_move_script)
+		var api = StageAPI.new(_move_script)
+		_move_script.start_moving(api, self)
 
 func take_damage(damage: int):
 	hp -= damage
@@ -67,7 +69,10 @@ func die():
 	
 	GameEvents.enemy_killed.emit(score_value, global_position)
 
-	if mover and is_instance_valid(mover):
-		mover.stop()
+	for ss in _shoot_scripts:
+		if is_instance_valid(ss):
+			ss.stop()
+	if _move_script and is_instance_valid(_move_script):
+		_move_script.stop()
 
 	queue_free()

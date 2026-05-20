@@ -1,28 +1,15 @@
 [gd_scene format=3 uid="uid://bwbl2x4t1hpet"]
 
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
-[ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/level_data.gd" id="2_b5spy"]
-[ext_resource type="Script" uid="uid://b0q0gmqq30m27" path="res://scripts/data/wave_data.gd" id="3_utbpp"]
-[ext_resource type="Resource" uid="uid://cb505yupublnp" path="res://data/enemy_data/test_enemy_data.tres" id="4_mw25s"]
+[ext_resource type="Resource" uid="uid://teststage001" path="res://data/levels/test_stage.tres" id="2_rurhu"]
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="PackedScene" uid="uid://cv25yim5vcutq" path="res://scenes/stage_background.tscn" id="7_bg_scene"]
 [ext_resource type="Resource" uid="uid://dhvbpklv3jjpw" path="res://data/background/stage01_background.tres" id="8_bg_data"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game_scene.gd" id="9_script"]
 
-[sub_resource type="Resource" id="Resource_tcjrq"]
-script = ExtResource("3_utbpp")
-enemy_data = ExtResource("4_mw25s")
-spawn_position = Vector2(447, 100)
-metadata/_custom_type_script = "uid://b0q0gmqq30m27"
-
-[sub_resource type="Resource" id="Resource_rvs2r"]
-script = ExtResource("2_b5spy")
-waves = Array[ExtResource("3_utbpp")]([SubResource("Resource_tcjrq")])
-metadata/_custom_type_script = "uid://bvlmm7m3gtwc0"
-
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")
-level_data = SubResource("Resource_rvs2r")
+level_data = ExtResource("2_rurhu")
 
 [node name="StageBackground" parent="." unique_id=263685021 instance=ExtResource("7_bg_scene")]
 background_data = ExtResource("8_bg_data")
