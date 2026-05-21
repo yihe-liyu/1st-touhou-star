@@ -2,27 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_jjwni"]
 [ext_resource type="Texture2D" uid="uid://bgn5feo55byah" path="res://assets/Textures/enemy/enemy.png" id="2_4dide"]
-[ext_resource type="Script" uid="uid://b305aufpl373n" path="res://scripts/shoot_pattern/shoot_pattern_def.gd" id="2_10yxv"]
-[ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_o1iwf"]
-[ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="3_uu3h1"]
-[ext_resource type="Script" uid="uid://dsqm303nf7hug" path="res://scripts/coroutine/examples/test_shoot.gd" id="4_test_shoot"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_10yxv"]
-atlas = ExtResource("3_uu3h1")
-region = Rect2(176, 160, 16, 16)
-
-[sub_resource type="Resource" id="Resource_0kq73"]
-script = ExtResource("2_o1iwf")
-texture = SubResource("AtlasTexture_10yxv")
-velocity = Vector2(0, 100)
-faction = 1
-metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
-
-[sub_resource type="Resource" id="Resource_4tivl"]
-script = ExtResource("2_10yxv")
-bullet_data = SubResource("Resource_0kq73")
-shoot_script = ExtResource("4_test_shoot")
-metadata/_custom_type_script = "uid://b305aufpl373n"
+[ext_resource type="Script" uid="uid://dsqm303nf7hug" path="res://scripts/coroutine/examples/test_create.gd" id="4_test_shoot"]
+[ext_resource type="Script" uid="uid://xeu5jb8qorbw" path="res://scripts/coroutine/examples/move_entrance.gd" id="5_move"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
 atlas = ExtResource("2_4dide")
@@ -65,5 +46,6 @@ script = ExtResource("1_jjwni")
 sprite_frames = SubResource("SpriteFrames_10yxv")
 max_hp = 500
 hitbox_radius = 28.0
-shoot_pattern_defs = Array[ExtResource("2_10yxv")]([SubResource("Resource_4tivl")])
+create_script = ExtResource("4_test_shoot")
+move_script = ExtResource("5_move")
 metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

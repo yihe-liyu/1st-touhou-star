@@ -14,7 +14,7 @@ var hitbox_radius: float
 var score_value: int
 var death_effect: PackedScene
 
-var _shoot_scripts: Array[ShootScript] = []
+var _shoot_script: ShootScript
 var _move_script: MoveScript
 
 var hp: int
@@ -22,12 +22,12 @@ var hp: int
 func _ready():
 	if enemy_data: _apply_enemy_data(enemy_data)
 		
-	GameState.active_enemies.append(self)
+	GameState.active_enemies.append(self )
 	if not tree_exited.is_connected(_on_tree_exited):
 		tree_exited.connect(_on_tree_exited)
 
 func _on_tree_exited():
-	GameState.active_enemies.erase(self)
+	GameState.active_enemies.erase(self )
 
 func _apply_enemy_data(data: EnemyData):
 	sprite_frames = data.sprite_frames
@@ -44,21 +44,17 @@ func _apply_enemy_data(data: EnemyData):
 	if sprite_frames: animation.sprite_frames = sprite_frames
 	animation.play("idle")
 
-	for def in data.shoot_pattern_defs:
-		if not def.shoot_script:
-			push_warning("Enemy: ShootPatternDef 缺少 shoot_script: %s" % def.resource_path)
-			continue
-		var ss = def.shoot_script.new()
-		add_child(ss)
-		var api = StageAPI.new(ss)
-		ss.start_shooting(api, def)
-		_shoot_scripts.append(ss)
+	if data.create_script:
+		_shoot_script = data.create_script.new()
+		add_child(_shoot_script)
+		var api = StageAPI.new(_shoot_script)
+		_shoot_script.start_shooting(api)
 
-	if data.move_pattern:
-		_move_script = data.move_pattern.new()
+	if data.move_script:
+		_move_script = data.move_script.new()
 		add_child(_move_script)
 		var api = StageAPI.new(_move_script)
-		_move_script.start_moving(api, self)
+		_move_script.start_moving(api, self )
 
 func take_damage(damage: int):
 	hp -= damage
@@ -74,9 +70,8 @@ func die():
 	
 	GameEvents.enemy_killed.emit(score_value, global_position)
 
-	for ss in _shoot_scripts:
-		if is_instance_valid(ss):
-			ss.stop()
+	if _shoot_script and is_instance_valid(_shoot_script):
+		_shoot_script.stop()
 	if _move_script and is_instance_valid(_move_script):
 		_move_script.stop()
 

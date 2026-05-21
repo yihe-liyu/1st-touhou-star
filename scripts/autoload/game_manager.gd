@@ -47,17 +47,17 @@ func _ensure_input_actions():
 func _add_keys_to_action(action_name: String, keycodes: Array):
 	if not InputMap.has_action(action_name):
 		InputMap.add_action(action_name)
-	for kc in keycodes:
+	for keycode in keycodes:
 		var already = false
-		for ev in InputMap.action_get_events(action_name):
-			if ev is InputEventKey and (ev.keycode == kc or ev.physical_keycode == kc):
+		for event in InputMap.action_get_events(action_name):
+			if event is InputEventKey and (event.keycode == keycode or event.physical_keycode == keycode):
 				already = true
 				break
 		if already:
 			continue
-		var ev = InputEventKey.new()
-		ev.keycode = kc
-		InputMap.action_add_event(action_name, ev)
+		var event = InputEventKey.new()
+		event.keycode = keycode
+		InputMap.action_add_event(action_name, event)
 
 func _setup_transition():
 	_transition_layer = CanvasLayer.new()
@@ -208,17 +208,17 @@ func _cleanup_pause():
 func _fade_out(duration: float = FADE_DURATION):
 	_transition_rect.modulate.a = 0.0
 	_transition_rect.visible = true
-	var tw = _transition_rect.create_tween()
-	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	tw.tween_property(_transition_rect, "modulate:a", 1.0, duration)
-	await tw.finished
+	var tween = _transition_rect.create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(_transition_rect, "modulate:a", 1.0, duration)
+	await tween.finished
 
 func _fade_in(duration: float = FADE_DURATION):
 	_transition_rect.modulate.a = 1.0
-	var tw = _transition_rect.create_tween()
-	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	tw.tween_property(_transition_rect, "modulate:a", 0.0, duration)
-	await tw.finished
+	var tween = _transition_rect.create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(_transition_rect, "modulate:a", 0.0, duration)
+	await tween.finished
 	_transition_rect.visible = false
 
 # ── 对外查询 ──

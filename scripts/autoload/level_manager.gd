@@ -2,84 +2,51 @@ extends Node
 
 const ENEMY_SCENE = preload("res://scenes/enemy.tscn")
 
-signal wave_started(wave_index: int)
-signal wave_cleared(wave_index: int)
-signal stage_cleared(stage_id: int)
+signal stage_started()
+signal stage_cleared()
 signal all_enemies_defeated()
 
 var current_level: LevelData
-var _wave_index: int = -1
+var _level_script: LevelScript
 var _stage_active: bool = false
-var _wave_active: bool = false
-var _current_wave_script: WaveScript
 
 func load_stage(data: LevelData):
 	if _stage_active:
 		stop_stage()
 
-	if data.waves.size() == 0:
-		push_warning("LevelManager: LevelData has no waves, not starting")
+	if not data.create_script:
+		push_error("LevelManager: LevelData has no create_script")
 		return
 
 	current_level = data
-	_wave_index = -1
 	_stage_active = true
 	GameState.reset_score()
-	_advance_wave()
+
+	stage_started.emit()
+
+	var ls = data.create_script.new()
+	_level_script = ls
+	add_child(ls)
+	ls.finished.connect(_on_level_finished)
+	var api = StageAPI.new(ls)
+	ls.start_level(api)
 
 func stop_stage():
 	_stage_active = false
-	_wave_active = false
-	for child in get_children():
-		if child is WaveScript:
-			child.stop()
-			child.queue_free()
-	_current_wave_script = null
+	if _level_script and is_instance_valid(_level_script):
+		_level_script.stop()
+		_level_script.queue_free()
+	_level_script = null
 	current_level = null
-	_wave_index = -1
 	GameState.clear_enemies()
 	BulletManager.clear_all()
 
-func _process(_delta):
-	pass
-
-func _advance_wave():
+func _on_level_finished():
 	if not current_level:
 		return
-	_wave_index += 1
-	if _wave_index >= current_level.waves.size():
-		_stage_active = false
-		_wave_active = false
-		stage_cleared.emit(current_level.stage_id)
-		GameState.save_high_score(current_level.stage_id, GameState.current_score)
-		return
-
-	var wave = current_level.waves[_wave_index]
-	_wave_active = true
-	wave_started.emit(_wave_index)
-
-	var script_ref = null
-	if "wave_script" in wave and wave.wave_script:
-		script_ref = wave.wave_script
-
-	if script_ref:
-		var ws = script_ref.new()
-		_current_wave_script = ws
-		add_child(ws)
-		var api = StageAPI.new(ws)
-		ws.finished.connect(_advance_to_next_wave)
-		ws.start_wave(api)
-		return
-
-	push_warning("LevelManager: wave %d has no script, skipping" % _wave_index)
-	_advance_to_next_wave()
-
-func _advance_to_next_wave():
-	wave_cleared.emit(_wave_index)
-	_wave_active = false
-	if _wave_index + 1 >= current_level.waves.size():
-		all_enemies_defeated.emit()
-	_advance_wave()
+	stage_cleared.emit()
+	all_enemies_defeated.emit()
+	GameState.save_high_score(current_level.stage_id, GameState.current_score)
 
 func spawn_enemy(data: EnemyData, pos: Vector2) -> Enemy:
 	var enemy = ENEMY_SCENE.instantiate()
@@ -90,16 +57,6 @@ func spawn_enemy(data: EnemyData, pos: Vector2) -> Enemy:
 
 func spawn_bullet(data: BulletData, pos: Vector2, dir: Vector2) -> Bullet:
 	return BulletManager.shoot_enemy_bullet(data, pos, dir)
-
-func get_wave() -> WaveData:
-	if current_level and _wave_index >= 0 and _wave_index < current_level.waves.size():
-		return current_level.waves[_wave_index]
-	return null
-
-func force_advance():
-	if not _stage_active or not _wave_active:
-		return
-	_advance_to_next_wave()
 
 func _add_enemy_to_scene(enemy: Enemy):
 	var parent = get_tree().current_scene

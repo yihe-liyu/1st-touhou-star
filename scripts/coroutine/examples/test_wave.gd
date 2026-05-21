@@ -1,19 +1,15 @@
-extends WaveScript
-class_name TestWave
+extends LevelScript
+class_name TestLevel
+
+const ENEMY_DATA = preload("res://data/enemy_data/test_enemy_data.tres")
 
 func _on_run(api: StageAPI):
-	var wave = LevelManager.get_wave()
-	if not wave or not wave.enemy_data:
-		return
+	var e1 = api.spawn_enemy(ENEMY_DATA, Vector2(640, -50))
 
-	var e1 = api.spawn_enemy(wave.enemy_data, Vector2(640, -50))
-	await api.move_to(e1, Vector2(640, 200), 2.0)
+	await api.seconds(3.0)
 
-	await api.seconds(0.5)
+	var e2 = api.spawn_enemy(ENEMY_DATA, Vector2(300, -50))
 
-	var e2 = api.spawn_enemy(wave.enemy_data, Vector2(300, -50))
-	await api.move_to(e2, Vector2(300, 200), 2.0)
-
-	await api.seconds(1.0)
+	await api.seconds(3.0)
 
 	await api.all_defeated()

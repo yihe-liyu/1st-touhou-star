@@ -1,7 +1,7 @@
 extends CoroutineRunner
-class_name WaveScript
+class_name LevelScript
 
-func start_wave(api: StageAPI):
+func start_level(api: StageAPI):
 	run(_on_run.bind(api))
 
 func _on_run(_api: StageAPI):
