@@ -22,7 +22,7 @@ var hitbox_rotation: float = 0.0
 
 # 运行时状态
 var movement = null
-var coroutine_movement: BulletMoveScript
+var coroutine_movement: MoveScript
 
 # 额外变量
 var extra: Dictionary = {}
@@ -62,7 +62,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		coroutine_movement = null
 	movement = null
 	for child in get_children():
-		if child is BulletMoveScript:
+		if child is MoveScript:
 			child.stop()
 			child.queue_free()
 

@@ -11,7 +11,7 @@ func _active() -> bool:
 
 func _await_next_frame() -> bool:
 	while is_instance_valid(runner) and runner.is_running:
-		await runner.get_tree().process_frame
+		await runner.get_tree().physics_frame
 		if not is_instance_valid(runner) or not runner.is_running:
 			return false
 		if not runner.get_tree().paused:

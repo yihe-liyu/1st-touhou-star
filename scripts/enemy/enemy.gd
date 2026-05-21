@@ -14,7 +14,7 @@ var hitbox_radius: float
 var score_value: int
 var death_effect: PackedScene
 
-var _shoot_script: ShootScript
+var _create_script: CreateScript
 var _move_script: MoveScript
 
 var hp: int
@@ -45,10 +45,10 @@ func _apply_enemy_data(data: EnemyData):
 	animation.play("idle")
 
 	if data.create_script:
-		_shoot_script = data.create_script.new()
-		add_child(_shoot_script)
-		var api = StageAPI.new(_shoot_script)
-		_shoot_script.start_shooting(api)
+		_create_script = data.create_script.new()
+		add_child(_create_script)
+		var api = StageAPI.new(_create_script)
+		_create_script.start_creating(api)
 
 	if data.move_script:
 		_move_script = data.move_script.new()
@@ -70,8 +70,8 @@ func die():
 	
 	GameEvents.enemy_killed.emit(score_value, global_position)
 
-	if _shoot_script and is_instance_valid(_shoot_script):
-		_shoot_script.stop()
+	if _create_script and is_instance_valid(_create_script):
+		_create_script.stop()
 	if _move_script and is_instance_valid(_move_script):
 		_move_script.stop()
 

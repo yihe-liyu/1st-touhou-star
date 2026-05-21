@@ -1,4 +1,4 @@
-extends ShootScript
+extends CreateScript
 class_name TestShoot
 
 const BULLET_DATA = preload("res://data/bullet_data/test_enemy_bullet.tres")

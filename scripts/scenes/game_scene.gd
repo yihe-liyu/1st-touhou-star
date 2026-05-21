@@ -11,8 +11,8 @@ func _ready():
 
 	if not GameEvents.player_death.is_connected(_on_player_death):
 		GameEvents.player_death.connect(_on_player_death)
-	if not LevelManager.stage_cleared.is_connected(_on_stage_cleared):
-		LevelManager.stage_cleared.connect(_on_stage_cleared)
+	#if not LevelManager.stage_cleared.is_connected(_on_stage_cleared):
+		#LevelManager.stage_cleared.connect(_on_stage_cleared)
 
 func _exit_tree():
 	LevelManager.stop_stage()
@@ -23,8 +23,8 @@ func _on_player_death():
 	menu.title_text = "Game Over"
 	GameManager.push_overlay_menu(menu)
 
-func _on_stage_cleared(_stage_id: int):
-	await get_tree().create_timer(2.0).timeout
-	var menu = END_MENU.instantiate()
-	menu.title_text = "Stage Clear!"
-	GameManager.push_overlay_menu(menu)
+#func _on_stage_cleared():
+	#await get_tree().create_timer(2.0).timeout
+	#var menu = END_MENU.instantiate()
+	#menu.title_text = "Stage Clear!"
+	#GameManager.push_overlay_menu(menu)
