@@ -12,7 +12,6 @@ class_name BulletBatchCanvas
 @export var faction: int = -1
 
 func _ready():
-	z_index = 10
 	set_process(enabled)
 	if not enabled:
 		visible = false

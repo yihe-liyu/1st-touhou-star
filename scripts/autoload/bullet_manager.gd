@@ -18,13 +18,13 @@ func _ready():
 		_batch_enemy = BulletBatchCanvasClass.new()
 		_batch_enemy.enabled = true
 		_batch_enemy.faction = Bullet.FACTION_ENEMY
-		_batch_enemy.z_index = 15
+		_batch_enemy.z_index = 10
 		add_child(_batch_enemy)
 
 		_batch_player = BulletBatchCanvasClass.new()
 		_batch_player.enabled = true
 		_batch_player.faction = Bullet.FACTION_PLAYER
-		_batch_player.z_index = 10
+		_batch_player.z_index = 5
 		add_child(_batch_player)
 
 	for i in range(POOL_SIZE):

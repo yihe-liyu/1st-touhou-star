@@ -30,7 +30,13 @@ var extra: Dictionary = {}
 @onready var sprite: Sprite2D = $Sprite2D
 
 func bind(data: BulletData, direction: Vector2, override: BulletOverride = null):
-	z_index = 10
+	match data.faction:
+		FACTION_ENEMY:
+			z_index = 10
+		FACTION_BOMB:
+			z_index = 100
+		_:
+			z_index = 5
 
 	var effective_dir = direction
 	if override and override.angle_offset != 0.0:
@@ -72,12 +78,12 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		movement = MoveLinear.new()
 
 	if movement is BulletMovement:
-		movement.bind(self)
+		movement.bind(self )
 	elif movement is CoroutineRunner:
 		coroutine_movement = movement
 		add_child(coroutine_movement)
 		var api = StageAPI.new(coroutine_movement)
-		coroutine_movement.start_moving(api, self)
+		coroutine_movement.start_moving(api, self )
 
 func batch_texture() -> Texture2D:
 	return sprite.texture
