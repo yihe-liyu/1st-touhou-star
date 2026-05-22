@@ -15,6 +15,7 @@ func _sync_options(leader: Node2D, visual_script: Script, wanted: int, offsets: 
 	while _options.size() < wanted:
 		var opt := Node2D.new()
 		opt.global_position = leader.global_position
+		opt.z_index = 6
 		leader.get_parent().add_child(opt)
 
 		var tex: AtlasTexture = AtlasTexture.new()

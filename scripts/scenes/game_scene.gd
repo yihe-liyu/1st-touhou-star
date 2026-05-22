@@ -11,8 +11,8 @@ func _ready():
 
 	if not GameEvents.player_death.is_connected(_on_player_death):
 		GameEvents.player_death.connect(_on_player_death)
-	#if not LevelManager.stage_cleared.is_connected(_on_stage_cleared):
-		#LevelManager.stage_cleared.connect(_on_stage_cleared)
+	#if not StageManager.stage_cleared.is_connected(_on_stage_cleared):
+		#StageManager.stage_cleared.connect(_on_stage_cleared)
 
 func _exit_tree():
 	StageManager.stop_stage()

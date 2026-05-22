@@ -53,8 +53,6 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 	hitbox_size = data.hitbox_size
 	hitbox_rotation = data.hitbox_rotation
 
-	extra = data.extra.duplicate()
-
 	var speed = data.velocity.length()
 	if override and override.speed_mult > 0.0:
 		speed *= override.speed_mult

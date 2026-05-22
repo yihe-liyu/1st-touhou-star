@@ -23,6 +23,7 @@ GameManager="*uid://ekf00dur5yyt"
 BulletManager="*uid://r1cevfo2ay7l"
 GameState="*uid://bd4sn2mxfar2u"
 StageManager="*res://scripts/autoload/stage_manager.gd"
+RNG="*res://scripts/autoload/rng.gd"
 
 [display]
 
