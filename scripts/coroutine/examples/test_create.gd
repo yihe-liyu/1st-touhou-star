@@ -9,5 +9,5 @@ func _on_run(api: StageAPI):
 		var node2d := parent as Node2D
 		if not node2d or not is_instance_valid(node2d):
 			return
-		api.shoot_circle(BULLET_DATA, 24, node2d.global_position)
+		api.shoot_spread(BULLET_DATA, 24, TAU, Vector2.RIGHT, node2d.global_position)
 		await api.seconds(1)

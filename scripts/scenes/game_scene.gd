@@ -3,11 +3,11 @@ class_name GameScene
 
 const END_MENU = preload("res://scenes/ui/end_menu.tscn")
 
-@export var level_data: LevelData
+@export var stage_data: StageData
 
 func _ready():
-	if level_data:
-		LevelManager.load_stage(level_data)
+	if stage_data:
+		StageManager.load_stage(stage_data)
 
 	if not GameEvents.player_death.is_connected(_on_player_death):
 		GameEvents.player_death.connect(_on_player_death)
@@ -15,7 +15,7 @@ func _ready():
 		#LevelManager.stage_cleared.connect(_on_stage_cleared)
 
 func _exit_tree():
-	LevelManager.stop_stage()
+	StageManager.stop_stage()
 
 func _on_player_death():
 	await get_tree().create_timer(2.0).timeout

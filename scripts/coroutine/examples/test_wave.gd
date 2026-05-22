@@ -1,4 +1,4 @@
-extends LevelScript
+extends StageScript
 class_name TestLevel
 
 const ENEMY_DATA = preload("res://data/enemy_data/test_enemy_data.tres")

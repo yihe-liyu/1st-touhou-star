@@ -22,8 +22,7 @@ var hitbox_radius: float = 5.0
 
 ## 玩家机体数据（速度、动画、武器等）
 @export var player_data: PlayerData
-var shoot_timer: float = 0.0
-var options: Array = []		# 子机
+var _shoot_script: PlayerShootScript
 
 # 移动速度（像素/秒）
 var focus_speed: int
@@ -37,6 +36,7 @@ func _ready() -> void:
 	sprite.animation_finished.connect(_on_animation_finished)
 
 	_apply_player_data()
+	_init_shoot_script()
 
 # 应用机体数据
 func _apply_player_data() -> void:
@@ -59,22 +59,17 @@ func _physics_process(delta):
 	input_vector.y = Input.get_axis("move_up", "move_down")
 	is_focused = Input.is_action_pressed("focus")
 
-	shoot_timer -= delta
-
-	if Input.is_action_pressed("shoot") and shoot_timer <= 0.0:
-		shoot()
-		shoot_timer = player_data.main_weapon.shoot_rate
-
 	update_hitbox_display()
 	update_animation()
 	update_move(delta)
 
-func shoot() -> void:
-	var mw = player_data.main_weapon
-
-	for muzzle_offset in mw.muzzle_positions:
-		var pos = muzzle.global_position + muzzle_offset
-		BulletManager.shoot_bullet(mw.bullet_data, pos, Vector2.UP)
+func _init_shoot_script() -> void:
+	if not player_data or not player_data.shoot_script:
+		return
+	_shoot_script = player_data.shoot_script.new()
+	add_child(_shoot_script)
+	var api = StageAPI.new(_shoot_script)
+	_shoot_script.start_shooting(api)
 
 func update_hitbox_display() -> void:
 	if is_focused:

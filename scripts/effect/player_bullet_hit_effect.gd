@@ -9,7 +9,7 @@ var velocity: Vector2 = Vector2.ZERO
 func set_velocity(vel: Vector2):
 	velocity = vel.normalized() * 300.0
 	# 让特效朝向子弹飞行方向
-	rotation = velocity.angle()
+	self.rotation = velocity.angle()
 
 func _ready():
 	animation.play("explode")

@@ -41,37 +41,25 @@ func all_defeated() -> void:
 func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	if not _active():
 		return null
-	return LevelManager.spawn_enemy(data, position)
+	return StageManager.spawn_enemy(data, position)
 
-func shoot_circle(bullet_data: BulletData, count: int, at: Vector2) -> void:
+func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2) -> void:
 	if not _active():
 		return
-	for i in range(count):
-		var dir := Vector2.RIGHT.rotated(TAU / count * i)
-		BulletManager.shoot_enemy_bullet(bullet_data, at, dir)
-
-func shoot_aimed(bullet_data: BulletData, count: int, spread_angle: float, at: Vector2) -> void:
-	if not _active():
+	if count <= 0:
 		return
-	var player := GameState.player
-	var base_dir: Vector2
-	if is_instance_valid(player):
-		base_dir = (player.global_position - at).normalized()
+	if count == 1:
+		BulletManager.shoot_enemy_bullet(bullet_data, at, base_dir)
+		return
+	var step: float
+	if spread_angle >= TAU - 0.001:
+		step = spread_angle / count
 	else:
-		base_dir = Vector2.DOWN
+		step = spread_angle / (count - 1)
 	for i in range(count):
-		var angle_offset: float
-		if count > 1:
-			angle_offset = -spread_angle / 2.0 + spread_angle / (count - 1) * i
-		else:
-			angle_offset = 0.0
+		var angle_offset = -spread_angle / 2.0 + step * i
 		var dir := base_dir.rotated(angle_offset)
 		BulletManager.shoot_enemy_bullet(bullet_data, at, dir)
-
-func shoot_direction(bullet_data: BulletData, direction: Vector2, at: Vector2) -> void:
-	if not _active():
-		return
-	BulletManager.shoot_enemy_bullet(bullet_data, at, direction)
 
 func get_player() -> Player:
 	return GameState.player

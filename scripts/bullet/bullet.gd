@@ -21,7 +21,6 @@ var hitbox_size: Vector2 = Vector2(8, 8)
 var hitbox_rotation: float = 0.0
 
 # 运行时状态
-var movement = null
 var coroutine_movement: MoveScript
 
 # 额外变量
@@ -66,24 +65,19 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		coroutine_movement.stop()
 		coroutine_movement.queue_free()
 		coroutine_movement = null
-	movement = null
 	for child in get_children():
 		if child is MoveScript:
 			child.stop()
 			child.queue_free()
 
 	if data.movement_script:
-		movement = data.movement_script.new()
+		coroutine_movement = data.movement_script.new()
 	else:
-		movement = MoveLinear.new()
+		coroutine_movement = MoveLinear.new()
 
-	if movement is BulletMovement:
-		movement.bind(self )
-	elif movement is CoroutineRunner:
-		coroutine_movement = movement
-		add_child(coroutine_movement)
-		var api = StageAPI.new(coroutine_movement)
-		coroutine_movement.start_moving(api, self )
+	add_child(coroutine_movement)
+	var api = StageAPI.new(coroutine_movement)
+	coroutine_movement.start_moving(api, self )
 
 func batch_texture() -> Texture2D:
 	return sprite.texture

@@ -1,5 +1,5 @@
 extends Resource
-class_name LevelData
+class_name StageData
 
 @export var stage_id: int = 1
 @export var stage_name: String = "Stage 1"

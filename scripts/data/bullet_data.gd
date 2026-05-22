@@ -33,5 +33,3 @@ enum HitboxShape {CIRCLE, RECTANGLE}
 @export_group("", "")
 ## 移动逻辑脚本。留空则默认直线飞行 (MoveLinear)
 @export var movement_script: Script
-
-var extra: Dictionary = {}

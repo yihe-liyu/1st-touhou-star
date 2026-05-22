@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="BulletData" format=3 uid="uid://dhebh7sfhahl5"]
 
 [ext_resource type="PackedScene" uid="uid://sb4eyu1b8c8r" path="res://scenes/effect/hit_effect_reimu.tscn" id="1_knxur"]
-[ext_resource type="Script" uid="uid://dfwcj1nrous80" path="res://scripts/bullet_movements/move_linear.gd" id="1_ktt0e"]
+[ext_resource type="Script" uid="uid://cv646gwj0wcvc" path="res://scripts/coroutine/stages/move_linear.gd" id="1_ktt0e"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_y1oj2"]
 [ext_resource type="Texture2D" uid="uid://c4qm08mqu1doc" path="res://assets/Textures/player/pl00.png" id="3_yyrr2"]
 
@@ -12,7 +12,7 @@ region = Rect2(192, 144, 64, 16)
 [resource]
 script = ExtResource("2_y1oj2")
 texture = SubResource("AtlasTexture_ktt0e")
-velocity = Vector2(0, -3000)
+velocity = Vector2(0, -2500)
 hit_effect = ExtResource("1_knxur")
 hitbox_shape = 1
 hitbox_radius = 0.0

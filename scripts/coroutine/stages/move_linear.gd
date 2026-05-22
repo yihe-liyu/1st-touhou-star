@@ -1,0 +1,8 @@
+extends MoveScript
+class_name MoveLinear
+
+func _on_run(api: StageAPI):
+	while api._active() and is_instance_valid(target):
+		target.global_position += target.velocity / 60.0
+		target.rotation = target.velocity.angle()
+		await api.frames(1)

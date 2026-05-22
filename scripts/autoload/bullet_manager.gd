@@ -87,10 +87,6 @@ func _physics_process(delta):
 		# 碰撞处理（按阵营分流）
 		_resolve_collisions(bullet)
 		
-		# 移动
-		if bullet.movement and bullet.movement is BulletMovement:
-			bullet.movement.update(delta)
-		
 		# 出屏回收
 		if _is_offscreen(bullet.global_position):
 			return_bullet(bullet)

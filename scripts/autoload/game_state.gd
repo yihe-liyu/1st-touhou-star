@@ -5,6 +5,8 @@ var player: Player = null
 var active_enemies: Array = []
 var current_score: int = 0
 var high_scores: Dictionary = {}
+## 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
+var power_raw: int = 100
 var _config: ConfigFile
 const SAVE_PATH: String = "user://save_data.cfg"
 
@@ -39,6 +41,19 @@ func reset_score():
 
 func _on_enemy_killed(score: int, _position: Vector2):
 	add_score(score)
+
+func get_power_display() -> String:
+	var value := 1.00 + power_raw * 0.01
+	return "%.2f" % value
+
+func get_power_float() -> float:
+	return 1.00 + power_raw * 0.01
+
+func add_power(amount: int) -> void:
+	power_raw = clampi(power_raw + amount, 0, 300)
+
+func on_miss_power_penalty() -> void:
+	power_raw = clampi(power_raw - 50, 0, 300)
 
 func get_active_enemies() -> Array:
 	return active_enemies

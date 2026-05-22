@@ -1,13 +1,13 @@
 [gd_resource type="Resource" script_class="PlayerData" format=3 uid="uid://5i3q0kkqvcog"]
 
 [ext_resource type="SpriteFrames" uid="uid://b7qaawpm1asxi" path="res://data/player_data/marisa_anim.tres" id="1_ewcl1"]
-[ext_resource type="Script" uid="uid://grfvsrralj0y" path="res://scripts/data/player_data.gd" id="1_vvlku"]
-[ext_resource type="Resource" uid="uid://d07a884dras2t" path="res://data/weapon_data/marisa_weapon.tres" id="2_a6wiy"]
+[ext_resource type="Script" uid="uid://grfvsrralj0y" path="res://scripts/data/player_data.gd" id="2_vvlku"]
+[ext_resource type="Script" uid="uid://1r7vgb3c712x" path="res://scripts/coroutine/player/cs_marisa.gd" id="3_shoot"]
 
 [resource]
-script = ExtResource("1_vvlku")
+script = ExtResource("2_vvlku")
 focus_speed = 300
 normal_speed = 550
 animation = ExtResource("1_ewcl1")
-main_weapon = ExtResource("2_a6wiy")
+shoot_script = ExtResource("3_shoot")
 metadata/_custom_type_script = "uid://grfvsrralj0y"

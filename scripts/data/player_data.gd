@@ -7,12 +7,9 @@ class_name PlayerData
 ## 常规移动速度（像素/秒）
 @export var normal_speed: int
 
-@export_group("Animation")
+@export_group("", "")
 ## 角色动画帧（AnimatedSprite2D 用 SpriteFrames）
 @export var animation: SpriteFrames
 
-@export_group("Weapon")
-## 主武器（普通射击）
-@export var main_weapon: WeaponData
-## 子武器（子机/僚机，预留）
-@export var option_weapon: WeaponData
+## 射击脚本（PlayerShootScript）
+@export var shoot_script: Script

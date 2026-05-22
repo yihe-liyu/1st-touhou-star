@@ -6,48 +6,48 @@ signal stage_started()
 signal stage_cleared()
 signal all_enemies_defeated()
 
-var current_level: LevelData
-var _level_script: LevelScript
+var current_stage: StageData
+var _stage_script: StageScript
 var _stage_active: bool = false
 
-func load_stage(data: LevelData):
+func load_stage(data: StageData):
 	if _stage_active:
 		stop_stage()
 
 	if not data.create_script:
-		push_error("LevelManager: LevelData has no create_script")
+		push_error("StageManager: StageData has no create_script")
 		return
 
-	current_level = data
+	current_stage = data
 	_stage_active = true
 	GameState.reset_score()
 
 	stage_started.emit()
 
-	var level_script = data.create_script.new()
-	_level_script = level_script
-	add_child(level_script)
-	level_script.finished.connect(_on_level_finished)
-	var api = StageAPI.new(level_script)
-	level_script.start_level(api)
+	var stage_script = data.create_script.new()
+	_stage_script = stage_script
+	add_child(stage_script)
+	stage_script.finished.connect(_on_stage_finished)
+	var api = StageAPI.new(stage_script)
+	stage_script.start_stage(api)
 
 func stop_stage():
 	_stage_active = false
-	if _level_script and is_instance_valid(_level_script):
-		_level_script.stop()
-		_level_script.queue_free()
-	_level_script = null
-	current_level = null
+	if _stage_script and is_instance_valid(_stage_script):
+		_stage_script.stop()
+		_stage_script.queue_free()
+	_stage_script = null
+	current_stage = null
 	GameState.clear_enemies()
 	BulletManager.clear_all()
 
-func _on_level_finished():
-	if not current_level:
+func _on_stage_finished():
+	if not current_stage:
 		return
 	_stage_active = false
 	stage_cleared.emit()
 	all_enemies_defeated.emit()
-	GameState.save_high_score(current_level.stage_id, GameState.current_score)
+	GameState.save_high_score(current_stage.stage_id, GameState.current_score)
 
 func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	var enemy = ENEMY_SCENE.instantiate()
