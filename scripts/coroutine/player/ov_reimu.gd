@@ -11,16 +11,14 @@ func setup(option: Node2D) -> void:
 	sprite.texture = texture
 	sprite.scale = Vector2(2, 2)
 	option.add_child(sprite)
+	set_process(true)
 
-	var rotator := CoroutineRunner.new()
-	rotator.name = "Rotator"
-	option.add_child(rotator)
-	rotator.run(_rotate.bind(StageAPI.new(rotator)))
-
-func _rotate(api: StageAPI):
-	while api._active():
-		sprite.rotation += deg_to_rad(rotation_speed)
-		await api.frames(1)
+func _process(_delta):
+	if get_tree().paused:
+		return
+	if not is_instance_valid(sprite):
+		return
+	sprite.rotation += deg_to_rad(rotation_speed)
 
 func update_visual(_api: StageAPI, _leader: Node2D) -> void:
 	pass

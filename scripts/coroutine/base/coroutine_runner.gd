@@ -5,27 +5,38 @@ signal finished()
 signal cancelled()
 
 var is_running: bool = false
-var _run_id: int = 0
+var _runs: Dictionary = {}
+var _next_run_id: int = 0
 
 func run(method: Callable):
-	if is_running:
-		stop()
-	_run_id += 1
+	stop()
+	_start_run(method)
+
+func run_parallel(method: Callable):
+	_start_run(method)
+
+func _start_run(method: Callable):
+	var run_id = _next_run_id
+	_next_run_id += 1
+	_runs[run_id] = true
 	is_running = true
-	_execute(method, _run_id)
+	_execute(method, run_id)
 
 func _execute(method: Callable, run_id: int):
 	await method.call()
-	if is_running and _run_id == run_id:
+	_runs.erase(run_id)
+	if _runs.is_empty():
 		is_running = false
 		finished.emit()
 
 func stop():
 	if not is_running:
 		return
+	_runs.clear()
 	is_running = false
 	cancelled.emit()
 
 func _exit_tree():
 	if is_running:
+		_runs.clear()
 		is_running = false

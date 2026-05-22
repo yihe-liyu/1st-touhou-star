@@ -52,9 +52,9 @@ func _sync_options(leader: Node2D, visual_script: Script, wanted: int, offsets: 
 		if visual:
 			visual.update_visual(api, leader)
 
-func _shoot_options(api: StageAPI, bullet_data: BulletData, count: int, spread: float, dir: Vector2) -> void:
+func _shoot_options(api: StageAPI, bullet_data: BulletData, count: int, spread: float, dir: Vector2, offset: Vector2) -> void:
 	for opt in _options:
-		api.shoot_spread(bullet_data, count, spread, dir, opt.global_position)
+		api.shoot_spread(bullet_data, count, spread, dir, opt.global_position + offset)
 
 func _cleanup_options() -> void:
 	for opt in _options:

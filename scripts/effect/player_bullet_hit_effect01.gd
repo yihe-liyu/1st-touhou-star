@@ -1,6 +1,6 @@
 # PlayerBulletHitEffect.gd
 extends Node2D
-class_name PlayerBulletHitEffect
+class_name PlayerBulletHitEffect01
 
 @onready var animation: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -18,4 +18,3 @@ func _ready():
 
 func _physics_process(delta: float) -> void:
 	self.position += velocity * delta
-	self.rotation = velocity.angle()

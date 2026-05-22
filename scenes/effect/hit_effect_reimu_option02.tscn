@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://hwiq1t8143lj"]
+
+[ext_resource type="Script" uid="uid://ck1oqychxykyp" path="res://scripts/effect/player_bullet_hit_effect02.gd" id="1_de5ng"]
+[ext_resource type="Texture2D" uid="uid://c4qm08mqu1doc" path="res://assets/Textures/player/pl00.png" id="2_58k5j"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_de5ng"]
+atlas = ExtResource("2_58k5j")
+region = Rect2(64, 176, 64, 16)
+
+[node name="HitEffectReimu" type="Node2D" unique_id=492742938]
+script = ExtResource("1_de5ng")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1229339536]
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_de5ng")
