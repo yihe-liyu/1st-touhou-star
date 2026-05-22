@@ -57,7 +57,7 @@ func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base
 	else:
 		step = spread_angle / (count - 1)
 	for i in range(count):
-		var angle_offset = -spread_angle / 2.0 + step * i
+		var angle_offset = - spread_angle / 2.0 + step * i
 		var dir := base_dir.rotated(angle_offset)
 		BulletManager.shoot_enemy_bullet(bullet_data, at, dir)
 

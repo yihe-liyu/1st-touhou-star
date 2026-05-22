@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://dfl3nn0l7e6s4"]
+
+[ext_resource type="Script" uid="uid://d3bw1fuviwig7" path="res://scripts/effect/player_bullet_hit_effect.gd" id="1_pkpi1"]
+[ext_resource type="Texture2D" uid="uid://c4qm08mqu1doc" path="res://assets/Textures/player/pl00.png" id="2_827ri"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pkpi1"]
+atlas = ExtResource("2_827ri")
+region = Rect2(16, 160, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_827ri"]
+atlas = ExtResource("2_827ri")
+region = Rect2(32, 160, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cdaia"]
+atlas = ExtResource("2_827ri")
+region = Rect2(48, 160, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_1snx8"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pkpi1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_827ri")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cdaia")
+}],
+"loop": false,
+"name": &"explode",
+"speed": 10.0
+}]
+
+[node name="HitEffectReimu" type="Node2D" unique_id=492742938]
+script = ExtResource("1_pkpi1")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=119258572]
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_1snx8")
+animation = &"explode"

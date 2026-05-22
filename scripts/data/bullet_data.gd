@@ -30,6 +30,12 @@ enum HitboxShape {CIRCLE, RECTANGLE}
 ## [仅矩形] 相对子弹朝向的额外旋转（弧度）
 @export var hitbox_rotation: float = 0.0
 
+@export_group("Spawn")
+## 是否在生成前播放弹雾特效（一张贴图渐渐缩小）
+@export var spawn_fog: bool = false
+## 弹雾贴图
+@export var fog_texture: Texture2D
+
 @export_group("", "")
 ## 移动逻辑脚本。留空则默认直线飞行 (MoveLinear)
 @export var movement_script: Script

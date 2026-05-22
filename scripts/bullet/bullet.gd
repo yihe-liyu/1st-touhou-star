@@ -22,13 +22,16 @@ var hitbox_rotation: float = 0.0
 
 # 运行时状态
 var coroutine_movement: MoveScript
+var is_ready: bool = false
 
 # 额外变量
 var extra: Dictionary = {}
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var fog: BulletFog = $Fog
 
 func bind(data: BulletData, direction: Vector2, override: BulletOverride = null):
+	is_ready = false
 	match data.faction:
 		FACTION_ENEMY:
 			z_index = 10
@@ -68,6 +71,21 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 			child.stop()
 			child.queue_free()
 
+	if data.spawn_fog:
+		sprite.visible = false
+		var tw = fog.play(data.fog_texture)
+		tw.finished.connect(_on_fog_finished.bind(data), CONNECT_ONE_SHOT)
+	else:
+		fog.visible = false
+		_start_movement(data)
+
+func _on_fog_finished(data: BulletData):
+	fog.visible = false
+	sprite.visible = true
+	_start_movement(data)
+
+func _start_movement(data: BulletData):
+	is_ready = true
 	if data.movement_script:
 		coroutine_movement = data.movement_script.new()
 	else:
@@ -75,7 +93,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 
 	add_child(coroutine_movement)
 	var api = StageAPI.new(coroutine_movement)
-	coroutine_movement.start_moving(api, self )
+	coroutine_movement.start_moving(api, self)
 
 func batch_texture() -> Texture2D:
 	return sprite.texture

@@ -84,10 +84,9 @@ func _physics_process(delta):
 	for i in range(active_bullets.size() - 1, -1, -1):
 		var bullet = active_bullets[i]
 		
-		# 碰撞处理（按阵营分流）
-		_resolve_collisions(bullet)
+		if bullet.is_ready:
+			_resolve_collisions(bullet)
 		
-		# 出屏回收
 		if _is_offscreen(bullet.global_position):
 			return_bullet(bullet)
 			continue

@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="BulletData" format=3 uid="uid://chf7refkdku4b"]
 
 [ext_resource type="Script" uid="uid://cwrac6p0ko1eu" path="res://scripts/coroutine/stages/move_homing.gd" id="1_3k0au"]
+[ext_resource type="PackedScene" uid="uid://dfl3nn0l7e6s4" path="res://scenes/effect/hit_effect_reimu_option01.tscn" id="1_3l13m"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_3l13m"]
 [ext_resource type="Texture2D" uid="uid://c4qm08mqu1doc" path="res://assets/Textures/player/pl00.png" id="3_xntuu"]
 
@@ -12,5 +13,6 @@ region = Rect2(0, 160, 16, 16)
 script = ExtResource("2_3l13m")
 texture = SubResource("AtlasTexture_uc4ci")
 velocity = Vector2(0, -500)
+hit_effect = ExtResource("1_3l13m")
 movement_script = ExtResource("1_3k0au")
 metadata/_custom_type_script = "uid://d34w5u8h1ij2v"
