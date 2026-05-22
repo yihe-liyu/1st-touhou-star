@@ -44,7 +44,7 @@ animations = [{
 [resource]
 script = ExtResource("1_jjwni")
 sprite_frames = SubResource("SpriteFrames_10yxv")
-max_hp = 500
+max_hp = 5000
 hitbox_radius = 28.0
 create_script = ExtResource("4_test_shoot")
 move_script = ExtResource("5_move")

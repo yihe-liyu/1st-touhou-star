@@ -6,7 +6,7 @@ var active_enemies: Array = []
 var current_score: int = 0
 var high_scores: Dictionary = {}
 ## 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
-var power_raw: int = 100
+var power_raw: int = 0
 var _config: ConfigFile
 const SAVE_PATH: String = "user://save_data.cfg"
 
