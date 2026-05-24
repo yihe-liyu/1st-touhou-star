@@ -16,7 +16,7 @@ const GroundShader = preload("res://shader/Ground.gdshader")
 var _dynamic_layers: Array[MeshInstance3D] = []
 
 func _ready():
-	_camera_ctrl.setup_camera_only(_camera)
+	_camera_ctrl.setup(_camera)
 
 func reset():
 	clear_layers()
@@ -26,55 +26,80 @@ func reset():
 
 # ── 层管理 ──
 
-func add_scroll_layer(texture: Texture2D, scroll_speed: Vector2 = Vector2(0, -0.1), z_pos: float = 10.0, scale: float = 2.0, tint: Color = Color.WHITE) -> int:
-	var layer = _build_scroll_layer(texture, scroll_speed, z_pos, scale, tint)
-	_layer_container.add_child(layer)
-	_dynamic_layers.append(layer)
+func add_scroll_layer(texture: Texture2D, scroll_speed: Vector2 = Vector2(0, -0.1), z_pos: float = 10.0, quad_scale: float = 2.0, tint: Color = Color.WHITE) -> int:
+	var mesh_layer = _build_scroll_layer(texture, scroll_speed, z_pos, quad_scale, tint)
+	_layer_container.add_child(mesh_layer)
+	_dynamic_layers.append(mesh_layer)
 	return _dynamic_layers.size() - 1
 
 func set_layer_scroll(layer_index: int, scroll: Vector2):
 	if layer_index < 0 or layer_index >= _dynamic_layers.size():
 		return
-	var layer = _dynamic_layers[layer_index]
-	if is_instance_valid(layer) and layer.material_override:
-		layer.material_override.set_shader_parameter("scroll_speed", scroll)
+	var mesh_layer = _dynamic_layers[layer_index]
+	if is_instance_valid(mesh_layer) and mesh_layer.material_override:
+		mesh_layer.material_override.set_shader_parameter("scroll_speed", scroll)
+
+func get_layer_scroll(layer_index: int) -> Vector2:
+	if layer_index < 0 or layer_index >= _dynamic_layers.size():
+		return Vector2.ZERO
+	var mesh_layer = _dynamic_layers[layer_index]
+	if is_instance_valid(mesh_layer) and mesh_layer.material_override:
+		return mesh_layer.material_override.get_shader_parameter("scroll_speed")
+	return Vector2.ZERO
 
 func set_layer_tint(layer_index: int, tint: Color):
 	if layer_index < 0 or layer_index >= _dynamic_layers.size():
 		return
-	var layer = _dynamic_layers[layer_index]
-	if is_instance_valid(layer) and layer.material_override:
-		layer.material_override.set_shader_parameter("tint", tint)
+	var mesh_layer = _dynamic_layers[layer_index]
+	if is_instance_valid(mesh_layer) and mesh_layer.material_override:
+		mesh_layer.material_override.set_shader_parameter("tint", tint)
 
-func set_layer_visible(layer_index: int, visible: bool):
+func get_layer_tint(layer_index: int) -> Color:
+	if layer_index < 0 or layer_index >= _dynamic_layers.size():
+		return Color.WHITE
+	var mesh_layer = _dynamic_layers[layer_index]
+	if is_instance_valid(mesh_layer) and mesh_layer.material_override:
+		return mesh_layer.material_override.get_shader_parameter("tint")
+	return Color.WHITE
+
+func set_layer_visible(layer_index: int, should_show: bool):
 	if layer_index < 0 or layer_index >= _dynamic_layers.size():
 		return
-	var layer = _dynamic_layers[layer_index]
-	if is_instance_valid(layer):
-		layer.visible = visible
+	var mesh_layer = _dynamic_layers[layer_index]
+	if is_instance_valid(mesh_layer):
+		mesh_layer.visible = should_show
 
 func remove_layer(layer_index: int):
 	if layer_index < 0 or layer_index >= _dynamic_layers.size():
 		return
-	var layer = _dynamic_layers[layer_index]
-	if is_instance_valid(layer):
-		layer.queue_free()
+	var mesh_layer = _dynamic_layers[layer_index]
+	if is_instance_valid(mesh_layer):
+		mesh_layer.queue_free()
 	_dynamic_layers.remove_at(layer_index)
 
 func clear_layers():
-	for layer in _dynamic_layers:
-		if is_instance_valid(layer):
-			layer.queue_free()
+	for mesh_layer in _dynamic_layers:
+		if is_instance_valid(mesh_layer):
+			mesh_layer.queue_free()
 	_dynamic_layers.clear()
 	for child in _layer_container.get_children():
 		child.queue_free()
 
 # ── 天空 ──
 
-func set_sky(texture: Texture2D, scroll: Vector2 = Vector2(0, -0.02), scale: float = 3.0, tint: Color = Color.WHITE):
-	var layer = _build_scroll_layer(texture, scroll, 30.0, scale, tint)
-	_sky_mesh.replace_by(layer)
-	_sky_mesh = layer
+func set_sky(texture: Texture2D, scroll: Vector2 = Vector2(0, -0.02), quad_scale: float = 3.0, tint: Color = Color.WHITE):
+	var mesh_layer = _build_scroll_layer(texture, scroll, 30.0, quad_scale, tint)
+	_sky_mesh.replace_by(mesh_layer)
+	_sky_mesh = mesh_layer
+
+func set_sky_scroll(scroll: Vector2):
+	if _sky_mesh and _sky_mesh.material_override:
+		_sky_mesh.material_override.set_shader_parameter("scroll_speed", scroll)
+
+func get_sky_scroll() -> Vector2:
+	if _sky_mesh and _sky_mesh.material_override:
+		return _sky_mesh.material_override.get_shader_parameter("scroll_speed")
+	return Vector2.ZERO
 
 func _clear_sky():
 	if _sky_mesh:
@@ -93,6 +118,14 @@ func set_ground(texture: Texture2D, scroll: Vector2 = Vector2(0, -0.2), grid_sca
 	mat.set_shader_parameter("grid_color", grid_color)
 	mat.set_shader_parameter("base_tint", tint)
 	_ground_mesh.material_override = mat
+
+func set_ground_scroll(scroll: Vector2):
+	set_ground_param("scroll_speed", scroll)
+
+func get_ground_scroll() -> Vector2:
+	if _ground_mesh and _ground_mesh.material_override:
+		return _ground_mesh.material_override.get_shader_parameter("scroll_speed")
+	return Vector2.ZERO
 
 func _clear_ground():
 	if _ground_mesh:
@@ -115,13 +148,50 @@ func set_fog(color: Color = Color(0.49, 0.42, 0.67, 1), density: float = 1.0, he
 	env.fog_depth_end = depth_end
 	env.background_color = bg_color
 
+func set_fog_color(color: Color):
+	if not _world_env.environment: return
+	_world_env.environment.fog_light_color = color
+
+func get_fog_color() -> Color:
+	if _world_env.environment: return _world_env.environment.fog_light_color
+	return Color.BLACK
+
+func set_fog_density(density: float):
+	if not _world_env.environment: return
+	_world_env.environment.fog_density = density
+
+func get_fog_density() -> float:
+	if _world_env.environment: return _world_env.environment.fog_density
+	return 1.0
+
 # ── 相机 ──
 
-func setup_camera(config: BgCameraConfig):
-	_camera_ctrl.setup(config, _camera)
+func setup_camera():
+	_camera_ctrl.setup(_camera)
 
 func trigger_shake(amplitude: float = 2.0, decay: float = 4.0):
 	_camera_ctrl.trigger_shake(amplitude, decay)
+
+func reset_camera():
+	_camera_ctrl.reset_camera()
+
+func set_camera_position(pos: Vector3):
+	_camera_ctrl.set_camera_position(pos)
+
+func get_camera_position() -> Vector3:
+	return _camera_ctrl.get_camera_position()
+
+func set_camera_rotation_degrees(rot: Vector3):
+	_camera_ctrl.set_camera_rotation_degrees(rot)
+
+func get_camera_rotation_degrees() -> Vector3:
+	return _camera_ctrl.get_camera_rotation_degrees()
+
+func set_camera_fov(fov: float):
+	_camera_ctrl.set_camera_fov(fov)
+
+func get_camera_fov() -> float:
+	return _camera_ctrl.get_camera_fov()
 
 # ── 时间轴 ──
 
@@ -130,10 +200,10 @@ func reset_time():
 
 # ── 内部 ──
 
-func _build_scroll_layer(texture: Texture2D, scroll_speed: Vector2, z_pos: float, scale: float, tint: Color) -> MeshInstance3D:
+func _build_scroll_layer(texture: Texture2D, scroll_speed: Vector2, z_pos: float, quad_scale: float, tint: Color) -> MeshInstance3D:
 	var mesh_node = MeshInstance3D.new()
 	var quad = QuadMesh.new()
-	quad.size = Vector2(36, 27) * scale
+	quad.size = Vector2(36, 27) * quad_scale
 	mesh_node.mesh = quad
 	mesh_node.rotation_degrees.x = -90
 	var mat = ShaderMaterial.new()

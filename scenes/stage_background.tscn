@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cv25yim5vcutq"]
 
 [ext_resource type="Script" uid="uid://df026e6u8vmfs" path="res://scripts/background/stage_background.gd" id="1_stage_bg"]
-[ext_resource type="Script" uid="uid://cyl3imoe7eflu" path="res://scripts/background/bg_camera_controller.gd" id="2_cam_ctrl"]
+[ext_resource type="Script" uid="uid://d0bgcamctrl01" path="res://scripts/background/bg_camera_controller.gd" id="2_cam_ctrl"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(36, 27)

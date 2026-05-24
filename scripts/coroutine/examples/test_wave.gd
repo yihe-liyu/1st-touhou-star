@@ -11,11 +11,11 @@ func _on_run(api: StageAPI):
 	api.bg_add_layer(BG_LAYER, Vector2(0, -0.05), 10.0, 0.5, Color.WHITE)
 
 	api.spawn_enemy(ENEMY_DATA, Vector2(640, -50))
+	
+	api.bg_tween_camera_rotation_degrees(Vector3(-8, 0, 0), 40.0)
 
 	await api.seconds(3.0)
 
 	api.spawn_enemy(ENEMY_DATA, Vector2(300, -50))
 
 	await api.seconds(3.0)
-	
-	api.bg_shake(6.0)
