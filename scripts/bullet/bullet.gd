@@ -72,20 +72,14 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 			child.queue_free()
 
 	if data.spawn_fog:
-		sprite.visible = false
-		var tw = fog.play(data.fog_texture)
-		tw.finished.connect(_on_fog_finished.bind(data), CONNECT_ONE_SHOT)
+		fog.play(data.fog_texture)
 	else:
 		fog.visible = false
-		_start_movement(data)
 
-func _on_fog_finished(data: BulletData):
-	fog.visible = false
-	sprite.visible = true
+	is_ready = true
 	_start_movement(data)
 
 func _start_movement(data: BulletData):
-	is_ready = true
 	if data.movement_script:
 		coroutine_movement = data.movement_script.new()
 	else:

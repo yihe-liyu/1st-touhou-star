@@ -1,6 +1,6 @@
-# PlayerBulletHitEffect01.gd
+# PlayerMainBulletHitEffect.gd
 extends Node2D
-class_name PlayerBulletHitEffect
+class_name PlayerMainBulletHitEffect01
 
 @onready var animation: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -13,11 +13,8 @@ func set_velocity(vel: Vector2):
 
 func _ready():
 	animation.play("explode")
-	var tween := create_tween()
-	tween.parallel().tween_property(animation, "modulate", Color(1, 1, 1, 0), 0.4)
 	await animation.animation_finished
 	queue_free()
 
 func _physics_process(delta: float) -> void:
 	self.position += velocity * delta
-	self.scale += Vector2(10, 10) * delta

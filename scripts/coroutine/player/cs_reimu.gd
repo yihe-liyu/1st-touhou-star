@@ -15,9 +15,9 @@ const FOCUS_3 = [Vector2(-30, 60), Vector2(0, 60), Vector2(30, 60)]
 const SPREAD_4 = [Vector2(-60, -60), Vector2(-20, -80), Vector2(20, -80), Vector2(60, -60)]
 const FOCUS_4 = [Vector2(-45, 60), Vector2(-15, 60), Vector2(15, 60), Vector2(45, 60)]
 
-const MAIN_INTERVAL: int = 5
-const OPTION_INTERVAL01: int = 10
-const OPTION_INTERVAL02: int = 8
+const MAIN_INTERVAL: int = 3
+const OPTION_INTERVAL01: int = 8
+const OPTION_INTERVAL02: int = 4
 
 func _on_run(api: StageAPI):
 	await api.frames(1)

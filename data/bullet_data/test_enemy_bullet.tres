@@ -16,4 +16,5 @@ script = ExtResource("2_sc")
 texture = SubResource("AtlasTexture_1")
 velocity = Vector2(0, 250)
 faction = 1
+spawn_fog = true
 fog_texture = SubResource("AtlasTexture_toa2m")

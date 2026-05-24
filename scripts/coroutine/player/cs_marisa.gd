@@ -1,7 +1,7 @@
 extends PlayerShootScript
 class_name MarisaShoot
 
-const BULLET = preload("res://data/bullet_data/marisa_main_bullet.tres")
+const BULLET = preload("res://data/bullet_data/player/marisa_main_bullet.tres")
 const OPTION_VISUAL = preload("res://scripts/coroutine/player/base/option_visual.gd")
 
 const SPREAD_2 = [Vector2(-35, 0), Vector2(35, 0)]
@@ -87,7 +87,7 @@ func _option_fire(api: StageAPI):
 			await api.frames(1)
 			continue
 		if _option_count > 0 and _options.size() > 0:
-			_shoot_options(api, BULLET, _option_count, _option_spread, Vector2.UP)
+			_shoot_options(api, BULLET, _option_count, _option_spread, Vector2.UP, Vector2.ZERO)
 			await api.frames(OPTION_INTERVAL)
 		else:
 			await api.frames(1)

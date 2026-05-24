@@ -1,4 +1,4 @@
-# PlayerBulletHitEffect.gd
+# PlayerBulletHitEffect02.gd
 extends Node2D
 class_name PlayerBulletHitEffect02
 
@@ -7,12 +7,12 @@ class_name PlayerBulletHitEffect02
 var velocity: Vector2 = Vector2.ZERO
 
 func set_velocity(vel: Vector2):
-	velocity = vel.normalized() * 300.0
+	velocity = vel.normalized() * 750.0
 	self.rotation = velocity.angle() + RNG.randf_range(-0.1, 0.1)
 
 func _ready():
 	var tween := create_tween()
-	tween.tween_property(sprite, "modulate", Color(3, 3, 3, 0.5), 0.1)
+	tween.tween_property(sprite, "modulate", Color(4, 4, 4, 0), 0.2)
 	await tween.finished
 	queue_free()
 

@@ -12,7 +12,8 @@ region = Rect2(192, 144, 64, 16)
 [resource]
 script = ExtResource("2_y1oj2")
 texture = SubResource("AtlasTexture_ktt0e")
-velocity = Vector2(0, -2500)
+damage = 6
+velocity = Vector2(0, -3000)
 hit_effect = ExtResource("1_knxur")
 hitbox_shape = 1
 hitbox_radius = 0.0

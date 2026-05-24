@@ -1,11 +1,11 @@
 extends MoveScript
 class_name MoveHoming
 
-@export var homing_angle_per_sec: float = deg_to_rad(360)
-@export var accel_time: float = 1.0
+@export var homing_angle_per_sec: float = deg_to_rad(300)
+@export var accel_time: float = 1.5
 @export var min_speed: float = 500.0
 @export var max_speed: float = 1000.0
-@export var homing_duration: float = 5.0
+@export var homing_duration: float = 1.0
 
 func _on_run(api: StageAPI):
 	var elapsed: float = 0.0
@@ -24,7 +24,7 @@ func _on_run(api: StageAPI):
 				var desired_dir = (nearest.global_position - target.global_position).normalized()
 				var current_dir = target.velocity.normalized()
 				var angle_diff = current_dir.angle_to(desired_dir)
-				var max_turn = homing_angle_per_sec * turn_factor / 60.0
+				var max_turn = homing_angle_per_sec * turn_factor / 10.0
 				var actual_turn = clampf(angle_diff, -max_turn, max_turn)
 				target.velocity = current_dir.rotated(actual_turn) * current_speed
 			else:
