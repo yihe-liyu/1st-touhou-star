@@ -8,6 +8,8 @@ const END_MENU = preload("res://scenes/ui/end_menu.tscn")
 func _ready():
 	if stage_data:
 		StageManager.load_stage(stage_data)
+		if stage_data.background_data:
+			$StageBackground.load_preset(stage_data.background_data)
 
 	if not GameEvents.player_death.is_connected(_on_player_death):
 		GameEvents.player_death.connect(_on_player_death)

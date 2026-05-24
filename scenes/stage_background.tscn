@@ -1,13 +1,6 @@
 [gd_scene format=3 uid="uid://cv25yim5vcutq"]
 
-[ext_resource type="Script" uid="uid://df026e6u8vmfs" path="res://scripts/background/stage_background.gd" id="1_stage_bg"]
-[ext_resource type="Script" uid="uid://d0bgcamctrl01" path="res://scripts/background/bg_camera_controller.gd" id="2_cam_ctrl"]
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(36, 27)
-subdivide_width = 36
-subdivide_depth = 27
-center_offset = Vector3(0, -1, 0)
+[ext_resource type="Script" path="res://scripts/scenes/stage_background.gd" id="1_script"]
 
 [sub_resource type="Environment" id="Environment_default"]
 background_mode = 1
@@ -21,12 +14,11 @@ fog_height_density = 0.5
 fog_depth_begin = 3.0
 fog_depth_end = 35.0
 
-[node name="StageBackground" type="CanvasLayer" unique_id=1390600026]
+[node name="StageBackground" type="CanvasLayer" unique_id=493774001]
+script = ExtResource("1_script")
 layer = -1
-script = ExtResource("1_stage_bg")
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=1165580572]
-unique_name_in_owner = true
+[node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=1312776601]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -39,32 +31,17 @@ grow_vertical = 2
 mouse_filter = 2
 stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="SubViewportContainer" unique_id=995349185]
-unique_name_in_owner = true
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer" unique_id=346277930]
 handle_input_locally = false
 size = Vector2i(776, 904)
 render_target_update_mode = 4
 
-[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport" unique_id=1582025277]
+[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport" unique_id=1506711669]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 2, 8)
 fov = 60.0
 size = 6.0
 
-[node name="SkyMesh" type="MeshInstance3D" parent="SubViewportContainer/SubViewport" unique_id=252744284]
-unique_name_in_owner = true
-
-[node name="LayerContainer" type="Node3D" parent="SubViewportContainer/SubViewport" unique_id=736755767]
-unique_name_in_owner = true
-
-[node name="GroundMesh" type="MeshInstance3D" parent="SubViewportContainer/SubViewport" unique_id=390147062]
-unique_name_in_owner = true
-mesh = SubResource("PlaneMesh_ground")
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewportContainer/SubViewport" unique_id=1717835900]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewportContainer/SubViewport" unique_id=1796288741]
 unique_name_in_owner = true
 environment = SubResource("Environment_default")
-
-[node name="BgCameraController" type="Node" parent="." unique_id=154375911]
-unique_name_in_owner = true
-script = ExtResource("2_cam_ctrl")

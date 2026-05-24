@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="BackgroundData" format=3 uid="uid://d1cab57djvhe7"]
+
+[ext_resource type="Script" path="res://scripts/data/background_data.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dowb4ttes3yka" path="res://assets/Textures/background/stage01/st01a.png" id="2_st01a"]
+[ext_resource type="Texture2D" uid="uid://dudt7kr2rhib1" path="res://assets/Textures/background/stage01/st01b.png" id="3_st01b"]
+[ext_resource type="Texture2D" uid="uid://dd7i35rf1di4f" path="res://assets/Textures/background/stage01/stg1bg.png" id="4_stg1bg"]
+[ext_resource type="Texture2D" uid="uid://dmxqsu00lb26i" path="res://assets/Textures/front/front.png" id="5_front"]
+[ext_resource type="Script" path="res://scripts/data/background_quad.gd" id="6_quad_script"]
+
+[sub_resource type="Resource" id="quad_far"]
+script = ExtResource("6_quad_script")
+position = Vector3(0, 0, 25)
+size = Vector2(15, 12)
+texture = ExtResource("2_st01a")
+scroll = Vector3(0, 0.08, 0)
+color = Color(0.55, 0.6, 0.75, 1)
+
+[sub_resource type="Resource" id="quad_mid"]
+script = ExtResource("6_quad_script")
+position = Vector3(0, 0, 8)
+size = Vector2(13, 11)
+texture = ExtResource("3_st01b")
+scroll = Vector3(0, 0.5, 0)
+color = Color(0.85, 0.9, 0.85, 1)
+
+[sub_resource type="Resource" id="quad_near"]
+script = ExtResource("6_quad_script")
+position = Vector3(0, 0, 4)
+size = Vector2(12, 10)
+texture = ExtResource("4_stg1bg")
+
+[resource]
+script = ExtResource("1_script")
+background_id = 1
+background_name = "Stage 1"
+quads = [SubResource("quad_far"), SubResource("quad_mid"), SubResource("quad_near")]
+front_texture = ExtResource("5_front")
