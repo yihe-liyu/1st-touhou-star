@@ -9,6 +9,7 @@ signal all_enemies_defeated()
 var current_stage: StageData
 var _stage_script: StageScript
 var _stage_active: bool = false
+var _background: StageBackground
 
 func load_stage(data: StageData):
 	if _stage_active:
@@ -22,6 +23,10 @@ func load_stage(data: StageData):
 	_stage_active = true
 	GameState.reset_score()
 
+	_find_background()
+	if _background:
+		_background.reset()
+
 	stage_started.emit()
 
 	var stage_script = data.create_script.new()
@@ -29,6 +34,8 @@ func load_stage(data: StageData):
 	add_child(stage_script)
 	stage_script.finished.connect(_on_stage_finished)
 	var api = StageAPI.new(stage_script)
+	if _background:
+		api.set_background(_background)
 	stage_script.start_stage(api)
 
 func stop_stage():
@@ -66,3 +73,8 @@ func _add_enemy_to_scene(enemy: Enemy):
 		if world:
 			parent = world
 	parent.add_child(enemy)
+
+func _find_background():
+	var scene = get_tree().current_scene
+	if scene:
+		_background = scene.get_node_or_null("StageBackground") as StageBackground

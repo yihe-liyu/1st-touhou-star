@@ -1,11 +1,13 @@
 extends Node
 class_name BgCameraController
 
+const DEFAULT_SHAKE_DECAY: float = 4.0
+
 var _camera: Camera3D
 var _config: BgCameraConfig
 
-var _shake_remaining: float = 0.0
 var _shake_intensity: float = 0.0
+var _shake_decay: float = DEFAULT_SHAKE_DECAY
 var _current_tilt_x: float = 0.0
 var _current_tilt_y: float = 0.0
 var _rng = RandomNumberGenerator.new()
@@ -15,14 +17,16 @@ func setup(config: BgCameraConfig, camera: Camera3D):
 	_camera = camera
 	_rng.randomize()
 
-func trigger_shake(amplitude: float, decay: float):
+func setup_camera_only(camera: Camera3D):
+	_camera = camera
+	_rng.randomize()
+
+func trigger_shake(amplitude: float, decay: float = DEFAULT_SHAKE_DECAY):
 	_shake_intensity = amplitude
-	_shake_remaining = amplitude
-	if decay > 0:
-		_shake_remaining /= decay
+	_shake_decay = decay if decay > 0 else DEFAULT_SHAKE_DECAY
 
 func _process(delta):
-	if not _camera or not _config:
+	if not _camera:
 		return
 
 	_update_tilt_from_player(delta)
@@ -30,6 +34,8 @@ func _process(delta):
 	_push_ground_params()
 
 func _update_tilt_from_player(delta):
+	if not _config:
+		return
 	if _config.tilt_response <= 0:
 		return
 
@@ -61,9 +67,11 @@ func _apply_shake(delta):
 	_camera.h_offset = lerp(_camera.h_offset, raw_x, 0.3)
 	_camera.v_offset = lerp(_camera.v_offset, raw_y, 0.3)
 
-	_shake_intensity = max(_shake_intensity - _config.shake_decay * delta, 0)
+	_shake_intensity = max(_shake_intensity - _shake_decay * delta, 0)
 
 func _push_ground_params():
+	if not _config:
+		return
 	var parent = get_parent()
 	if not parent:
 		return
@@ -76,4 +84,5 @@ func _push_ground_params():
 	mat.set_shader_parameter("tilt_y", _current_tilt_y)
 	mat.set_shader_parameter("fov_stretch", _config.fov_stretch)
 	mat.set_shader_parameter("roll", _config.roll)
+	mat.set_shader_parameter("camera_speed_mult", 1.0)
 	mat.set_shader_parameter("camera_speed_mult", 1.0)

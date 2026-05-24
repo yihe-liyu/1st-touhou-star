@@ -5,7 +5,6 @@
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="PackedScene" uid="uid://cv25yim5vcutq" path="res://scenes/stage_background.tscn" id="7_bg_scene"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
-[ext_resource type="Resource" uid="uid://dhvbpklv3jjpw" path="res://data/background/stage01_background.tres" id="8_bg_data"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game_scene.gd" id="9_script"]
 
 [node name="Main" type="Node" unique_id=1241607837]
@@ -13,7 +12,6 @@ script = ExtResource("9_script")
 stage_data = ExtResource("2_rurhu")
 
 [node name="StageBackground" parent="." unique_id=263685021 instance=ExtResource("7_bg_scene")]
-background_data = ExtResource("8_bg_data")
 
 [node name="World" type="Node2D" parent="." unique_id=1228399696]
 
@@ -30,6 +28,6 @@ limit_top = 0
 limit_right = 1280
 limit_bottom = 960
 
-[node name="Node2D" type="Node2D" parent="." unique_id=711685194]
-z_index = 200
+[node name="debug" type="Node2D" parent="." unique_id=711685194]
+z_index = 127
 script = ExtResource("7_kk2rg")

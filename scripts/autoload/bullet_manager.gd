@@ -1,7 +1,7 @@
 # BulletManager.gd (Autoload)
 extends Node
 
-const POOL_SIZE: int = 600
+const POOL_SIZE: int = 4000
 
 var use_batch_render: bool = false
 var _batch_player: Node2D
@@ -76,7 +76,10 @@ func return_bullet(bullet: Bullet):
 	bullet.visible = false
 	bullet.process_mode = PROCESS_MODE_DISABLED
 	active_bullets.erase(bullet)
-	bullet_pool.append(bullet)
+	if bullet_pool.size() < POOL_SIZE:
+		bullet_pool.append(bullet)
+	else:
+		bullet.queue_free()
 
 # ── 每帧更新 ──
 
