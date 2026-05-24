@@ -2,8 +2,10 @@ extends Node
 class_name BgCameraController
 
 @export var shake_decay: float = 4.0
-@export var fov_stretch: float = 0.0
-@export var roll: float = 0.0
+
+var fov_stretch: float = 0.0
+var roll: float = 0.0
+var camera_speed_mult: float = 1.0
 
 var _camera: Camera3D
 var _shake_intensity: float = 0.0
@@ -45,6 +47,24 @@ func set_camera_fov(fov: float):
 func get_camera_fov() -> float:
 	return _camera.fov if _camera else 75.0
 
+func set_fov_stretch(value: float):
+	fov_stretch = value
+
+func get_fov_stretch() -> float:
+	return fov_stretch
+
+func set_roll(value: float):
+	roll = value
+
+func get_roll() -> float:
+	return roll
+
+func set_camera_speed_mult(value: float):
+	camera_speed_mult = value
+
+func get_camera_speed_mult() -> float:
+	return camera_speed_mult
+
 func reset_camera():
 	if not _camera:
 		return
@@ -81,4 +101,4 @@ func _push_ground_params():
 	var mat = ground.material_override
 	mat.set_shader_parameter("fov_stretch", fov_stretch)
 	mat.set_shader_parameter("roll", roll)
-	mat.set_shader_parameter("camera_speed_mult", 1.0)
+	mat.set_shader_parameter("camera_speed_mult", camera_speed_mult)
