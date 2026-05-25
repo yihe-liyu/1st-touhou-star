@@ -1,7 +1,5 @@
 [gd_scene format=3 uid="uid://cv25yim5vcutq"]
 
-[ext_resource type="Script" path="res://scripts/scenes/stage_background.gd" id="1_script"]
-
 [sub_resource type="Environment" id="Environment_default"]
 background_mode = 1
 background_color = Color(0.15, 0.15, 0.31, 1)
@@ -15,7 +13,6 @@ fog_depth_begin = 3.0
 fog_depth_end = 35.0
 
 [node name="StageBackground" type="CanvasLayer" unique_id=493774001]
-script = ExtResource("1_script")
 layer = -1
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=1312776601]

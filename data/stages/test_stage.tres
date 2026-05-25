@@ -1,11 +1,9 @@
 [gd_resource type="Resource" script_class="StageData" format=3 uid="uid://teststage001"]
 
 [ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="1_level"]
-[ext_resource type="Resource" uid="uid://d1cab57djvhe7" path="res://data/backgrounds/stage01_bg.tres" id="2_bg"]
 [ext_resource type="Script" uid="uid://bsg7bc25qr4o6" path="res://scripts/coroutine/examples/test_wave.gd" id="3_script"]
 
 [resource]
 script = ExtResource("1_level")
 stage_name = "E Stage 1"
 create_script = ExtResource("3_script")
-background_data = ExtResource("2_bg")
