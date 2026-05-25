@@ -24,7 +24,7 @@ func _on_run(api: StageAPI):
 	run_parallel(_main_fire.bind(api))
 	run_parallel(_option_fire.bind(api))
 
-	while api._active():
+	while api.active():
 		var player = api.get_player()
 		if not is_instance_valid(player):
 			await api.frames(1)
@@ -60,7 +60,7 @@ func _on_run(api: StageAPI):
 	_cleanup_options()
 
 func _main_fire(api: StageAPI):
-	while api._active():
+	while api.active():
 		if not Input.is_action_pressed("shoot"):
 			await api.frames(1)
 			continue
@@ -73,7 +73,7 @@ func _main_fire(api: StageAPI):
 		await api.frames(MAIN_INTERVAL)
 
 func _option_fire(api: StageAPI):
-	while api._active():
+	while api.active():
 		if not Input.is_action_pressed("shoot"):
 			await api.frames(1)
 			continue

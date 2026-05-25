@@ -6,9 +6,6 @@ var runner: CoroutineRunner
 func _init(p_runner: CoroutineRunner) -> void:
 	runner = p_runner
 
-func _active() -> bool:
-	return is_instance_valid(runner) and runner.is_running
-
 func _await_next_frame() -> bool:
 	while is_instance_valid(runner) and runner.is_running:
 		await runner.get_tree().physics_frame
@@ -17,6 +14,9 @@ func _await_next_frame() -> bool:
 		if not runner.get_tree().paused:
 			return true
 	return false
+
+func active() -> bool:
+	return is_instance_valid(runner) and runner.is_running
 
 func seconds(duration: float) -> void:
 	await frames(maxi(int(duration * 60.0), 1))
@@ -27,7 +27,7 @@ func frames(count: int) -> void:
 			return
 
 func all_defeated() -> void:
-	while _active():
+	while active():
 		var has_alive := false
 		for enemy in GameState.active_enemies:
 			if is_instance_valid(enemy):
@@ -39,12 +39,12 @@ func all_defeated() -> void:
 			return
 
 func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
-	if not _active():
+	if not active():
 		return null
 	return StageManager.spawn_enemy(data, position)
 
 func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2) -> void:
-	if not _active():
+	if not active():
 		return
 	if count <= 0:
 		return

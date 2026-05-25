@@ -11,7 +11,7 @@ func _on_run(api: StageAPI):
 	var elapsed: float = 0.0
 	var base_speed = target.velocity.length()
 	var _max_speed = max_speed if max_speed > 0.0 else base_speed
-	while api._active() and is_instance_valid(target):
+	while api.active() and is_instance_valid(target):
 		elapsed += 1.0 / 60.0
 		var turn_factor = 1.0 if accel_time <= 0.0 else clampf(elapsed / accel_time, 0.0, 1.0)
 		var speed_factor = 1.0 if accel_time <= 0.0 else clampf(elapsed / accel_time, 0.0, 1.0)

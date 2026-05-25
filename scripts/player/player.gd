@@ -2,7 +2,11 @@
 extends Area2D
 class_name Player
 
-const MIN_MARGIN: float = 8.0
+const FRONT_UP: int = 32
+const FRONT_DOWN: int = 960 - 32
+const FRONT_LEFT: int = 64
+const FRONT_RIGHT: int = 1280 - 448
+const MIN_MARGIN: int = 8
 
 const IDLE = "idle"
 const LEFTING = "lefting"
@@ -87,8 +91,8 @@ func update_move(delta) -> void:
 	position += move_input * current_speed * delta
 
 	# 位置限制
-	position.x = clamp(position.x, 64.0 + MIN_MARGIN * 3, 830.0 - MIN_MARGIN * 3)
-	position.y = clamp(position.y, 30.0 + MIN_MARGIN * 4, 930.0 - MIN_MARGIN * 4)
+	position.x = clamp(position.x, FRONT_LEFT + MIN_MARGIN * 3, FRONT_RIGHT - MIN_MARGIN * 3)
+	position.y = clamp(position.y, FRONT_UP + MIN_MARGIN * 4, FRONT_DOWN - MIN_MARGIN * 4)
 
 func update_animation() -> void:
 	var pressing_left = input_vector.x < -0.1

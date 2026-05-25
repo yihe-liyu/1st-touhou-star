@@ -3,7 +3,6 @@
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
 [ext_resource type="Resource" uid="uid://teststage001" path="res://data/stages/test_stage.tres" id="2_rurhu"]
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
-[ext_resource type="PackedScene" uid="uid://cv25yim5vcutq" path="res://scenes/stage_background.tscn" id="7_bg_scene"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game_scene.gd" id="9_script"]
 
@@ -11,13 +10,29 @@
 script = ExtResource("9_script")
 stage_data = ExtResource("2_rurhu")
 
-[node name="StageBackground" parent="." unique_id=263685021 instance=ExtResource("7_bg_scene")]
+[node name="Background" type="CanvasLayer" parent="." unique_id=1180211993]
+layer = -1
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Background" unique_id=1683698703]
+offset_left = 64.0
+offset_top = 32.0
+offset_right = 832.0
+offset_bottom = 928.0
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Background/SubViewportContainer" unique_id=1903016322]
+handle_input_locally = false
+size = Vector2i(768, 896)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="Background/SubViewportContainer/SubViewport" unique_id=1884127916]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 4, 5)
 
 [node name="World" type="Node2D" parent="." unique_id=1228399696]
 
 [node name="Player" parent="World" unique_id=1148497527 instance=ExtResource("1_w5aja")]
 z_index = 6
-position = Vector2(447, 840)
+position = Vector2(448, 840)
 player_data = ExtResource("6_b5spy")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=476199]
@@ -25,6 +40,8 @@ limit_left = 0
 limit_top = 0
 limit_right = 1280
 limit_bottom = 960
+
+[node name="front" type="Sprite2D" parent="." unique_id=1281612929]
 
 [node name="debug" type="Node2D" parent="." unique_id=711685194]
 z_index = 127
