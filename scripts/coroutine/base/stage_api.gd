@@ -19,7 +19,7 @@ func active() -> bool:
 	return is_instance_valid(runner) and runner.is_running
 
 func seconds(duration: float) -> void:
-	await frames(maxi(int(duration * 60.0), 1))
+	await frames(maxi(int(duration * Engine.physics_ticks_per_second), 1))
 
 func frames(count: int) -> void:
 	for _i in range(count):
@@ -27,16 +27,28 @@ func frames(count: int) -> void:
 			return
 
 func all_defeated() -> void:
+	if not active():
+		return
+	
+	var since_check := 0
+	
 	while active():
-		var has_alive := false
-		for enemy in GameState.active_enemies:
-			if is_instance_valid(enemy):
-				has_alive = true
-				break
-		if not has_alive:
-			break
-		if not await _await_next_frame():
+		# 快速检查：没有敌人了就直接返回
+		if GameState.active_enemies.is_empty():
 			return
+		
+		# 每 30 帧强检一次（兜底，防止 stop() 时卡死）
+		if since_check >= 30:
+			since_check = 0
+			if not await _await_next_frame():
+				return
+		else:
+			since_check += 1
+			# 等待敌人被杀信号 —— 真正的信号驱动！
+			await GameEvents.enemy_killed
+			if not active():
+				return
+			since_check = 0
 
 func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	if not active():

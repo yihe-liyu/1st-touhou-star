@@ -24,6 +24,8 @@ func _start_run(method: Callable):
 
 func _execute(method: Callable, run_id: int):
 	await method.call()
+	if not _runs.has(run_id):
+		return
 	_runs.erase(run_id)
 	if _runs.is_empty():
 		is_running = false
