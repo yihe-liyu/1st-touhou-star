@@ -70,11 +70,25 @@ focus={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194325,"physical_keycode":0,"key_label":0,"unicode":0,"location":1,"echo":false,"script":null)
 ]
 }
-debug_toggle={
-"deadzone": 0.2,
-"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194332,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
-]
-}
+debug_toggle=[{
+"alt_pressed": false,
+"class": "InputEventKey",
+"command_or_automatic": false,
+"ctrl_pressed": false,
+"device": -1.0,
+"echo": false,
+"key_label": 0.0,
+"keycode": 4194307.0,
+"location": 0.0,
+"meta_pressed": false,
+"physical_keycode": 0.0,
+"pressed": false,
+"resource_local_to_scene": false,
+"resource_path": "",
+"shift_pressed": false,
+"type": "Object",
+"unicode": 0.0
+}]
 
 [layer_names]
 
