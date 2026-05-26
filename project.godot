@@ -24,6 +24,7 @@ BulletManager="*uid://r1cevfo2ay7l"
 GameState="*uid://bd4sn2mxfar2u"
 StageManager="*res://scripts/autoload/stage_manager.gd"
 RNG="*res://scripts/autoload/rng.gd"
+_MCPGameBridge="*uid://cds186n8uv4f0"
 
 [display]
 
@@ -32,6 +33,10 @@ window/size/viewport_height=960
 window/stretch/mode="viewport"
 window/show_image=true
 window/image=""
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/agent_tools/plugin.cfg")
 
 [input]
 

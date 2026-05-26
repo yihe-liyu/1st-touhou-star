@@ -26,7 +26,7 @@ scroll_speed = Vector2(0, 5)
 [node name="MidLayer" type="Node3D" parent="." unique_id=1227962896]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 script = ExtResource("2_layer_script")
-scroll_speed = Vector2(0, -0.2)
+scroll_speed = Vector2(0, 15)
 
 [node name="Sprite3D" type="Sprite3D" parent="MidLayer" unique_id=1268162024]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.371139e-08, 0)
@@ -36,6 +36,7 @@ texture = ExtResource("4_st01a")
 
 [node name="NearLayer" type="Node3D" parent="." unique_id=977203905]
 script = ExtResource("2_layer_script")
+scroll_speed = Vector2(0, 25)
 
 [node name="Sprite3D" type="Sprite3D" parent="NearLayer" unique_id=1333284171]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.371139e-08, -1.9106855e-15)
