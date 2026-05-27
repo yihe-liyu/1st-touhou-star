@@ -1,6 +1,12 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_script"]
+[ext_resource type="Shader" path="res://gdshader/pause_blur.gdshader" id="2_blur"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]
+shader = ExtResource("2_blur")
+shader_parameter/blur_strength = 3.0
+shader_parameter/darken = 0.5
 
 [node name="PauseMenu" type="CanvasLayer"]
 script = ExtResource("1_script")
@@ -8,7 +14,8 @@ container_path = NodePath("Container")
 layer = 16
 
 [node name="Overlay" type="ColorRect" parent="."]
-color = Color(0, 0, 0, 0.65)
+material = SubResource("ShaderMaterial_blur")
+color = Color(1.0, 1.0, 1.0, 1.0)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

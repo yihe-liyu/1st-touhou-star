@@ -111,7 +111,9 @@ func _accept_current():
 	if current_index < 0 or current_index >= menu_items.size():
 		return
 	var item = menu_items[current_index]
+	var selected_index = current_index
 	if is_instance_valid(item) and item is CanvasItem:
+		input_enabled = false
 		var tw = item.create_tween()
 		tw.set_trans(Tween.TRANS_BACK)
 		tw.set_ease(Tween.EASE_OUT)
@@ -119,8 +121,9 @@ func _accept_current():
 		tw.tween_property(item, "modulate", Color(0.8, 0.8, 0.8, 1.0), 0.08)
 		tw.tween_property(item, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.08)
 		await tw.finished
-	item_selected.emit(current_index)
-	_on_item_selected(current_index)
+		input_enabled = true
+	item_selected.emit(selected_index)
+	_on_item_selected(selected_index)
 
 func _on_cancel():
 	menu_back.emit()
