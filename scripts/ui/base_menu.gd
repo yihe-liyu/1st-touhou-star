@@ -134,9 +134,11 @@ func _accept_current():
 # ── 入口动画 ──
 
 func _play_entrance_animation():
-	# 所有选项初始不可见
-	for item in menu_items:
-		item.modulate = Color(1, 1, 1, 0)
+	# 每个选项从正确颜色开始（只改透明度），最后没有颜色 snap
+	for i in menu_items.size():
+		var item = menu_items[i]
+		var color = highlight_color if i == current_index else normal_color
+		item.modulate = Color(color.r, color.g, color.b, 0.0)
 		if item is Control:
 			item.scale = Vector2(0.9, 0.9)
 
@@ -145,21 +147,16 @@ func _play_entrance_animation():
 	var tw = create_tween().set_parallel(true)
 	for i in menu_items.size():
 		var item = menu_items[i]
+		var color = highlight_color if i == current_index else normal_color
 		var delay = i * entrance_stagger
-		tw.tween_property(item, "modulate", Color(1, 1, 1, 1), entrance_duration * 0.8).set_delay(delay)
+		tw.tween_property(item, "modulate", color, entrance_duration * 0.8).set_delay(delay)
 		if item is Control:
 			tw.tween_property(item, "scale", Vector2.ONE, entrance_duration).set_delay(delay)\
 				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-	# 动画完成后复位颜色
+	# 动画完成后只恢复输入
 	var total = (menu_items.size() - 1) * entrance_stagger + entrance_duration
-	tw.tween_callback(_finish_entrance).set_delay(total)
-
-func _finish_entrance():
-	input_enabled = true
-	for i in menu_items.size():
-		var color = highlight_color if i == current_index else normal_color
-		_set_item_modulate(menu_items[i], color, true)
+	tw.tween_callback(func(): input_enabled = true).set_delay(total)
 
 func _on_cancel():
 	menu_back.emit()
