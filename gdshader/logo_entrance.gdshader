@@ -8,7 +8,7 @@ float hash(vec2 p) {
 }
 
 void fragment() {
-	const float GRID = 50.0;  // 50×50 粒子网格
+	const float GRID = 75.0;  // 75×75 粒子网格
 
 	// 每个像素所属的粒子
 	vec2 grid_uv = floor(UV * GRID) / GRID;

@@ -185,15 +185,15 @@ func _start_pulse(item: Node):
 	if item.modulate.a < 0.01:
 		return
 	var dimmed = Color(
-		highlight_color.r * 0.85,
-		highlight_color.g * 0.85,
-		highlight_color.b * 0.85,
+		highlight_color.r * 0.5,
+		highlight_color.g * 0.5,
+		highlight_color.b * 0.5,
 		1.0
 	)
 	_pulse_tween = create_tween().set_loops()
 	_pulse_tween.set_trans(Tween.TRANS_SINE)
-	_pulse_tween.tween_property(item, "modulate", dimmed, 0.6)
-	_pulse_tween.tween_property(item, "modulate", highlight_color, 0.6)
+	_pulse_tween.tween_property(item, "modulate", highlight_color, 0.3)
+	_pulse_tween.tween_property(item, "modulate", dimmed, 0.3)
 
 func _stop_pulse():
 	if _pulse_tween and _pulse_tween.is_valid():
