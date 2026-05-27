@@ -15,6 +15,10 @@ const ACCEPT_COOLDOWN: float = 0.2
 @export var highlight_color: Color = Color(1.0, 1.0, 1.0, 1.0)
 ## 未选中项的颜色
 @export var normal_color: Color = Color(0.5, 0.5, 0.5, 1.0)
+## 选项逐个弹出的间隔时间（0 = 禁用入口动画）
+@export var entrance_stagger: float = 0.0
+## 每个选项的弹出时长
+@export var entrance_duration: float = 0.25
 
 var menu_items: Array[Node] = []
 var current_index: int = -1
@@ -34,6 +38,8 @@ func _ready():
 	if not menu_items.is_empty():
 		select_item(0, true)
 	_on_ready()
+	if entrance_stagger > 0.0 and not menu_items.is_empty():
+		_play_entrance_animation()
 
 func _collect_items():
 	menu_items.clear()
@@ -124,6 +130,36 @@ func _accept_current():
 		input_enabled = true
 	item_selected.emit(selected_index)
 	_on_item_selected(selected_index)
+
+# ── 入口动画 ──
+
+func _play_entrance_animation():
+	# 所有选项初始不可见
+	for item in menu_items:
+		item.modulate = Color(1, 1, 1, 0)
+		if item is Control:
+			item.scale = Vector2(0.9, 0.9)
+
+	input_enabled = false
+
+	var tw = create_tween().set_parallel(true)
+	for i in menu_items.size():
+		var item = menu_items[i]
+		var delay = i * entrance_stagger
+		tw.tween_property(item, "modulate", Color(1, 1, 1, 1), entrance_duration * 0.8).set_delay(delay)
+		if item is Control:
+			tw.tween_property(item, "scale", Vector2.ONE, entrance_duration).set_delay(delay)\
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	# 动画完成后复位颜色
+	var total = (menu_items.size() - 1) * entrance_stagger + entrance_duration
+	tw.tween_callback(_finish_entrance).set_delay(total)
+
+func _finish_entrance():
+	input_enabled = true
+	for i in menu_items.size():
+		var color = highlight_color if i == current_index else normal_color
+		_set_item_modulate(menu_items[i], color, true)
 
 func _on_cancel():
 	menu_back.emit()

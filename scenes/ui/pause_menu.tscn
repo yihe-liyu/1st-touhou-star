@@ -12,6 +12,7 @@ shader_parameter/darken = 0.5
 layer = 16
 script = ExtResource("1_script")
 container_path = NodePath("Container")
+entrance_stagger = 0.08
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=388309025]
 material = SubResource("ShaderMaterial_blur")

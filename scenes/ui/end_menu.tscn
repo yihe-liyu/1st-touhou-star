@@ -9,6 +9,7 @@ script = ExtResource("1_script")
 title_label = NodePath("Panel/TitleLabel")
 title_text = ""
 container_path = NodePath("Panel/MenuContainer")
+entrance_stagger = 0.1
 
 [node name="Panel" type="ColorRect" parent="." unique_id=1599365742]
 anchors_preset = 15
