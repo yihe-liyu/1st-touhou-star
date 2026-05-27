@@ -9,7 +9,7 @@ func _on_item_selected(index: int):
 	match index:
 		0:
 			GameManager.change_scene("res://scenes/game_scene.tscn")
-		1:
+		8:
 			get_tree().quit()
 
 func _on_back():

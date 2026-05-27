@@ -12,9 +12,9 @@ const ACCEPT_COOLDOWN: float = 0.2
 ## 是否允许首尾循环
 @export var allow_wrap: bool = true
 ## 选中项高亮颜色（未选中项恢复为白色）
-@export var highlight_color: Color = Color(1.0, 0.85, 0.2, 1.0)
+@export var highlight_color: Color = Color(1.0, 1.0, 1.0, 1.0)
 ## 未选中项的颜色
-@export var normal_color: Color = Color(0.65, 0.65, 0.65, 1.0)
+@export var normal_color: Color = Color(0.5, 0.5, 0.5, 1.0)
 
 var menu_items: Array[Node] = []
 var current_index: int = -1
@@ -115,8 +115,9 @@ func _accept_current():
 		var tw = item.create_tween()
 		tw.set_trans(Tween.TRANS_BACK)
 		tw.set_ease(Tween.EASE_OUT)
-		tw.tween_property(item, "scale", Vector2(0.92, 0.92), 0.08)
-		tw.tween_property(item, "scale", Vector2.ONE, 0.08)
+		tw.set_loops(3)
+		tw.tween_property(item, "modulate", Color(0.8, 0.8, 0.8, 1.0), 0.08)
+		tw.tween_property(item, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.08)
 		await tw.finished
 	item_selected.emit(current_index)
 	_on_item_selected(current_index)

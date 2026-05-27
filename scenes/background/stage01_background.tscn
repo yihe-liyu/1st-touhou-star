@@ -1,28 +1,29 @@
 [gd_scene format=3 uid="uid://14hmn1qoll6l"]
 
 [ext_resource type="Script" uid="uid://b2aqhbms4xuer" path="res://scripts/background/stage01_background.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://dowb4ttes3yka" path="res://assets/Textures/background/stage01/st01a.png" id="4_st01a"]
+[ext_resource type="Shader" uid="uid://dogh3ly53c8x7" path="res://gdshader/ground.gdshader" id="2_cnuel"]
+[ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="3_srm4r"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mid"]
-shading_mode = 0
-albedo_texture = ExtResource("4_st01a")
-
-[sub_resource type="QuadMesh" id="QuadMesh_mid"]
-material = SubResource("StandardMaterial3D_mid")
-size = Vector2(10, 10)
-
-[sub_resource type="Environment" id="Environment_fog"]
+[sub_resource type="Environment" id="Environment_cnuel"]
 fog_enabled = true
-fog_light_color = Color(0.3, 0.3, 0.5, 1)
-fog_density = 0.02
+fog_light_color = Color(0.3180198, 0.31801978, 0.31801975, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cnuel"]
+render_priority = 0
+shader = ExtResource("2_cnuel")
+shader_parameter/ground_texture = ExtResource("3_srm4r")
+shader_parameter/tiling = Vector2(6, 6)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_srm4r"]
+material = SubResource("ShaderMaterial_cnuel")
+size = Vector2(256, 256)
 
 [node name="Stage01Background" type="Node3D" unique_id=2088116369]
 script = ExtResource("1_script")
 
-[node name="MidMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
-mesh = SubResource("QuadMesh_mid")
-metadata/scroll_speed = Vector2(0, -0.2)
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1086631958]
+environment = SubResource("Environment_cnuel")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_fog")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=976710392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -68)
+mesh = SubResource("PlaneMesh_srm4r")

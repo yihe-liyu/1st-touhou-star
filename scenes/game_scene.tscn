@@ -2,7 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
 [ext_resource type="Resource" uid="uid://teststage001" path="res://data/stages/test_stage.tres" id="2_rurhu"]
+[ext_resource type="Texture2D" uid="uid://btj64lam67h1f" path="res://assets/Textures/front/FalseFront.png" id="5_rurhu"]
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
+[ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game_scene.gd" id="9_script"]
 
@@ -26,7 +28,7 @@ size = Vector2i(768, 896)
 render_target_update_mode = 4
 
 [node name="Camera3D" type="Camera3D" parent="Background/SubViewportContainer/SubViewport" unique_id=1884127916]
-transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 5, 5)
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 6, 6)
 
 [node name="World" type="Node2D" parent="." unique_id=1228399696]
 
@@ -42,6 +44,15 @@ limit_right = 1280
 limit_bottom = 960
 
 [node name="front" type="Sprite2D" parent="." unique_id=1281612929]
+z_index = 128
+texture = ExtResource("5_rurhu")
+offset = Vector2(640, 480)
+
+[node name="Title" type="Sprite2D" parent="." unique_id=1384045485]
+z_index = 128
+position = Vector2(1056, 734)
+scale = Vector2(0.69, 0.69)
+texture = ExtResource("6_kk2rg")
 
 [node name="debug" type="Node2D" parent="." unique_id=711685194]
 z_index = 127

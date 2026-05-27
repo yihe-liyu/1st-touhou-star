@@ -90,11 +90,11 @@ func _draw():
 		var count = bullet_manager.active_bullets.size()
 		draw_string(
 			ThemeDB.fallback_font,
-			Vector2(20, 40),
+			Vector2(64, 64),
 			"弹幕数: %d" % count,
 			HORIZONTAL_ALIGNMENT_LEFT,
 			-1,
-			16,
+			32,
 			Color.RED
 		)
 
