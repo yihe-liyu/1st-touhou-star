@@ -43,6 +43,7 @@ func _ready():
 		for item in menu_items:
 			item.modulate = Color(1, 1, 1, 0)
 		current_index = 0
+		input_enabled = false
 	else:
 		# 没有入口动画，正常设置颜色
 		for item in menu_items:
