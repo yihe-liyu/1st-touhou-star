@@ -8,8 +8,9 @@
 layer = 0
 script = ExtResource("1_script")
 container_path = NodePath("Container")
-entrance_stagger = 0.06
+entrance_stagger = 0.03
 entrance_duration = 0.2
+auto_entrance = false
 
 [node name="Background" type="TextureRect" parent="." unique_id=627389897]
 anchors_preset = 15
@@ -80,7 +81,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Quit"
 
-[node name="TextureRect" type="TextureRect" parent="." unique_id=1922387977]
+[node name="logo" type="TextureRect" parent="." unique_id=1922387977]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5

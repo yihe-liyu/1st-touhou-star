@@ -19,6 +19,9 @@ const ACCEPT_COOLDOWN: float = 0.2
 @export var entrance_stagger: float = 0.0
 ## 每个选项的弹出时长
 @export var entrance_duration: float = 0.25
+## 是否在 _ready 后自动开始入场动画
+## 设为 false 可让子类自行控制时机（如等 logo 动画完）
+@export var auto_entrance: bool = true
 
 var menu_items: Array[Node] = []
 var current_index: int = -1
@@ -33,13 +36,23 @@ func _ready():
 		_container = get_node_or_null(container_path)
 	if _container:
 		_collect_items()
-	for item in menu_items:
-		_set_item_modulate(item, normal_color, true)
-	if not menu_items.is_empty():
-		select_item(0, true)
-	_on_ready()
+
 	if entrance_stagger > 0.0 and not menu_items.is_empty():
-		_play_entrance_animation()
+		# 入口动画模式：先全隐藏，由 _play_entrance_animation() 处理
+		for item in menu_items:
+			item.modulate = Color(1, 1, 1, 0)
+	else:
+		# 没有入口动画，正常设置颜色
+		for item in menu_items:
+			_set_item_modulate(item, normal_color, true)
+		if not menu_items.is_empty():
+			select_item(0, true)
+
+	_on_ready()
+
+	if entrance_stagger > 0.0 and not menu_items.is_empty():
+		if auto_entrance:
+			_play_entrance_animation()
 
 func _collect_items():
 	menu_items.clear()
