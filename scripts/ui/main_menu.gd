@@ -10,7 +10,7 @@ func _on_ready():
 	$logo.material.set_shader_parameter("progress", 0.0)
 
 	var tw = create_tween()
-	tw.tween_property($logo.material, "shader_parameter/progress", 1.0, 3.0)\
+	tw.tween_property($logo.material, "shader_parameter/progress", 1.0, 6.0)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 	# Logo 动画完成 → 开始选项依次弹出
