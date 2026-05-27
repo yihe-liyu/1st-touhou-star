@@ -92,35 +92,16 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 	var mesh = QuadMesh.new()
 	mesh.size = Vector2(quad_w, quad_h)
 
-	# ── CanvasItem shader 材质 ──
-	# 是否需要 region 偏移？
+	# ── 材质（用 shader 文件，不要运行时拼字符串）──
 	var need_region = (use_region != Vector4(0.0, 0.0, 1.0, 1.0))
-
-	var shader_code = """
-shader_type canvas_item;
-uniform sampler2D tex;
-"""
-	if need_region:
-		shader_code += "uniform vec4 region;\n"
-	shader_code += """
-void fragment() {
-	vec2 uv = UV;
-"""
-	if need_region:
-		shader_code += "\tuv = region.xy + UV * region.zw;\n"
-	shader_code += "\tCOLOR = texture(tex, uv);\n}\n"
-
-	var shader = Shader.new()
-	shader.code = shader_code
+	var shader = preload("res://gdshader/bullet_batch.gdshader")
 	var mat = ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter("tex", use_tex)
-	if need_region:
-		mat.set_shader_parameter("region", use_region)
+	mat.set_shader_parameter("region", use_region)
 	mm.mesh = mesh
 
 	# ── MultiMeshInstance2D ──
-	# 材质设在 MultiMeshInstance2D 上（CanvasItem 材质）
 	var mmi = MultiMeshInstance2D.new()
 	mmi.multimesh = mm
 	mmi.material = mat
