@@ -4,16 +4,25 @@ extends Node
 const POOL_SIZE: int = 4000
 
 var use_batch_render: bool = false
+var use_multi_mesh: bool = true
+var _multi_mesh: Node2D
 var _batch_player: Node2D
 var _batch_enemy: Node2D
 
 const BulletBatchCanvasClass = preload("res://scripts/bullet/bullet_batch_canvas.gd")
+const BulletMultiMeshClass = preload("res://scripts/bullet/bullet_multi_mesh.gd")
 
 var bullet_scene = preload("res://scenes/bullet.tscn")
 var active_bullets: Array = []
 var bullet_pool: Array = []
 
 func _ready():
+	# MultiMesh 批渲染（高性能）
+	if use_multi_mesh:
+		_multi_mesh = BulletMultiMeshClass.new()
+		_multi_mesh.enabled = true
+		add_child(_multi_mesh)
+
 	if use_batch_render:
 		_batch_enemy = BulletBatchCanvasClass.new()
 		_batch_enemy.enabled = true
@@ -31,7 +40,7 @@ func _ready():
 		var b = bullet_scene.instantiate()
 		b.visible = false
 		b.process_mode = PROCESS_MODE_DISABLED
-		if use_batch_render:
+		if use_batch_render or use_multi_mesh:
 			b.get_node("Sprite2D").visible = false
 		add_child(b)
 		bullet_pool.append(b)
@@ -43,7 +52,7 @@ func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2, overr
 	
 	if bullet_pool.is_empty():
 		bullet = bullet_scene.instantiate()
-		if use_batch_render:
+		if use_batch_render or use_multi_mesh:
 			bullet.get_node("Sprite2D").visible = false
 		add_child(bullet)
 	else:
