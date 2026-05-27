@@ -15,6 +15,7 @@ func _process(delta):
 	if not _active:
 		_active = true
 	_elapsed += delta
+	_update_scroll(delta)
 	_process_events()
 	_on_update(delta, _elapsed)
 
@@ -87,6 +88,24 @@ func move_camera(target_pos: Vector3, duration: float):
 		return
 	var tween = create_tween()
 	tween.tween_property(camera, "transform", Transform3D(camera.transform.basis, target_pos), duration)
+
+func _update_scroll(delta: float):
+	for child in get_children():
+		if child is MeshInstance3D:
+			var speed: Vector2 = child.get_meta("scroll_speed", Vector2.ZERO)
+			if speed == Vector2.ZERO:
+				continue
+			var mat: StandardMaterial3D = child.material_override as StandardMaterial3D
+			if not mat:
+				mat = StandardMaterial3D.new()
+				mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				var mesh_inst: MeshInstance3D = child as MeshInstance3D
+				if mesh_inst.mesh and mesh_inst.mesh.material:
+					var src_mat = mesh_inst.mesh.material
+					if src_mat is BaseMaterial3D:
+						mat.albedo_texture = src_mat.albedo_texture
+				child.material_override = mat
+			mat.uv1_offset += Vector3(speed.x * delta, speed.y * delta, 0.0)
 
 func _on_setup():
 	pass
