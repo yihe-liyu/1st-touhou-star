@@ -87,27 +87,32 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 	mm.instance_count = max(min_size, 64)
 
 	# ── 创建 2D 四边形网格 ──
+	# 尺寸匹配纹理像素大小（原始 Sprite2D 的渲染尺寸）
+	var tex_size = use_tex.get_size()
+	var half_w = tex_size.x / 2.0
+	var half_h = tex_size.y / 2.0
+
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var normal = Vector3(0, 0, 1)
 	st.set_normal(normal)
 	st.set_uv(Vector2(0, 0))
-	st.add_vertex(Vector3(-0.5, -0.5, 0))
+	st.add_vertex(Vector3(-half_w, -half_h, 0))
 	st.set_normal(normal)
 	st.set_uv(Vector2(1, 0))
-	st.add_vertex(Vector3(0.5, -0.5, 0))
+	st.add_vertex(Vector3(half_w, -half_h, 0))
 	st.set_normal(normal)
 	st.set_uv(Vector2(1, 1))
-	st.add_vertex(Vector3(0.5, 0.5, 0))
+	st.add_vertex(Vector3(half_w, half_h, 0))
 	st.set_normal(normal)
 	st.set_uv(Vector2(0, 0))
-	st.add_vertex(Vector3(-0.5, -0.5, 0))
+	st.add_vertex(Vector3(-half_w, -half_h, 0))
 	st.set_normal(normal)
 	st.set_uv(Vector2(1, 1))
-	st.add_vertex(Vector3(0.5, 0.5, 0))
+	st.add_vertex(Vector3(half_w, half_h, 0))
 	st.set_normal(normal)
 	st.set_uv(Vector2(0, 1))
-	st.add_vertex(Vector3(-0.5, 0.5, 0))
+	st.add_vertex(Vector3(-half_w, half_h, 0))
 	var mesh = st.commit()
 
 	# ── CanvasItem shader 材质 ──
