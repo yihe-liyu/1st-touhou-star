@@ -82,6 +82,7 @@ theme_override_font_sizes/font_size = 32
 text = "Quit"
 
 [node name="logo" type="TextureRect" parent="." unique_id=1922387977]
+material = SubResource("ShaderMaterial_vs4v7")
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
