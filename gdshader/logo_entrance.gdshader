@@ -19,8 +19,8 @@ void fragment() {
 	float radius = hash(grid_uv + 0.5) * 0.35 + 0.08;  // 随机分散半径
 	float delay = hash(grid_uv + 1.0);    // 随机延迟 0~1
 
-	// 带延迟的局部进度（粒子们不同时出发）
-	float local_progress = smoothstep(delay * 0.25, 1.0 + delay * 0.25, progress);
+	// 带延迟的局部进度（粒子们不同时出发，但同时到达）
+	float local_progress = smoothstep(delay * 0.3, 1.0, progress);
 
 	// 从随机方向飞向正确位置
 	vec2 dir = vec2(cos(angle), sin(angle));
