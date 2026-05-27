@@ -58,27 +58,20 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 			entry.mm.instance_count = min_size
 		return entry
 
-	# ── 把 AtlasTexture 解析为独立纹理 ──
+	# ── 处理 AtlasTexture → 用图集 + UV 偏移 ──
 	var use_tex = tex
 	var use_region := Vector4(0.0, 0.0, 1.0, 1.0)
 	if tex is AtlasTexture:
 		var atex = tex as AtlasTexture
-		# 方法1：直接裁剪出独立纹理（最可靠）
-		var src_image = atex.atlas.get_image()
-		if src_image:
-			var region_image = src_image.get_region(atex.region)
-			use_tex = ImageTexture.create_from_image(region_image)
-		else:
-			# 方法2：传给 shader 自己算 UV 偏移
-			use_tex = atex.atlas
-			var atlas_size = atex.atlas.get_size()
-			var r = atex.region
-			use_region = Vector4(
-				r.position.x / atlas_size.x,
-				r.position.y / atlas_size.y,
-				r.size.x / atlas_size.x,
-				r.size.y / atlas_size.y
-			)
+		use_tex = atex.atlas
+		var atlas_size = atex.atlas.get_size()
+		var r = atex.region
+		use_region = Vector4(
+			r.position.x / atlas_size.x,
+			r.position.y / atlas_size.y,
+			r.size.x / atlas_size.x,
+			r.size.y / atlas_size.y
+		)
 
 	# ── 创建 MultiMesh ──
 	var mm = MultiMesh.new()
@@ -91,6 +84,11 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 	var tex_size = use_tex.get_size()
 	var half_w = tex_size.x / 2.0
 	var half_h = tex_size.y / 2.0
+	# 如果是图集子区域，用 region 尺寸而非整张图集尺寸
+	if tex is AtlasTexture:
+		var r = (tex as AtlasTexture).region
+		half_w = r.size.x / 2.0
+		half_h = r.size.y / 2.0
 
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
