@@ -182,7 +182,8 @@ func resume_game():
 	if _pause_menu_instance:
 		if _pause_menu_instance.has_method("_on_leave"):
 			_pause_menu_instance._on_leave()
-		_pause_menu_instance.queue_free()
+		else:
+			_pause_menu_instance.queue_free()
 		_pause_menu_instance = null
 
 	get_tree().paused = false
