@@ -20,19 +20,23 @@ func _process(delta):
 	_apply_scroll(delta)
 	_on_update(delta, _background._elapsed)
 
-## 滚动 Sprite3D 材质的 UV 偏移
+## 滚动 MeshInstance3D 材质的 UV 偏移
 ## _process 会随暂停停止 → 自动适配暂停 ✅
 func _apply_scroll(delta: float):
 	if scroll_speed == Vector2.ZERO:
 		return
 	for child in get_children():
-		if child is Sprite3D:
-			var mat := child.material_override as StandardMaterial3D
+		if child is MeshInstance3D:
+			var mat: StandardMaterial3D = child.material_override as StandardMaterial3D
 			if not mat:
 				mat = StandardMaterial3D.new()
-				mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED  # 不受光照，直接显示贴图颜色
-				if child.texture:
-					mat.albedo_texture = child.texture
+				mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				# 从 mesh 材质复制贴图
+				var mesh_inst: MeshInstance3D = child as MeshInstance3D
+				if mesh_inst.mesh and mesh_inst.mesh.material:
+					var src_mat = mesh_inst.mesh.material
+					if src_mat is BaseMaterial3D:
+						mat.albedo_texture = src_mat.albedo_texture
 				child.material_override = mat
 			mat.uv1_offset += Vector3(scroll_speed.x * delta, scroll_speed.y * delta, 0.0)
 

@@ -5,6 +5,20 @@
 [ext_resource type="Texture2D" uid="uid://dowb4ttes3yka" path="res://assets/Textures/background/stage01/st01a.png" id="4_st01a"]
 [ext_resource type="Texture2D" uid="uid://dudt7kr2rhib1" path="res://assets/Textures/background/stage01/st01b.png" id="5_st01b"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mid"]
+shading_mode = 0
+albedo_texture = ExtResource("4_st01a")
+
+[sub_resource type="QuadMesh" id="QuadMesh_mid"]
+material = SubResource("StandardMaterial3D_mid")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_near"]
+shading_mode = 0
+albedo_texture = ExtResource("5_st01b")
+
+[sub_resource type="QuadMesh" id="QuadMesh_near"]
+material = SubResource("StandardMaterial3D_near")
+
 [sub_resource type="Environment" id="Environment_fog"]
 fog_enabled = true
 fog_light_color = Color(0.3, 0.3, 0.5, 1)
@@ -24,18 +38,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 script = ExtResource("2_layer_script")
 scroll_speed = Vector2(0, -0.2)
 
-[node name="Sprite3D" type="Sprite3D" parent="MidLayer" unique_id=1268162024]
+[node name="Sprite3D" type="MeshInstance3D" parent="MidLayer" unique_id=1268162024]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.371139e-08, 0)
-pixel_size = 0.02
-texture = ExtResource("4_st01a")
+mesh = SubResource("QuadMesh_mid")
 
 [node name="NearLayer" type="Node3D" parent="." unique_id=977203905]
 script = ExtResource("2_layer_script")
 scroll_speed = Vector2(0, -0.1)
 
-[node name="Sprite3D" type="Sprite3D" parent="NearLayer" unique_id=1333284171]
+[node name="Sprite3D" type="MeshInstance3D" parent="NearLayer" unique_id=1333284171]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.371139e-08, -1.9106855e-15)
-texture = ExtResource("5_st01b")
+mesh = SubResource("QuadMesh_near")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1073014620]
 environment = SubResource("Environment_fog")
