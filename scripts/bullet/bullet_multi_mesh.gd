@@ -111,7 +111,6 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 	var mesh = st.commit()
 
 	# ── CanvasItem shader 材质 ──
-	var shader = Shader.new()
 	# 是否需要 region 偏移？
 	var need_region = (use_region != Vector4(0.0, 0.0, 1.0, 1.0))
 
@@ -136,7 +135,7 @@ void fragment() {
 	mat.set_shader_parameter("tex", use_tex)
 	if need_region:
 		mat.set_shader_parameter("region", use_region)
-	mesh.material = mat
+	mesh.surface_set_material(0, mat)
 	mm.mesh = mesh
 
 	# ── MultiMeshInstance2D ──
