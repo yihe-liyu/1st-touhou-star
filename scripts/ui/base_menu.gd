@@ -29,6 +29,7 @@ var input_enabled: bool = true
 var _container: Node
 var _last_nav_time: float = 0.0
 var _last_accept_time: float = 0.0
+var _pulse_tween: Tween
 
 func _ready():
 	layer = 64
@@ -112,9 +113,11 @@ func select_item(index: int, instant: bool = false):
 		return
 	var prev = current_index
 	if prev >= 0 and prev < menu_items.size():
+		_stop_pulse()
 		_set_item_modulate(menu_items[prev], normal_color, instant)
 	current_index = index
 	_set_item_modulate(menu_items[index], highlight_color, instant)
+	_start_pulse(menu_items[index])
 
 func _set_item_modulate(item: Node, color: Color, instant: bool):
 	if not is_instance_valid(item):
@@ -168,9 +171,39 @@ func _play_entrance_animation():
 			tw.tween_property(item, "scale", Vector2.ONE, entrance_duration).set_delay(delay)\
 				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-	# 动画完成后只恢复输入
+	# 动画完成后恢复输入 + 启动选中项脉冲
 	var total = (menu_items.size() - 1) * entrance_stagger + entrance_duration
-	tw.tween_callback(func(): input_enabled = true).set_delay(total)
+	tw.tween_callback(_on_entrance_done).set_delay(total)
+
+# ── 高亮脉冲 ──
+
+func _start_pulse(item: Node):
+	_stop_pulse()
+	if not is_instance_valid(item):
+		return
+	# 透明时不脉冲（如入口动画中）
+	if item.modulate.a < 0.01:
+		return
+	var dimmed = Color(
+		highlight_color.r * 0.85,
+		highlight_color.g * 0.85,
+		highlight_color.b * 0.85,
+		1.0
+	)
+	_pulse_tween = create_tween().set_loops()
+	_pulse_tween.set_trans(Tween.TRANS_SINE)
+	_pulse_tween.tween_property(item, "modulate", dimmed, 0.6)
+	_pulse_tween.tween_property(item, "modulate", highlight_color, 0.6)
+
+func _stop_pulse():
+	if _pulse_tween and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+	_pulse_tween = null
+
+func _on_entrance_done():
+	input_enabled = true
+	if current_index >= 0 and current_index < menu_items.size():
+		_start_pulse(menu_items[current_index])
 
 func _on_cancel():
 	menu_back.emit()
