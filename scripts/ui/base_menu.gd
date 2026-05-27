@@ -41,6 +41,7 @@ func _ready():
 		# 入口动画模式：先全隐藏，由 _play_entrance_animation() 处理
 		for item in menu_items:
 			item.modulate = Color(1, 1, 1, 0)
+		current_index = 0
 	else:
 		# 没有入口动画，正常设置颜色
 		for item in menu_items:
