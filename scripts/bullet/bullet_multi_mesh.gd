@@ -80,38 +80,17 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 	mm.instance_count = max(min_size, 64)
 
 	# ── 创建 2D 四边形网格 ──
-	# 尺寸匹配纹理像素大小（原始 Sprite2D 的渲染尺寸）
+	# 尺寸匹配纹理像素大小
 	var tex_size = use_tex.get_size()
-	var half_w = tex_size.x / 2.0
-	var half_h = tex_size.y / 2.0
-	# 如果是图集子区域，用 region 尺寸而非整张图集尺寸
+	var quad_w = tex_size.x
+	var quad_h = tex_size.y
 	if tex is AtlasTexture:
 		var r = (tex as AtlasTexture).region
-		half_w = r.size.x / 2.0
-		half_h = r.size.y / 2.0
+		quad_w = r.size.x
+		quad_h = r.size.y
 
-	var st = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var normal = Vector3(0, 0, 1)
-	st.set_normal(normal)
-	st.set_uv(Vector2(0, 0))
-	st.add_vertex(Vector3(-half_w, -half_h, 0))
-	st.set_normal(normal)
-	st.set_uv(Vector2(1, 0))
-	st.add_vertex(Vector3(half_w, -half_h, 0))
-	st.set_normal(normal)
-	st.set_uv(Vector2(1, 1))
-	st.add_vertex(Vector3(half_w, half_h, 0))
-	st.set_normal(normal)
-	st.set_uv(Vector2(0, 0))
-	st.add_vertex(Vector3(-half_w, -half_h, 0))
-	st.set_normal(normal)
-	st.set_uv(Vector2(1, 1))
-	st.add_vertex(Vector3(half_w, half_h, 0))
-	st.set_normal(normal)
-	st.set_uv(Vector2(0, 1))
-	st.add_vertex(Vector3(-half_w, half_h, 0))
-	var mesh = st.commit()
+	var mesh = QuadMesh.new()
+	mesh.size = Vector2(quad_w, quad_h)
 
 	# ── CanvasItem shader 材质 ──
 	# 是否需要 region 偏移？
@@ -138,12 +117,13 @@ void fragment() {
 	mat.set_shader_parameter("tex", use_tex)
 	if need_region:
 		mat.set_shader_parameter("region", use_region)
-	mesh.surface_set_material(0, mat)
 	mm.mesh = mesh
 
 	# ── MultiMeshInstance2D ──
+	# 材质设在 MultiMeshInstance2D 上（CanvasItem 材质）
 	var mmi = MultiMeshInstance2D.new()
 	mmi.multimesh = mm
+	mmi.material = mat
 	match faction:
 		Bullet.FACTION_ENEMY:
 			mmi.z_index = 10
