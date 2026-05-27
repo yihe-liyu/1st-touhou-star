@@ -2,22 +2,46 @@ shader_type canvas_item;
 
 uniform float progress : hint_range(0, 1) = 0.0;
 
+// 伪随机哈希
+float hash(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
 void fragment() {
-	vec4 tex = texture(TEXTURE, UV);
+	const float GRID = 50.0;  // 50×50 粒子网格
 
-	// 从中心向外的圆形展开
-	vec2 center = vec2(0.5, 0.5);
-	float dist = distance(UV, center);
-	float max_dist = distance(vec2(0.5, 0.5), vec2(1.0, 1.0));
+	// 每个像素所属的粒子
+	vec2 grid_uv = floor(UV * GRID) / GRID;
 
-	float radius = max_dist * progress;
-	float reveal = 1.0 - smoothstep(radius - 0.04, radius + 0.04, dist);
+	// 每个粒子的随机属性
+	float seed = hash(grid_uv);
+	float angle = seed * 6.2832;          // 随机飞行方向
+	float radius = hash(grid_uv + 0.5) * 0.35 + 0.08;  // 随机分散半径
+	float delay = hash(grid_uv + 1.0);    // 随机延迟 0~1
 
-	// 展开边缘的辉光
-	float glow = exp(-abs(dist - radius) * 25.0) * 0.5;
+	// 带延迟的局部进度（粒子们不同时出发）
+	float local_progress = smoothstep(delay * 0.25, 1.0 + delay * 0.25, progress);
 
-	vec3 logo_color = tex.rgb * reveal;
-	vec3 glow_color = vec3(glow * 0.6, glow * 0.8, glow);
-	// 辉光让 logo 边缘更亮
-	COLOR = vec4(logo_color + glow_color, tex.a * (reveal + glow * 0.3));
+	// 从随机方向飞向正确位置
+	vec2 dir = vec2(cos(angle), sin(angle));
+	float scatter = radius * (1.0 - pow(local_progress, 1.5));
+	vec2 sample_uv = clamp(UV + dir * scatter, 0.0, 1.0);
+
+	vec4 tex = texture(TEXTURE, sample_uv);
+
+	// 飞行途中的辉光拖尾
+	float flight = sin(local_progress * 3.14159) * 2.0;
+	flight = max(0.0, flight - 0.6) * 2.5;
+	float flight_glow = flight * 0.25;
+
+	// 到达正确位置时的闪光
+	float arrive_glow = exp(-pow((local_progress - 1.0) * 15.0, 2.0)) * 0.6;
+
+	float glow = flight_glow + arrive_glow;
+	vec3 glow_color = vec3(0.5, 0.7, 1.0) * glow;
+
+	// 粒子逐渐变亮
+	float brightness = 0.25 + 0.75 * local_progress;
+
+	COLOR = vec4(tex.rgb * brightness + glow_color, tex.a * local_progress);
 }
