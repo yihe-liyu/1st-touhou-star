@@ -1,44 +1,75 @@
 extends Node
 class_name CoroutineRunner
+## 无 await 的协程调度器 —— 所有任务在 _physics_process 里步进
+##
+## 每个任务是一个 callable，每帧被调用，返回值约定：
+##   float/int > 0  → 等待这么秒后再次调用
+##   true           → 下帧立即再次调用（等价于等待 0 帧）
+##   false / null   → 任务结束，移除
+##
+## run()      — 先清掉所有旧任务再启动
+## run_parallel() — 追加一个并行任务
 
 signal finished()
 signal cancelled()
 
 var is_running: bool = false
-var _runs: Dictionary = {}
-var _next_run_id: int = 0
+var _tasks: Array[Task] = []
+
+class Task extends RefCounted:
+	var callable: Callable
+	var wait_time: float = 0.0
+
 
 func run(method: Callable):
 	stop()
-	_start_run(method)
+	_start_task(method)
 
 func run_parallel(method: Callable):
-	_start_run(method)
+	_start_task(method)
 
-func _start_run(method: Callable):
-	var run_id = _next_run_id
-	_next_run_id += 1
-	_runs[run_id] = true
+func _start_task(method: Callable):
+	var task := Task.new()
+	task.callable = method
+	_tasks.append(task)
 	is_running = true
-	_execute(method, run_id)
-
-func _execute(method: Callable, run_id: int):
-	await method.call()
-	if not _runs.has(run_id):
-		return
-	_runs.erase(run_id)
-	if _runs.is_empty():
-		is_running = false
-		finished.emit()
 
 func stop():
 	if not is_running:
 		return
-	_runs.clear()
+	# 先把所有 callable 置空，帮助释放闭包里捕获的对象
+	for task in _tasks:
+		task.callable = Callable()
+	_tasks.clear()
 	is_running = false
 	cancelled.emit()
 
-func _exit_tree():
-	if is_running:
-		_runs.clear()
+func _physics_process(delta: float):
+	for i in range(_tasks.size() - 1, -1, -1):
+		var task := _tasks[i]
+		if not task.callable.is_valid():
+			_tasks.remove_at(i)
+			continue
+
+		if task.wait_time > 0.0:
+			task.wait_time -= delta
+			continue
+
+		var result = task.callable.call()
+
+		if typeof(result) == TYPE_FLOAT or typeof(result) == TYPE_INT:
+			if result > 0:
+				task.wait_time = float(result)
+			else:
+				_tasks.remove_at(i)
+		elif result == true:
+			pass  # 下帧立即再次调用
+		else:
+			_tasks.remove_at(i)
+
+	if _tasks.is_empty() and is_running:
 		is_running = false
+		finished.emit()
+
+func _exit_tree():
+	stop()

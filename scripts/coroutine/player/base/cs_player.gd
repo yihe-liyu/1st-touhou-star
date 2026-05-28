@@ -6,10 +6,14 @@ const OPTION = preload("res://assets/Textures/player/pl00.png")
 var _options: Array[Node2D] = []
 
 func start_shooting(api: StageAPI):
-	run(_on_run.bind(api))
+	run(_on_step.bind(api))
 
-func _on_run(_api: StageAPI):
-	pass
+func _on_step(_api: StageAPI) -> Variant:
+	return false
+
+func stop():
+	_cleanup_options()
+	super.stop()
 
 func _sync_options(leader: Node2D, visual_script: Script, wanted: int, offsets: Array, api: StageAPI) -> void:
 	while _options.size() < wanted:

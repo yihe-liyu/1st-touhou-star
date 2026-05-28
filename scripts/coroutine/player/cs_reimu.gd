@@ -19,71 +19,64 @@ const MAIN_INTERVAL: int = 3
 const OPTION_INTERVAL01: int = 8
 const OPTION_INTERVAL02: int = 4
 
-func _on_run(api: StageAPI):
-	await api.frames(1)
-	run_parallel(_main_fire.bind(api))
-	run_parallel(_option_fire.bind(api))
+var _phase: int = 0
 
-	while api.active():
-		var player = api.get_player()
-		if not is_instance_valid(player):
-			await api.frames(1)
-			continue
+func _on_step(api: StageAPI) -> Variant:
+	match _phase:
+		0:
+			run_parallel(_main_step.bind(api))
+			run_parallel(_option_step.bind(api))
+			_phase = 1
+			return true
+		1:
+			# 每帧同步僚机位置
+			var player = api.get_player()
+			if not is_instance_valid(player):
+				return true
 
-		var pw = GameState.power_raw
-		var focused = Input.is_action_pressed("focus")
+			var pw := GameState.power_raw
+			var focused := Input.is_action_pressed("focus")
 
-		var wanted := 0
-		if pw >= 300:
-			wanted = 4
-		elif pw >= 200:
-			wanted = 3
-		elif pw >= 100:
-			wanted = 2
-		elif pw >= 0:
-			wanted = 1
+			var wanted := 0
+			if pw >= 300:   wanted = 4
+			elif pw >= 200: wanted = 3
+			elif pw >= 100: wanted = 2
+			elif pw >= 0:   wanted = 1
 
-		var offsets: Array
-		if wanted >= 4:
-			offsets = FOCUS_4 if focused else SPREAD_4
-		elif wanted >= 3:
-			offsets = FOCUS_3 if focused else SPREAD_3
-		elif wanted >= 2:
-			offsets = FOCUS_2 if focused else SPREAD_2
-		elif wanted >= 1:
-			offsets = FOCUS_1 if focused else SPREAD_1
+			var offsets: Array
+			if wanted >= 4:
+				offsets = FOCUS_4 if focused else SPREAD_4
+			elif wanted >= 3:
+				offsets = FOCUS_3 if focused else SPREAD_3
+			elif wanted >= 2:
+				offsets = FOCUS_2 if focused else SPREAD_2
+			elif wanted >= 1:
+				offsets = FOCUS_1 if focused else SPREAD_1
 
-		_sync_options(player, OPTION_VISUAL, wanted, offsets, api)
+			_sync_options(player, OPTION_VISUAL, wanted, offsets, api)
+			return true
+		_:
+			return false
 
-		await api.frames(1)
+func _main_step(api: StageAPI) -> Variant:
+	if not Input.is_action_pressed("shoot"):
+		return true  # 下帧再检查
+	var player = api.get_player()
+	if not is_instance_valid(player):
+		return true
+	api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
+	api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(20, 0))
+	return api.frames(MAIN_INTERVAL)
 
-	_cleanup_options()
-
-func _main_fire(api: StageAPI):
-	while api.active():
-		if not Input.is_action_pressed("shoot"):
-			await api.frames(1)
-			continue
-		var player = api.get_player()
-		if not is_instance_valid(player):
-			await api.frames(1)
-			continue
-		api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
-		api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(20, 0))
-		await api.frames(MAIN_INTERVAL)
-
-func _option_fire(api: StageAPI):
-	while api.active():
-		if not Input.is_action_pressed("shoot"):
-			await api.frames(1)
-			continue
-		if _options.size() > 0:
-			if Input.is_action_pressed("focus"):
-				_shoot_options(api, OPTION_BULLET02, 1, 0.0, Vector2.UP, Vector2(-7, 0))
-				_shoot_options(api, OPTION_BULLET02, 1, 0.0, Vector2.UP, Vector2(7, 0))
-				await api.frames(OPTION_INTERVAL02)
-			else:
-				_shoot_options(api, OPTION_BULLET01, 1, 0.0, Vector2.UP, Vector2.ZERO)
-				await api.frames(OPTION_INTERVAL01)
+func _option_step(api: StageAPI) -> Variant:
+	if not Input.is_action_pressed("shoot"):
+		return true
+	if _options.size() > 0:
+		if Input.is_action_pressed("focus"):
+			_shoot_options(api, OPTION_BULLET02, 1, 0.0, Vector2.UP, Vector2(-7, 0))
+			_shoot_options(api, OPTION_BULLET02, 1, 0.0, Vector2.UP, Vector2(7, 0))
+			return api.frames(OPTION_INTERVAL02)
 		else:
-			await api.frames(1)
+			_shoot_options(api, OPTION_BULLET01, 1, 0.0, Vector2.UP, Vector2.ZERO)
+			return api.frames(OPTION_INTERVAL01)
+	return true
