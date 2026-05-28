@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="CurvedLaserData" format=3 uid="uid://dg0bjvxvsgm4a"]
+[gd_resource type="Resource" script_class="CurvedLaserData" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://c5pgwn4s2lnfd" path="res://scripts/data/curved_laser_data.gd" id="1_0dh8t"]
+[ext_resource type="Script" path="res://scripts/data/curved_laser_data.gd" id="1_data"]
 
 [resource]
-script = ExtResource("1_0dh8t")
+script = ExtResource("1_data")
 grow_speed = 1000.0
 tail_distance = 500.0
 glow_intensity = 1.0
 max_lifetime = 15.0
+spawn_fog_texture = null

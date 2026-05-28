@@ -62,6 +62,7 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 
 	_setup_line()
 	_apply_phase()
+	_spawn_fog()
 
 
 func _calc_curve_length() -> float:
@@ -218,6 +219,24 @@ func _update_points():
 	for i in range(count):
 		var dist := tail_dist + visible_length * float(i) / float(count - 1)
 		line.add_point(_sample_curve(dist))
+
+
+func _spawn_fog():
+	if not data.spawn_fog_texture:
+		return
+	var fog := Sprite2D.new()
+	fog.texture = data.spawn_fog_texture
+	fog.global_position = origin_point
+	fog.scale = Vector2(2.0, 2.0)
+	fog.z_index = 51
+	add_child(fog)
+	var tween := create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_parallel(true)
+	tween.tween_property(fog, "scale", Vector2.ZERO, 0.4)
+	tween.tween_property(fog, "modulate:a", 0.0, 0.4)
+	tween.finished.connect(fog.queue_free)
 
 
 func _apply_phase():

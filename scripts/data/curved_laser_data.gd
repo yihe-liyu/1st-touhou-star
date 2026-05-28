@@ -35,6 +35,9 @@ class_name CurvedLaserData
 ## 光晕强度，0=无光晕, 1=强光晕
 @export var glow_intensity: float = 0.6
 
+## 发射点弹雾贴图（null=无弹雾），激光射出时在根部冒一团雾
+@export var spawn_fog_texture: Texture2D
+
 # ═══════════════════════════════════════════
 # 判定
 # ═══════════════════════════════════════════
