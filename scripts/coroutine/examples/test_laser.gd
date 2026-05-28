@@ -14,6 +14,7 @@ func _on_step(api: StageAPI) -> Variant:
 	
 	match _phase:
 		0:
+			print("[TestLaser] phase 0: firing 6 lasers from ", enemy.global_position)
 			# 六向激光开花
 			for i in 6:
 				var angle := deg_to_rad(i * 60)

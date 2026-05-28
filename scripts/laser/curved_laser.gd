@@ -46,6 +46,7 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 
 	_setup_line()
 	_apply_phase()
+	print("[Laser] init: origin=", origin_point, " rot=", rotation_speed, " points=", guide_curve.get_point_count())
 
 
 func _sample_curve(t: float) -> Vector2:
@@ -71,10 +72,13 @@ func _setup_line():
 		_shader_mat.shader = preload("res://gdshader/laser_glow.gdshader")
 
 	line = Line2D.new()
+	line.z_index = 50
 	line.width = data.base_width
 	line.default_color = data.laser_color
 	line.material = _shader_mat
 	line.texture_mode = Line2D.LINE_TEXTURE_NONE
+
+	_shader_mat.set_shader_parameter("laser_color", data.laser_color)
 
 	# 宽度曲线：根部粗 → 尖部细
 	var wc := Curve.new()
