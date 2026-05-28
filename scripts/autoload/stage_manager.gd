@@ -34,7 +34,6 @@ func load_stage(data: StageData):
 
 
 func stop_stage():
-	LaserManager.clear_all()
 	_stage_active = false
 	current_stage = null
 	if _stage_script and is_instance_valid(_stage_script):
