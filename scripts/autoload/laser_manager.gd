@@ -48,20 +48,16 @@ func _physics_process(delta: float):
 	
 	var damage_this_frame: Dictionary = {}
 	
+	var hit := false
 	for laser in _active:
 		if laser.phase == PHASE_DEAD:
 			continue
 		
 		laser.step(delta)
 		
-		if laser.phase == PHASE_ALIVE and has_player:
+		if laser.phase == PHASE_ALIVE and has_player and not hit:
 			if laser.is_hitting_player(player_pos):
-				if not damage_this_frame.has(player):
-					damage_this_frame[player] = 0.0
-				damage_this_frame[player] += laser.data.damage_per_second * delta
+				hit = true
 	
-	# 伤害向上取整，避免多条激光小额伤害被截成 0
-	for p in damage_this_frame:
-		var dmg := int(ceil(damage_this_frame[p]))
-		if dmg > 0 and p.has_method("take_damage"):
-			p.take_damage(dmg)
+	if hit and player.has_method("miss"):
+		player.miss()
