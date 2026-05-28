@@ -157,8 +157,8 @@ func step(delta: float):
 			# 头部一直前进
 			head_dist += data.grow_speed * delta
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
-			# 弹雾：头在曲线上时显示，超出后隐藏
-			_toggle_fog(head_dist < curve_total_length)
+			# 弹雾：尾巴离开原点后就消除
+			_toggle_fog(tail_dist <= 0.0)
 			
 			if data.max_lifetime > 0.0:
 				if age >= data.max_lifetime:
