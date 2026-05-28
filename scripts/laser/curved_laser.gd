@@ -156,6 +156,8 @@ func step(delta: float):
 			# 头部一直前进
 			head_dist += data.grow_speed * delta
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
+			# 弹雾：头在曲线上时显示，超出后隐藏
+			_toggle_fog(head_dist < curve_total_length)
 			
 			if data.max_lifetime > 0.0:
 				if age >= data.max_lifetime:
@@ -231,6 +233,7 @@ func _spawn_fog():
 	var fog := Sprite2D.new()
 	fog.name = "Fog"
 	fog.texture = data.spawn_fog_texture
+	fog.scale = Vector2(2.0, 2.0)
 	fog.global_position = origin_point
 	fog.z_index = 51
 	add_child(fog)
@@ -246,7 +249,6 @@ func _apply_phase():
 	line.visible = true
 	match phase:
 		ALIVE:
-			_toggle_fog(head_dist < curve_total_length)  # 伸展阶段有雾，出曲线后消失
 			_shader_mat.set_shader_parameter("alpha", 1.0)
 			_shader_mat.set_shader_parameter("warning", 0.0)
 			_shader_mat.set_shader_parameter("glow_intensity", data.glow_intensity)
