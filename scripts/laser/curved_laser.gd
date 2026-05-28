@@ -46,7 +46,6 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 
 	_setup_line()
 	_apply_phase()
-	print("[Laser] init: origin=", origin_point, " rot=", rotation_speed, " points=", guide_curve.get_point_count())
 
 
 func _sample_curve(t: float) -> Vector2:
@@ -75,6 +74,9 @@ func _setup_line():
 	line.z_index = 50
 	line.width = data.base_width
 	line.default_color = data.laser_color
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
 	# BUGFIX: Line2D needs a texture to render with width_curve
 	var tex := GradientTexture1D.new()
 	tex.width = 1
@@ -83,8 +85,7 @@ func _setup_line():
 	tex.gradient.add_point(1.0, Color.WHITE)
 	line.texture = tex
 	line.texture_mode = Line2D.LINE_TEXTURE_TILE
-	# TEMP: disable shader to test line rendering
-	# line.material = _shader_mat
+	line.material = _shader_mat
 
 	_shader_mat.set_shader_parameter("laser_color", data.laser_color)
 
@@ -184,6 +185,7 @@ func _build_gradient() -> Gradient:
 
 
 func _apply_phase():
+	line.visible = true
 	match phase:
 		GROW:
 			_shader_mat.set_shader_parameter("alpha", 1.0)
@@ -197,6 +199,7 @@ func _apply_phase():
 			_shader_mat.set_shader_parameter("warning", 0.0)
 		DEAD:
 			_shader_mat.set_shader_parameter("alpha", 0.0)
+			line.visible = false
 
 
 func is_hitting_player(player_pos: Vector2, hit_radius: float = 2.0) -> bool:

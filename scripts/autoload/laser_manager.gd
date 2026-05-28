@@ -13,7 +13,6 @@ func _ready():
 
 
 func fire(data, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0):
-	print("[LaserMgr] fire: origin=", origin, " curve_pts=", guide_curve.get_point_count())
 	for l in _active:
 		if l.phase == PHASE_DEAD:
 			l.init(data, origin, guide_curve, rot_speed)
@@ -35,6 +34,8 @@ func fire(data, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0):
 func clear_all():
 	for laser in _active:
 		laser.phase = PHASE_DEAD
+		if laser.line:
+			laser.line.visible = false
 
 
 func _physics_process(delta: float):
