@@ -155,16 +155,22 @@ func step(delta: float):
 			# 头部一直前进
 			head_dist += data.grow_speed * delta
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
-
-			# 只有头尾都出屏了才算真正离开屏幕
-			var head_pos := _sample_curve(head_dist)
-			var tail_pos := _sample_curve(tail_dist)
-			var head_off := _is_offscreen(head_pos)
-			var tail_off := _is_offscreen(tail_pos)
-			if (head_off and tail_off) or (data.max_lifetime > 0.0 and age >= data.max_lifetime):
-				phase = FADE
-				_fade_age = 0.0
-				_apply_phase()
+			
+			if data.max_lifetime > 0.0:
+				if age >= data.max_lifetime:
+					phase = FADE
+					_fade_age = 0.0
+					_apply_phase()
+			else:
+				# 只有头尾都出屏了才算真正离开屏幕
+				var head_pos := _sample_curve(head_dist)
+				var tail_pos := _sample_curve(tail_dist)
+				var head_off := _is_offscreen(head_pos)
+				var tail_off := _is_offscreen(tail_pos)
+				if (head_off and tail_off) :
+					phase = FADE
+					_fade_age = 0.0
+					_apply_phase()
 
 		FADE:
 			_fade_age += delta

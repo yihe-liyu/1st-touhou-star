@@ -1,14 +1,9 @@
 [gd_resource type="Resource" script_class="CurvedLaserData" format=3 uid="uid://dg0bjvxvsgm4a"]
 
-[ext_resource type="Script" path="res://data/laser_data/curved_laser_data.gd" id="1_data"]
+[ext_resource type="Script" uid="uid://c5pgwn4s2lnfd" path="res://scripts/data/curved_laser_data.gd" id="1_0dh8t"]
 
 [resource]
-script = ExtResource("1_data")
-grow_speed = 500.0
-tail_distance = 250.0
-mid_width = 24.0
-end_width = 4.0
-laser_color = Color(1, 0.15, 0.05, 1)
-glow_intensity = 0.7
-damage_per_second = 2.0
-max_lifetime = 5.0
+script = ExtResource("1_0dh8t")
+tail_distance = 500.0
+glow_intensity = 1.0
+max_lifetime = 15.0
