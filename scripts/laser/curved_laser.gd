@@ -225,30 +225,32 @@ func _spawn_fog():
 	if not data.spawn_fog_texture:
 		return
 	var fog := Sprite2D.new()
+	fog.name = "Fog"
 	fog.texture = data.spawn_fog_texture
 	fog.global_position = origin_point
-	fog.scale = Vector2(2.0, 2.0)
 	fog.z_index = 51
 	add_child(fog)
-	var tween := create_tween()
-	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_QUAD)
-	tween.set_parallel(true)
-	tween.tween_property(fog, "scale", Vector2.ZERO, 0.4)
-	tween.tween_property(fog, "modulate:a", 0.0, 0.4)
-	tween.finished.connect(fog.queue_free)
+
+
+func _toggle_fog(visible: bool):
+	var fog := get_node_or_null("Fog")
+	if fog:
+		fog.visible = visible
 
 
 func _apply_phase():
 	line.visible = true
 	match phase:
 		ALIVE:
+			_toggle_fog(true)
 			_shader_mat.set_shader_parameter("alpha", 1.0)
 			_shader_mat.set_shader_parameter("warning", 0.0)
 			_shader_mat.set_shader_parameter("glow_intensity", data.glow_intensity)
 		FADE:
+			_toggle_fog(false)
 			_shader_mat.set_shader_parameter("warning", 0.0)
 		DEAD:
+			_toggle_fog(false)
 			_shader_mat.set_shader_parameter("alpha", 0.0)
 			line.visible = false
 
