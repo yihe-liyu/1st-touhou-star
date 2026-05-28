@@ -34,8 +34,8 @@ func _on_step(api: StageAPI) -> Variant:
 		var nearest := _find_nearest_enemy()
 		if nearest:
 			var desired_dir := (nearest.global_position - target.global_position).normalized()
-			var current_dir := target.velocity.normalized()
-			var angle_diff := current_dir.angle_to(desired_dir)
+			var current_dir: Vector2 = target.velocity.normalized()
+			var angle_diff: float = current_dir.angle_to(desired_dir)
 			var max_turn := homing_angle_per_sec * turn_factor / Engine.physics_ticks_per_second
 			var actual_turn := clampf(angle_diff, -max_turn, max_turn)
 			target.velocity = current_dir.rotated(actual_turn) * current_speed
