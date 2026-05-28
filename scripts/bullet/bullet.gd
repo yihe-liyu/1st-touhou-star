@@ -72,20 +72,22 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 			child.queue_free()
 
 	if data.spawn_fog:
+		sprite.visible = false  # 雾消失前隐藏子弹
 		if fog.fog_finished.is_connected(_on_fog_ready):
 			fog.fog_finished.disconnect(_on_fog_ready)
 		fog.fog_finished.connect(_on_fog_ready, CONNECT_ONE_SHOT)
 		fog.play(data.fog_texture)
-		# is_ready 会在 _on_fog_ready 中设为 true
 	else:
 		fog.visible = false
 		is_ready = true
+		sprite.visible = true
 
 	# 只有自定义移动脚本才用协程；普通线性移动走 _physics_process
 	if data.movement_script:
 		_start_movement(data)
 
 func _on_fog_ready():
+	sprite.visible = true  # 雾结束，显示子弹
 	is_ready = true
 
 func _physics_process(_delta):

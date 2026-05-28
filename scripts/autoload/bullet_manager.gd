@@ -90,6 +90,9 @@ func return_bullet(bullet: Bullet):
 			child.queue_free()
 	bullet.visible = false
 	bullet.process_mode = PROCESS_MODE_DISABLED
+	bullet.fog.visible = false
+	if bullet.fog.fog_finished.is_connected(bullet._on_fog_ready):
+		bullet.fog.fog_finished.disconnect(bullet._on_fog_ready)
 	active_bullets.erase(bullet)
 	if bullet_pool.size() < POOL_SIZE:
 		bullet_pool.append(bullet)
