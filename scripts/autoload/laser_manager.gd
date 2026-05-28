@@ -2,8 +2,8 @@ extends Node2D
 ## 激光管理器 autoload —— 对象池管理所有曲线激光
 
 const MAX_LASERS := 64
-const PHASE_DEAD := 3
-const PHASE_ACTIVE := 1
+const PHASE_DEAD := 2
+const PHASE_ALIVE := 0
 
 var _active: Array = []
 
@@ -54,7 +54,7 @@ func _physics_process(delta: float):
 		
 		laser.step(delta)
 		
-		if laser.phase == PHASE_ACTIVE and has_player:
+		if laser.phase == PHASE_ALIVE and has_player:
 			if laser.is_hitting_player(player_pos):
 				if not damage_this_frame.has(player):
 					damage_this_frame[player] = 0.0

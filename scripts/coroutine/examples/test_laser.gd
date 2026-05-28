@@ -11,38 +11,37 @@ func _on_step(api: StageAPI) -> Variant:
 	var enemy := get_parent() as Node2D
 	if not enemy or not is_instance_valid(enemy):
 		return false
-	
+
 	match _phase:
 		0:
-			# 六向激光开花
+			# 六向梭形激光
 			for i in 6:
 				var angle := deg_to_rad(i * 60)
 				var dir := Vector2.RIGHT.rotated(angle)
-				api.fire_straight_laser(LASER_DATA, enemy.global_position, dir, 500)
+				api.fire_straight_laser(LASER_DATA, enemy.global_position, dir, 800)
 			_phase = 1
-			return api.seconds(1.0)  # 激光正在生长…
-		
+			return api.seconds(1.5)
+
 		1:
-			# 激光激活时，撒一圈弹
+			# 激光还在飞，撒圆形弹幕
 			api.shoot_spread(BULLET_DATA, 24, TAU, Vector2.DOWN, enemy.global_position)
 			_count += 1
 			if _count >= 3:
-				api.clear_all_lasers()
-				_phase = 2
 				_count = 0
-				return api.seconds(1.5)
+				_phase = 2
+				return api.seconds(1.0)
 			return api.seconds(1.2)
-		
+
 		2:
-			# 旋转激光扫射
+			# 旋转梭形激光扫射
 			api.fire_rotating_laser(LASER_DATA, enemy.global_position,
-				Vector2.UP, deg_to_rad(60), 500)
+				Vector2.UP, deg_to_rad(80), 700)
 			_count += 1
-			if _count >= 4:
+			if _count >= 6:
 				api.clear_all_lasers()
 				_phase = 0
 				_count = 0
-				return api.seconds(2.0)
-			return api.seconds(2.5)
+				return api.seconds(1.5)
+			return api.seconds(1.0)
 		_:
 			return false

@@ -1,24 +1,54 @@
 extends Resource
 class_name CurvedLaserData
-## 曲线激光数据 —— 像 BulletData 一样可存 .tres 调参
+## 曲线激光配置 —— 梭形生长型激光
+##
+## 激光形状： ◇═══════◆═══════◇
+##           尾端细   中间粗   头端细
+##
+## 生命周期：头一直向前飞 → 出屏或超时 → 淡出消失
 
-# ---- 生长阶段 ----
-@export var grow_duration: float = 1.0        # 从 0 长到满的时间（head_speed = 1.0 / grow_duration）
-@export var max_tail: float = 0.5              # 尾巴保留长度（归一化，0.5=曲线长度的一半）
+# ═══════════════════════════════════════════
+# 生长 & 运动
+# ═══════════════════════════════════════════
 
-# ---- 激活阶段 ----
-@export var active_duration: float = 2.0       # 激活阶段时长（有判定）
-@export var tail_follow_head: bool = true      # 激活时尾巴追赶头部？true=尾巴追上头部=激光消失
+## 头部前进速度（像素/秒），越大激光飞得越快
+@export var grow_speed: float = 600.0
 
-# ---- 消退阶段 ----
-@export var fade_duration: float = 0.3         # 消退动画时长
+## 尾巴离头部多远（像素），决定激光可见段长度
+## 比如 head 在 1000px 处，tail 在 1000-300=700px 处
+@export var tail_distance: float = 300.0
 
-# ---- 视觉 ----
-@export var base_width: float = 14.0           # 根部宽度 px
-@export var tip_width: float = 4.0             # 尖部宽度 px
+# ═══════════════════════════════════════════
+# 视觉
+# ═══════════════════════════════════════════
+
+## 梭形中间最粗处的宽度（像素）
+@export var mid_width: float = 20.0
+
+## 梭形两端细尖的宽度（像素），mid_width:end_width 的比例决定"锥度"
+## 比如 20:3 → 从 20px 渐缩到 3px
+@export var end_width: float = 3.0
+
+## 激光颜色（alpha 会被运行时覆盖，只设 RGB）
 @export var laser_color: Color = Color(1.0, 0.2, 0.1, 1.0)
-@export var glow_intensity: float = 0.5
 
-# ---- 判定 ----
-@export var damage_per_second: float = 1.0     # 激活期每秒伤害
-@export var hitbox_width: float = 8.0          # 判定宽度半值（判定比视觉窄）
+## 光晕强度，0=无光晕, 1=强光晕
+@export var glow_intensity: float = 0.6
+
+# ═══════════════════════════════════════════
+# 判定
+# ═══════════════════════════════════════════
+
+## 激活时每秒造成伤害
+@export var damage_per_second: float = 1.0
+
+## 判定宽度（半值），判定比视觉窄一些避免"被空气打中"
+@export var hitbox_width: float = 6.0
+
+# ═══════════════════════════════════════════
+# 生命周期
+# ═══════════════════════════════════════════
+
+## 最大存活秒数，0=不限（只靠出屏消失）
+## 设一个兜底值防止激光永远不消失
+@export var max_lifetime: float = 8.0

@@ -1,24 +1,25 @@
 extends Node2D
 class_name CurvedLaser
-## 生长型曲线激光 —— 头部沿 Curve2D 前进，尾巴拖在后面
+## 梭形生长型曲线激光 —— 头部一直前进，尾巴跟随，出屏消失
 
-const GROW: int = 0
-const ACTIVE: int = 1
-const FADE: int = 2
-const DEAD: int = 3
+const ALIVE: int = 0
+const FADE: int = 1
+const DEAD: int = 2
 
 const CURVE_SAMPLES: int = 120
 
 # 曲线 & 运动
-var guide_curve: Curve2D          # 引导曲线（头部沿此走）
-var head_t: float = 0.0           # 头部当前位置 (0~1)
-var tail_t: float = 0.0           # 尾巴根部位置 (0~1)
+var guide_curve: Curve2D
+var head_dist: float = 0.0        # 头部走过的总距离 px
+var tail_dist: float = 0.0        # 尾巴位置 px
+var curve_total_length: float     # 引导曲线原始总长 px
+var end_dir: Vector2              # 曲线终点方向（外插用）
 
 # 配置
 var data: CurvedLaserData
 var age: float = 0.0
-var phase: int = GROW
-var head_speed: float = 0.0
+var phase: int = ALIVE
+var _fade_age: float = 0.0
 
 # 旋转
 var rotation_speed: float = 0.0
@@ -28,6 +29,7 @@ var elapsed_angle: float = 0.0
 # 节点
 var line: Line2D
 var _shader_mat: ShaderMaterial
+var _screen_size: Rect2
 
 
 func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
@@ -36,33 +38,69 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	origin_point = p_origin
 	rotation_speed = p_rot_speed
 	guide_curve = p_curve
+	
+	# 计算曲线总长和末方向
+	curve_total_length = _calc_curve_length()
+	var count := guide_curve.get_point_count()
+	if count >= 2:
+		var last := guide_curve.get_point_position(count - 1)
+		var prev := guide_curve.get_point_position(count - 2)
+		end_dir = (last - prev).normalized()
+	else:
+		end_dir = Vector2.DOWN
+	
+	# 获取屏幕范围（加一点 tolerance）
+	if is_inside_tree():
+		_screen_size = get_viewport().get_visible_rect()
 
 	age = 0.0
-	head_t = 0.0
-	tail_t = 0.0
-	head_speed = 1.0 / maxf(data.grow_duration, 0.01)
-	phase = GROW
+	head_dist = 0.0
+	tail_dist = 0.0
+	phase = ALIVE
 	elapsed_angle = 0.0
+	_fade_age = 0.0
 
 	_setup_line()
 	_apply_phase()
 
 
-func _sample_curve(t: float) -> Vector2:
-	## 采样引导曲线 t∈[0,1]，使用 Curve2D.sample(idx, sub_t)
+func _calc_curve_length() -> float:
+	var total := 0.0
 	var count := guide_curve.get_point_count()
 	if count < 2:
-		return guide_curve.get_point_position(0) if count > 0 else Vector2.ZERO
+		return 1.0
+	var prev := guide_curve.get_point_position(0)
+	for i in range(1, count):
+		var pos := guide_curve.get_point_position(i)
+		total += prev.distance_to(pos)
+		prev = pos
+	return total
 
-	var total_segs := count - 1
-	var idx_f := t * total_segs
-	var idx := int(idx_f)
-	var sub_t := idx_f - idx
 
-	if idx >= total_segs:
-		return guide_curve.get_point_position(count - 1)
-
-	return guide_curve.sample(idx, sub_t)
+func _sample_curve(dist: float) -> Vector2:
+	## 采样引导曲线上距离起点 dist px 处的点，超出则外插
+	if dist <= 0.0:
+		return guide_curve.get_point_position(0)
+	
+	if dist >= curve_total_length:
+		# 外插：沿终点方向继续延伸
+		var last := guide_curve.get_point_position(guide_curve.get_point_count() - 1)
+		return last + end_dir * (dist - curve_total_length)
+	
+	# 沿曲线遍历找到 dist 对应的点
+	var walked := 0.0
+	var count := guide_curve.get_point_count()
+	var prev := guide_curve.get_point_position(0)
+	for i in range(1, count):
+		var pos := guide_curve.get_point_position(i)
+		var seg := prev.distance_to(pos)
+		if walked + seg >= dist:
+			var t := (dist - walked) / seg
+			return prev.lerp(pos, t)
+		walked += seg
+		prev = pos
+	
+	return guide_curve.get_point_position(count - 1)
 
 
 func _setup_line():
@@ -72,12 +110,12 @@ func _setup_line():
 
 	line = Line2D.new()
 	line.z_index = 50
-	line.width = data.base_width
+	line.width = data.mid_width
 	line.default_color = data.laser_color
 	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
 	line.end_cap_mode = Line2D.LINE_CAP_ROUND
 	line.joint_mode = Line2D.LINE_JOINT_ROUND
-	# BUGFIX: Line2D needs a texture to render with width_curve
+
 	var tex := GradientTexture1D.new()
 	tex.width = 1
 	tex.gradient = Gradient.new()
@@ -89,12 +127,14 @@ func _setup_line():
 
 	_shader_mat.set_shader_parameter("laser_color", data.laser_color)
 
-	# 宽度曲线：根部粗 → 尖部细
+	# **梭形宽度曲线**：两端细 → 中间粗 → 尖端细
+	var ratio := data.end_width / data.mid_width
 	var wc := Curve.new()
-	wc.add_point(Vector2(0.0, 1.0))
-	wc.add_point(Vector2(0.4, 0.7))
-	wc.add_point(Vector2(0.8, 0.35))
-	wc.add_point(Vector2(1.0, data.tip_width / data.base_width))
+	wc.add_point(Vector2(0.0, ratio))      # 尾端：细
+	wc.add_point(Vector2(0.25, 0.7))
+	wc.add_point(Vector2(0.5, 1.0))         # 中间：最粗
+	wc.add_point(Vector2(0.75, 0.7))
+	wc.add_point(Vector2(1.0, ratio))       # 头端：细
 	line.width_curve = wc
 
 	add_child(line)
@@ -106,65 +146,69 @@ func step(delta: float):
 
 	age += delta
 
-	# 旋转
 	if rotation_speed != 0.0:
 		elapsed_angle += rotation_speed * delta
 		_update_rotated_curve()
 
 	match phase:
-		GROW:
-			head_t += head_speed * delta
-			tail_t = maxf(head_t - data.max_tail, 0.0)
-			if head_t >= 1.0:
-				head_t = 1.0
-				tail_t = maxf(1.0 - data.max_tail, 0.0)
-				phase = ACTIVE
-				_apply_phase()
+		ALIVE:
+			# 头部一直前进
+			head_dist += data.grow_speed * delta
+			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
 
-		ACTIVE:
-			# 尾巴追赶头部：激光持续"爬行"移动
-			if data.tail_follow_head:
-				tail_t += head_speed * delta
-				if tail_t >= head_t:
-					phase = FADE
-					_apply_phase()
-			elif age >= data.grow_duration + data.active_duration:
+			# 检查是否出屏或超时
+			var head_pos := _sample_curve(head_dist)
+			if _is_offscreen(head_pos) or (data.max_lifetime > 0.0 and age >= data.max_lifetime):
 				phase = FADE
+				_fade_age = 0.0
 				_apply_phase()
 
 		FADE:
-			if age >= data.grow_duration + data.active_duration + data.fade_duration:
+			_fade_age += delta
+			_shader_mat.set_shader_parameter("alpha", maxf(1.0 - _fade_age / 0.3, 0.0))
+			if _fade_age >= 0.3:
 				phase = DEAD
 				_apply_phase()
-			else:
-				var fade_t := (age - data.grow_duration - data.active_duration) / data.fade_duration
-				_shader_mat.set_shader_parameter("alpha", 1.0 - fade_t)
 
 	_update_points()
 
 
+func _is_offscreen(pos: Vector2) -> bool:
+	if _screen_size.size == Vector2.ZERO:
+		if is_inside_tree():
+			_screen_size = get_viewport().get_visible_rect()
+		if _screen_size.size == Vector2.ZERO:
+			return false
+	var margin := 200.0
+	return (pos.x < -margin or pos.x > _screen_size.size.x + margin or
+			pos.y < -margin or pos.y > _screen_size.size.y + margin)
+
+
 func _update_rotated_curve():
-	# 重建旋转后的曲线
 	var new_curve := Curve2D.new()
 	for i in range(CURVE_SAMPLES + 1):
 		var t := float(i) / CURVE_SAMPLES
-		var orig := _sample_curve(t)
+		var dist := t * curve_total_length
+		var orig := _sample_curve(dist)
 		var to := orig - origin_point
 		var rotated := origin_point + to.rotated(elapsed_angle)
 		new_curve.add_point(rotated)
 	guide_curve = new_curve
+	curve_total_length = _calc_curve_length()
 
 
 func _update_points():
-	if head_t <= tail_t or guide_curve.get_point_count() < 2:
+	# 从 tail 到 head 均匀采样点
+	var visible_length := head_dist - tail_dist
+	if visible_length <= 5.0:
 		line.clear_points()
 		return
 
-	var count := maxi(int((head_t - tail_t) * CURVE_SAMPLES), 8)
+	var count := maxi(int(visible_length / 5.0), 10)
 	line.clear_points()
 	for i in range(count):
-		var t := tail_t + (head_t - tail_t) * float(i) / float(count - 1)
-		line.add_point(_sample_curve(t))
+		var dist := tail_dist + visible_length * float(i) / float(count - 1)
+		line.add_point(_sample_curve(dist))
 
 	line.default_color = data.laser_color
 	line.gradient = _build_gradient()
@@ -175,17 +219,14 @@ func _build_gradient() -> Gradient:
 	var color := data.laser_color
 
 	match phase:
-		GROW:
+		ALIVE:
 			g.add_point(0.0, Color(color, 1.0))
-			g.add_point(0.85, Color(color, 0.8))
-			g.add_point(1.0, Color(color, 0.0))
-		ACTIVE:
-			g.add_point(0.0, Color(color, 1.0))
-			g.add_point(1.0, Color(color, 0.3))
+			g.add_point(0.5, Color(color, 1.0))
+			g.add_point(1.0, Color(color, 0.9))
 		FADE:
-			var fa := 1.0 - (age - data.grow_duration - data.active_duration) / data.fade_duration
+			var fa := maxf(1.0 - _fade_age / 0.3, 0.0)
 			g.add_point(0.0, Color(color, fa))
-			g.add_point(1.0, Color(color, fa * 0.3))
+			g.add_point(1.0, Color(color, fa * 0.8))
 
 	return g
 
@@ -193,11 +234,7 @@ func _build_gradient() -> Gradient:
 func _apply_phase():
 	line.visible = true
 	match phase:
-		GROW:
-			_shader_mat.set_shader_parameter("alpha", 1.0)
-			_shader_mat.set_shader_parameter("warning", 1.0)
-			_shader_mat.set_shader_parameter("glow_intensity", data.glow_intensity * 0.5)
-		ACTIVE:
+		ALIVE:
 			_shader_mat.set_shader_parameter("alpha", 1.0)
 			_shader_mat.set_shader_parameter("warning", 0.0)
 			_shader_mat.set_shader_parameter("glow_intensity", data.glow_intensity)
@@ -209,19 +246,22 @@ func _apply_phase():
 
 
 func is_hitting_player(player_pos: Vector2, hit_radius: float = 2.0) -> bool:
-	if phase != ACTIVE:
+	if phase != ALIVE:
 		return false
 
 	var threshold := data.hitbox_width + hit_radius
+	var visible_length := head_dist - tail_dist
+	if visible_length <= 0.0:
+		return false
 
-	# 曲线段采样检测
-	for i in range(CURVE_SAMPLES):
-		var t := tail_t + (head_t - tail_t) * float(i) / float(CURVE_SAMPLES - 1)
-		var a := _sample_curve(t)
+	var samples := int(visible_length / 10.0)
+	for i in range(samples):
+		var dist := tail_dist + visible_length * float(i) / float(samples - 1)
+		var a := _sample_curve(dist)
 
-		if i < CURVE_SAMPLES - 1:
-			var t2 := tail_t + (head_t - tail_t) * float(i + 1) / float(CURVE_SAMPLES - 1)
-			var b := _sample_curve(t2)
+		if i < samples - 1:
+			var dist2 := tail_dist + visible_length * float(i + 1) / float(samples - 1)
+			var b := _sample_curve(dist2)
 			var closest := _closest_point_on_segment(player_pos, a, b)
 			if player_pos.distance_to(closest) < threshold:
 				return true
