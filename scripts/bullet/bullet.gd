@@ -77,14 +77,17 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		fog.visible = false
 
 	is_ready = true
-	_start_movement(data)
+	# 只有自定义移动脚本才用协程；普通线性移动走 _physics_process
+	if data.movement_script:
+		_start_movement(data)
+
+func _physics_process(_delta):
+	if not is_ready or coroutine_movement:
+		return
+	self.global_position += velocity / Engine.physics_ticks_per_second
 
 func _start_movement(data: BulletData):
-	if data.movement_script:
-		coroutine_movement = data.movement_script.new()
-	else:
-		coroutine_movement = MoveLinear.new()
-
+	coroutine_movement = data.movement_script.new()
 	add_child(coroutine_movement)
 	var api = StageAPI.new(coroutine_movement)
 	coroutine_movement.start_moving(api, self)
