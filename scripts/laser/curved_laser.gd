@@ -75,8 +75,16 @@ func _setup_line():
 	line.z_index = 50
 	line.width = data.base_width
 	line.default_color = data.laser_color
-	line.material = _shader_mat
-	line.texture_mode = Line2D.LINE_TEXTURE_NONE
+	# BUGFIX: Line2D needs a texture to render with width_curve
+	var tex := GradientTexture1D.new()
+	tex.width = 1
+	tex.gradient = Gradient.new()
+	tex.gradient.add_point(0.0, Color.WHITE)
+	tex.gradient.add_point(1.0, Color.WHITE)
+	line.texture = tex
+	line.texture_mode = Line2D.LINE_TEXTURE_TILE
+	# TEMP: disable shader to test line rendering
+	# line.material = _shader_mat
 
 	_shader_mat.set_shader_parameter("laser_color", data.laser_color)
 
