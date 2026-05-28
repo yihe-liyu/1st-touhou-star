@@ -17,5 +17,5 @@ texture = SubResource("AtlasTexture_1")
 velocity = Vector2(0, 250)
 faction = 1
 can_be_canceled = true
-spawn_fog = true
-fog_texture = SubResource("AtlasTexture_toa2m")
+spawn_fog = false
+#fog_texture = SubResource("AtlasTexture_toa2m")
