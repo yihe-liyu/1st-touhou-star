@@ -1,7 +1,7 @@
 # BulletManager.gd (Autoload)
 extends Node
 
-const POOL_SIZE: int = 4000
+const POOL_SIZE: int = 1000
 
 var use_batch_render: bool = false
 var use_multi_mesh: bool = true

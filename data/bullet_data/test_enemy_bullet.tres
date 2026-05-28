@@ -3,10 +3,6 @@
 [ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="1_tex"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_sc"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_toa2m"]
-atlas = ExtResource("1_tex")
-region = Rect2(16, 160, 32, 32)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_1"]
 atlas = ExtResource("1_tex")
 region = Rect2(176, 160, 16, 16)
@@ -17,5 +13,3 @@ texture = SubResource("AtlasTexture_1")
 velocity = Vector2(0, 250)
 faction = 1
 can_be_canceled = true
-spawn_fog = false
-#fog_texture = SubResource("AtlasTexture_toa2m")
