@@ -154,7 +154,7 @@ func _update_points():
 		line.clear_points()
 		return
 
-	var count := maxi(int((head_t - tail_t) * CURVE_SAMPLES), 2)
+	var count := maxi(int((head_t - tail_t) * CURVE_SAMPLES), 8)
 	line.clear_points()
 	for i in range(count):
 		var t := tail_t + (head_t - tail_t) * float(i) / float(count - 1)

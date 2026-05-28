@@ -11,8 +11,8 @@ void fragment() {
 	
 	float edge_dist = abs(UV.y - 0.5) * 2.0; // 0=center, 1=edge
 	
-	// 核心亮线
-	float core = 1.0 - smoothstep(0.0, 0.25, edge_dist);
+	// 核心亮线（加宽）
+	float core = 1.0 - smoothstep(0.0, 0.55, edge_dist);
 	
 	// 光晕
 	float glow = exp(-edge_dist * 3.5) * glow_intensity;
