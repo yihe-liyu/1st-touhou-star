@@ -28,7 +28,6 @@ var elapsed_angle: float = 0.0
 # 节点
 var line: Line2D
 var _shader_mat: ShaderMaterial
-var _baked_length: float = 0.0
 
 
 func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
@@ -36,10 +35,7 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	data = p_data
 	origin_point = p_origin
 	rotation_speed = p_rot_speed
-
 	guide_curve = p_curve
-	guide_curve.bake()
-	_baked_length = guide_curve.get_baked_length()
 
 	age = 0.0
 	head_t = 0.0
@@ -53,8 +49,20 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 
 
 func _sample_curve(t: float) -> Vector2:
-	## 采样引导曲线 t∈[0,1]
-	return guide_curve.sample_baked(t * _baked_length)
+	## 采样引导曲线 t∈[0,1]，使用 Curve2D.sample(idx, sub_t)
+	var count := guide_curve.get_point_count()
+	if count < 2:
+		return guide_curve.get_point_position(0) if count > 0 else Vector2.ZERO
+
+	var total_segs := count - 1
+	var idx_f := t * total_segs
+	var idx := int(idx_f)
+	var sub_t := idx_f - idx
+
+	if idx >= total_segs:
+		return guide_curve.get_point_position(count - 1)
+
+	return guide_curve.sample(idx, sub_t)
 
 
 func _setup_line():
@@ -117,6 +125,7 @@ func step(delta: float):
 
 
 func _update_rotated_curve():
+	# 重建旋转后的曲线
 	var new_curve := Curve2D.new()
 	for i in range(CURVE_SAMPLES + 1):
 		var t := float(i) / CURVE_SAMPLES
@@ -125,12 +134,10 @@ func _update_rotated_curve():
 		var rotated := origin_point + to.rotated(elapsed_angle)
 		new_curve.add_point(rotated)
 	guide_curve = new_curve
-	guide_curve.bake()
-	_baked_length = guide_curve.get_baked_length()
 
 
 func _update_points():
-	if head_t <= tail_t or _baked_length <= 0.0:
+	if head_t <= tail_t or guide_curve.get_point_count() < 2:
 		line.clear_points()
 		return
 
