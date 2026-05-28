@@ -28,32 +28,38 @@ func _on_step(api: StageAPI) -> Variant:
 			_count += 1
 			if _count >= 3:
 				_count = 0
-				_phase = 0
+				_phase = 2
 				return api.seconds(1.0)
 			return api.seconds(1.2)
 
 		2:
-			# 旋转梭形激光扫射
-			api.fire_rotating_laser(LASER_DATA, enemy.global_position,
-				Vector2.UP, deg_to_rad(80), 700)
+			# 自机狙弯曲 S 形曲线激光
+			var player := api.get_player()
+			if player and is_instance_valid(player):
+				var to_p := (player.global_position - enemy.global_position).normalized()
+				var curve := _make_s_curve(enemy.global_position, to_p, 500, 150)
+				api.fire_growing_laser(LASER_DATA, enemy.global_position, curve)
 			_count += 1
 			if _count >= 6:
-				api.clear_all_lasers()
-				_phase = 3
 				_count = 0
-				return api.seconds(1.5)
-			return api.seconds(1.0)
-
-		3:
-			# 自机狙弯曲激光（贝塞尔曲线）
-			api.fire_homing_laser(LASER_DATA, enemy.global_position,
-				200.0 + _count * 100.0, 600)
-			_count += 1
-			if _count >= 4:
-				api.clear_all_lasers()
 				_phase = 0
-				_count = 0
-				return api.seconds(1.5)
-			return api.seconds(0.4)
+				return api.seconds(3.0)  # 等激光自然飞出屏
+			return api.seconds(0.8)
 		_:
 			return false
+
+
+func _make_s_curve(start: Vector2, direction: Vector2, length: float, bend: float) -> Curve2D:
+	const SAMPLES := 120
+	var end := start + direction.normalized() * length
+	var right := direction.orthogonal()
+	# 三段贝塞尔：start → 右弯 → 弯回 → end
+	var p1 := start + direction * length * 0.25 + right * bend
+	var p2 := start + direction * length * 0.75 - right * bend
+	var curve := Curve2D.new()
+	for i in range(SAMPLES + 1):
+		var t := float(i) / SAMPLES
+		var u := 1.0 - t
+		var pos := u * u * u * start + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * end
+		curve.add_point(pos)
+	return curve
