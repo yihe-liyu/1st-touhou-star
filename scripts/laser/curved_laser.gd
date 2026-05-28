@@ -6,7 +6,7 @@ const ALIVE: int = 0
 const FADE: int = 1
 const DEAD: int = 2
 
-const CURVE_SAMPLES: int = 120
+const CURVE_SAMPLES: int = 60  # 旋转曲线采样点数（120→60）
 
 # 曲线 & 运动
 var guide_curve: Curve2D
@@ -194,50 +194,30 @@ func _is_offscreen(pos: Vector2) -> bool:
 
 
 func _update_rotated_curve():
+	# 用更少的采样点重建旋转曲线
 	var new_curve := Curve2D.new()
+	var cached_len := curve_total_length
 	for i in range(CURVE_SAMPLES + 1):
 		var t := float(i) / CURVE_SAMPLES
-		var dist := t * curve_total_length
+		var dist := t * cached_len
 		var orig := _sample_curve(dist)
 		var to := orig - origin_point
 		var rotated := origin_point + to.rotated(elapsed_angle)
 		new_curve.add_point(rotated)
 	guide_curve = new_curve
-	curve_total_length = _calc_curve_length()
 
 
 func _update_points():
-	# 从 tail 到 head 均匀采样点
 	var visible_length := head_dist - tail_dist
-	if visible_length <= 5.0:
+	if visible_length <= 10.0:
 		line.clear_points()
 		return
 
-	var count := maxi(int(visible_length / 5.0), 10)
+	var count := maxi(int(visible_length / 15.0), 8)  # 15px间距，至少8个点
 	line.clear_points()
 	for i in range(count):
 		var dist := tail_dist + visible_length * float(i) / float(count - 1)
 		line.add_point(_sample_curve(dist))
-
-	line.default_color = data.laser_color
-	line.gradient = _build_gradient()
-
-
-func _build_gradient() -> Gradient:
-	var g := Gradient.new()
-	var color := data.laser_color
-
-	match phase:
-		ALIVE:
-			g.add_point(0.0, Color(color, 1.0))
-			g.add_point(0.5, Color(color, 1.0))
-			g.add_point(1.0, Color(color, 0.9))
-		FADE:
-			var fa := maxf(1.0 - _fade_age / 0.3, 0.0)
-			g.add_point(0.0, Color(color, fa))
-			g.add_point(1.0, Color(color, fa * 0.8))
-
-	return g
 
 
 func _apply_phase():
@@ -263,7 +243,7 @@ func is_hitting_player(player_pos: Vector2, hit_radius: float = 2.0) -> bool:
 	if visible_length <= 0.0:
 		return false
 
-	var samples := int(visible_length / 10.0)
+	var samples := maxi(int(visible_length / 20.0), 4)  # 20px间距
 	for i in range(samples):
 		var dist := tail_dist + visible_length * float(i) / float(samples - 1)
 		var a := _sample_curve(dist)
