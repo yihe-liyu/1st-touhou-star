@@ -29,6 +29,7 @@ var elapsed_angle: float = 0.0
 # 节点
 var line: Line2D
 var _shader_mat: ShaderMaterial
+var _fog_sprite: Sprite2D
 var _screen_size: Rect2
 
 
@@ -158,8 +159,6 @@ func step(delta: float):
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
 			# 弹雾：头在曲线上时显示，超出后隐藏
 			_toggle_fog(head_dist < curve_total_length)
-			if head_dist >= curve_total_length:
-				print("[Laser] hide fog head=", head_dist, " curve=", curve_total_length)
 			
 			if data.max_lifetime > 0.0:
 				if age >= data.max_lifetime:
@@ -226,25 +225,23 @@ func _update_points():
 
 
 func _spawn_fog():
-	# 先清理旧的
-	var old := get_node_or_null("Fog")
-	if old:
-		old.queue_free()
+	if _fog_sprite:
+		remove_child(_fog_sprite)
+		_fog_sprite.queue_free()
+		_fog_sprite = null
 	if not data.spawn_fog_texture:
 		return
-	var fog := Sprite2D.new()
-	fog.name = "Fog"
-	fog.texture = data.spawn_fog_texture
-	fog.scale = Vector2(2.0, 2.0)
-	fog.global_position = origin_point
-	fog.z_index = 51
-	add_child(fog)
+	_fog_sprite = Sprite2D.new()
+	_fog_sprite.texture = data.spawn_fog_texture
+	_fog_sprite.scale = Vector2(2.0, 2.0)
+	_fog_sprite.global_position = origin_point
+	_fog_sprite.z_index = 51
+	add_child(_fog_sprite)
 
 
-func _toggle_fog(visible: bool):
-	var fog := get_node_or_null("Fog")
-	if fog:
-		fog.visible = visible
+func _toggle_fog(v: bool):
+	if _fog_sprite:
+		_fog_sprite.visible = v
 
 
 func _apply_phase():
