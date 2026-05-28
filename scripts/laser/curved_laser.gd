@@ -30,6 +30,7 @@ var elapsed_angle: float = 0.0
 var line: Line2D
 var _shader_mat: ShaderMaterial
 var _fog_sprite: Sprite2D
+var _fog_tween: Tween
 var _screen_size: Rect2
 
 
@@ -159,6 +160,9 @@ func step(delta: float):
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
 			# 弹雾：尾巴离开原点后就消除
 			_toggle_fog(tail_dist <= 0.0)
+			# 弹雾旋转
+			if _fog_sprite and _fog_sprite.visible:
+				_fog_sprite.rotation += delta * 3.0
 			
 			if data.max_lifetime > 0.0:
 				if age >= data.max_lifetime:
@@ -226,9 +230,13 @@ func _update_points():
 
 func _spawn_fog():
 	if _fog_sprite:
-		remove_child(_fog_sprite)
-		_fog_sprite.queue_free()
-		_fog_sprite = null
+		# 如果正在消失动画中，取消并立即可见
+		if _fog_tween and _fog_tween.is_valid():
+			_fog_tween.kill()
+		_fog_sprite.scale = Vector2(2.0, 2.0)
+		_fog_sprite.modulate.a = 1.0
+		_fog_sprite.visible = true
+		return
 	if not data.spawn_fog_texture:
 		return
 	_fog_sprite = Sprite2D.new()
@@ -240,8 +248,25 @@ func _spawn_fog():
 
 
 func _toggle_fog(v: bool):
-	if _fog_sprite:
-		_fog_sprite.visible = v
+	if not _fog_sprite:
+		return
+	if v:
+		# 显示：取消消失动画
+		if _fog_tween and _fog_tween.is_valid():
+			_fog_tween.kill()
+		_fog_sprite.scale = Vector2(2.0, 2.0)
+		_fog_sprite.modulate.a = 1.0
+		_fog_sprite.visible = true
+	else:
+		# 隐藏：缩小+变透明动画
+		if _fog_tween and _fog_tween.is_valid():
+			return  # 已经在动画中
+		_fog_tween = create_tween()
+		_fog_tween.set_ease(Tween.EASE_OUT)
+		_fog_tween.set_trans(Tween.TRANS_QUAD)
+		_fog_tween.set_parallel(true)
+		_fog_tween.tween_property(_fog_sprite, "scale", Vector2.ZERO, 0.3)
+		_fog_tween.tween_property(_fog_sprite, "modulate:a", 0.0, 0.3)
 
 
 func _apply_phase():
