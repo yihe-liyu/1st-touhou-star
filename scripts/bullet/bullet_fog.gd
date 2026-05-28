@@ -3,7 +3,7 @@ class_name BulletFog
 
 signal fog_finished
 
-var duration: float = 0.4
+var duration: float = 0.3
 var start_scale: float = 2.0
 
 func play(p_texture: Texture2D):
@@ -19,7 +19,7 @@ func play(p_texture: Texture2D):
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.set_parallel(true)
-	tween.tween_property(self, "scale", Vector2.ZERO, duration)
+	tween.tween_property(self, "scale", Vector2(0.5, 0.5), duration)
 	tween.tween_property(self, "modulate:a", 0.0, duration)
 	tween.finished.connect(_on_tween_finished)
 

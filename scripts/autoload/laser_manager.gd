@@ -60,6 +60,8 @@ func _physics_process(delta: float):
 					damage_this_frame[player] = 0.0
 				damage_this_frame[player] += laser.data.damage_per_second * delta
 	
+	# 伤害向上取整，避免多条激光小额伤害被截成 0
 	for p in damage_this_frame:
-		if p.has_method("take_damage"):
-			p.take_damage(int(damage_this_frame[p]))
+		var dmg := int(ceil(damage_this_frame[p]))
+		if dmg > 0 and p.has_method("take_damage"):
+			p.take_damage(dmg)
