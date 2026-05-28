@@ -1,11 +1,14 @@
 extends Sprite2D
 class_name BulletFog
 
+signal fog_finished
+
 var duration: float = 0.4
 var start_scale: float = 2.0
 
 func play(p_texture: Texture2D):
 	if texture == p_texture:
+		fog_finished.emit()  # 同样纹理，直接完成
 		return
 	texture = p_texture
 	modulate.a = 1.0
@@ -23,3 +26,4 @@ func play(p_texture: Texture2D):
 func _on_tween_finished():
 	visible = false
 	texture = null
+	fog_finished.emit()

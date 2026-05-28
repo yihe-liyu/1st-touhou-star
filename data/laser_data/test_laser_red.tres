@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_0dh8t")
+grow_speed = 1000.0
 tail_distance = 500.0
 glow_intensity = 1.0
 max_lifetime = 15.0

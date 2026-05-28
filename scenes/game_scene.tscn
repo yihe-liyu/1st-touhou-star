@@ -50,7 +50,7 @@ offset = Vector2(640, 480)
 
 [node name="Title" type="Sprite2D" parent="." unique_id=1384045485]
 z_index = 128
-position = Vector2(1056, 734)
+position = Vector2(1056, 756.99994)
 scale = Vector2(0.69, 0.69)
 texture = ExtResource("6_kk2rg")
 
