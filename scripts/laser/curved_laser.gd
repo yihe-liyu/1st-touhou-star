@@ -158,6 +158,8 @@ func step(delta: float):
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
 			# 弹雾：头在曲线上时显示，超出后隐藏
 			_toggle_fog(head_dist < curve_total_length)
+			if head_dist >= curve_total_length:
+				print("[Laser] hide fog head=", head_dist, " curve=", curve_total_length)
 			
 			if data.max_lifetime > 0.0:
 				if age >= data.max_lifetime:
