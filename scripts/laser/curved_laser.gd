@@ -230,6 +230,7 @@ func _spawn_fog():
 		_fog_sprite.queue_free()
 		_fog_sprite = null
 	if not data.spawn_fog_texture:
+		print("[Laser] no fog texture, skip")
 		return
 	_fog_sprite = Sprite2D.new()
 	_fog_sprite.texture = data.spawn_fog_texture
@@ -237,10 +238,13 @@ func _spawn_fog():
 	_fog_sprite.global_position = origin_point
 	_fog_sprite.z_index = 51
 	add_child(_fog_sprite)
+	print("[Laser] fog spawned, head_dist=", head_dist, " curve=", curve_total_length)
 
 
 func _toggle_fog(v: bool):
 	if _fog_sprite:
+		if _fog_sprite.visible != v:
+			print("[Laser] toggle fog: ", v, " head=", head_dist, " curve=", curve_total_length)
 		_fog_sprite.visible = v
 
 
