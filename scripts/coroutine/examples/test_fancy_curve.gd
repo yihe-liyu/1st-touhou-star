@@ -27,9 +27,9 @@ func _make_fancy_curve(origin: Vector2, offset_angle: float) -> Curve2D:
 	# ① 转第一个圈（半径 90px，向左弯）
 	# ═══════════════════════════════════
 	const CIRCLE1_RADIUS := 90.0
-	const CIRCLE1_STEPS := 40  # 这40步走完一个圆
-	var circle1_center := pos + dir * CIRCLE1_RADIUS
-	# 圆实际上是绕 center 转一圈
+	const CIRCLE1_STEPS := 40
+	curve.add_point(origin)  # 起点 = 敌人位置
+	var circle1_center := origin + dir * CIRCLE1_RADIUS
 	for i in range(CIRCLE1_STEPS):
 		var t := float(i) / CIRCLE1_STEPS
 		var angle := TAU * t
