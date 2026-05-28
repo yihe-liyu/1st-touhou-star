@@ -20,7 +20,7 @@ func _sync():
 	# 收集活跃子弹，按 texture + faction 分组
 	var active_groups: Dictionary = {}
 	for bullet in BulletManager.active_bullets:
-		if not is_instance_valid(bullet) or not bullet.visible:
+		if not is_instance_valid(bullet) or not bullet.visible or not bullet.is_ready:
 			continue
 		var tex = bullet.batch_texture()
 		if not tex:
