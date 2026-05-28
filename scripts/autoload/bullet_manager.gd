@@ -102,6 +102,14 @@ func _physics_process(delta):
 		if _is_offscreen(bullet.global_position):
 			return_bullet(bullet)
 			continue
+	
+	# 每 60 帧打一次对象数
+	if Engine.get_frames_drawn() % 60 == 0:
+		var objs = Performance.get_monitor(Performance.OBJECT_COUNT)
+		var nodes = Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+		var orphans = Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
+		var res = Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)
+		print("OBJ:%d NODE:%d ORPH:%d RES:%d ACT:%d POOL:%d" % [objs, nodes, orphans, res, active_bullets.size(), bullet_pool.size()])
 
 # ── 碰撞分流 ──
 
