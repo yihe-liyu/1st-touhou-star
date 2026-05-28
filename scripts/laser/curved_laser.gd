@@ -246,7 +246,7 @@ func _apply_phase():
 	line.visible = true
 	match phase:
 		ALIVE:
-			_toggle_fog(true)
+			_toggle_fog(head_dist < curve_total_length)  # 伸展阶段有雾，出曲线后消失
 			_shader_mat.set_shader_parameter("alpha", 1.0)
 			_shader_mat.set_shader_parameter("warning", 0.0)
 			_shader_mat.set_shader_parameter("glow_intensity", data.glow_intensity)
