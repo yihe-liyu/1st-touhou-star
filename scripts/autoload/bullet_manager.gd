@@ -78,10 +78,16 @@ func shoot_bomb_bullet(data: BulletData, position: Vector2, direction: Vector2, 
 # ── 回收 ──
 
 func return_bullet(bullet: Bullet):
+	# 先停掉所有移动脚本（协程会释放 StageAPI RefCounted）
 	if bullet.coroutine_movement and is_instance_valid(bullet.coroutine_movement):
 		bullet.coroutine_movement.stop()
 		bullet.coroutine_movement.queue_free()
 		bullet.coroutine_movement = null
+	# 清理子弹节点下残留的移动脚本（二次保障）
+	for child in bullet.get_children():
+		if child is MoveScript:
+			child.stop()
+			child.queue_free()
 	bullet.visible = false
 	bullet.process_mode = PROCESS_MODE_DISABLED
 	active_bullets.erase(bullet)
