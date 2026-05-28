@@ -46,8 +46,6 @@ func _physics_process(delta: float):
 		player_pos = player.global_position
 		has_player = true
 	
-	var damage_this_frame: Dictionary = {}
-	
 	var hit := false
 	for laser in _active:
 		if laser.phase == PHASE_DEAD:
