@@ -7,7 +7,6 @@ script = ExtResource("1_data")
 grow_duration = 0.8
 max_tail = 0.6
 active_duration = 3.0
-tail_follow_head = false
 fade_duration = 0.5
 base_width = 16.0
 tip_width = 4.0

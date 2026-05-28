@@ -122,7 +122,13 @@ func step(delta: float):
 				_apply_phase()
 
 		ACTIVE:
-			if age >= data.grow_duration + data.active_duration:
+			# 尾巴追赶头部：激光持续"爬行"移动
+			if data.tail_follow_head:
+				tail_t += head_speed * delta
+				if tail_t >= head_t:
+					phase = FADE
+					_apply_phase()
+			elif age >= data.grow_duration + data.active_duration:
 				phase = FADE
 				_apply_phase()
 

@@ -8,7 +8,7 @@ class_name CurvedLaserData
 
 # ---- 激活阶段 ----
 @export var active_duration: float = 2.0       # 激活阶段时长（有判定）
-@export var tail_follow_head: bool = true      # 激活时尾巴是否跟随头部？false=停住
+@export var tail_follow_head: bool = true      # 激活时尾巴追赶头部？true=尾巴追上头部=激光消失
 
 # ---- 消退阶段 ----
 @export var fade_duration: float = 0.3         # 消退动画时长
