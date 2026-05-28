@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://cb505yupublnp"]
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://de3l0g1h5wv3"]
 
 [ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_jjwni"]
 [ext_resource type="Texture2D" uid="uid://bgn5feo55byah" path="res://assets/Textures/enemy/enemy.png" id="2_4dide"]
-[ext_resource type="Script" path="res://scripts/coroutine/examples/test_laser.gd" id="4_test_shoot"]
+[ext_resource type="Script" uid="uid://cisa5ltshmfu8" path="res://scripts/coroutine/examples/test_laser.gd" id="4_test_shoot"]
 [ext_resource type="Script" uid="uid://xeu5jb8qorbw" path="res://scripts/coroutine/stages/move_entrance.gd" id="5_move"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
