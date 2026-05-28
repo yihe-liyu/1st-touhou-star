@@ -222,6 +222,10 @@ func _update_points():
 
 
 func _spawn_fog():
+	# 先清理旧的
+	var old := get_node_or_null("Fog")
+	if old:
+		old.queue_free()
 	if not data.spawn_fog_texture:
 		return
 	var fog := Sprite2D.new()
