@@ -25,6 +25,7 @@ GameState="*uid://bd4sn2mxfar2u"
 StageManager="*res://scripts/autoload/stage_manager.gd"
 RNG="*res://scripts/autoload/rng.gd"
 _MCPGameBridge="*uid://cds186n8uv4f0"
+LaserManager="*res://scripts/autoload/laser_manager.gd"
 
 [display]
 

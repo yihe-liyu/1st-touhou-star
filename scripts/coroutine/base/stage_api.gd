@@ -6,6 +6,8 @@ class_name StageAPI
 ##   seconds(t) → 返回 float 秒数，runner 自动倒计时
 ##   frames(n)  → 返回等价秒数
 
+const _LaserMgr = preload("res://scripts/autoload/laser_manager.gd")
+
 var runner: CoroutineRunner
 
 func _init(p_runner: CoroutineRunner) -> void:
@@ -53,3 +55,62 @@ func get_field_rect() -> Rect2:
 
 func all_defeated() -> bool:
 	return GameState.active_enemies.is_empty()
+
+# ---------- 曲线激光 ----------
+
+## 生长型激光
+func fire_growing_laser(data: Resource, origin: Vector2,
+		guide_curve: Curve2D, rot_speed: float = 0.0):
+	if not active():
+		return null
+	return LaserManager.fire(data, origin, guide_curve, rot_speed)
+
+## 直线激光
+func fire_straight_laser(data: Resource, origin: Vector2,
+		direction: Vector2, length: float):
+	var curve := _make_straight_curve(origin, direction, length)
+	return fire_growing_laser(data, origin, curve)
+
+## 旋转激光
+func fire_rotating_laser(data: Resource, origin: Vector2,
+		initial_dir: Vector2, angle_per_sec: float, length: float):
+	var curve := _make_straight_curve(origin, initial_dir, length)
+	return fire_growing_laser(data, origin, curve, angle_per_sec)
+
+## 自机狙击弯曲线激光
+func fire_homing_laser(data: Resource, origin: Vector2,
+		bend_amount: float, length: float = 500.0):
+	var player := get_player()
+	if not player:
+		return _fire_straight_fallback(data, origin, length)
+	
+	var to_player := (player.global_position - origin).normalized()
+	var end := origin + to_player * length
+	var mid := (origin + end) / 2.0
+	var ctrl := mid + to_player.orthogonal() * bend_amount
+	
+	var curve := _cubic_bezier_curve(origin, ctrl, end)
+	return fire_growing_laser(data, origin, curve)
+
+func clear_all_lasers() -> void:
+	LaserManager.clear_all()
+
+
+func _make_straight_curve(origin: Vector2, direction: Vector2, length: float) -> Curve2D:
+	var curve := Curve2D.new()
+	curve.add_point(origin)
+	curve.add_point(origin + direction.normalized() * length)
+	return curve
+
+func _cubic_bezier_curve(p0: Vector2, p1: Vector2, p2: Vector2) -> Curve2D:
+	const SAMPLES := 120
+	var curve := Curve2D.new()
+	for i in range(SAMPLES + 1):
+		var t := float(i) / SAMPLES
+		var u := 1.0 - t
+		var pos := u * u * p0 + 2 * u * t * p1 + t * t * p2
+		curve.add_point(pos)
+	return curve
+
+func _fire_straight_fallback(data: Resource, origin: Vector2, length: float):
+	return fire_straight_laser(data, origin, Vector2.DOWN, length)
