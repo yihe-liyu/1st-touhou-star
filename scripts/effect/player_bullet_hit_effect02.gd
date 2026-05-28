@@ -11,10 +11,9 @@ func set_velocity(vel: Vector2):
 	self.rotation = velocity.angle() + RNG.randf_range(-0.1, 0.1)
 
 func _ready():
-	var tween := create_tween()
-	tween.tween_property(sprite, "modulate", Color(4, 4, 4, 0), 0.2)
-	await tween.finished
-	queue_free()
+	var tw = create_tween()
+	tw.tween_property(sprite, "modulate", Color(4, 4, 4, 0), 0.2)
+	tw.tween_callback(queue_free).set_delay(0.3)
 
 func _physics_process(delta: float) -> void:
 	self.position += velocity * delta

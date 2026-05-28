@@ -13,10 +13,9 @@ func set_velocity(vel: Vector2):
 
 func _ready():
 	animation.play("explode")
-	var tween := create_tween()
-	tween.parallel().tween_property(animation, "modulate", Color(1, 1, 1, 0), 0.4)
-	await animation.animation_finished
-	queue_free()
+	var tw = create_tween()
+	tw.parallel().tween_property(animation, "modulate", Color(1, 1, 1, 0), 0.4)
+	tw.tween_callback(queue_free).set_delay(0.5)
 
 func _physics_process(delta: float) -> void:
 	self.position += velocity * delta

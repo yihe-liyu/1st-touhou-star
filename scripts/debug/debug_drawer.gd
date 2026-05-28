@@ -85,18 +85,19 @@ func _draw():
 			draw_arc(player.global_position, r, 0, TAU, 24, Color.CYAN, 2.0)
 			draw_circle(player.global_position, 2.0, Color.CYAN)
 	
-	# 左上角显示弹幕计数
+	# 左上角显示弹幕计数 
+
 	if bullet_manager:
 		var count = bullet_manager.active_bullets.size()
-		draw_string(
-			ThemeDB.fallback_font,
-			Vector2(64, 64),
-			"弹幕数: %d" % count,
-			HORIZONTAL_ALIGNMENT_LEFT,
-			-1,
-			32,
-			Color.RED
-		)
+		draw_string(                                                                              
+			ThemeDB.fallback_font,                                                                 
+			Vector2(64, 64),                                                                       
+			"弹幕数: %d" % count,                                                                  
+			HORIZONTAL_ALIGNMENT_LEFT,                                                             
+			-1,                                                                                    
+			32,                                                                                    
+			Color.RED                                                                              
+		)   
 
 func _get_rotated_rect_corners(center: Vector2, half: Vector2, angle: float) -> PackedVector2Array:
 	var corners = PackedVector2Array()

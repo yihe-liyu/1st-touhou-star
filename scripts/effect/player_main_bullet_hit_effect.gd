@@ -13,8 +13,9 @@ func set_velocity(vel: Vector2):
 
 func _ready():
 	animation.play("explode")
-	await animation.animation_finished
-	queue_free()
+	# 固定延时释放，不依赖信号（防止掉帧时内存泄漏）
+	var tw = create_tween()
+	tw.tween_callback(queue_free).set_delay(0.5)
 
 func _physics_process(delta: float) -> void:
 	self.position += velocity * delta
