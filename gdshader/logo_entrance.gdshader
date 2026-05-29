@@ -1,6 +1,7 @@
 shader_type canvas_item;
 
 uniform float progress : hint_range(0, 1) = 0.0;
+uniform float alpha_mult : hint_range(0, 1) = 1.0;
 
 // 伪随机哈希
 float hash(vec2 p) {
@@ -43,5 +44,5 @@ void fragment() {
 	// 粒子逐渐变亮
 	float brightness = 0.25 + 0.75 * local_progress;
 
-	COLOR = COLOR * vec4(tex.rgb * brightness + glow_color, tex.a * local_progress);
+	COLOR = vec4(tex.rgb * brightness + glow_color, tex.a * local_progress * alpha_mult);
 }
