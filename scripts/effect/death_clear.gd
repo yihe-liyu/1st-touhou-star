@@ -1,5 +1,4 @@
 extends Node2D
-# 死亡弹幕清除 —— 不可见的扩大圆，碰到的子弹全部消失
 
 @export var max_radius: float = 200.0
 @export var duration: float = 0.5
@@ -8,6 +7,7 @@ extends Node2D
 var _age: float = 0.0
 var _area: Area2D
 var _shape: CircleShape2D
+var _pending: Array[Area2D] = []
 
 
 func _ready() -> void:
@@ -19,7 +19,7 @@ func _ready() -> void:
 	
 	_area = Area2D.new()
 	_area.collision_layer = 0
-	_area.collision_mask = 4294967295  # all layers, filter in code
+	_area.collision_mask = 4294967295
 	_area.area_entered.connect(_on_area_entered)
 	_area.add_child(collision)
 	
@@ -28,6 +28,13 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_age += delta
+	
+	# 延迟清理上一帧收集的子弹
+	if not _pending.is_empty():
+		for b in _pending:
+			BulletManager.call("return_bullet", b)
+		_pending.clear()
+	
 	if _age >= duration:
 		queue_free()
 		return
@@ -36,5 +43,6 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
-	# 消弹：交由 BulletManager 回收
-	BulletManager.call("return_bullet", area)
+	# 不立即清理，收集到 _pending 延迟到帧末处理
+	if not _pending.has(area):
+		_pending.append(area)
