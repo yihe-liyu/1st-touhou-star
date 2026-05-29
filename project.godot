@@ -18,13 +18,13 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GameEvents="*uid://crmumkxb3k5uc"
-GameManager="*uid://ekf00dur5yyt"
-BulletManager="*uid://r1cevfo2ay7l"
-GameState="*uid://bd4sn2mxfar2u"
+GameEvents="*res://scripts/autoload/game_events.gd"
+GameManager="*res://scripts/autoload/game_manager.gd"
+BulletManager="*res://scripts/autoload/bullet_manager.gd"
+GameState="*res://scripts/autoload/game_state.gd"
 StageManager="*res://scripts/autoload/stage_manager.gd"
 RNG="*res://scripts/autoload/rng.gd"
-_MCPGameBridge="*uid://cds186n8uv4f0"
+_MCPGameBridge="*res://scripts/autoload/mcp_game_bridge.gd"
 LaserManager="*res://scripts/autoload/laser_manager.gd"
 MissEffectManager="*res://scripts/autoload/miss_effect_manager.gd"
 
