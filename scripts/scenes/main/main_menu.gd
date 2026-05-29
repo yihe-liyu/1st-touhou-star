@@ -54,7 +54,7 @@ func _activate_title() -> void:
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
 	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 1.0, 0.25)
-	tw.tween_property($GPUParticles2D, "modulate:a", 0.25, 0.25)
+	tw.tween_property($GPUParticles2D, "modulate:a", 0.0, 0.25)
 	tw.tween_callback(func():
 		refresh_colors()
 		input_enabled = true
