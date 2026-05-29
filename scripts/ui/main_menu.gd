@@ -57,4 +57,5 @@ func _open_difficulty() -> void:
 func _on_difficulty_finished(result: Dictionary) -> void:
 	GameState.selected_difficulty = result.get("difficulty", 1)
 	# TODO: 打开角色选择
-	_activate_title()
+	# 等难度面板退场动画播完 + 同帧 X 键过期，再恢复标题菜单
+	get_tree().create_timer(0.25).timeout.connect(func(): _activate_title())

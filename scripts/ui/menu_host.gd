@@ -124,5 +124,14 @@ func _pop_top() -> void:
 
 
 func _on_screen_finished(_result, screen: Node) -> void:
+	if _stack.size() <= 1:
+		# 最后一个界面：直接退场，找不到上层就清理
+		_stack.clear()
+		_disconnect_finished(screen)
+		if screen.has_method(&"_on_leave"):
+			screen._on_leave()
+		else:
+			screen.queue_free()
+		return
 	if _stack[-1] == screen:
 		pop()
