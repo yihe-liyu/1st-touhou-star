@@ -1,5 +1,4 @@
 extends CanvasLayer
-# 全局 miss 特效管理器 —— CanvasLayer 最顶层
 
 const MAX_CIRCLES := 8
 
@@ -15,8 +14,10 @@ func _ready() -> void:
 	_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
+	var vs := get_viewport().get_visible_rect().size
 	_mat = ShaderMaterial.new()
 	_mat.shader = preload("res://gdshader/miss_circle.gdshader")
+	_mat.set_shader_parameter("aspect_ratio", vs.x / vs.y)
 	_mat.set_shader_parameter("edge_soft", 0.03)
 	for pf: String in _prefixes:
 		_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
@@ -27,7 +28,7 @@ func _ready() -> void:
 	add_child(_rect)
 
 
-func add_circle(world_pos: Vector2, duration: float = 0.6, max_radius: float = 500.0, start_radius: float = 30.0) -> void:
+func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 700.0, start_radius: float = 30.0) -> void:
 	_circles.append({
 		world_pos = world_pos,
 		age = 0.0,
@@ -57,7 +58,8 @@ func _update_shader() -> void:
 			var radius_px := lerpf(c.start_r, c.max_r, t)
 			var screen_pos: Vector2 = canvas * c.world_pos
 			var uv_pos := screen_pos / vs
-			var radius_uv := radius_px / maxf(vs.x, vs.y)
+			# 按宽度归一化，shader 里用 aspect_ratio 修正 Y 轴
+			var radius_uv := radius_px / vs.x
 			var alpha: float = 1.0 if t <= 0.5 else (1.0 - (t - 0.5) / 0.5)
 			
 			_mat.set_shader_parameter("%s_pos" % pf, uv_pos)
