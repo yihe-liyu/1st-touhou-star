@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dyx5ftik8rdw2"]
 
-[ext_resource type="Script" uid="uid://bc2004avmc2ec" path="res://scripts/scenes/ui/difficulty_screen.gd" id="1"]
+[ext_resource type="Script" uid="uid://bc2004avmc2ec" path="res://scripts/scenes/main/difficulty_screen.gd" id="1"]
 
 [node name="DifficultyScreen" type="Control" unique_id=1370806118]
 layout_mode = 3

@@ -6,7 +6,7 @@
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
-[ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game_scene.gd" id="9_script"]
+[ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game/game_scene.gd" id="9_script"]
 
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")

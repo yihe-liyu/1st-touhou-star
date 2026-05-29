@@ -1,10 +1,27 @@
 [gd_scene format=3 uid="uid://d1b6hyoghc4m4"]
 
-[ext_resource type="Script" uid="uid://c501m3qpmdk2s" path="res://scripts/scenes/ui/main_menu.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://c501m3qpmdk2s" path="res://scripts/scenes/main/main_menu.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://c3fv40qpgoim8" path="res://assets/Textures/title/title_bk.png" id="2_fe2o3"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="3_1g8jr"]
 [ext_resource type="Shader" uid="uid://b2ydwl5kwlb2m" path="res://gdshader/logo_entrance.gdshader" id="4"]
 [ext_resource type="Script" uid="uid://e73gjgug86o3" path="res://scripts/scenes/ui/menu_host.gd" id="5_menu_host"]
+[ext_resource type="Texture2D" uid="uid://dln6jdeygtsnl" path="res://assets/Textures/ascii/loading.png" id="6_uhagc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_btxxm"]
+atlas = ExtResource("6_uhagc")
+region = Rect2(88, 128, 16, 64)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_wb0q5"]
+particle_flag_align_y = true
+emission_shape_offset = Vector3(960, -300, 0)
+emission_shape = 3
+emission_box_extents = Vector3(720, 100, 0)
+direction = Vector3(-1, 2, 0)
+spread = 10.0
+initial_velocity_min = 2800.0
+initial_velocity_max = 3200.0
+gravity = Vector3(0, 0, 0)
+attractor_interaction_enabled = false
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vs4v7"]
 shader = ExtResource("4")
@@ -28,6 +45,13 @@ grow_vertical = 2
 texture = ExtResource("2_fe2o3")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=2108623833]
+modulate = Color(1, 1, 1, 0.25)
+amount = 128
+texture = SubResource("AtlasTexture_btxxm")
+lifetime = 0.5
+process_material = SubResource("ParticleProcessMaterial_wb0q5")
 
 [node name="Container" type="VBoxContainer" parent="." unique_id=343449348]
 anchors_preset = -1

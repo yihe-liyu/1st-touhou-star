@@ -40,6 +40,7 @@ func _deactivate_title() -> void:
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_title_container, "modulate:a", 0.0, 0.25)
 	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 0.0, 0.25)
+	tw.tween_property($GPUParticles2D, "modulate:a", 1.0, 0.25)
 	tw.tween_callback(_title_container.hide).set_delay(0.25)
 	tw.tween_callback(_logo.hide).set_delay(0.25)
 
@@ -49,9 +50,11 @@ func _activate_title() -> void:
 	_logo.show()
 	_title_container.modulate.a = 0.0
 	_logo.material.set_shader_parameter("alpha_mult", 0.0)
+	$GPUParticles2D.modulate.a = 1.0
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
 	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 1.0, 0.25)
+	tw.tween_property($GPUParticles2D, "modulate:a", 0.25, 0.25)
 	tw.tween_callback(func():
 		refresh_colors()
 		input_enabled = true
