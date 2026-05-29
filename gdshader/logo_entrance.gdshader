@@ -9,10 +9,12 @@ float hash(vec2 p) {
 }
 
 void fragment() {
-	const float GRID = 75.0;  // 75×75 粒子网格
+	const float GRID = 75.0;
 
-	// 每个像素所属的粒子
-	vec2 grid_uv = floor(UV * GRID) / GRID;
+	// 每个粒子在格子里加上随机偏移，消除矩形感
+	vec2 cell = floor(UV * GRID);
+	vec2 jitter = vec2(hash(cell), hash(cell + 0.5));
+	vec2 grid_uv = (cell + jitter) / GRID;
 
 	// 每个粒子的随机属性
 	float seed = hash(grid_uv);
@@ -26,12 +28,8 @@ void fragment() {
 	// 从随机方向飞向正确位置
 	vec2 dir = vec2(cos(angle), sin(angle));
 	float scatter = radius * (1.0 - pow(local_progress, 1.5));
-	vec2 sample_uv = UV + dir * scatter;
-	// 超出边界的粒子直接透明，不要 clamp 到矩形
-	if (sample_uv.x < 0.0 || sample_uv.x > 1.0 || sample_uv.y < 0.0 || sample_uv.y > 1.0) {
-		COLOR = vec4(0.0);
-		return;
-	}
+	vec2 sample_uv = clamp(UV + dir * scatter, 0.0, 1.0);
+
 	vec4 tex = texture(TEXTURE, sample_uv);
 
 	// 飞行途中的辉光拖尾
