@@ -9,6 +9,7 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vs4v7"]
 shader = ExtResource("4")
 shader_parameter/progress = 0.0
+shader_parameter/alpha_mult = 1.0
 
 [node name="MainMenu" type="CanvasLayer" unique_id=2093015590]
 layer = 0

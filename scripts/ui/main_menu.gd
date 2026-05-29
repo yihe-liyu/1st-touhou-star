@@ -54,6 +54,7 @@ func _activate_title() -> void:
 	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
 	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 1.0, 0.25)
 	tw.tween_callback(func():
+		refresh_colors()
 		input_enabled = true
 		if current_index >= 0 and current_index < menu_items.size():
 			_start_pulse(menu_items[current_index])
