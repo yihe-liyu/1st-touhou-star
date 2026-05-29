@@ -16,11 +16,9 @@ func _ready() -> void:
 	
 	_mat = ShaderMaterial.new()
 	_mat.shader = preload("res://gdshader/miss_circle.gdshader")
+	_mat.set_shader_parameter("circle_radius", 0.3)
+	_mat.set_shader_parameter("alpha", 0.8)
 	_mat.set_shader_parameter("edge_soft", 0.03)
-	for i in MAX_CIRCLES:
-		_mat.set_shader_parameter("c_pos[%d]" % i, Vector2.ZERO)
-		_mat.set_shader_parameter("c_radius[%d]" % i, 0.0)
-		_mat.set_shader_parameter("c_alpha[%d]" % i, 0.0)
 	
 	_rect.material = _mat
 	add_child(_rect)
