@@ -222,7 +222,3 @@ func _fade_in(duration: float = FADE_DURATION):
 	await tween.finished
 	_transition_rect.visible = false
 
-# ── 对外查询 ──
-
-func is_paused() -> bool:
-	return current_state == AppState.PAUSED
