@@ -13,8 +13,8 @@ func play(p_texture: Texture2D):
 	
 	# 杀旧 tween 防冲突
 	for child in get_children():
-		if child is Tween and is_instance_valid(child):
-			(child as Tween).kill()
+		if child.has_method("kill"):
+			child.kill()
 	
 	texture = p_texture
 	modulate.a = 1.0
