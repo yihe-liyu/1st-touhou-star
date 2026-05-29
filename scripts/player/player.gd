@@ -130,13 +130,13 @@ func _on_animation_finished() -> void:
 func miss() -> void:
 	var pos = global_position
 	# 第一波：中心 + 四方偏移（2.8s，先结束）
-	MissEffectManager.add_circle(pos, 2.8, 1280)
-	MissEffectManager.add_circle(pos + Vector2(100, 0), 2.8, 1280)
-	MissEffectManager.add_circle(pos + Vector2(-100, 0), 2.8, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, 100), 2.8, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, -100), 2.8, 1280)
-	# 第二波：2s 后启动，持续 1.4s（3.4s 结束，比第一波晚）
-	MissEffectManager.add_circle(pos, 1.4, 1280, 0.0, 2.0)
+	MissEffectManager.add_circle(pos, 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(100, 0), 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(-100, 0), 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(0, 100), 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(0, -100), 3.0, 1280)
+	# 第二波：2s 后启动，持续 1.0s = 同时结束
+	MissEffectManager.add_circle(pos, 1.0, 1280, 0.0, 2.0)
 	# 死亡清弹
 	BulletManager.start_death_clear(pos)
 	
