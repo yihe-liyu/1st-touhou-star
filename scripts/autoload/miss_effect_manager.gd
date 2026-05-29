@@ -1,11 +1,12 @@
 extends CanvasLayer
-# 全局 miss 特效管理器 —— CanvasLayer 最顶层，一个全屏 shader
+# 全局 miss 特效管理器 —— CanvasLayer 最顶层
 
 const MAX_CIRCLES := 8
 
 var _circles: Array[Dictionary] = []
 var _rect: ColorRect
 var _mat: ShaderMaterial
+var _prefixes := ["c0", "c1", "c2", "c3", "c4", "c5", "c6", "c7"]
 
 
 func _ready() -> void:
@@ -16,9 +17,11 @@ func _ready() -> void:
 	
 	_mat = ShaderMaterial.new()
 	_mat.shader = preload("res://gdshader/miss_circle.gdshader")
-	_mat.set_shader_parameter("circle_radius", 0.3)
-	_mat.set_shader_parameter("alpha", 0.8)
 	_mat.set_shader_parameter("edge_soft", 0.03)
+	for pf in _prefixes:
+		_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
+		_mat.set_shader_parameter("%s_radius" % pf, 0.0)
+		_mat.set_shader_parameter("%s_alpha" % pf, 0.0)
 	
 	_rect.material = _mat
 	add_child(_rect)
@@ -47,20 +50,20 @@ func _update_shader() -> void:
 	var canvas := get_viewport().get_canvas_transform()
 	
 	for i in MAX_CIRCLES:
+		var pf := _prefixes[i]
 		if i < _circles.size():
 			var c := _circles[i]
 			var t := clampf(c.age / c.duration, 0.0, 1.0)
 			var radius_px := lerpf(c.start_r, c.max_r, t)
-			# 世界 → 屏幕 → UV
 			var screen_pos: Vector2 = canvas * c.world_pos
 			var uv_pos := screen_pos / vs
 			var radius_uv := radius_px / maxf(vs.x, vs.y)
 			var alpha: float = 1.0 if t <= 0.5 else (1.0 - (t - 0.5) / 0.5)
 			
-			_mat.set_shader_parameter("c_pos[%d]" % i, uv_pos)
-			_mat.set_shader_parameter("c_radius[%d]" % i, radius_uv)
-			_mat.set_shader_parameter("c_alpha[%d]" % i, alpha)
+			_mat.set_shader_parameter("%s_pos" % pf, uv_pos)
+			_mat.set_shader_parameter("%s_radius" % pf, radius_uv)
+			_mat.set_shader_parameter("%s_alpha" % pf, alpha)
 		else:
-			_mat.set_shader_parameter("c_pos[%d]" % i, Vector2(-1, -1))
-			_mat.set_shader_parameter("c_radius[%d]" % i, 0.0)
-			_mat.set_shader_parameter("c_alpha[%d]" % i, 0.0)
+			_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
+			_mat.set_shader_parameter("%s_radius" % pf, 0.0)
+			_mat.set_shader_parameter("%s_alpha" % pf, 0.0)
