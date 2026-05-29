@@ -1,8 +1,7 @@
 shader_type canvas_item;
+render_mode blend_disabled;
 
-// miss 特效 —— 逐渐增大的反色圆
-// 边缘有柔化，让反色看起来自然
-
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
 uniform float circle_radius = 0.0;   // 0→1，圆半径占控件半宽的比值
 uniform float alpha = 1.0;           // 整体透明度
 uniform float edge_soft: hint_range(0.0, 1.0) = 0.05;
