@@ -60,7 +60,7 @@ func _update_shader() -> void:
 			var radius_px := lerpf(c.start_r, c.max_r, t)
 			var screen_pos: Vector2 = canvas * c.world_pos
 			var uv_pos := screen_pos / vs
-			var alpha: float = 1.0 if t <= 0.5 else (1.0 - (t - 0.5) / 0.5)
+			var alpha: float = 1.0
 			
 			_mat.set_shader_parameter("%s_pos" % pf, uv_pos)
 			_mat.set_shader_parameter("%s_radpx" % pf, radius_px)
