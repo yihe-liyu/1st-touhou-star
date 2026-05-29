@@ -1,5 +1,4 @@
 extends Node2D
-class_name MissEffectManager
 # 全局 miss 特效管理器 —— 一个全屏 ColorRect + shader，支持多圈并存
 
 const MAX_CIRCLES := 8
