@@ -129,7 +129,8 @@ func _on_animation_finished() -> void:
 
 func miss() -> void:
 	# 生成 miss 特效：扩散反色圆
-	var effect := MissEffect.new()
+	var MissCls := preload("res://scripts/effect/miss_effect.gd")
+	var effect := MissCls.new()
 	effect.global_position = global_position
 	get_tree().current_scene.add_child(effect)
 	
