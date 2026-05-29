@@ -250,10 +250,11 @@ func _process_death_clears(delta: float) -> void:
 		var r2: float = radius * radius
 		
 		for j in range(active_bullets.size() - 1, -1, -1):
-			var b := active_bullets[j]
+			var b = active_bullets[j]
 			if not is_instance_valid(b) or b.faction != 1:
 				continue
-			if b.global_position.distance_squared_to(dc.pos) <= r2:
+			var pos: Vector2 = dc["pos"]
+			if b.global_position.distance_squared_to(pos) <= r2:
 				return_bullet(b)
 
 
