@@ -299,63 +299,61 @@ func start_death_clear(pos: Vector2, max_radius: float = 1200.0, duration: float
 
 
 func _process_death_clears(delta: float) -> void:
-	const LASER_SAMPLE_INTERVAL := 5.0  # 激光相交检测精度
+	const LASER_CHECK_STEP := 5.0
 	
 	for i in range(_death_clears.size() - 1, -1, -1):
-		var dc: Dictionary = _death_clears[i]
-		dc.age += delta
-		if dc.age >= dc.duration:
+		var circle: Dictionary = _death_clears[i]
+		circle.age += delta
+		if circle.age >= circle.duration:
 			_death_clears.remove_at(i)
 			continue
 		
-		var dur: float = dc["duration"] as float
-		if dur <= 0:
+		if circle.duration <= 0:
 			continue
-		var ratio: float = dc["age"] as float / dur
-		var radius: float = lerpf(dc["start_r"] as float, dc["max_r"] as float, ratio)
-		var pos: Vector2 = dc["pos"]
-		var r2: float = radius * radius
+		var progress: float = circle.age / circle.duration
+		var radius: float = lerpf(circle.start_r, circle.max_r, progress)
+		var center: Vector2 = circle.pos
+		var radius_sq: float = radius * radius
 		
-		# ── 清除敌弹 ──
+		# 清除圆内的敌弹
 		for j in range(active_bullets.size() - 1, -1, -1):
-			var b = active_bullets[j]
-			if not is_instance_valid(b) or b.faction != 1 or not b.is_ready:
+			var bullet: Bullet = active_bullets[j]
+			if not is_instance_valid(bullet) or bullet.faction != 1 or not bullet.is_ready:
 				continue
-			if b.global_position.distance_squared_to(pos) <= r2:
-				return_bullet(b)
+			if bullet.global_position.distance_squared_to(center) <= radius_sq:
+				return_bullet(bullet)
 		
-		# ── 激光切割 ──
+		# 切穿激光
 		for laser: CurvedLaserClass in _active_lasers:
 			if laser.phase != CurvedLaserClass.ALIVE:
 				continue
-			var vis_len := (laser.head_dist as float) - (laser.tail_dist as float)
-			if vis_len <= 0:
+			var visible_len := (laser.head_dist as float) - (laser.tail_dist as float)
+			if visible_len <= 0:
 				continue
-			_cut_laser(laser, pos, radius, LASER_SAMPLE_INTERVAL)
+			_cut_laser(laser, center, radius, LASER_CHECK_STEP)
 
 
-func _cut_laser(laser: CurvedLaserClass, circle_pos: Vector2, radius: float, interval: float) -> void:
-	var vis_len := (laser.head_dist as float) - (laser.tail_dist as float)
-	var sample_count := maxi(int(vis_len / interval), 4)
+func _cut_laser(laser: CurvedLaserClass, circle_center: Vector2, radius: float, check_step: float) -> void:
+	var visible_len := (laser.head_dist as float) - (laser.tail_dist as float)
+	var samples := maxi(int(visible_len / check_step), 4)
 	
-	var in_hole := false
-	var hole_start := 0.0
+	var cutting := false
+	var cut_start := 0.0
 	
-	for i in range(sample_count):
-		var dist := (laser.tail_dist as float) + vis_len * float(i) / float(sample_count - 1)
-		var pt: Vector2 = laser._sample_curve(dist)
-		var inside: bool = pt.distance_squared_to(circle_pos) <= radius * radius
+	for i in range(samples):
+		var dist: float = (laser.tail_dist as float) + visible_len * float(i) / float(samples - 1)
+		var point: Vector2 = laser._sample_curve(dist)
+		var inside: bool = point.distance_squared_to(circle_center) <= radius * radius
 		
-		if inside and not in_hole:
-			in_hole = true
-			hole_start = dist
-		elif not inside and in_hole:
-			in_hole = false
-			laser.add_hole(hole_start, dist)
+		if inside and not cutting:
+			cutting = true
+			cut_start = dist
+		elif not inside and cutting:
+			cutting = false
+			laser.add_hole(cut_start, dist)
 	
-	# 激光末端仍在圆内
-	if in_hole:
-		laser.add_hole(hole_start, laser.head_dist)
+	if cutting:
+		laser.add_hole(cut_start, laser.head_dist)
 
 
 # ═══════════════════════════════════════
