@@ -24,6 +24,7 @@ BulletManager="*res://scripts/autoload/bullet_manager.gd"
 GameState="*res://scripts/autoload/game_state.gd"
 StageManager="*res://scripts/autoload/stage_manager.gd"
 RNG="*res://scripts/autoload/rng.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
 MissEffectManager="*res://scripts/autoload/miss_effect_manager.gd"
 _MCPGameBridge="*uid://cds186n8uv4f0"
 
