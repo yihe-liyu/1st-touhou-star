@@ -1,7 +1,8 @@
 # BulletManager.gd (Autoload)
-extends Node
+extends Node2D
 
 const POOL_SIZE: int = 4000
+const MAX_LASERS := 64
 
 var use_batch_render: bool = false
 var use_multi_mesh: bool = true
@@ -16,11 +17,17 @@ var bullet_scene = preload("res://scenes/bullet.tscn")
 var active_bullets: Array = []
 var bullet_pool: Array = []
 
+# ── 激光 ──
+var _active_lasers: Array = []
+const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
+
 # ── 死亡清弹 ──
-var _death_clears: Array[Dictionary] = []  # [{pos, age, duration, start_r, max_r}]
+var _death_clears: Array[Dictionary] = []
+
 
 func _ready():
-	# MultiMesh 批渲染（高性能）
+	z_index = 50
+
 	if use_multi_mesh:
 		_multi_mesh = BulletMultiMeshClass.new()
 		_multi_mesh.enabled = true
@@ -48,7 +55,40 @@ func _ready():
 		add_child(b)
 		bullet_pool.append(b)
 
-# ── 发射 ──
+
+# ═══════════════════════════════════════
+# 激光 API
+# ═══════════════════════════════════════
+
+func fire_laser(data, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0):
+	for l in _active_lasers:
+		if l.phase == CurvedLaserClass.DEAD:
+			l.init(data, origin, guide_curve, rot_speed)
+			return l
+	
+	if _active_lasers.size() >= MAX_LASERS:
+		push_warning("BulletManager: max lasers reached (%d)" % MAX_LASERS)
+		return null
+	
+	var laser = CurvedLaserClass.new()
+	laser.name = "CurvedLaser_%d" % _active_lasers.size()
+	add_child(laser)
+	laser.init(data, origin, guide_curve, rot_speed)
+	_active_lasers.append(laser)
+	return laser
+
+
+func clear_all_lasers() -> void:
+	for laser in _active_lasers:
+		laser.phase = CurvedLaserClass.DEAD
+		laser.line.visible = false
+		for sl in laser._seg_lines:
+			sl.visible = false
+
+
+# ═══════════════════════════════════════
+# 子弹发射
+# ═══════════════════════════════════════
 
 func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
 	var bullet: Bullet
@@ -78,15 +118,14 @@ func shoot_enemy_bullet(data: BulletData, position: Vector2, direction: Vector2,
 func shoot_bomb_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
 	shoot_bullet(data, position, direction, override)
 
+
 # ── 回收 ──
 
 func return_bullet(bullet: Bullet):
-	# 先停掉所有移动脚本（协程会释放 StageAPI RefCounted）
 	if bullet.coroutine_movement and is_instance_valid(bullet.coroutine_movement):
 		bullet.coroutine_movement.stop()
 		bullet.coroutine_movement.queue_free()
 		bullet.coroutine_movement = null
-	# 清理子弹节点下残留的移动脚本（二次保障）
 	for child in bullet.get_children():
 		if child is MoveScript:
 			child.stop()
@@ -94,7 +133,7 @@ func return_bullet(bullet: Bullet):
 	bullet.visible = false
 	bullet.process_mode = PROCESS_MODE_DISABLED
 	bullet.fog.visible = false
-	bullet.fog.texture = null  # 防止复用时的 fog.play() 短路
+	bullet.fog.texture = null
 	if bullet.fog.fog_finished.is_connected(bullet._on_fog_ready):
 		bullet.fog.fog_finished.disconnect(bullet._on_fog_ready)
 	active_bullets.erase(bullet)
@@ -103,24 +142,54 @@ func return_bullet(bullet: Bullet):
 	else:
 		bullet.queue_free()
 
-# ── 每帧更新 ──
 
-func _physics_process(delta):
-	# 死亡清弹
+# ═══════════════════════════════════════
+# 每帧更新
+# ═══════════════════════════════════════
+
+func _physics_process(delta: float) -> void:
+	# 1. 死亡清弹（弹幕 + 激光切割）
 	if not _death_clears.is_empty():
 		_process_death_clears(delta)
 	
+	# 2. 激光步进 & 碰撞
+	_step_lasers(delta)
+	
+	# 3. 弹幕碰撞
 	for i in range(active_bullets.size() - 1, -1, -1):
 		var bullet = active_bullets[i]
-		
 		if bullet.is_ready:
 			_resolve_collisions(bullet)
-		
 		if _is_offscreen(bullet.global_position):
 			return_bullet(bullet)
-			continue
 
-# ── 碰撞分流 ──
+
+func _step_lasers(delta: float) -> void:
+	var player_pos := Vector2.ZERO
+	var player := GameState.player
+	var has_player := false
+	if player and is_instance_valid(player):
+		player_pos = player.global_position
+		has_player = true
+	
+	var hit := false
+	for laser in _active_lasers:
+		if laser.phase == CurvedLaserClass.DEAD:
+			continue
+		
+		laser.step(delta)
+		
+		if laser.phase == CurvedLaserClass.ALIVE and has_player and not hit:
+			if laser.is_hitting_player(player_pos):
+				hit = true
+	
+	if hit and player.has_method("miss"):
+		player.miss()
+
+
+# ═══════════════════════════════════════
+# 碰撞分流
+# ═══════════════════════════════════════
 
 func _resolve_collisions(bullet: Bullet):
 	match bullet.faction:
@@ -131,7 +200,6 @@ func _resolve_collisions(bullet: Bullet):
 		Bullet.FACTION_BOMB:
 			_bomb_bullet_vs_enemies(bullet)
 
-# ── 自机弹 vs 敌人 ──
 
 func _player_bullet_vs_enemies(bullet: Bullet):
 	for enemy in GameState.get_active_enemies():
@@ -143,18 +211,15 @@ func _player_bullet_vs_enemies(bullet: Bullet):
 			return_bullet(bullet)
 			return
 
-# ── 敌弹 vs 玩家 ──
 
 func _enemy_bullet_vs_player(bullet: Bullet):
 	var player = GameState.player
 	if not is_instance_valid(player) or player.is_invincible:
 		return
-	
 	if _bullet_hits_target(bullet, player):
 		player.miss()
 		return_bullet(bullet)
 
-# ── Bomb 弹 vs 敌人（穿透，不回收） ──
 
 func _bomb_bullet_vs_enemies(bullet: Bullet):
 	for enemy in GameState.get_active_enemies():
@@ -163,7 +228,7 @@ func _bomb_bullet_vs_enemies(bullet: Bullet):
 		if _bullet_hits_target(bullet, enemy):
 			enemy.take_damage(bullet.damage)
 			_spawn_hit_effect(bullet.hit_effect, bullet.global_position)
-			# Bomb 子弹不回收，继续穿透
+
 
 # ── 命中检测 ──
 
@@ -175,6 +240,7 @@ func _bullet_hits_target(bullet: Bullet, target: Node2D) -> bool:
 			return _check_rect(bullet, target)
 	return false
 
+
 func _check_circle(bullet: Bullet, target: Node2D) -> bool:
 	var center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
 	var target_center = target.global_position
@@ -182,14 +248,13 @@ func _check_circle(bullet: Bullet, target: Node2D) -> bool:
 	var total_radius = bullet.hitbox_radius + target_radius
 	return center.distance_squared_to(target_center) < total_radius * total_radius
 
+
 func _check_rect(bullet: Bullet, target: Node2D) -> bool:
 	var box_center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
 	var half = bullet.hitbox_size / 2.0
 	var angle = bullet.rotation + deg_to_rad(bullet.hitbox_rotation)
-	
 	var target_center = target.global_position
 	var target_radius = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
-	
 	var local_target = (target_center - box_center).rotated(-angle)
 	var closest = Vector2(
 		clamp(local_target.x, -half.x, half.x),
@@ -197,7 +262,6 @@ func _check_rect(bullet: Bullet, target: Node2D) -> bool:
 	)
 	return closest.distance_squared_to(local_target) < target_radius * target_radius
 
-# ── 命中特效 ──
 
 func _spawn_hit_effect(effect_scene: PackedScene, position: Vector2, velocity: Vector2 = Vector2.ZERO):
 	if not effect_scene:
@@ -207,12 +271,9 @@ func _spawn_hit_effect(effect_scene: PackedScene, position: Vector2, velocity: V
 	if is_instance_valid(scene):
 		scene.add_child(effect)
 	effect.global_position = position
-
-	# 把速度传给特效，让特效自己决定怎么用
 	if effect.has_method("set_velocity"):
 		effect.set_velocity(velocity)
 
-# ── 出屏判断 ──
 
 func _is_offscreen(position: Vector2) -> bool:
 	var r = get_viewport().get_visible_rect()
@@ -222,9 +283,11 @@ func _is_offscreen(position: Vector2) -> bool:
 		   position.y < -margin or \
 		   position.y > r.size.y + margin
 
-# ── 切关清理 ──
 
-## 启动死亡清弹（miss 时调用）
+# ═══════════════════════════════════════
+# 死亡清弹 & 激光切割
+# ═══════════════════════════════════════
+
 func start_death_clear(pos: Vector2, max_radius: float = 1200.0, duration: float = 1.0, start_radius: float = 10.0) -> void:
 	_death_clears.append({
 		pos = pos,
@@ -236,29 +299,71 @@ func start_death_clear(pos: Vector2, max_radius: float = 1200.0, duration: float
 
 
 func _process_death_clears(delta: float) -> void:
+	const LASER_SAMPLE_INTERVAL := 5.0  # 激光相交检测精度
+	
 	for i in range(_death_clears.size() - 1, -1, -1):
 		var dc: Dictionary = _death_clears[i]
 		dc.age += delta
 		if dc.age >= dc.duration:
 			_death_clears.remove_at(i)
 			continue
-		var t: float = dc["age"] as float
+		
 		var dur: float = dc["duration"] as float
 		if dur <= 0:
 			continue
-		var ratio: float = t / dur
+		var ratio: float = dc["age"] as float / dur
 		var radius: float = lerpf(dc["start_r"] as float, dc["max_r"] as float, ratio)
+		var pos: Vector2 = dc["pos"]
 		var r2: float = radius * radius
 		
+		# ── 清除敌弹 ──
 		for j in range(active_bullets.size() - 1, -1, -1):
 			var b = active_bullets[j]
 			if not is_instance_valid(b) or b.faction != 1 or not b.is_ready:
 				continue
-			var pos: Vector2 = dc["pos"]
 			if b.global_position.distance_squared_to(pos) <= r2:
 				return_bullet(b)
+		
+		# ── 激光切割 ──
+		for laser in _active_lasers:
+			if laser.phase != CurvedLaserClass.ALIVE:
+				continue
+			var vis_len := laser.head_dist - laser.tail_dist
+			if vis_len <= 0:
+				continue
+			_cut_laser(laser, pos, radius, LASER_SAMPLE_INTERVAL)
 
+
+func _cut_laser(laser, circle_pos: Vector2, radius: float, interval: float) -> void:
+	var vis_len := laser.head_dist - laser.tail_dist
+	var sample_count := maxi(int(vis_len / interval), 4)
+	
+	var in_hole := false
+	var hole_start := 0.0
+	
+	for i in range(sample_count):
+		var dist := laser.tail_dist + vis_len * float(i) / float(sample_count - 1)
+		var pt := laser._sample_curve(dist)
+		var inside := pt.distance_squared_to(circle_pos) <= radius * radius
+		
+		if inside and not in_hole:
+			in_hole = true
+			hole_start = dist
+		elif not inside and in_hole:
+			in_hole = false
+			laser.add_hole(hole_start, dist)
+	
+	# 激光末端仍在圆内
+	if in_hole:
+		laser.add_hole(hole_start, laser.head_dist)
+
+
+# ═══════════════════════════════════════
+# 切关清理
+# ═══════════════════════════════════════
 
 func clear_all():
 	while active_bullets.size() > 0:
 		return_bullet(active_bullets[0])
+	clear_all_lasers()
+	_death_clears.clear()

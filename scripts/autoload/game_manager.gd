@@ -105,7 +105,6 @@ func change_scene(path: String, target_state: AppState = AppState.PLAYING):
 
 	BulletManager.clear_all()
 	GameState.clear_enemies()
-	LaserManager.clear_all()
 
 	get_tree().change_scene_to_file(path)
 	await get_tree().process_frame

@@ -6,7 +6,7 @@ class_name StageAPI
 ##   seconds(t) → 返回 float 秒数，runner 自动倒计时
 ##   frames(n)  → 返回等价秒数
 
-const _LaserMgr = preload("res://scripts/autoload/laser_manager.gd")
+const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
 
 var runner: CoroutineRunner
 
@@ -63,7 +63,7 @@ func fire_growing_laser(data: Resource, origin: Vector2,
 		guide_curve: Curve2D, rot_speed: float = 0.0):
 	if not active():
 		return null
-	return LaserManager.fire(data, origin, guide_curve, rot_speed)
+	return BulletManager.fire_laser(data, origin, guide_curve, rot_speed)
 
 ## 直线激光
 func fire_straight_laser(data: Resource, origin: Vector2,
@@ -93,7 +93,7 @@ func fire_homing_laser(data: Resource, origin: Vector2,
 	return fire_growing_laser(data, origin, curve)
 
 func clear_all_lasers() -> void:
-	LaserManager.clear_all()
+	BulletManager.clear_all_lasers()
 
 
 func _make_straight_curve(origin: Vector2, direction: Vector2, length: float) -> Curve2D:

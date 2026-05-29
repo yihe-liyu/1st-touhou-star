@@ -1,19 +1,24 @@
 extends Node2D
 class_name CurvedLaser
 ## 梭形生长型曲线激光 —— 头部一直前进，尾巴跟随，出屏消失
+## 支持孔洞分段：消弹圆切割后，激光被分成多段显示
 
 const ALIVE: int = 0
 const FADE: int = 1
 const DEAD: int = 2
 
-const CURVE_SAMPLES: int = 60  # 旋转曲线采样点数（120→60）
+const CURVE_SAMPLES: int = 60
+const MAX_SEGMENTS: int = 8  # 最多 8 段，撑够一生
 
 # 曲线 & 运动
 var guide_curve: Curve2D
-var head_dist: float = 0.0        # 头部走过的总距离 px
-var tail_dist: float = 0.0        # 尾巴位置 px
-var curve_total_length: float     # 引导曲线原始总长 px
-var end_dir: Vector2              # 曲线终点方向（外插用）
+var head_dist: float = 0.0
+var tail_dist: float = 0.0
+var curve_total_length: float
+var end_dir: Vector2
+
+# 孔洞（消弹圆打的洞）
+var holes: Array[Dictionary] = []  # [{start_dist, end_dist}]
 
 # 配置
 var data: CurvedLaserData
@@ -28,6 +33,7 @@ var elapsed_angle: float = 0.0
 
 # 节点
 var line: Line2D
+var _seg_lines: Array[Line2D] = []  # 分段落 Line2D 池
 var _shader_mat: ShaderMaterial
 var _fog_sprite: Sprite2D
 var _fog_tween: Tween
@@ -40,8 +46,8 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	origin_point = p_origin
 	rotation_speed = p_rot_speed
 	guide_curve = p_curve
+	holes.clear()
 	
-	# 计算曲线总长和末方向
 	curve_total_length = _calc_curve_length()
 	var count := guide_curve.get_point_count()
 	if count >= 2:
@@ -51,7 +57,6 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	else:
 		end_dir = Vector2.DOWN
 	
-	# 获取屏幕范围（加一点 tolerance）
 	if is_inside_tree():
 		_screen_size = get_viewport().get_visible_rect()
 
@@ -81,16 +86,13 @@ func _calc_curve_length() -> float:
 
 
 func _sample_curve(dist: float) -> Vector2:
-	## 采样引导曲线上距离起点 dist px 处的点，超出则外插
 	if dist <= 0.0:
 		return guide_curve.get_point_position(0)
 	
 	if dist >= curve_total_length:
-		# 外插：沿终点方向继续延伸
 		var last := guide_curve.get_point_position(guide_curve.get_point_count() - 1)
 		return last + end_dir * (dist - curve_total_length)
 	
-	# 沿曲线遍历找到 dist 对应的点
 	var walked := 0.0
 	var count := guide_curve.get_point_count()
 	var prev := guide_curve.get_point_position(0)
@@ -111,37 +113,101 @@ func _setup_line():
 		_shader_mat = ShaderMaterial.new()
 		_shader_mat.shader = preload("res://gdshader/laser_glow.gdshader")
 
-	line = Line2D.new()
-	line.z_index = 50
-	line.width = data.mid_width
-	line.default_color = data.laser_color
-	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	line.end_cap_mode = Line2D.LINE_CAP_ROUND
-	line.joint_mode = Line2D.LINE_JOINT_ROUND
+	# 主 Line2D（无孔时用）
+	line = _make_line_node()
+	line.visible = false
+	add_child(line)
+	
+	# 段落 Line2D 池（有孔时用）
+	for i in range(MAX_SEGMENTS):
+		var sl := _make_line_node()
+		sl.visible = false
+		add_child(sl)
+		_seg_lines.append(sl)
+	
+	_shader_mat.set_shader_parameter("laser_color", data.laser_color)
+	_shader_mat.set_shader_parameter("glow_intensity", data.glow_intensity)
 
+
+func _make_line_node() -> Line2D:
+	var l := Line2D.new()
+	l.z_index = 50
+	l.width = data.mid_width
+	l.default_color = data.laser_color
+	l.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	l.end_cap_mode = Line2D.LINE_CAP_ROUND
+	l.joint_mode = Line2D.LINE_JOINT_ROUND
+	
 	var tex := GradientTexture1D.new()
 	tex.width = 1
 	tex.gradient = Gradient.new()
 	tex.gradient.add_point(0.0, Color.WHITE)
 	tex.gradient.add_point(1.0, Color.WHITE)
-	line.texture = tex
-	line.texture_mode = Line2D.LINE_TEXTURE_TILE
-	line.material = _shader_mat
-
-	_shader_mat.set_shader_parameter("laser_color", data.laser_color)
-
-	# **梭形宽度曲线**：两端细 → 中间粗 → 尖端细
+	l.texture = tex
+	l.texture_mode = Line2D.LINE_TEXTURE_TILE
+	l.material = _shader_mat
+	
 	var ratio := data.end_width / data.mid_width
 	var wc := Curve.new()
-	wc.add_point(Vector2(0.0, ratio))      # 尾端：细
+	wc.add_point(Vector2(0.0, ratio))
 	wc.add_point(Vector2(0.25, 0.7))
-	wc.add_point(Vector2(0.5, 1.0))         # 中间：最粗
+	wc.add_point(Vector2(0.5, 1.0))
 	wc.add_point(Vector2(0.75, 0.7))
-	wc.add_point(Vector2(1.0, ratio))       # 头端：细
-	line.width_curve = wc
+	wc.add_point(Vector2(1.0, ratio))
+	l.width_curve = wc
+	
+	return l
 
-	add_child(line)
 
+# ── 孔洞 ──
+
+func add_hole(h_start: float, h_end: float) -> void:
+	## 在激光上打一个洞（距离范围），自动合并重叠
+	if h_start >= h_end or h_end <= tail_dist or h_start >= head_dist:
+		return
+	# 裁剪到可见范围
+	h_start = maxf(h_start, tail_dist)
+	h_end = minf(h_end, head_dist)
+	if h_start >= h_end:
+		return
+	
+	holes.append({start_dist = h_start, end_dist = h_end})
+	_merge_holes()
+
+
+func _merge_holes() -> void:
+	if holes.size() <= 1:
+		return
+	# 按 start 排序
+	holes.sort_custom(func(a, b): return a.start_dist < b.start_dist)
+	var merged: Array[Dictionary] = [holes[0]]
+	for i in range(1, holes.size()):
+		var prev = merged[merged.size() - 1]
+		var cur = holes[i]
+		if cur.start_dist <= prev.end_dist:
+			prev.end_dist = maxf(prev.end_dist, cur.end_dist)
+		else:
+			merged.append(cur)
+	holes = merged
+
+
+func _build_segments() -> Array[Dictionary]:
+	## 返回 [{start_dist, end_dist}, ...] 不包含孔洞的可见区间
+	if holes.is_empty():
+		return [{start_dist = tail_dist, end_dist = head_dist}]
+	
+	var segs: Array[Dictionary] = []
+	var cur := tail_dist
+	for h in holes:
+		if h.start_dist > cur:
+			segs.append({start_dist = cur, end_dist = h.start_dist})
+		cur = maxf(cur, h.end_dist)
+	if cur < head_dist:
+		segs.append({start_dist = cur, end_dist = head_dist})
+	return segs
+
+
+# ── 步进 ──
 
 func step(delta: float):
 	if phase == DEAD:
@@ -155,12 +221,9 @@ func step(delta: float):
 
 	match phase:
 		ALIVE:
-			# 头部一直前进
 			head_dist += data.grow_speed * delta
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
-			# 弹雾：尾巴离开原点后就消除
 			_toggle_fog(tail_dist <= 0.0)
-			# 弹雾旋转
 			if _fog_sprite and _fog_sprite.visible:
 				_fog_sprite.rotation += delta * 18.0
 			
@@ -170,12 +233,11 @@ func step(delta: float):
 					_fade_age = 0.0
 					_apply_phase()
 			else:
-				# 只有头尾都出屏了才算真正离开屏幕
 				var head_pos := _sample_curve(head_dist)
 				var tail_pos := _sample_curve(tail_dist)
 				var head_off := _is_offscreen(head_pos)
 				var tail_off := _is_offscreen(tail_pos)
-				if (head_off and tail_off) :
+				if head_off and tail_off:
 					phase = FADE
 					_fade_age = 0.0
 					_apply_phase()
@@ -202,7 +264,6 @@ func _is_offscreen(pos: Vector2) -> bool:
 
 
 func _update_rotated_curve():
-	# 用更少的采样点重建旋转曲线
 	var new_curve := Curve2D.new()
 	var cached_len := curve_total_length
 	for i in range(CURVE_SAMPLES + 1):
@@ -216,21 +277,48 @@ func _update_rotated_curve():
 
 
 func _update_points():
-	var visible_length := head_dist - tail_dist
-	if visible_length <= 10.0:
-		line.clear_points()
+	var segs := _build_segments()
+	
+	if segs.size() == 0:
+		line.visible = false
+		for sl in _seg_lines: sl.visible = false
 		return
+	
+	# 无孔 → 单 Line2D
+	if segs.size() == 1 and holes.is_empty():
+		for sl in _seg_lines: sl.visible = false
+		line.visible = true
+		var seg := segs[0]
+		_draw_segment(line, seg.start_dist, seg.end_dist)
+		return
+	
+	# 有孔 → 多段落
+	line.visible = false
+	for i in range(MAX_SEGMENTS):
+		var sl := _seg_lines[i]
+		if i < segs.size():
+			sl.visible = true
+			_draw_segment(sl, segs[i].start_dist, segs[i].end_dist)
+		else:
+			sl.visible = false
 
-	var count := maxi(int(visible_length / 15.0), 8)  # 15px间距，至少8个点
-	line.clear_points()
+
+func _draw_segment(l: Line2D, s_dist: float, e_dist: float) -> void:
+	var vis_len := e_dist - s_dist
+	if vis_len <= 10.0:
+		l.clear_points()
+		return
+	var count := maxi(int(vis_len / 15.0), 8)
+	l.clear_points()
 	for i in range(count):
-		var dist := tail_dist + visible_length * float(i) / float(count - 1)
-		line.add_point(_sample_curve(dist))
+		var dist := s_dist + vis_len * float(i) / float(count - 1)
+		l.add_point(_sample_curve(dist))
 
+
+# ── 弹雾 ──
 
 func _spawn_fog():
 	if _fog_sprite:
-		# 如果正在消失动画中，取消并立即可见
 		if _fog_tween and _fog_tween.is_valid():
 			_fog_tween.kill()
 		_fog_sprite.scale = Vector2(2.0, 2.0)
@@ -251,16 +339,14 @@ func _toggle_fog(v: bool):
 	if not _fog_sprite:
 		return
 	if v:
-		# 显示：取消消失动画
 		if _fog_tween and _fog_tween.is_valid():
 			_fog_tween.kill()
 		_fog_sprite.scale = Vector2(2.0, 2.0)
 		_fog_sprite.modulate.a = 1.0
 		_fog_sprite.visible = true
 	else:
-		# 隐藏：缩小+变透明动画
 		if _fog_tween and _fog_tween.is_valid():
-			return  # 已经在动画中
+			return
 		_fog_tween = create_tween()
 		_fog_tween.set_ease(Tween.EASE_OUT)
 		_fog_tween.set_trans(Tween.TRANS_QUAD)
@@ -283,6 +369,7 @@ func _apply_phase():
 			_toggle_fog(false)
 			_shader_mat.set_shader_parameter("alpha", 0.0)
 			line.visible = false
+			for sl in _seg_lines: sl.visible = false
 
 
 func is_hitting_player(player_pos: Vector2, hit_radius: float = 2.0) -> bool:
@@ -290,22 +377,22 @@ func is_hitting_player(player_pos: Vector2, hit_radius: float = 2.0) -> bool:
 		return false
 
 	var threshold := data.hitbox_width + hit_radius
-	var visible_length := head_dist - tail_dist
-	if visible_length <= 0.0:
-		return false
-
-	var samples := maxi(int(visible_length / 20.0), 4)  # 20px间距
-	for i in range(samples):
-		var dist := tail_dist + visible_length * float(i) / float(samples - 1)
-		var a := _sample_curve(dist)
-
-		if i < samples - 1:
-			var dist2 := tail_dist + visible_length * float(i + 1) / float(samples - 1)
-			var b := _sample_curve(dist2)
-			var closest := _closest_point_on_segment(player_pos, a, b)
-			if player_pos.distance_to(closest) < threshold:
-				return true
-
+	var segs := _build_segments()
+	
+	for seg in segs:
+		var seg_len := seg.end_dist - seg.start_dist
+		if seg_len <= 0.0:
+			continue
+		var samples := maxi(int(seg_len / 20.0), 4)
+		for i in range(samples):
+			var dist := seg.start_dist + seg_len * float(i) / float(samples - 1)
+			var a := _sample_curve(dist)
+			if i < samples - 1:
+				var dist2 := seg.start_dist + seg_len * float(i + 1) / float(samples - 1)
+				var b := _sample_curve(dist2)
+				var closest := _closest_point_on_segment(player_pos, a, b)
+				if player_pos.distance_to(closest) < threshold:
+					return true
 	return false
 
 
