@@ -250,8 +250,8 @@ func step(delta: float):
 			if _fog_sprite and _fog_sprite.visible:
 				_fog_sprite.rotation += delta * 18.0
 			
-			# 如果整条激光都是洞，直接回收
-			if not _has_any_visible():
+			# 有孔洞时才检查是否整条激光都成洞了
+			if not holes.is_empty() and not _has_any_visible():
 				phase = FADE
 				_fade_age = 0.0
 				_apply_phase()
