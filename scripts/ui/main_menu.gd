@@ -36,8 +36,7 @@ func _on_back():
 func _deactivate_title() -> void:
 	input_enabled = false
 	_stop_pulse()
-	for i in menu_items.size():
-		menu_items[i].modulate = highlight_color if i == current_index else normal_color
+	refresh_colors(true)
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_title_container, "modulate:a", 0.0, 0.25)
 	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 0.0, 0.25)
