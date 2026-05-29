@@ -23,6 +23,7 @@ func _ready() -> void:
 		_mat.set_shader_parameter("c_alpha[%d]" % i, 0.0)
 	
 	_rect.material = _mat
+	_rect.color = Color.RED  # DEBUG
 	add_child(_rect)
 
 
