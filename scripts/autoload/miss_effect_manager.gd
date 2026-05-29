@@ -18,7 +18,7 @@ func _ready() -> void:
 	_mat = ShaderMaterial.new()
 	_mat.shader = preload("res://gdshader/miss_circle.gdshader")
 	_mat.set_shader_parameter("edge_soft", 0.03)
-	for pf in _prefixes:
+	for pf: String in _prefixes:
 		_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
 		_mat.set_shader_parameter("%s_radius" % pf, 0.0)
 		_mat.set_shader_parameter("%s_alpha" % pf, 0.0)
@@ -50,7 +50,7 @@ func _update_shader() -> void:
 	var canvas := get_viewport().get_canvas_transform()
 	
 	for i in MAX_CIRCLES:
-		var pf := _prefixes[i]
+		var pf: String = _prefixes[i]
 		if i < _circles.size():
 			var c := _circles[i]
 			var t := clampf(c.age / c.duration, 0.0, 1.0)
