@@ -250,19 +250,13 @@ func _process_death_clears(delta: float) -> void:
 		var radius: float = lerpf(dc["start_r"] as float, dc["max_r"] as float, ratio)
 		var r2: float = radius * radius
 		
-		var cleared_count := 0
 		for j in range(active_bullets.size() - 1, -1, -1):
 			var b = active_bullets[j]
-			if not is_instance_valid(b) or b.faction != 1:
+			if not is_instance_valid(b) or b.faction != 1 or not b.is_ready:
 				continue
 			var pos: Vector2 = dc["pos"]
 			if b.global_position.distance_squared_to(pos) <= r2:
-				if not b.is_ready:
-					print("[DeathClear] clearing fog bullet at frame ", Engine.get_process_frames())
 				return_bullet(b)
-				cleared_count += 1
-		if cleared_count > 0:
-			print("[DeathClear] cleared ", cleared_count, " bullets, radius=", radius)
 
 
 func clear_all():

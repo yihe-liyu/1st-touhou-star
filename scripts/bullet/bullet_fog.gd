@@ -8,15 +8,12 @@ var start_scale: float = 2.0
 
 func play(p_texture: Texture2D):
 	if texture == p_texture:
-		print("[Fog] shortcut! texture already matched, emitting immediately")
 		fog_finished.emit()  # 同样纹理，直接完成
 		return
 	
-	print("[Fog] starting animation, frame=", Engine.get_process_frames())
 	# 杀旧 tween 防冲突
 	for child in get_children():
 		if child.has_method("kill"):
-			print("[Fog] killing old tween")
 			child.kill()
 	
 	texture = p_texture
