@@ -29,10 +29,9 @@ func _ready() -> void:
 	add_child(_rect)
 
 
-func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 700.0, start_radius: float = 30.0) -> void:
-	var rng_offset := Vector2(randf_range(-24, 24), randf_range(-24, 24))
+func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 1280.0, start_radius: float = 0.0) -> void:
 	_circles.append({
-		world_pos = world_pos + rng_offset,
+		world_pos = world_pos,
 		age = 0.0,
 		duration = duration,
 		start_r = start_radius,
