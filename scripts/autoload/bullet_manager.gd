@@ -241,8 +241,12 @@ func _process_death_clears(delta: float) -> void:
 		if dc.age >= dc.duration:
 			_death_clears.remove_at(i)
 			continue
-		var t: float = dc.age / dc.duration
-		var radius: float = lerpf(dc.start_r, dc.max_r, t)
+		var t: float = dc["age"] as float
+		var dur: float = dc["duration"] as float
+		if dur <= 0:
+			continue
+		var ratio: float = t / dur
+		var radius: float = lerpf(dc["start_r"] as float, dc["max_r"] as float, ratio)
 		var r2: float = radius * radius
 		
 		for j in range(active_bullets.size() - 1, -1, -1):
