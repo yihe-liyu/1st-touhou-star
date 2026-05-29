@@ -128,9 +128,18 @@ func _on_animation_finished() -> void:
 			change_state(RIGHT)
 
 func miss() -> void:
-	# 扩散反色圆
-	MissEffectManager.add_circle(global_position)
+	# 第一波：中心 + 四方偏移
+	MissEffectManager.add_circle(global_position, 2.0, 1280)
+	MissEffectManager.add_circle(global_position + Vector2(100, 0), 2.0, 1280)
+	MissEffectManager.add_circle(global_position + Vector2(-100, 0), 2.0, 1280)
+	MissEffectManager.add_circle(global_position + Vector2(0, 100), 2.0, 1280)
+	MissEffectManager.add_circle(global_position + Vector2(0, -100), 2.0, 1280)
 	# 死亡清弹
 	BulletManager.start_death_clear(global_position)
+	# 1 秒后第二波
+	get_tree().create_timer(1.0).timeout.connect(
+		func():
+			MissEffectManager.add_circle(global_position, 2.0, 1280)
+	)
 	
 	# TODO: 无敌时间、残机扣除、死亡处理
