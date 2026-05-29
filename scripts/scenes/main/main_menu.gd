@@ -13,6 +13,7 @@ func _on_ready():
 
 	# Logo 入场动画
 	_logo.material.set_shader_parameter("progress", 0.0)
+	_logo.material.set_shader_parameter("alpha_mult", 1.0)
 	var tw = create_tween()
 	tw.tween_property(_logo.material, "shader_parameter/progress", 1.0, 4.0)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)

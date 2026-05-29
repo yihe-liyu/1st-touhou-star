@@ -28,15 +28,9 @@ void fragment() {
 	// 从随机方向飞向正确位置
 	vec2 dir = vec2(cos(angle), sin(angle));
 	float scatter = radius * (1.0 - pow(local_progress, 1.5));
-	vec2 sample_uv = UV + dir * scatter;
-	
+	vec2 sample_uv = clamp(UV + dir * scatter, 0.0, 1.0);
+
 	vec4 tex = texture(TEXTURE, sample_uv);
-	// 来源在边界外的像素逐渐透明
-	float edge_fade = 1.0;
-	edge_fade *= smoothstep(-0.3, 0.0, sample_uv.x);
-	edge_fade *= smoothstep(1.0, 1.3, sample_uv.x);
-	edge_fade *= smoothstep(-0.3, 0.0, sample_uv.y);
-	edge_fade *= smoothstep(1.0, 1.3, sample_uv.y);
 
 	// 飞行途中的辉光拖尾
 	float flight = sin(local_progress * 3.14159) * 2.0;
@@ -52,5 +46,5 @@ void fragment() {
 	// 粒子逐渐变亮
 	float brightness = 0.25 + 0.75 * local_progress;
 
-	COLOR = vec4(tex.rgb * brightness + glow_color, tex.a * local_progress * edge_fade * alpha_mult);
+	COLOR = vec4(tex.rgb * brightness + glow_color, tex.a * local_progress * alpha_mult);
 }
