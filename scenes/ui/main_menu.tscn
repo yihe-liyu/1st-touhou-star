@@ -98,65 +98,9 @@ offset_bottom = 392.0
 grow_horizontal = 2
 texture = ExtResource("3_1g8jr")
 
-[node name="DifficultyPanel" type="Control" parent="."]
-visible = false
+[node name="MenuHost" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-
-[node name="TitleLabel" type="Label" parent="DifficultyPanel"]
-layout_mode = 0
-anchor_top = 0.15
-anchor_right = 1.0
-anchor_bottom = 0.25
-theme_override_font_sizes/font_size = 28
-text = "Select Difficulty"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="OptionContainer" type="VBoxContainer" parent="DifficultyPanel"]
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.35
-anchor_right = 0.5
-anchor_bottom = 0.75
-offset_left = -120.0
-offset_right = 120.0
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="Easy" type="Label" parent="DifficultyPanel/OptionContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Easy"
-horizontal_alignment = 1
-
-[node name="Normal" type="Label" parent="DifficultyPanel/OptionContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Normal"
-horizontal_alignment = 1
-
-[node name="Hard" type="Label" parent="DifficultyPanel/OptionContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Hard"
-horizontal_alignment = 1
-
-[node name="Lunatic" type="Label" parent="DifficultyPanel/OptionContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Lunatic"
-horizontal_alignment = 1
-
-[node name="BackHint" type="Label" parent="DifficultyPanel"]
-layout_mode = 0
-anchor_top = 0.88
-anchor_right = 1.0
-anchor_bottom = 0.95
-theme_override_font_sizes/font_size = 16
-text = "X: Back"
-horizontal_alignment = 1
-vertical_alignment = 1
