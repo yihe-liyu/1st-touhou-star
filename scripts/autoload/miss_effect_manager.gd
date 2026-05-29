@@ -9,23 +9,14 @@ var _mat: ShaderMaterial
 
 
 func _ready() -> void:
-	# 直接在场景根下放全屏 ColorRect
-	var vs := get_viewport().get_visible_rect().size
+	# ColorRect 锚定全屏
 	_rect = ColorRect.new()
-	_rect.size = vs
-	_rect.position = Vector2.ZERO
+	_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_rect.z_index = 100
-	
-	_rect.color = Color.RED  # DEBUG
-	
-	# _mat = ShaderMaterial.new()
-	# _mat.shader = preload("res://gdshader/miss_circle.gdshader")
-	# ...
-	# _rect.material = _mat
-	
+	_rect.color = Color.RED
 	add_child(_rect)
-	print("[MissEffectManager] ready, rect pos=", _rect.position, " size=", _rect.size)
+	print("[MissEffectManager] ready")
 
 
 func add_circle(world_pos: Vector2, duration: float = 0.6, max_radius: float = 500.0, start_radius: float = 30.0) -> void:
