@@ -162,7 +162,7 @@ func step(delta: float):
 			_toggle_fog(tail_dist <= 0.0)
 			# 弹雾旋转
 			if _fog_sprite and _fog_sprite.visible:
-				_fog_sprite.rotation += delta * 3.0
+				_fog_sprite.rotation += delta * 18.0
 			
 			if data.max_lifetime > 0.0:
 				if age >= data.max_lifetime:

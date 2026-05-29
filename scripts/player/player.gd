@@ -128,4 +128,9 @@ func _on_animation_finished() -> void:
 			change_state(RIGHT)
 
 func miss() -> void:
-	pass  # TODO: 实现玩家中弹后的无敌、残机扣除、死亡特效等
+	# 生成 miss 特效：扩散反色圆
+	var effect := MissEffect.new()
+	effect.global_position = global_position
+	get_tree().current_scene.add_child(effect)
+	
+	# TODO: 无敌时间、残机扣除、死亡处理
