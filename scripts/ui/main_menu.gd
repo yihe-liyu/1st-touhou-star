@@ -1,9 +1,8 @@
 extends BaseMenu
 class_name MainMenu
 
-@onready var _menu_host: MenuHost = $MenuHost
 @onready var _logo: TextureRect = $logo
-@onready var _container: Control = $Container
+@onready var _title_container: Control = $Container
 
 
 func _on_ready():
@@ -34,29 +33,26 @@ func _on_back():
 
 # ═══ 打开子菜单 ═══
 
-func _open_difficulty() -> void:
-	_deactivate_title()
-	var screen := _menu_host.push("res://scenes/ui/difficulty_screen.tscn")
-	screen.finished.connect(_on_difficulty_finished)
-
-
-func _on_difficulty_finished(result: Dictionary) -> void:
-	var diff: int = result.get("difficulty", 1)
-	GameState.selected_difficulty = diff
-	# TODO: 打开角色选择
-	_activate_title()
-
-
-# ═══ 标题菜单 停用/恢复 ═══
-
 func _deactivate_title() -> void:
 	input_enabled = false
-	_container.visible = false
+	_title_container.visible = false
 	_stop_pulse()
 
 
 func _activate_title() -> void:
-	_container.visible = true
+	_title_container.visible = true
 	input_enabled = true
 	if current_index >= 0 and current_index < menu_items.size():
 		_start_pulse(menu_items[current_index])
+
+
+func _open_difficulty() -> void:
+	_deactivate_title()
+	var screen: Node = $MenuHost.push("res://scenes/ui/difficulty_screen.tscn")
+	screen.finished.connect(_on_difficulty_finished)
+
+
+func _on_difficulty_finished(result: Dictionary) -> void:
+	GameState.selected_difficulty = result.get("difficulty", 1)
+	# TODO: 打开角色选择
+	_activate_title()
