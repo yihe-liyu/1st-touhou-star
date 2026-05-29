@@ -13,5 +13,6 @@ func _on_step(api: StageAPI) -> Variant:
 	if not node2d or not is_instance_valid(node2d):
 		return false
 	api.shoot_spread(BULLET_DATA, 8, TAU, Vector2.RIGHT.rotated(deg_to_rad(_i * 2)), node2d.global_position)
+	AudioManager.play_sfx(preload("res://assets/Sound/tan00.wav"))
 	_i += 1
 	return api.seconds(0.2)

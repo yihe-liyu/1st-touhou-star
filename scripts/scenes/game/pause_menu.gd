@@ -6,6 +6,8 @@ func _on_ready():
 	# 选项依次弹出由 BaseMenu 自动处理
 	$Overlay.material.set_shader_parameter("blur_strength", 0.0)
 	$Overlay.material.set_shader_parameter("darken", 0.0)
+	
+	AudioManager.play_sfx(preload("res://assets/Sound/pause.wav"))
 
 	var tw = create_tween().set_parallel(true)
 	tw.tween_property($Overlay, "material:shader_parameter/blur_strength", 3.0, 0.45)\

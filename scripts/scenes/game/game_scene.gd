@@ -10,6 +10,10 @@ const END_MENU = preload("res://scenes/ui/end_menu.tscn")
 var _background_instance: StageBackground
 
 func _ready():
+	# 直接运行此场景时确保状态正确（因没经过 change_scene）
+	if GameManager.current_state != GameManager.AppState.PLAYING:
+		GameManager._set_state(GameManager.AppState.PLAYING)
+
 	_load_background()
 
 	if stage_data:

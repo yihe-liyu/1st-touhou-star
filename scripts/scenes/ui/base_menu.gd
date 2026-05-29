@@ -134,6 +134,8 @@ func navigate(direction: int):
 	if menu_items.is_empty():
 		return
 	
+	AudioManager.play_sfx(preload("res://assets/Sound/select.wav"))
+	
 	var steps := 0
 	var new_index := current_index
 	while steps < menu_items.size():
@@ -194,6 +196,8 @@ func _accept_current():
 		return
 	if _is_item_locked(current_index):
 		return
+	
+	AudioManager.play_sfx(preload("res://assets/Sound/ok.wav"))
 	
 	var item = menu_items[current_index]
 	var selected_index = current_index

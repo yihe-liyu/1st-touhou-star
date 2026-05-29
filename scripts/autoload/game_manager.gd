@@ -29,7 +29,7 @@ func _ready():
 func _process(_delta):
 	if current_state == AppState.TRANSITIONING:
 		return
-	if _pause_menu_instance or not _menu_stack.is_empty() or not _overlay_menu_stack.is_empty():
+	if _pause_menu_instance or not _overlay_menu_stack.is_empty():
 		return
 	if current_state == AppState.PLAYING:
 		if Input.is_action_just_pressed("ui_pause"):
@@ -224,5 +224,5 @@ func _fade_in(duration: float = FADE_DURATION):
 
 # ── 对外查询 ──
 
-func is_menu_active() -> bool:
-	return not _menu_stack.is_empty() or _pause_menu_instance != null
+func is_paused() -> bool:
+	return current_state == AppState.PAUSED
