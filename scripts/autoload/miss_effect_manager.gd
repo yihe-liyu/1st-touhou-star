@@ -54,7 +54,7 @@ func _update_shader() -> void:
 			var t := clampf(c.age / c.duration, 0.0, 1.0)
 			var radius_px := lerpf(c.start_r, c.max_r, t)
 			# 世界坐标 → 屏幕坐标
-			var screen_pos := canvas * c.world_pos
+			var screen_pos: Vector2 = canvas * c.world_pos
 			# 屏幕坐标 → UV (0~1)
 			var uv_pos := screen_pos / vs
 			var radius_uv := radius_px / maxf(vs.x, vs.y)
