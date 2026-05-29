@@ -36,6 +36,5 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
-	# 消弹：交由 BulletManager 回收（绕过 GDScript 静态类型限制）
-	@warning_ignore("unsafe_cast")
-	BulletManager.return_bullet(area)
+	# 消弹：交由 BulletManager 回收
+	BulletManager.call("return_bullet", area)
