@@ -5,7 +5,6 @@ const ENEMY_DATA = preload("res://data/enemy_data/test_enemy_data.tres")
 const LASER_ENEMY_DATA = preload("res://data/enemy_data/test_enemy_laser.tres")
 
 var _phase: int = 0
-var _wait_time: float = 0.0
 
 func _on_step(api: StageAPI) -> Variant:
 	match _phase:
