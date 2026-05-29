@@ -42,9 +42,11 @@ func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 1
 func _process(delta: float) -> void:
 	for i in range(_circles.size() - 1, -1, -1):
 		_circles[i].age += delta
+	_update_shader()
+	# 删除在 shader 之后，保证圆走满最后一帧
+	for i in range(_circles.size() - 1, -1, -1):
 		if _circles[i].age >= _circles[i].duration:
 			_circles.remove_at(i)
-	_update_shader()
 
 
 func _update_shader() -> void:
