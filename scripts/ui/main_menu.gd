@@ -40,8 +40,9 @@ func _deactivate_title() -> void:
 		menu_items[i].modulate = highlight_color if i == current_index else normal_color
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_title_container, "modulate:a", 0.0, 0.25)
-	# logo 的 tween_property 不知为何失败，改用 tween_method
-	tw.tween_method(func(v: float): _logo.modulate.a = v, 1.0, 0.0, 0.25)
+	# logo 的 tween 建在 _logo 自己身上
+	var logotw := _logo.create_tween()
+	logotw.tween_property(_logo, "modulate:a", 0.0, 0.25)
 	tw.tween_callback(_title_container.hide).set_delay(0.25)
 	tw.tween_callback(_logo.hide).set_delay(0.25)
 
@@ -53,7 +54,8 @@ func _activate_title() -> void:
 	_logo.modulate.a = 0.0
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
-	tw.tween_method(func(v: float): _logo.modulate.a = v, 0.0, 1.0, 0.25)
+	var logotw := _logo.create_tween()
+	logotw.tween_property(_logo, "modulate:a", 1.0, 0.25)
 	tw.tween_callback(func():
 		input_enabled = true
 		if current_index >= 0 and current_index < menu_items.size():
