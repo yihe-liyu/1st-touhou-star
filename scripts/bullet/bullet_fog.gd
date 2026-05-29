@@ -10,6 +10,12 @@ func play(p_texture: Texture2D):
 	if texture == p_texture:
 		fog_finished.emit()  # 同样纹理，直接完成
 		return
+	
+	# 杀旧 tween 防冲突
+	for child in get_children():
+		if child is Tween:
+			child.kill()
+	
 	texture = p_texture
 	modulate.a = 1.0
 	scale = Vector2(start_scale, start_scale)

@@ -94,6 +94,7 @@ func return_bullet(bullet: Bullet):
 	bullet.visible = false
 	bullet.process_mode = PROCESS_MODE_DISABLED
 	bullet.fog.visible = false
+	bullet.fog.texture = null  # 防止复用时的 fog.play() 短路
 	if bullet.fog.fog_finished.is_connected(bullet._on_fog_ready):
 		bullet.fog.fog_finished.disconnect(bullet._on_fog_ready)
 	active_bullets.erase(bullet)
