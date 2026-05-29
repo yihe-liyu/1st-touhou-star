@@ -5,6 +5,9 @@ func _on_ready():
 	GameManager.current_scene_path = "res://scenes/ui/main_menu.tscn"
 	GameManager.push_menu(self)
 
+	# Extra Start 默认锁定（入口动画会自动用 locked_color）
+	$Container/Label1.set_meta("locked", true)
+
 	# ── Logo 入场动画（shader 圆形展开 + 辉光）──
 	# progress: 0 → 从中心圆形展开，1 → 完全显示
 	$logo.material.set_shader_parameter("progress", 0.0)

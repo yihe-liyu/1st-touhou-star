@@ -65,7 +65,7 @@ func _ready():
 	if entrance_stagger > 0.0 and not menu_items.is_empty():
 		for item in menu_items:
 			item.modulate = Color(1, 1, 1, 0)
-		current_index = 0
+		current_index = _find_first_unlocked()
 		input_enabled = false
 	else:
 		refresh_colors(true)
