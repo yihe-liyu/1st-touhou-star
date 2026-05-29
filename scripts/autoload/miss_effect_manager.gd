@@ -19,7 +19,7 @@ func _ready() -> void:
 	_mat = ShaderMaterial.new()
 	_mat.shader = preload("res://gdshader/miss_circle.gdshader")
 	_mat.set_shader_parameter("vs", _view_size)
-	_mat.set_shader_parameter("edge_soft", 0.03)
+	_mat.set_shader_parameter("edge_soft", 0.005)
 	for pf: String in _prefixes:
 		_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
 		_mat.set_shader_parameter("%s_radpx" % pf, 0.0)
