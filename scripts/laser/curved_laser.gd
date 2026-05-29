@@ -380,15 +380,15 @@ func is_hitting_player(player_pos: Vector2, hit_radius: float = 2.0) -> bool:
 	var segs := _build_segments()
 	
 	for seg in segs:
-		var seg_len := seg.end_dist - seg.start_dist
+		var seg_len := (seg.end_dist as float) - (seg.start_dist as float)
 		if seg_len <= 0.0:
 			continue
 		var samples := maxi(int(seg_len / 20.0), 4)
 		for i in range(samples):
-			var dist := seg.start_dist + seg_len * float(i) / float(samples - 1)
+			var dist := (seg.start_dist as float) + seg_len * float(i) / float(samples - 1)
 			var a := _sample_curve(dist)
 			if i < samples - 1:
-				var dist2 := seg.start_dist + seg_len * float(i + 1) / float(samples - 1)
+				var dist2 := (seg.start_dist as float) + seg_len * float(i + 1) / float(samples - 1)
 				var b := _sample_curve(dist2)
 				var closest := _closest_point_on_segment(player_pos, a, b)
 				if player_pos.distance_to(closest) < threshold:
