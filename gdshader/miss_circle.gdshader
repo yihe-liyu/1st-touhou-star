@@ -1,6 +1,8 @@
 shader_type canvas_item;
 
-// DEBUG: 纯红测试
+// 测试 screen_tex —— 直通，屏幕应该正常（不反色）
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
+
 void fragment() {
-	COLOR = vec4(1.0, 0.0, 0.0, 0.5);
+	COLOR = texture(screen_tex, SCREEN_UV);
 }
