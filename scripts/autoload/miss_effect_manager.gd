@@ -29,8 +29,10 @@ func _ready() -> void:
 
 
 func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 700.0, start_radius: float = 30.0) -> void:
+	# 加点随机偏移让叠加可见
+	var offset := Vector2(randf_range(-20, 20), randf_range(-20, 20))
 	_circles.append({
-		world_pos = world_pos,
+		world_pos = world_pos + offset,
 		age = 0.0,
 		duration = duration,
 		start_r = start_radius,
