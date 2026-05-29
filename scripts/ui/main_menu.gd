@@ -34,14 +34,15 @@ func _on_back():
 # ═══ 打开子菜单 ═══
 
 func _deactivate_title() -> void:
+	print("[MainMenu] DEACTIVATE — hiding container, dimming logo")
 	input_enabled = false
 	_stop_pulse()
 	_title_container.hide()
-	var tw := create_tween()
-	tw.tween_property(_logo, "modulate:a", 0.25, 0.3)
+	_logo.modulate.a = 0.25
 
 
 func _activate_title() -> void:
+	print("[MainMenu] ACTIVATE — showing container")
 	_title_container.show()
 	_logo.modulate.a = 1.0
 	input_enabled = true
@@ -50,6 +51,7 @@ func _activate_title() -> void:
 
 
 func _open_difficulty() -> void:
+	print("[MainMenu] OPENING difficulty")
 	_deactivate_title()
 	var screen: Node = $MenuHost.push("res://scenes/ui/difficulty_screen.tscn")
 	screen.finished.connect(_on_difficulty_finished)
