@@ -46,6 +46,7 @@ func _process(delta: float) -> void:
 	_update_shader()
 	for i in range(_circles.size() - 1, -1, -1):
 		if _circles[i].age >= _circles[i].duration:
+			print("[Miss] remove age=", _circles[i].age, " dur=", _circles[i].duration)
 			_circles.remove_at(i)
 
 
