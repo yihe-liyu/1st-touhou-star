@@ -59,7 +59,9 @@ func _update_shader() -> void:
 			var radius_px := lerpf(c.start_r, c.max_r, t)
 			var screen_pos: Vector2 = canvas * c.world_pos
 			var uv_pos := screen_pos / vs
-			var alpha: float = 1.0
+			# 最后 20% 淡出，避免突然消失
+			var fade_start := 0.8
+			var alpha: float = 1.0 if t <= fade_start else (1.0 - (t - fade_start) / (1.0 - fade_start))
 			
 			_mat.set_shader_parameter("%s_pos" % pf, uv_pos)
 			_mat.set_shader_parameter("%s_radpx" % pf, radius_px)
