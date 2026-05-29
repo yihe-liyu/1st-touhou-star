@@ -66,16 +66,13 @@ func _process(delta: float) -> void:
 	# 先删批次内所有圆
 	for bid in expired_batches:
 		_batches.erase(bid)
-		print("[Batch] clearing batch ", bid)
 		for i in range(_circles.size() - 1, -1, -1):
 			if _circles[i].get("batch", -1) == bid:
-				print("[Batch] remove age=", _circles[i].age, " dur=", _circles[i].duration)
 				_circles.remove_at(i)
 	
 	# 再删单独过期的（无 batch 的圆走旧逻辑）
 	for i in range(_circles.size() - 1, -1, -1):
 		if _circles[i].age >= _circles[i].duration:
-			print("[Solo] remove age=", _circles[i].age, " dur=", _circles[i].duration)
 			_circles.remove_at(i)
 
 
@@ -96,10 +93,12 @@ func _update_shader() -> void:
 			var radius_px := lerpf(c.start_r, c.max_r, t)
 			var screen_pos: Vector2 = canvas * c.world_pos
 			var uv_pos := screen_pos / vs
+			# 末尾 10% 快速淡出防闪
+			var alpha: float = 1.0 if t < 0.9 else (1.0 - (t - 0.9) / 0.1)
 			
 			_mat.set_shader_parameter("%s_pos" % pf, uv_pos)
 			_mat.set_shader_parameter("%s_radpx" % pf, radius_px)
-			_mat.set_shader_parameter("%s_alpha" % pf, 1.0)
+			_mat.set_shader_parameter("%s_alpha" % pf, alpha)
 		else:
 			_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
 			_mat.set_shader_parameter("%s_radpx" % pf, 0.0)
