@@ -23,7 +23,7 @@ func _on_item_selected(index: int):
 	match index:
 		0:
 			_open_difficulty()
-		8:
+		9:
 			get_tree().quit()
 
 

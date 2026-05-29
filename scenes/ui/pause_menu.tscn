@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://gmyieto88nr4"]
 
-[ext_resource type="Script" uid="uid://cfjaugwyh60ij" path="res://scripts/ui/pause_menu.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cfjaugwyh60ij" path="res://scripts/scenes/ui/pause_menu.gd" id="1_script"]
 [ext_resource type="Shader" uid="uid://db8iswfusbkts" path="res://gdshader/pause_blur.gdshader" id="2_blur"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]

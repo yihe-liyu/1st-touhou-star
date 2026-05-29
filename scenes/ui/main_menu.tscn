@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://d1b6hyoghc4m4"]
 
-[ext_resource type="Script" uid="uid://c501m3qpmdk2s" path="res://scripts/ui/main_menu.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://c501m3qpmdk2s" path="res://scripts/scenes/ui/main_menu.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://c3fv40qpgoim8" path="res://assets/Textures/title/title_bk.png" id="2_fe2o3"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="3_1g8jr"]
 [ext_resource type="Shader" uid="uid://b2ydwl5kwlb2m" path="res://gdshader/logo_entrance.gdshader" id="4"]
-[ext_resource type="Script" uid="uid://e73gjgug86o3" path="res://scripts/ui/menu_host.gd" id="5_menu_host"]
+[ext_resource type="Script" uid="uid://e73gjgug86o3" path="res://scripts/scenes/ui/menu_host.gd" id="5_menu_host"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vs4v7"]
 shader = ExtResource("4")
@@ -83,7 +83,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Option"
 
-[node name="Label8" type="Label" parent="Container" unique_id=1281928443]
+[node name="Label8" type="Label" parent="Container" unique_id=1439585973]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Manual"
+
+[node name="Label9" type="Label" parent="Container" unique_id=1281928443]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Quit"
