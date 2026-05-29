@@ -236,14 +236,14 @@ func start_death_clear(pos: Vector2, max_radius: float = 1200.0, duration: float
 
 func _process_death_clears(delta: float) -> void:
 	for i in range(_death_clears.size() - 1, -1, -1):
-		var dc := _death_clears[i]
+		var dc: Dictionary = _death_clears[i]
 		dc.age += delta
 		if dc.age >= dc.duration:
 			_death_clears.remove_at(i)
 			continue
-		var t := dc.age / dc.duration
-		var radius := lerpf(dc.start_r, dc.max_r, t)
-		var r2 := radius * radius
+		var t: float = dc.age / dc.duration
+		var radius: float = lerpf(dc.start_r, dc.max_r, t)
+		var r2: float = radius * radius
 		
 		for j in range(active_bullets.size() - 1, -1, -1):
 			var b := active_bullets[j]
