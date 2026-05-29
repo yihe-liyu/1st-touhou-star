@@ -3,7 +3,7 @@ class_name MissEffect
 # miss 时在玩家位置生成的反色扩散圆
 
 @export var max_radius: float = 500.0
-@export var duration: float = 0.6
+@export var duration: float = 1.5
 @export var start_radius: float = 30.0
 
 

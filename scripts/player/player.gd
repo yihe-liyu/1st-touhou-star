@@ -128,10 +128,7 @@ func _on_animation_finished() -> void:
 			change_state(RIGHT)
 
 func miss() -> void:
-	# 生成 miss 特效：扩散反色圆
-	var MissCls := preload("res://scripts/effect/miss_effect.gd")
-	var effect := MissCls.new()
-	effect.global_position = global_position
-	get_tree().current_scene.add_child(effect)
+	# 生成 miss 特效：扩散反色圆（全局管理器，多圈不冲突）
+	MissEffectManager.add_circle(global_position)
 	
 	# TODO: 无敌时间、残机扣除、死亡处理
