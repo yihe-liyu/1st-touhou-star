@@ -66,13 +66,16 @@ func _process(delta: float) -> void:
 	# 先删批次内所有圆
 	for bid in expired_batches:
 		_batches.erase(bid)
+		print("[Batch] clearing batch ", bid)
 		for i in range(_circles.size() - 1, -1, -1):
 			if _circles[i].get("batch", -1) == bid:
+				print("[Batch] remove age=", _circles[i].age, " dur=", _circles[i].duration)
 				_circles.remove_at(i)
 	
 	# 再删单独过期的（无 batch 的圆走旧逻辑）
 	for i in range(_circles.size() - 1, -1, -1):
 		if _circles[i].age >= _circles[i].duration:
+			print("[Solo] remove age=", _circles[i].age, " dur=", _circles[i].duration)
 			_circles.remove_at(i)
 
 
