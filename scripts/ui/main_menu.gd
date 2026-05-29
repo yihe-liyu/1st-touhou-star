@@ -37,10 +37,16 @@ func _deactivate_title() -> void:
 	input_enabled = false
 	_title_container.visible = false
 	_stop_pulse()
+	# 背景保留，logo 变暗
+	var tw := create_tween()
+	tw.tween_property(_logo, "modulate:a", 0.25, 0.3)
+	tw.tween_property(_title_container, "modulate:a", 0.0, 0.2)
 
 
 func _activate_title() -> void:
 	_title_container.visible = true
+	_title_container.modulate.a = 1.0
+	_logo.modulate.a = 1.0
 	input_enabled = true
 	if current_index >= 0 and current_index < menu_items.size():
 		_start_pulse(menu_items[current_index])
