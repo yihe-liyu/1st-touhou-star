@@ -3,7 +3,6 @@ class_name MainMenu
 
 @onready var _logo: TextureRect = $logo
 @onready var _title_container: Control = $Container
-var _title_original_y: float
 
 
 func _on_ready():
@@ -11,7 +10,6 @@ func _on_ready():
 	GameManager.push_menu(self)
 
 	$Container/Label1.set_meta("locked", true)
-	_title_original_y = _title_container.position.y
 
 	# Logo 入场动画
 	_logo.material.set_shader_parameter("progress", 0.0)
@@ -38,34 +36,30 @@ func _on_back():
 func _deactivate_title() -> void:
 	input_enabled = false
 	_stop_pulse()
+	# 先锁死所有子项颜色（不用 tween，直接设）
+	for i in menu_items.size():
+		menu_items[i].modulate = highlight_color if i == current_index else normal_color
+	# 再 tween 父容器和 logo 淡出
 	var tw := create_tween().set_parallel(true)
-	tw.tween_property(_title_container, "scale", Vector2(0.9, 0.9), 0.2)
-	tw.tween_property(_title_container, "position:y", _title_original_y + 30.0, 0.2)
-	tw.tween_property(_logo, "scale", Vector2(0.85, 0.85), 0.25)
+	tw.tween_property(_title_container, "modulate:a", 0.0, 0.25)
 	tw.tween_property(_logo, "modulate:a", 0.0, 0.25)
-	tw.tween_callback(_title_container.hide).set_delay(0.2)
+	tw.tween_callback(_title_container.hide).set_delay(0.25)
 	tw.tween_callback(_logo.hide).set_delay(0.25)
 
 
 func _activate_title() -> void:
 	_title_container.show()
 	_logo.show()
+	_title_container.modulate.a = 0.0
 	_logo.modulate.a = 0.0
-	_title_container.scale = Vector2(0.9, 0.9)
-	_title_container.position.y = _title_original_y + 30.0
-	
 	var tw := create_tween().set_parallel(true)
-	tw.tween_property(_title_container, "scale", Vector2.ONE, 0.3)
-	tw.tween_property(_title_container, "position:y", _title_original_y, 0.3)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(_logo, "scale", Vector2.ONE, 0.35)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(_logo, "modulate:a", 1.0, 0.3)
+	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
+	tw.tween_property(_logo, "modulate:a", 1.0, 0.25)
 	tw.tween_callback(func():
 		input_enabled = true
 		if current_index >= 0 and current_index < menu_items.size():
 			_start_pulse(menu_items[current_index])
-	).set_delay(0.3)
+	).set_delay(0.25)
 
 
 func _open_difficulty() -> void:
