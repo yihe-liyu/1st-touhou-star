@@ -10,7 +10,7 @@ var _view_size: Vector2
 
 
 func _ready() -> void:
-	layer = -1
+	layer = 0
 	_rect = ColorRect.new()
 	_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
