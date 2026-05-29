@@ -3,6 +3,7 @@ class_name MainMenu
 
 @onready var _logo: TextureRect = $logo
 @onready var _title_container: Control = $Container
+var _logo_target_alpha: float = 1.0  # logo 渐隐目标（_process 驱动）
 
 
 func _on_ready():
@@ -31,18 +32,23 @@ func _on_back():
 	get_tree().quit()
 
 
-# ═══ 打开子菜单 ═══
+# ═══ logo 渐隐（_process 手动驱动，因为 tween 总有鬼） ═══
+
+func _process(delta: float) -> void:
+	_logo.modulate.a = move_toward(_logo.modulate.a, _logo_target_alpha, 3.0 * delta)
+	super(delta)
+
+
+# ═══ 标题菜单 停用/恢复 ═══
 
 func _deactivate_title() -> void:
 	input_enabled = false
 	_stop_pulse()
 	for i in menu_items.size():
 		menu_items[i].modulate = highlight_color if i == current_index else normal_color
-	var tw := create_tween().set_parallel(true)
+	var tw := create_tween()
 	tw.tween_property(_title_container, "modulate:a", 0.0, 0.25)
-	# logo 的 tween 建在 _logo 自己身上
-	var logotw := _logo.create_tween()
-	logotw.tween_property(_logo, "modulate:a", 0.0, 0.25)
+	_logo_target_alpha = 0.0
 	tw.tween_callback(_title_container.hide).set_delay(0.25)
 	tw.tween_callback(_logo.hide).set_delay(0.25)
 
@@ -51,11 +57,9 @@ func _activate_title() -> void:
 	_title_container.show()
 	_logo.show()
 	_title_container.modulate.a = 0.0
-	_logo.modulate.a = 0.0
-	var tw := create_tween().set_parallel(true)
+	_logo_target_alpha = 1.0
+	var tw := create_tween()
 	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
-	var logotw := _logo.create_tween()
-	logotw.tween_property(_logo, "modulate:a", 1.0, 0.25)
 	tw.tween_callback(func():
 		input_enabled = true
 		if current_index >= 0 and current_index < menu_items.size():
