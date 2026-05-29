@@ -17,7 +17,7 @@ void fragment() {
 	// 每个粒子的随机属性
 	float seed = hash(grid_uv);
 	float angle = seed * 6.2832;          // 随机飞行方向
-	float radius = hash(grid_uv + 0.5) * 0.35 + 0.08;  // 随机分散半径
+	float radius = hash(grid_uv + 0.5) * 0.65 + 0.12;  // 初始分散范围更大
 	float delay = hash(grid_uv + 1.0);    // 随机延迟 0~1
 
 	// 带延迟的局部进度（粒子们不同时出发，但同时到达）
