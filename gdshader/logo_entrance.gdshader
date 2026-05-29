@@ -26,8 +26,12 @@ void fragment() {
 	// 从随机方向飞向正确位置
 	vec2 dir = vec2(cos(angle), sin(angle));
 	float scatter = radius * (1.0 - pow(local_progress, 1.5));
-	vec2 sample_uv = clamp(UV + dir * scatter, 0.0, 1.0);
-
+	vec2 sample_uv = UV + dir * scatter;
+	// 超出边界的粒子直接透明，不要 clamp 到矩形
+	if (sample_uv.x < 0.0 || sample_uv.x > 1.0 || sample_uv.y < 0.0 || sample_uv.y > 1.0) {
+		COLOR = vec4(0.0);
+		return;
+	}
 	vec4 tex = texture(TEXTURE, sample_uv);
 
 	// 飞行途中的辉光拖尾
