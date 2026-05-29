@@ -26,7 +26,6 @@ StageManager="*res://scripts/autoload/stage_manager.gd"
 RNG="*res://scripts/autoload/rng.gd"
 LaserManager="*res://scripts/autoload/laser_manager.gd"
 MissEffectManager="*res://scripts/autoload/miss_effect_manager.gd"
-_MCPGameBridge="*uid://cds186n8uv4f0"
 
 [display]
 
