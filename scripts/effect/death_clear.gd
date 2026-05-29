@@ -43,6 +43,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
-	# 不立即清理，收集到 _pending 延迟到帧末处理
+	# 只消子弹（有 coroutine_movement 属性的才是子弹）
+	if not "coroutine_movement" in area:
+		return
 	if not _pending.has(area):
 		_pending.append(area)
