@@ -43,10 +43,19 @@ func _on_item_selected(index: int):
 			get_tree().quit()
 
 func _on_back():
+	if _state == MenuState.DIFFICULTY:
+		_hide_difficulty_panel()
+		return
 	get_tree().quit()
 
 
 # ═══ 难度面板 ═══
+
+func _process(delta: float) -> void:
+	# 难度/角色面板打开时，屏蔽 BaseMenu 的标题菜单导航
+	if _state != MenuState.TITLE:
+		return
+	super(delta)
 
 func _show_difficulty_panel() -> void:
 	_state = MenuState.DIFFICULTY
