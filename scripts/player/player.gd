@@ -129,13 +129,13 @@ func _on_animation_finished() -> void:
 
 func miss() -> void:
 	var pos = global_position
-	MissEffectManager.add_circle(pos, 3.0, 1280)
-	MissEffectManager.add_circle(pos + Vector2(100, 0), 3.0, 1280)
-	MissEffectManager.add_circle(pos + Vector2(-100, 0), 3.0, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, 100), 3.0, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, -100), 3.0, 1280)
-	MissEffectManager.add_circle(pos, 1.0, 1280, 0.0, 2.0)
+	MissEffectManager.add_circle(pos, 2.5, 1280)
+	MissEffectManager.add_circle(pos + Vector2(100, 0), 2.5, 1280)
+	MissEffectManager.add_circle(pos + Vector2(-100, 0), 2.5, 1280)
+	MissEffectManager.add_circle(pos + Vector2(0, 100), 2.5, 1280)
+	MissEffectManager.add_circle(pos + Vector2(0, -100), 2.5, 1280)
+	MissEffectManager.add_circle(pos, 1.0, 1280, 0.0, 1.5)
 	
-	BulletManager.start_death_clear(pos)
+	BulletManager.start_death_clear(pos, 2048, 3.0)
 	
 	# TODO: 无敌时间、残机扣除、死亡处理

@@ -9,7 +9,7 @@ var _phase: int = 0
 func _on_step(api: StageAPI) -> Variant:
 	match _phase:
 		0:
-			api.spawn_enemy(LASER_ENEMY_DATA, Vector2(448, 50))
+			api.spawn_enemy(ENEMY_DATA, Vector2(448, 50))
 			_phase = 1
 			return api.seconds(3.0)
 		1:

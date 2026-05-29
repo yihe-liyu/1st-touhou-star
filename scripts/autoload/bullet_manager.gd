@@ -288,7 +288,7 @@ func _is_offscreen(pos: Vector2) -> bool:
 # 死亡清弹 & 激光切割
 # ═══════════════════════════════════════
 
-func start_death_clear(pos: Vector2, max_radius: float = 1200.0, duration: float = 1.0, start_radius: float = 10.0) -> void:
+func start_death_clear(pos: Vector2, max_radius: float = 1280.0, duration: float = 1.0, start_radius: float = 30.0) -> void:
 	_death_clears.append({
 		pos = pos,
 		age = 0.0,
