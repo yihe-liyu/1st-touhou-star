@@ -52,14 +52,10 @@ void fragment() {
 	ACCUM(6, c6_pos, c6_radpx, c6_alpha)
 	ACCUM(7, c7_pos, c7_radpx, c7_alpha)
 	
-	// 反转区域（clamp 到 1）
-	float inv_mask = min(raw_mask, 1.0);
+	// 反转区域（三角波：1圈=反转，2圈=复原，3圈=反转...）
+	float inv_mask = 1.0 - abs(mod(raw_mask, 2.0) - 1.0);
 	vec4 inverted = vec4(1.0 - bg.rgb, 1.0);
 	vec4 result = mix(bg, inverted, inv_mask);
-	
-	// 重叠区域（raw_mask > 1.0）→ 白色闪光叠加
-	float flash = max(raw_mask - 1.0, 0.0) * 0.6;
-	result = mix(result, vec4(1.0, 1.0, 1.0, 1.0), flash);
 	
 	COLOR = result;
 }
