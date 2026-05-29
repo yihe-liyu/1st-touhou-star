@@ -90,7 +90,7 @@ func clear_all_lasers() -> void:
 # 子弹发射
 # ═══════════════════════════════════════
 
-func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
+func shoot_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
 	var bullet: Bullet
 	
 	if bullet_pool.is_empty():
@@ -102,21 +102,21 @@ func shoot_bullet(data: BulletData, position: Vector2, direction: Vector2, overr
 		bullet = bullet_pool.pop_back()
 	
 	bullet.bind(data, direction, override)
-	bullet.global_position = position
+	bullet.global_position = pos
 	bullet.visible = true
 	bullet.process_mode = PROCESS_MODE_INHERIT
 	active_bullets.append(bullet)
 	
 	return bullet
 
-func shoot_player_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
-	shoot_bullet(data, position, direction, override)
+func shoot_player_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+	shoot_bullet(data, pos, direction, override)
 
-func shoot_enemy_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
-	shoot_bullet(data, position, direction, override)
+func shoot_enemy_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+	shoot_bullet(data, pos, direction, override)
 
-func shoot_bomb_bullet(data: BulletData, position: Vector2, direction: Vector2, override: BulletOverride = null):
-	shoot_bullet(data, position, direction, override)
+func shoot_bomb_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+	shoot_bullet(data, pos, direction, override)
 
 
 # ── 回收 ──
@@ -325,26 +325,26 @@ func _process_death_clears(delta: float) -> void:
 				return_bullet(b)
 		
 		# ── 激光切割 ──
-		for laser in _active_lasers:
+		for laser: CurvedLaserClass in _active_lasers:
 			if laser.phase != CurvedLaserClass.ALIVE:
 				continue
-			var vis_len := laser.head_dist - laser.tail_dist
+			var vis_len := (laser.head_dist as float) - (laser.tail_dist as float)
 			if vis_len <= 0:
 				continue
 			_cut_laser(laser, pos, radius, LASER_SAMPLE_INTERVAL)
 
 
-func _cut_laser(laser, circle_pos: Vector2, radius: float, interval: float) -> void:
-	var vis_len := laser.head_dist - laser.tail_dist
+func _cut_laser(laser: CurvedLaserClass, circle_pos: Vector2, radius: float, interval: float) -> void:
+	var vis_len := (laser.head_dist as float) - (laser.tail_dist as float)
 	var sample_count := maxi(int(vis_len / interval), 4)
 	
 	var in_hole := false
 	var hole_start := 0.0
 	
 	for i in range(sample_count):
-		var dist := laser.tail_dist + vis_len * float(i) / float(sample_count - 1)
-		var pt := laser._sample_curve(dist)
-		var inside := pt.distance_squared_to(circle_pos) <= radius * radius
+		var dist := (laser.tail_dist as float) + vis_len * float(i) / float(sample_count - 1)
+		var pt: Vector2 = laser._sample_curve(dist)
+		var inside: bool = pt.distance_squared_to(circle_pos) <= radius * radius
 		
 		if inside and not in_hole:
 			in_hole = true
