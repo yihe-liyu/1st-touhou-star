@@ -35,7 +35,6 @@ func _on_back():
 # ═══ logo 渐隐（_process 手动驱动，因为 tween 总有鬼） ═══
 
 func _process(delta: float) -> void:
-	print("[Logo] a=", _logo.modulate.a, " target=", _logo_target_alpha)
 	_logo.modulate.a = move_toward(_logo.modulate.a, _logo_target_alpha, 3.0 * delta)
 	if _logo.modulate.a < 0.01:
 		_logo.modulate.a = 0.0

@@ -43,5 +43,5 @@ void fragment() {
 	// 粒子逐渐变亮
 	float brightness = 0.25 + 0.75 * local_progress;
 
-	COLOR = vec4(tex.rgb * brightness + glow_color, tex.a * local_progress);
+	COLOR = COLOR * vec4(tex.rgb * brightness + glow_color, tex.a * local_progress);
 }
