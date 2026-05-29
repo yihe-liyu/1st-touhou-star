@@ -1,12 +1,12 @@
 extends Control
 class_name MenuHost
-## 菜单栈 —— 管理界面 push/pop，每个界面是独立场景
-##
-## 用法：
-##   var screen = MenuHost.push("res://scenes/ui/difficulty_screen.tscn")
-##   MenuHost.pop()  或 screen.finished.emit({})
-##
-## 被 push 的场景需有 finished(result) 信号（可选继承 MenuScreen）。
+# 菜单栈 —— 管理界面 push/pop，每个界面是独立场景
+#
+# 用法：
+#   var screen = MenuHost.push("res://scenes/ui/difficulty_screen.tscn")
+#   MenuHost.pop()  或 screen.finished.emit({})
+#
+# 被 push 的场景需有 finished(result) 信号（可选继承 MenuScreen）。
 
 signal screen_changed(current: Node, previous: Node)
 
@@ -15,7 +15,7 @@ var _root_screen: Node   # 栈底的初始界面（不可 pop）
 
 
 func _ready() -> void:
-	# 第一个子节点作为根界面
+	# 尝试取第一个子节点作为根界面
 	for child in get_children():
 		_root_screen = child
 		_root_screen.visible = true
@@ -27,6 +27,18 @@ func _ready() -> void:
 
 ## 推入一个新界面（自动加载场景、实例化、入栈）
 func push(scene_path: String) -> Node:
+	# 栈空时直接加入（不压住旧界面）
+	if _stack.is_empty():
+		var screen: Node = load(scene_path).instantiate()
+		add_child(screen)
+		screen.visible = true
+		_stack.append(screen)
+		_connect_finished(screen)
+		if screen.has_method(&"_on_enter"):
+			screen._on_enter()
+		screen_changed.emit(screen, null)
+		return screen
+	
 	# 停用当前顶层
 	var prev: Node = _stack[-1]
 	_set_active(prev, false)

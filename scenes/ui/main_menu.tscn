@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://c3fv40qpgoim8" path="res://assets/Textures/title/title_bk.png" id="2_fe2o3"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="3_1g8jr"]
 [ext_resource type="Shader" uid="uid://b2ydwl5kwlb2m" path="res://gdshader/logo_entrance.gdshader" id="4"]
-[ext_resource type="Script" path="res://scripts/ui/menu_host.gd" id="5_menu_host"]
+[ext_resource type="Script" uid="uid://e73gjgug86o3" path="res://scripts/ui/menu_host.gd" id="5_menu_host"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vs4v7"]
 shader = ExtResource("4")
@@ -100,12 +100,6 @@ grow_horizontal = 2
 texture = ExtResource("3_1g8jr")
 
 [node name="MenuHost" type="Control" parent="." unique_id=622629193]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-script = ExtResource("5_menu_host")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -113,3 +107,4 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+script = ExtResource("5_menu_host")
