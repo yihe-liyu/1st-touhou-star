@@ -16,6 +16,9 @@ var bullet_scene = preload("res://scenes/bullet.tscn")
 var active_bullets: Array = []
 var bullet_pool: Array = []
 
+# ── 死亡清弹 ──
+var _death_clears: Array[Dictionary] = []  # [{pos, age, duration, start_r, max_r}]
+
 func _ready():
 	# MultiMesh 批渲染（高性能）
 	if use_multi_mesh:
@@ -102,6 +105,10 @@ func return_bullet(bullet: Bullet):
 # ── 每帧更新 ──
 
 func _physics_process(delta):
+	# 死亡清弹
+	if not _death_clears.is_empty():
+		_process_death_clears(delta)
+	
 	for i in range(active_bullets.size() - 1, -1, -1):
 		var bullet = active_bullets[i]
 		
@@ -215,6 +222,36 @@ func _is_offscreen(position: Vector2) -> bool:
 		   position.y > r.size.y + margin
 
 # ── 切关清理 ──
+
+## 启动死亡清弹（miss 时调用）
+func start_death_clear(pos: Vector2, max_radius: float = 1200.0, duration: float = 1.0, start_radius: float = 10.0) -> void:
+	_death_clears.append({
+		pos = pos,
+		age = 0.0,
+		duration = duration,
+		start_r = start_radius,
+		max_r = max_radius,
+	})
+
+
+func _process_death_clears(delta: float) -> void:
+	for i in range(_death_clears.size() - 1, -1, -1):
+		var dc := _death_clears[i]
+		dc.age += delta
+		if dc.age >= dc.duration:
+			_death_clears.remove_at(i)
+			continue
+		var t := dc.age / dc.duration
+		var radius := lerpf(dc.start_r, dc.max_r, t)
+		var r2 := radius * radius
+		
+		for j in range(active_bullets.size() - 1, -1, -1):
+			var b := active_bullets[j]
+			if not is_instance_valid(b) or b.faction != 1:
+				continue
+			if b.global_position.distance_squared_to(dc.pos) <= r2:
+				return_bullet(b)
+
 
 func clear_all():
 	while active_bullets.size() > 0:

@@ -128,11 +128,9 @@ func _on_animation_finished() -> void:
 			change_state(RIGHT)
 
 func miss() -> void:
-	# 生成 miss 特效：扩散反色圆
+	# 扩散反色圆
 	MissEffectManager.add_circle(global_position)
-	# 死亡弹幕清除：不可见扩大圆消弹
-	var clear := preload("res://scripts/effect/death_clear.gd").new()
-	clear.global_position = global_position
-	get_tree().current_scene.add_child(clear)
+	# 死亡清弹
+	BulletManager.start_death_clear(global_position)
 	
 	# TODO: 无敌时间、残机扣除、死亡处理
