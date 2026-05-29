@@ -263,25 +263,25 @@ func _check_rect(bullet: Bullet, target: Node2D) -> bool:
 	return closest.distance_squared_to(local_target) < target_radius * target_radius
 
 
-func _spawn_hit_effect(effect_scene: PackedScene, position: Vector2, velocity: Vector2 = Vector2.ZERO):
+func _spawn_hit_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = Vector2.ZERO):
 	if not effect_scene:
 		return
 	var effect = effect_scene.instantiate()
 	var scene = get_tree().current_scene
 	if is_instance_valid(scene):
 		scene.add_child(effect)
-	effect.global_position = position
+	effect.global_position = pos
 	if effect.has_method("set_velocity"):
 		effect.set_velocity(velocity)
 
 
-func _is_offscreen(position: Vector2) -> bool:
+func _is_offscreen(pos: Vector2) -> bool:
 	var r = get_viewport().get_visible_rect()
 	var margin = 90.0
-	return position.x < -margin or \
-		   position.x > r.size.x + margin or \
-		   position.y < -margin or \
-		   position.y > r.size.y + margin
+	return pos.x < -margin or \
+		   pos.x > r.size.x + margin or \
+		   pos.y < -margin or \
+		   pos.y > r.size.y + margin
 
 
 # ═══════════════════════════════════════

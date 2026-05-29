@@ -191,6 +191,24 @@ func _merge_holes() -> void:
 	holes = merged
 
 
+func _shift_holes(amount: float) -> void:
+	## 孔洞跟着激光一起往前滑，被尾巴超出的丢弃
+	for i in range(holes.size() - 1, -1, -1):
+		holes[i].start_dist += amount
+		holes[i].end_dist += amount
+		if holes[i].end_dist <= tail_dist:
+			holes.remove_at(i)
+
+
+func _has_any_visible() -> bool:
+	## 激光上是否还有未被洞覆盖的可见段
+	var segs := _build_segments()
+	for seg in segs:
+		if (seg.end_dist as float) - (seg.start_dist as float) > 10.0:
+			return true
+	return false
+
+
 func _build_segments() -> Array[Dictionary]:
 	## 返回 [{start_dist, end_dist}, ...] 不包含孔洞的可见区间
 	if holes.is_empty():
@@ -221,13 +239,23 @@ func step(delta: float):
 
 	match phase:
 		ALIVE:
+			var old_tail := tail_dist
 			head_dist += data.grow_speed * delta
 			tail_dist = maxf(head_dist - data.tail_distance, 0.0)
+			# 孔洞跟着尾巴一起滑
+			var tail_shift := tail_dist - old_tail
+			if tail_shift > 0.0:
+				_shift_holes(tail_shift)
 			_toggle_fog(tail_dist <= 0.0)
 			if _fog_sprite and _fog_sprite.visible:
 				_fog_sprite.rotation += delta * 18.0
 			
-			if data.max_lifetime > 0.0:
+			# 如果整条激光都是洞，直接回收
+			if not _has_any_visible():
+				phase = FADE
+				_fade_age = 0.0
+				_apply_phase()
+			elif data.max_lifetime > 0.0:
 				if age >= data.max_lifetime:
 					phase = FADE
 					_fade_age = 0.0
