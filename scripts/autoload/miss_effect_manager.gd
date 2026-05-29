@@ -24,9 +24,9 @@ func _ready() -> void:
 	_mat.set_shader_parameter("edge_soft", 0.03)
 	# 初始化空圈
 	for i in MAX_CIRCLES:
-		_mat.set_shader_parameter("c_pos", Vector2.ZERO, i)
-		_mat.set_shader_parameter("c_radius", 0.0, i)
-		_mat.set_shader_parameter("c_alpha", 0.0, i)
+		_mat.set_shader_parameter("c_pos[%d]" % i, Vector2.ZERO)
+		_mat.set_shader_parameter("c_radius[%d]" % i, 0.0)
+		_mat.set_shader_parameter("c_alpha[%d]" % i, 0.0)
 	
 	_rect.material = _mat
 	add_child(_rect)
@@ -67,10 +67,10 @@ func _update_shader() -> void:
 			var alpha: float = 1.0 if t <= 0.5 else (1.0 - (t - 0.5) / 0.5)
 			# 世界坐标 → UV（相对矩形）
 			var uv_pos: Vector2 = (c.world_pos + Vector2(_half_size, _half_size)) / (_half_size * 2.0)
-			_mat.set_shader_parameter("c_pos", uv_pos, i)
-			_mat.set_shader_parameter("c_radius", radius_uv, i)
-			_mat.set_shader_parameter("c_alpha", alpha, i)
+			_mat.set_shader_parameter("c_pos[%d]" % i, uv_pos)
+			_mat.set_shader_parameter("c_radius[%d]" % i, radius_uv)
+			_mat.set_shader_parameter("c_alpha[%d]" % i, alpha)
 		else:
-			_mat.set_shader_parameter("c_pos", Vector2(-1, -1), i)
-			_mat.set_shader_parameter("c_radius", 0.0, i)
-			_mat.set_shader_parameter("c_alpha", 0.0, i)
+			_mat.set_shader_parameter("c_pos[%d]" % i, Vector2(-1, -1))
+			_mat.set_shader_parameter("c_radius[%d]" % i, 0.0)
+			_mat.set_shader_parameter("c_alpha[%d]" % i, 0.0)
