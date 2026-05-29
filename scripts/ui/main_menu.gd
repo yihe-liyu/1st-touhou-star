@@ -36,13 +36,14 @@ func _on_back():
 func _deactivate_title() -> void:
 	input_enabled = false
 	_stop_pulse()
-	# 先锁死所有子项颜色（不用 tween，直接设）
 	for i in menu_items.size():
 		menu_items[i].modulate = highlight_color if i == current_index else normal_color
-	# 再 tween 父容器和 logo 淡出
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_title_container, "modulate:a", 0.0, 0.25)
-	tw.tween_property(_logo, "modulate:a", 0.0, 0.25)
+	# logo: 固定 modulate，不依赖 tween
+	_logo.modulate.a = 0.0
+	tw.tween_callback(_title_container.hide).set_delay(0.25)
+	tw.tween_callback(_logo.hide).set_delay(0.01)
 	tw.tween_callback(_title_container.hide).set_delay(0.25)
 	tw.tween_callback(_logo.hide).set_delay(0.25)
 
@@ -51,10 +52,9 @@ func _activate_title() -> void:
 	_title_container.show()
 	_logo.show()
 	_title_container.modulate.a = 0.0
-	_logo.modulate.a = 0.0
-	var tw := create_tween().set_parallel(true)
+	_logo.modulate.a = 1.0  # logo 直接恢复
+	var tw := create_tween()
 	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
-	tw.tween_property(_logo, "modulate:a", 1.0, 0.25)
 	tw.tween_callback(func():
 		input_enabled = true
 		if current_index >= 0 and current_index < menu_items.size():
