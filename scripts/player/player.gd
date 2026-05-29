@@ -130,25 +130,14 @@ func _on_animation_finished() -> void:
 func miss() -> void:
 	var pos = global_position
 	# 第一波：中心 + 四方偏移
-	MissEffectManager.add_circle(pos, 3.2, 1280)
-	MissEffectManager.add_circle(pos + Vector2(100, 0), 3.2, 1280)
-	MissEffectManager.add_circle(pos + Vector2(-100, 0), 3.2, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, 100), 3.2, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, -100), 3.2, 1280)
+	MissEffectManager.add_circle(pos, 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(100, 0), 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(-100, 0), 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(0, 100), 3.0, 1280)
+	MissEffectManager.add_circle(pos + Vector2(0, -100), 3.0, 1280)
+	# 第二波：统一用 start_delay，走同一个 _process 生命周期
+	MissEffectManager.add_circle(pos, 1.0, 1280, 0.0, 2.0)
 	# 死亡清弹
 	BulletManager.start_death_clear(pos)
-	# 2 秒后第二波
-	var timer := Timer.new()
-	timer.wait_time = 2.0
-	timer.one_shot = true
-	timer.process_mode = Node.PROCESS_MODE_PAUSABLE
-	var p = pos
-	timer.timeout.connect(
-		func():
-			MissEffectManager.add_circle(p, 1.2, 1280)
-			timer.queue_free()
-	)
-	add_child(timer)
-	timer.start()
 	
 	# TODO: 无敌时间、残机扣除、死亡处理
