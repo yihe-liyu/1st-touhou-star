@@ -37,12 +37,12 @@ func _deactivate_title() -> void:
 	input_enabled = false
 	_stop_pulse()
 	_title_container.hide()
-	_logo.modulate.a = 0.25
+	_logo.hide()
 
 
 func _activate_title() -> void:
 	_title_container.show()
-	_logo.modulate.a = 1.0
+	_logo.show()
 	input_enabled = true
 	if current_index >= 0 and current_index < menu_items.size():
 		_start_pulse(menu_items[current_index])
