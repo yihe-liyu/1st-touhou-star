@@ -19,7 +19,7 @@ var end_dir: Vector2
 
 # 孔洞（消弹圆打的洞）
 var holes: Array[Dictionary] = []  # [{start_dist, end_dist}]
-var _grazed: bool = false  # 擦过弹了
+var _grazed_ranges: Array[Dictionary] = []  # 已擦过的 dist 区间
 
 # 配置
 var data: CurvedLaserData
@@ -48,7 +48,7 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	rotation_speed = p_rot_speed
 	guide_curve = p_curve
 	holes.clear()
-	_grazed = false
+	_grazed_ranges.clear()
 	
 	curve_total_length = _calc_curve_length()
 	var count := guide_curve.get_point_count()
@@ -211,6 +211,59 @@ func _has_any_visible() -> bool:
 	return false
 
 
+# ── 擦弹分段 ──
+
+func mark_grazed(dist: float) -> void:
+	var margin := 5.0
+	_grazed_ranges.append({start_dist = dist - margin, end_dist = dist + margin})
+	_merge_grazed()
+
+func is_grazed(dist: float) -> bool:
+	for gr in _grazed_ranges:
+		if dist >= (gr.start_dist as float) and dist <= (gr.end_dist as float):
+			return true
+	return false
+
+func _merge_grazed() -> void:
+	if _grazed_ranges.size() <= 1:
+		return
+	_grazed_ranges.sort_custom(func(a, b): return a.start_dist < b.start_dist)
+	var merged: Array[Dictionary] = [_grazed_ranges[0]]
+	for i in range(1, _grazed_ranges.size()):
+		var prev = merged[-1]
+		var cur = _grazed_ranges[i]
+		if cur.start_dist <= prev.end_dist:
+			prev.end_dist = maxf(prev.end_dist, cur.end_dist)
+		else:
+			merged.append(cur)
+	_grazed_ranges = merged
+
+func _shift_grazed(amount: float) -> void:
+	for i in range(_grazed_ranges.size() - 1, -1, -1):
+		_grazed_ranges[i].start_dist += amount
+		_grazed_ranges[i].end_dist += amount
+		if _grazed_ranges[i].end_dist <= tail_dist:
+			_grazed_ranges.remove_at(i)
+
+
+## 返回激光上距离 player_pos 最近点的 dist 值
+func find_closest_dist(player_pos: Vector2) -> float:
+	var visible_len := head_dist - tail_dist
+	if visible_len <= 0:
+		return tail_dist
+	var samples := maxi(int(visible_len / 10.0), 16)
+	var best_dist := tail_dist
+	var best_d2 := INF
+	for i in range(samples):
+		var dist := tail_dist + visible_len * float(i) / float(samples - 1)
+		var pt := _sample_curve(dist)
+		var d2 := player_pos.distance_squared_to(pt)
+		if d2 < best_d2:
+			best_d2 = d2
+			best_dist = dist
+	return best_dist
+
+
 func _build_segments() -> Array[Dictionary]:
 	## 返回 [{start_dist, end_dist}, ...] 不包含孔洞的可见区间
 	if holes.is_empty():
@@ -248,6 +301,7 @@ func step(delta: float):
 			var tail_shift := tail_dist - old_tail
 			if tail_shift > 0.0:
 				_shift_holes(tail_shift)
+				_shift_grazed(tail_shift)
 			_toggle_fog(tail_dist <= 0.0)
 			if _fog_sprite and _fog_sprite.visible:
 				_fog_sprite.rotation += delta * 18.0

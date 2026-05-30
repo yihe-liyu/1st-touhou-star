@@ -168,9 +168,18 @@ func _step_lasers(delta: float) -> void:
 		if laser.phase == CurvedLaserClass.ALIVE and has_player and not hit:
 			if laser.is_hitting_player(player_pos):
 				hit = true
-			elif not laser._grazed and laser.is_hitting_player(player_pos, player.graze_radius):
-				laser._grazed = true
-				_on_graze()
+			elif laser.is_hitting_player(player_pos, player.graze_radius):
+				var dist := laser.find_closest_dist(player_pos)
+				# 跳过孔洞区域
+				if not laser.is_grazed(dist):
+					var in_hole := false
+					for h in laser.holes:
+						if dist >= (h.start_dist as float) and dist <= (h.end_dist as float):
+							in_hole = true
+							break
+					if not in_hole:
+						laser.mark_grazed(dist)
+						_on_graze()
 	
 	if hit and player.has_method("miss"):
 		player.miss()
