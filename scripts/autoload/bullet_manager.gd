@@ -284,6 +284,7 @@ func _bullet_grazes_player(bullet: Bullet, player: Player) -> bool:
 func _on_graze() -> void:
 	GameState.graze_count += 1
 	GameState.add_score(10)
+	AudioManager.play_sfx(preload("res://assets/Sound/graze.wav"))
 
 
 # ═══════════════════════════════════════
