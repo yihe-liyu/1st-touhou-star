@@ -47,6 +47,9 @@ func _ready() -> void:
 		p.bus = sfx_bus
 		add_child(p)
 		_sfx_players.append(p)
+	
+	# 暂停/恢复时控制 BGM
+	GameManager.game_state_changed.connect(_on_game_state_changed)
 
 
 # ═══ BGM ═══
@@ -125,3 +128,12 @@ func _to_db(linear: float) -> float:
 func _find_bus(name: String) -> StringName:
 	var idx := AudioServer.get_bus_index(name)
 	return name if idx >= 0 else &"Master"
+
+
+func _on_game_state_changed(_old: int, new: int) -> void:
+	if new == GameManager.AppState.PAUSED:
+		_bgm_player.stream_paused = true
+		_bgm_player2.stream_paused = true
+	elif _old == GameManager.AppState.PAUSED:
+		_bgm_player.stream_paused = false
+		_bgm_player2.stream_paused = false
