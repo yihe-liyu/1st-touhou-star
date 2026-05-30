@@ -1,22 +1,36 @@
 extends CanvasLayer
 class_name GameUI
 
-@onready var _score_num: NumberSprite = $ScoreNumber
-@onready var _hi_score_num: NumberSprite = $HiScoreNumber
-@onready var _graze_num: NumberSprite = $GrazeNumber
-@onready var _power_label: Label = $PowerLabel
+var _score_num: NumberSprite
+var _hi_score_num: NumberSprite
+var _graze_num: NumberSprite
+var _power_label: Label
 
 
 func _ready() -> void:
-	# Power 用 Label 因为带小数点
+	# 创建数字精灵（用贴图显示，替换为你的数字贴图）
+	_score_num = _make_number_sprite("ScoreNumber", $Score.position + Vector2(0, 24))
+	_hi_score_num = _make_number_sprite("HiScoreNumber", $HighScore.position + Vector2(0, 24))
+	_graze_num = _make_number_sprite("GrazeNumber", $Graze.position + Vector2(0, 24))
+	
+	# Power 带小数点，用 Label
 	_power_label = Label.new()
-	_power_label.name = "PowerLabel"
 	_power_label.offset_left = $Power.position.x
 	_power_label.offset_top = $Power.position.y + 24
 	_power_label.z_index = 128
 	_power_label.add_theme_font_size_override("font_size", 18)
 	_power_label.add_theme_color_override("font_color", Color.WHITE)
 	add_child(_power_label)
+
+
+func _make_number_sprite(node_name: String, pos: Vector2) -> NumberSprite:
+	var ns := NumberSprite.new()
+	ns.name = node_name
+	ns.position = pos
+	ns.z_index = 128
+	ns.digit_count = 8
+	add_child(ns)
+	return ns
 
 
 func _process(_delta: float) -> void:
