@@ -1,45 +1,31 @@
 extends CanvasLayer
 class_name GameUI
-## 游戏内 HUD —— 更新分数、擦弹、火力等数值
 
-var _score_label: Label
-var _hi_score_label: Label
-var _graze_label: Label
-var _power_label: Label
+@onready var _score_num: NumberSprite = $ScoreNumber
+@onready var _hi_score_num: NumberSprite = $HiScoreNumber
+@onready var _graze_num: NumberSprite = $GrazeNumber
+@onready var _power_label: Label = $PowerLabel
 
 
 func _ready() -> void:
-	# 动态创建数字标签
-	_create_number_label("HiScoreLabel", $HighScore.position + Vector2(0, 24))
-	_create_number_label("ScoreLabel", $Score.position + Vector2(0, 24))
-	_create_number_label("GrazeLabel", $Graze.position + Vector2(0, 24))
-	_create_number_label("PowerLabel", $Power.position + Vector2(0, 24))
-	
-	# 重新获取引用
-	_score_label = $ScoreLabel
-	_hi_score_label = $HiScoreLabel
-	_graze_label = $GrazeLabel
-	_power_label = $PowerLabel
+	# Power 用 Label 因为带小数点
+	_power_label = Label.new()
+	_power_label.name = "PowerLabel"
+	_power_label.offset_left = $Power.position.x
+	_power_label.offset_top = $Power.position.y + 24
+	_power_label.z_index = 128
+	_power_label.add_theme_font_size_override("font_size", 18)
+	_power_label.add_theme_color_override("font_color", Color.WHITE)
+	add_child(_power_label)
 
 
 func _process(_delta: float) -> void:
 	if not is_instance_valid(GameState):
 		return
 	
-	_hi_score_label.text = "%08d" % GameState.get_high_score(0)
-	_score_label.text = "%08d" % GameState.current_score
-	_graze_label.text = "%d" % GameState.graze_count
+	_hi_score_num.value = GameState.get_high_score(0)
+	_score_num.value = GameState.current_score
+	_graze_num.value = GameState.graze_count
 	
 	if GameState.player and is_instance_valid(GameState.player):
 		_power_label.text = GameState.get_power_display()
-
-
-func _create_number_label(node_name: String, pos: Vector2) -> void:
-	var lbl := Label.new()
-	lbl.name = node_name
-	lbl.offset_left = pos.x
-	lbl.offset_top = pos.y
-	lbl.z_index = 128
-	lbl.add_theme_font_size_override("font_size", 18)
-	lbl.add_theme_color_override("font_color", Color.WHITE)
-	add_child(lbl)
