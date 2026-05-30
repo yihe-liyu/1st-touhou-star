@@ -72,6 +72,7 @@ func stop_bgm() -> void:
 
 func _on_bgm_finished() -> void:
 	if _loop_bgm and _current_bgm:
+		_bgm_player.seek(0.0)
 		_bgm_player.play()
 
 
