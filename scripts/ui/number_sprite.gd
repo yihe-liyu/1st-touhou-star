@@ -4,11 +4,11 @@ class_name NumberSprite
 ## 每帧更新，自动创建/回收数字精灵
 
 @export var digit_texture: Texture2D
-@export var char_count: int = 13       # 贴图里字符总数
-@export var dot_index: int = 10        # 小数点在第几位
-@export var slash_index: int = -1     // 斜杠在第几位（-1=不显示）
-@export var pct_index: int = -1      // % 在第几位
-@export var minus_index: int = -1    // - 在第几位
+@export var char_count: int = 14       # 贴图里字符总数
+@export var dot_index: int = 11        # 小数点在第几位
+@export var slash_index: int = 12     # 斜杠在第几位（-1=不显示）
+@export var pct_index: int = 14      # % 在第几位
+@export var minus_index: int = 13    # - 在第几位
 @export var left_align: bool = false   # true=左对齐不留前导零
 @export var digit_count: int = 8       # 最大显示位数
 @export var digit_spacing: float = 24.0  # 字符间距
@@ -24,7 +24,7 @@ var _text: String = ""  # 如果设置了 text，优先用 text
 
 func _ready() -> void:
 	if digit_texture:
-		_digit_width = digit_texture.get_width() / float(char_count)
+		_digit_width = floor(digit_texture.get_width() / float(char_count))
 	_setup_digits()
 
 
@@ -77,7 +77,7 @@ func _process(_delta: float) -> void:
 			idx = minus_index
 		
 		if idx >= 0:
-			_digits[i].region_rect = Rect2(idx * _digit_width, 0, _digit_width, digit_texture.get_height())
+			_digits[i].region_rect = Rect2(floor(idx * _digit_width), 0, _digit_width, digit_texture.get_height())
 			_digits[i].visible = true
 		else:
 			_digits[i].visible = false
