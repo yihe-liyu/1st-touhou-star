@@ -39,12 +39,19 @@ void fragment() {
 		float wave3 = noise(UV * 32.0 + vec2(t * 0.7, -t * 0.6));
 		float wave = wave1 * 0.5 + wave2 * 0.3 + wave3 * 0.2;
 		
+		// 波纹扭曲 UV
+		vec2 wuv = UV + vec2((wave1 - 0.5) * wave_strength, (wave2 - 0.5) * wave_strength);
+		float w1 = noise(wuv * 8.0);
+		float w2 = noise(wuv * 16.0);
+		float w3 = noise(wuv * 32.0);
+		float w = w1 * 0.5 + w2 * 0.3 + w3 * 0.2;
+		
 		vec3 deep    = vec3(0.05, 0.15, 0.35);
 		vec3 shallow = vec3(0.1, 0.35, 0.55);
-		float depth = wave * 0.6 + 0.4;
+		float depth = w * 0.6 + 0.4;
 		vec3 water_color = mix(deep, shallow, depth);
 		
-		float highlight = smoothstep(0.55, 0.75, wave) * 0.3;
+		float highlight = smoothstep(0.55, 0.75, w) * 0.3;
 		water_color += highlight * vec3(0.4, 0.6, 0.8);
 		
 		COLOR = vec4(water_color, 0.85);

@@ -16,6 +16,8 @@ var power_raw: int = 200
 var max_point: int = 10000
 var graze_count: int = 0  # 擦弹数
 
+var memory: float = 50.0
+
 var _config: ConfigFile
 const SAVE_PATH: String = "user://save_data.cfg"
 
