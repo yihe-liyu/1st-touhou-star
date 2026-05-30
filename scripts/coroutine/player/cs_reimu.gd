@@ -66,7 +66,7 @@ func _main_step(api: StageAPI) -> Variant:
 		return true
 	api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
 	api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(20, 0))
-	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"))
+	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"), -8.0)
 	return api.frames(MAIN_INTERVAL)
 
 func _option_step(api: StageAPI) -> Variant:

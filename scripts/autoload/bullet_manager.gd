@@ -19,6 +19,7 @@ const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
 
 # ── 死亡清弹 ──
 var _death_clears: Array[Dictionary] = []
+var _graze_sfx_played: bool = false  # 每帧只播一次擦弹音效
 
 
 func _ready():
@@ -131,6 +132,8 @@ func return_bullet(bullet: Bullet):
 # ═══════════════════════════════════════
 
 func _physics_process(delta: float) -> void:
+	_graze_sfx_played = false  # 每帧重置
+	
 	# 1. 死亡清弹（弹幕 + 激光切割）
 	if not _death_clears.is_empty():
 		_process_death_clears(delta)
@@ -284,7 +287,9 @@ func _bullet_grazes_player(bullet: Bullet, player: Player) -> bool:
 func _on_graze() -> void:
 	GameState.graze_count += 1
 	GameState.add_score(10)
-	AudioManager.play_sfx(preload("res://assets/Sound/graze.wav"))
+	if not _graze_sfx_played:
+		_graze_sfx_played = true
+		AudioManager.play_sfx(preload("res://assets/Sound/graze.wav"), 4.0)
 
 
 # ═══════════════════════════════════════
