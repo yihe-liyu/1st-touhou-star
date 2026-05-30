@@ -7,7 +7,8 @@ uniform float time_scale : hint_range(1.0, 3.0) = 1.5;
 uniform float saturation : hint_range(0.0, 1.0) = 0.5;
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
-uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;  // 浪的方向弧度
+uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
+uniform float rot_speed : hint_range(-0.5, 0.5) = 0.05;  # 旋转速度 rad/s
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -29,8 +30,8 @@ void fragment() {
 	float min_dist = min(min(dl, dr), min(dt, db));
 	if (min_dist <= border_width) { COLOR = border_color; } else {
 		
-		// 旋转 UV 控制浪向（绕矩形中心）
-		float a = wave_angle;
+		// 旋转浪向（随时间缓慢转动）
+		float a = wave_angle + TIME * rot_speed;
 		vec2 centered = UV - 0.5;
 		vec2 ruv = vec2(centered.x * cos(a) - centered.y * sin(a), centered.x * sin(a) + centered.y * cos(a)) + 0.5;
 		vec2 uv = ruv * 2.5;
