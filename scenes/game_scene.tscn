@@ -53,6 +53,7 @@ shader_parameter/border_width = 3.0
 shader_parameter/rect_size = Vector2(384, 256)
 shader_parameter/time_scale = 3.0
 shader_parameter/saturation = 0.5
+shader_parameter/wind_strength = 1.0
 
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")

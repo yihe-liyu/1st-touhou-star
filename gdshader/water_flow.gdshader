@@ -6,6 +6,7 @@ uniform vec2 rect_size = vec2(384.0, 256.0);
 uniform float time_scale : hint_range(1.0, 3.0) = 1.5;
 uniform float saturation : hint_range(0.0, 1.0) = 0.5;
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
+uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -106,6 +107,16 @@ void fragment() {
 		float wn2 = noise(vec2(wuv.x * 3.0 + t * 0.7, wuv.y * 0.3)) * 0.6 + 0.4;
 		float wind = smoothstep(0.55, 0.7, wn1 * wn2) * (1.0 - pow(wn1, 3.0)) * wind_strength;
 		col = mix(col, col * 1.4 + vec3(0.08, 0.12, 0.18), wind);
+		
+		// ── 暗涌翻滚 ── 低频大振幅，漩涡暗流
+		vec2 surge_uv = uv * 1.8;
+		float surge1 = sin(surge_uv.x * 2.0 + surge_uv.y * 1.3 + t * 0.3) * 0.5;
+		float surge2 = cos(surge_uv.x * 1.4 - surge_uv.y * 1.7 + t * 0.25) * 0.3;
+		float surge_noise = noise(surge_uv * 3.0 + t * 0.15);
+		float surge = (surge1 + surge2) * surge_noise * surge_strength;
+		// 暗涌在波谷处加深，波峰处提亮
+		float surge_depth = surge * 0.5 + 0.5;
+		col = mix(col * 0.6, col * 1.15 + vec3(0.02, 0.04, 0.08), surge_depth);
 		
 		col = max(col, 0.0);  // 防止暗纹减出黑斑
 		
