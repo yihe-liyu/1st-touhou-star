@@ -18,7 +18,7 @@ var bgm_volume: float = 1.0:
 	set(v):
 		bgm_volume = clampf(v, 0.0, 1.0)
 		_apply_volumes()
-var sfx_volume: float = 0.1:
+var sfx_volume: float = 0.2:
 	set(v):
 		sfx_volume = clampf(v, 0.0, 1.0)
 		_apply_volumes()

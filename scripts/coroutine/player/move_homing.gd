@@ -1,16 +1,16 @@
 extends MoveScript
 class_name MoveHoming
 
-@export var homing_angle_per_sec: float = deg_to_rad(300)
+@export var homing_angle_per_sec: float = deg_to_rad(720)
 @export var accel_time: float = 2.0
 @export var min_speed: float = 500.0
 @export var max_speed: float = 1500.0
 @export var homing_duration: float = 1.0
+@export var prediction: float = 0.15  # 预测时间（秒），越大越超前
 
 var _elapsed: float = 0.0
 var _base_speed: float
 var _max_speed: float
-var _use_max: bool
 
 func start_moving(api: StageAPI, p_target: Node2D):
 	target = p_target
@@ -33,7 +33,10 @@ func _on_step(api: StageAPI) -> Variant:
 	if still_homing:
 		var nearest := _find_nearest_enemy()
 		if nearest:
-			var desired_dir := (nearest.global_position - target.global_position).normalized()
+			# 预测敌人未来的位置
+			var enemy_vel: Vector2 = nearest.get("velocity") if "velocity" in nearest else Vector2.ZERO
+			var predicted := nearest.global_position + enemy_vel * prediction
+			var desired_dir := (predicted - target.global_position).normalized()
 			var current_dir: Vector2 = target.velocity.normalized()
 			var angle_diff: float = current_dir.angle_to(desired_dir)
 			var max_turn := homing_angle_per_sec * turn_factor / Engine.physics_ticks_per_second
