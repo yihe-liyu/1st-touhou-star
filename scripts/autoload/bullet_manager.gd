@@ -382,3 +382,8 @@ func clear_all():
 		return_bullet(active_bullets[0])
 	clear_all_lasers()
 	_death_clears.clear()
+
+
+func clear_bullets():
+	while active_bullets.size() > 0:
+		return_bullet(active_bullets[0])

@@ -12,8 +12,8 @@ dest_files=["res://.godot/imported/THq01_12.不尽记忆的天空.mp3-c626a2686e
 
 [params]
 
-loop=false
-loop_offset=0
-bpm=0
+loop=true
+loop_offset=0.0
+bpm=0.0
 beat_count=0
 bar_beats=4

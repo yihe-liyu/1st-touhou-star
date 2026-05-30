@@ -41,7 +41,7 @@ func stop_stage():
 		_stage_script.queue_free()
 		_stage_script = null
 	GameState.clear_enemies()
-	BulletManager.clear_all()
+	BulletManager.clear_bullets()  # 清弹幕，激光自己淡出
 
 func _on_stage_finished():
 	if not current_stage:

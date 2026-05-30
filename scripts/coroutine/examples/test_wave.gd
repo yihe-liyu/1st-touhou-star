@@ -16,10 +16,8 @@ func _on_step(api: StageAPI) -> Variant:
 			_phase = 1
 			return api.seconds(3.0)
 		1:
-			# 等敌人都死了或超时，再清场结束
 			if api.all_defeated():
-				api.clear_all_lasers()
 				return false
-			return true  # 继续等
+			return true
 		_:
 			return false
