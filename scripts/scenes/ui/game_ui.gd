@@ -33,8 +33,8 @@ func _ready() -> void:
 	_max_point_num.left_align = true
 	_graze_num.left_align     = true
 	_memory_num.left_align    = true
-	_memory_num.pct_index     = 12
-	_memory_num.minus_index   = 11
+	_memory_num.pct_index     = 12  # 记忆值的 '%'
+	_memory_num.minus_index   = 11  # 负数的 '-'
 	_memory_num.char_count    = 14
 
 
@@ -45,11 +45,11 @@ func _make_number_sprite(p_name: String, pos: Vector2, tex: Texture2D = null, dc
 	ns.z_index = 128
 	ns.digit_count = dcount
 	ns.digit_texture = tex
-	ns.char_count = 14
-	ns.dot_index = 12
-	ns.slash_index = 13
-	ns.minus_index = -1
-	ns.pct_index = -1
+	ns.char_count = 14   # 贴图共14个字符（0-9 + . / - % 留空位）
+	ns.dot_index = 12    # '12' 在贴图中是 '.'
+	ns.slash_index = 13  # '13' 在贴图中是 '/'
+	ns.minus_index = -1  # 普通数字不用 '-'，默认隐藏
+	ns.pct_index = -1    # 普通数字不用 '%'，默认隐藏
 	add_child(ns)
 	return ns
 
