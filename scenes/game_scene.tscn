@@ -2,10 +2,10 @@
 
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
 [ext_resource type="Resource" uid="uid://teststage001" path="res://data/stages/test_stage.tres" id="2_rurhu"]
-[ext_resource type="Texture2D" uid="uid://btj64lam67h1f" path="res://assets/Textures/front/FalseFront.png" id="5_rurhu"]
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
 [ext_resource type="Texture2D" uid="uid://dtv267387tbw0" path="res://assets/Textures/front/front02.png" id="6_mw25s"]
+[ext_resource type="Texture2D" uid="uid://cc1au4xtkecte" path="res://assets/Textures/front/TrueFront2.png" id="6_tcjrq"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game/game_scene.gd" id="9_script"]
 [ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/ui/game_ui.gd" id="10_ui"]
@@ -53,6 +53,7 @@ shader_parameter/border_width = 3.0
 shader_parameter/rect_size = Vector2(384, 256)
 shader_parameter/time_scale = 3.0
 shader_parameter/saturation = 0.5
+shader_parameter/memory = 50.0
 shader_parameter/wind_strength = 1.0
 shader_parameter/surge_strength = 1.0
 shader_parameter/wave_angle = 0.0
@@ -99,7 +100,7 @@ script = ExtResource("10_ui")
 
 [node name="front" type="Sprite2D" parent="UI" unique_id=1281612929]
 z_index = 128
-texture = ExtResource("5_rurhu")
+texture = ExtResource("6_tcjrq")
 offset = Vector2(640, 480)
 
 [node name="diffculty" type="Sprite2D" parent="UI" unique_id=1428832846]

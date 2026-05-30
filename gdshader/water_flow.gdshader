@@ -28,6 +28,7 @@ void fragment() {
 	float mem_speed = mix(0.0, mix(1.0, 3.0, memory / 200.0), smoothstep(-100.0, 0.0, memory));
 	float mem_sat   = smoothstep(-100.0, 100.0, memory);  // 0→1 随着 memory
 	float mem_amp   = smoothstep(0.0, 200.0, memory);       // 波幅增强
+	float mem_bright = smoothstep(-100.0, 200.0, memory);     // 亮度 0→1
 	
 	float t = TIME * time_scale * mem_speed;
 	
@@ -130,7 +131,8 @@ void fragment() {
 		float surge_depth = surge * 0.5 + 0.5;
 		col = mix(col * 0.6, col * 1.15 + vec3(0.02, 0.04, 0.08), surge_depth);
 		
-		col = max(col, 0.0);  // 防止暗纹减出黑斑
+		col = max(col, 0.0);
+		col *= mix(0.3, 1.6, mem_bright);  // 亮度随 memory
 		
 		COLOR = vec4(col, 0.92);
 	}
