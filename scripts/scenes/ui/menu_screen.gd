@@ -34,3 +34,15 @@ func _on_activate() -> void:
 ## 被 pop 时调用 —— 应包含退场动画，动画结束后 queue_free()
 func _on_leave() -> void:
 	queue_free()
+
+
+# ═══ 音效快捷 ═══
+
+func sfx_nav() -> void:
+	AudioManager.play_sfx(preload("res://assets/Sound/select.wav"))
+
+func sfx_confirm() -> void:
+	AudioManager.play_sfx(preload("res://assets/Sound/ok.wav"))
+
+func sfx_back() -> void:
+	AudioManager.play_sfx(preload("res://assets/Sound/pause.wav"))

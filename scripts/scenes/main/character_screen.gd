@@ -57,14 +57,18 @@ func _input(event: InputEvent) -> void:
 			KEY_LEFT:
 				_index = wrapi(_index - 1, 0, _labels.size())
 				_refresh()
+				sfx_nav()
 				get_viewport().set_input_as_handled()
 			KEY_RIGHT:
 				_index = wrapi(_index + 1, 0, _labels.size())
 				_refresh()
+				sfx_nav()
 				get_viewport().set_input_as_handled()
 			KEY_Z, KEY_ENTER, KEY_SPACE:
+				sfx_confirm()
 				done({"character": _index})
 				get_viewport().set_input_as_handled()
 			KEY_X, KEY_ESCAPE:
+				sfx_back()
 				leave()
 				get_viewport().set_input_as_handled()

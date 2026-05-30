@@ -45,14 +45,18 @@ func _input(event: InputEvent) -> void:
 			KEY_UP:
 				_index = wrapi(_index - 1, 0, _labels.size())
 				_refresh()
+				sfx_nav()
 				get_viewport().set_input_as_handled()
 			KEY_DOWN:
 				_index = wrapi(_index + 1, 0, _labels.size())
 				_refresh()
+				sfx_nav()
 				get_viewport().set_input_as_handled()
 			KEY_Z, KEY_ENTER, KEY_SPACE:
+				sfx_confirm()
 				done({"difficulty": _index})
 				get_viewport().set_input_as_handled()
 			KEY_X, KEY_ESCAPE:
+				sfx_back()
 				leave()
 				get_viewport().set_input_as_handled()
