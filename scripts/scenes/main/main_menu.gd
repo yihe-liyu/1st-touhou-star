@@ -72,7 +72,19 @@ func _open_difficulty() -> void:
 
 
 func _on_difficulty_finished(result: Dictionary) -> void:
-	GameState.selected_difficulty = result.get("difficulty", 1)
-	# TODO: 打开角色选择
-	# 等难度面板退场动画播完 + 同帧 X 键过期，再恢复标题菜单
-	get_tree().create_timer(0.25).timeout.connect(func(): _activate_title())
+	if result.has("difficulty"):
+		GameState.selected_difficulty = result.difficulty
+		# 难度选定 → 打开角色选择
+		$MenuHost.push("res://scenes/ui/character_screen.tscn").finished.connect(_on_character_finished)
+	else:
+		# X 返回 → 恢复标题
+		get_tree().create_timer(0.25).timeout.connect(func(): _activate_title())
+
+
+func _on_character_finished(result: Dictionary) -> void:
+	if result.has("character"):
+		GameState.selected_character = result.character
+		GameManager.change_scene("res://scenes/game_scene.tscn")
+	else:
+		# X 返回 → 重新打开难度选择
+		$MenuHost.push("res://scenes/ui/difficulty_screen.tscn").finished.connect(_on_difficulty_finished)

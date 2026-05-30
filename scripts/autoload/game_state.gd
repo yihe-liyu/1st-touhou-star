@@ -7,6 +7,10 @@ var current_score: int = 0
 var high_scores: Dictionary = {}
 ## 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1
+## 0=Reimu 1=Marisa
+var selected_character: int = 0
+## 0=Easy 1=Normal 2=Hard 3=Lunatic
+var selected_difficulty: int = 1
 ## 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
 var power_raw: int = 300
 var _config: ConfigFile

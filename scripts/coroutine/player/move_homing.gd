@@ -46,7 +46,7 @@ func _on_step(api: StageAPI) -> Variant:
 			var actual_turn := clampf(angle_diff, -max_turn, max_turn)
 
 			# 方向差大时降速，防冲过头
-			var alignment := (current_dir.dot(desired_dir) + 1.0) * 0.5  # 0=反, 0.5=横, 1=正
+			var alignment := (current_dir.dot(desired_dir) + 1.0) * 0.4  # 0=反, 0.5=横, 1=正
 			var speed_mult := lerpf(0.5, 1.0, alignment)
 
 			target.velocity = current_dir.rotated(actual_turn) * current_speed * speed_mult
