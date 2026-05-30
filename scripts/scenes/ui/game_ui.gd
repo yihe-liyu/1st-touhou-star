@@ -45,9 +45,9 @@ func _make_number_sprite(p_name: String, pos: Vector2, tex: Texture2D = null, dc
 	ns.z_index = 128
 	ns.digit_count = dcount
 	ns.digit_texture = tex
-	ns.dot_index = 10
-	ns.slash_index = 11
-	ns.char_count = 12
+	ns.dot_index = 12
+	ns.slash_index = 13
+	ns.char_count = 14
 	add_child(ns)
 	return ns
 
