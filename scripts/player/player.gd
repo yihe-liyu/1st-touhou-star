@@ -75,6 +75,14 @@ func _init_shoot_script() -> void:
 	var api = StageAPI.new(_shoot_script)
 	_shoot_script.start_shooting(api)
 
+## 切换角色时重新初始化射击
+func _reinit_shoot() -> void:
+	if _shoot_script:
+		_shoot_script.stop()
+		_shoot_script.queue_free()
+		_shoot_script = null
+	_init_shoot_script()
+
 func update_hitbox_display() -> void:
 	if is_focused:
 		hitpoint_display.show_hitpoint()

@@ -96,7 +96,10 @@ func _setup_player() -> void:
 	]
 	var player := $World/Player
 	if player and GameState.selected_character < data_map.size():
+		# 直接替换数据并强制重新应用
 		player.player_data = data_map[GameState.selected_character]
+		player._apply_player_data()
+		player._reinit_shoot()
 
 
 #func _on_stage_cleared():
