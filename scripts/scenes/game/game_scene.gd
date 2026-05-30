@@ -71,7 +71,7 @@ func _add_blur() -> void:
 	
 	# 放在 UI CanvasLayer 下面、World 上面
 	var blur_layer := CanvasLayer.new()
-	blur_layer.layer = 0
+	blur_layer.layer = 100
 	blur_layer.name = "BlurLayer"
 	blur_layer.add_child(_blur_rect)
 	add_child(blur_layer)
