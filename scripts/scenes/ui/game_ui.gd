@@ -13,7 +13,7 @@ var _graze_num: Node2D
 
 func _ready() -> void:
 	var tex := preload("res://assets/Textures/ascii/ascii.png")
-	_hi_score_num = _make_number_sprite("HiScoreNumber", $HighScore.position + Vector2(150, 0), tex)
+	_hi_score_num = _make_number_sprite("HiScoreNumber",  $HighScore.position + Vector2(150, 0), tex)
 	_score_num    = _make_number_sprite("ScoreNumber",    $Score.position     + Vector2(150, 0), tex)
 	_power_num    = _make_number_sprite("PowerNumber",    $Power.position     + Vector2(128, 0), tex, 10)
 	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(150, 0), tex)
