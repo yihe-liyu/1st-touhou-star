@@ -5,6 +5,7 @@ uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 uniform float time_scale : hint_range(1.0, 3.0) = 1.5;
 uniform float saturation : hint_range(0.0, 1.0) = 0.5;
+uniform float memory : hint_range(-100.0, 200.0) = 50.0;  // -100=黑白冻结, 200=狂乱彩色
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
@@ -23,7 +24,12 @@ float noise(vec2 p) {
 }
 
 void fragment() {
-	float t = TIME * time_scale;
+	// memory: -100=冻结, 0=普通速度, 200=疯狂加速
+	float mem_speed = mix(0.0, mix(1.0, 3.0, memory / 200.0), smoothstep(-100.0, 0.0, memory));
+	float mem_sat   = smoothstep(-100.0, 100.0, memory);  // 0→1 随着 memory
+	float mem_amp   = smoothstep(0.0, 200.0, memory);       // 波幅增强
+	
+	float t = TIME * time_scale * mem_speed;
 	
 	float dl = UV.x * rect_size.x, dr = (1.0 - UV.x) * rect_size.x;
 	float dt = UV.y * rect_size.y, db = (1.0 - UV.y) * rect_size.y;
@@ -37,9 +43,9 @@ void fragment() {
 		vec2 uv = ruv * 2.5;
 		
 		// ── 涌浪层（大尺度） ──
-		float swell1 = sin(uv.x * 2.0 + t * 0.9) * 0.5;
-		float swell2 = sin(uv.x * 3.3 - t * 0.65 + 1.5) * 0.3;
-		float swell3 = cos(uv.y * 1.5 + t * 0.4) * 0.2;
+		float swell1 = sin(uv.x * 2.0 + t * 0.9) * 0.5 * (1.0 + mem_amp * 0.5);
+		float swell2 = sin(uv.x * 3.3 - t * 0.65 + 1.5) * 0.3 * (1.0 + mem_amp * 0.5);
+		float swell3 = cos(uv.y * 1.5 + t * 0.4) * 0.2 * (1.0 + mem_amp * 0.5);
 		
 		// ── 涟漪层（中尺度） ──
 		float ripple1 = sin(uv.x * 6.0 + uv.y * 3.0 + t * 1.3) * 0.12;
@@ -105,7 +111,7 @@ void fragment() {
 		else if (hue < 0.8) colorful = mix(vec3(0.32,0.38,0.15), vec3(0.45,0.2,0.15),  (hue-0.6)/0.2);
 		else                 colorful = mix(vec3(0.45,0.2,0.15),  vec3(0.35,0.1,0.3),   (hue-0.8)/0.2);
 		
-		col = mix(gray, mix(col, colorful, saturation), saturation);
+		col = mix(gray, mix(col, colorful, mem_sat), mem_sat);
 		
 		// ── 风痕拉丝 ── 水平拉伸噪声，像风吹过水面
 		vec2 wuv = vec2(uv.x * 0.8, uv.y * 3.5);

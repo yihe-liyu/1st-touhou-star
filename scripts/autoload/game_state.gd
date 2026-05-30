@@ -17,7 +17,7 @@ var max_point: int = 10000
 var memory: int = 0  # 0~100，控制水面彩度
 var graze_count: int = 0  # 擦弹数
 
-var memory_value: float = 50.0
+var memory_value: float = 50.0  # -100=黑白冻结, 0~100=渐变, 200=狂乱
 
 var _config: ConfigFile
 const SAVE_PATH: String = "user://save_data.cfg"
