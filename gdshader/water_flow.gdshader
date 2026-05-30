@@ -29,9 +29,10 @@ void fragment() {
 	float min_dist = min(min(dl, dr), min(dt, db));
 	if (min_dist <= border_width) { COLOR = border_color; } else {
 		
-		// 旋转 UV 控制浪向
+		// 旋转 UV 控制浪向（绕矩形中心）
 		float a = wave_angle;
-		vec2 ruv = vec2(UV.x * cos(a) - UV.y * sin(a), UV.x * sin(a) + UV.y * cos(a));
+		vec2 centered = UV - 0.5;
+		vec2 ruv = vec2(centered.x * cos(a) - centered.y * sin(a), centered.x * sin(a) + centered.y * cos(a)) + 0.5;
 		vec2 uv = ruv * 2.5;
 		
 		// ── 涌浪层（大尺度） ──
