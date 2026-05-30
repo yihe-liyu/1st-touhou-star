@@ -29,10 +29,10 @@ func _ready() -> void:
 
 
 func _setup_digits() -> void:
-	var tex_w := digit_texture.get_width() if digit_texture else 0
-	var init_w := round(tex_w / float(char_count)) if char_count > 0 else 0
+	var tex_w: float = digit_texture.get_width() if digit_texture else 0.0
+	var init_w: float = round(tex_w / float(char_count)) if char_count > 0 else 0.0
 	for i in range(digit_count):
-		var s := Sprite2D.new()
+		var s: Sprite2D = Sprite2D.new()
 		s.texture = digit_texture
 		s.region_enabled = true
 		s.region_rect = Rect2(0, 0, init_w, digit_texture.get_height() if digit_texture else 0)
@@ -79,9 +79,9 @@ func _process(_delta: float) -> void:
 			idx = minus_index
 		
 		if idx >= 0:
-			var tex_w := float(digit_texture.get_width())
-			var exact_x := round(idx * tex_w / float(char_count))
-			var exact_w := round(tex_w / float(char_count))
+			var tex_w: float = float(digit_texture.get_width())
+			var exact_x: float = round(idx * tex_w / float(char_count))
+			var exact_w: float = round(tex_w / float(char_count))
 			_digits[i].region_rect = Rect2(exact_x, 0, exact_w, digit_texture.get_height())
 			_digits[i].visible = true
 		else:
