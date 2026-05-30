@@ -169,7 +169,7 @@ func _step_lasers(delta: float) -> void:
 			if laser.is_hitting_player(player_pos):
 				hit = true
 			elif laser.is_hitting_player(player_pos, player.graze_radius):
-				var dist := laser.find_closest_dist(player_pos)
+				var dist: float = laser.find_closest_dist(player_pos)
 				# 跳过孔洞区域
 				if not laser.is_grazed(dist):
 					var in_hole := false
