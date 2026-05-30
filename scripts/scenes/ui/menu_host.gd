@@ -29,15 +29,15 @@ func _ready() -> void:
 func push(scene_path: String) -> Node:
 	# 栈空时直接加入（不压住旧界面）
 	if _stack.is_empty():
-		var screen: Node = load(scene_path).instantiate()
-		add_child(screen)
-		screen.visible = true
-		_stack.append(screen)
-		_connect_finished(screen)
-		if screen.has_method(&"_on_enter"):
-			screen._on_enter()
-		screen_changed.emit(screen, null)
-		return screen
+		var first: Node = load(scene_path).instantiate()
+		add_child(first)
+		first.visible = true
+		_stack.append(first)
+		_connect_finished(first)
+		if first.has_method(&"_on_enter"):
+			first._on_enter()
+		screen_changed.emit(first, null)
+		return first
 	
 	# 停用当前顶层
 	var prev: Node = _stack[-1]
