@@ -3,9 +3,11 @@ class_name NumberSprite
 ## 用贴图显示数字 —— 横向排列 0-9 的 sprite sheet
 ## 每帧更新，自动创建/回收数字精灵
 
-@export var digit_texture: Texture2D  # 0-9 . 横向排列，第10位是小数点
-@export var digit_count: int = 8       # 最大位数
-@export var digit_spacing: float = 16.0
+@export var digit_texture: Texture2D
+@export var char_count: int = 11       # 贴图里字符总数
+@export var dot_index: int = 10        # 小数点在第几位
+@export var digit_count: int = 8       # 最大显示位数
+@export var digit_spacing: float = 16.0  # 字符间距
 @export var value: int = 0:
 	set(v):
 		value = v
@@ -19,7 +21,7 @@ var _text: String = ""  # 如果设置了 text，优先用 text
 
 func _ready() -> void:
 	if digit_texture:
-		_digit_width = digit_texture.get_width() / 11.0  # 0-9 + 小数点
+		_digit_width = digit_texture.get_width() / float(char_count)
 	_setup_digits()
 
 
@@ -49,7 +51,7 @@ func _process(_delta: float) -> void:
 		if ch >= "0" and ch <= "9":
 			idx = ch.to_int()
 		elif ch == ".":
-			idx = 10  # 小数点在第 10 位
+			idx = dot_index
 		
 		if idx >= 0:
 			_digits[i].region_rect = Rect2(idx * _digit_width, 0, _digit_width, digit_texture.get_height())
