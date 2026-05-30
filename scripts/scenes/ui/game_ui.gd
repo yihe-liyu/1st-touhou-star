@@ -62,4 +62,4 @@ func _process(_delta: float) -> void:
 	
 	# 同步 memory → shader saturation
 	if _memory_rect and _memory_rect.material is ShaderMaterial:
-		_memory_rect.material.set_shader_parameter("saturation", GameState.memory / 100.0)
+		_memory_rect.material.set_shader_parameter("saturation", GameState.memory_value / 100.0)

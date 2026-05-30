@@ -3,7 +3,7 @@ shader_type canvas_item;
 uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
-uniform float time_scale : hint_range(0.1, 2.0) = 0.6;
+uniform float time_scale : hint_range(1.0, 3.0) = 1.5;
 uniform float saturation : hint_range(0.0, 1.0) = 0.5;
 
 float hash(vec2 p) {
@@ -85,9 +85,19 @@ void fragment() {
 		float dark_streak = (noise(uv * 5.0 - t * 0.15) - 0.5) * 0.06;
 		col += dark_streak * (1.0 - crest);
 		
-		// ── 饱和度 ──
+		// ── 饱和度与彩色 ──
 		vec3 gray = mix(vec3(0.05), vec3(0.4), crest);
-		col = mix(gray, col, saturation);
+		
+		// 彩色版：用涌浪和涟漪生成色相偏移
+		float hue = fract(swell1 * 0.7 + swell2 * 0.5 + ripple1 * 0.3 + t * 0.03);
+		vec3 colorful;
+		if (hue < 0.2)      colorful = mix(vec3(0.06,0.12,0.45), vec3(0.03,0.28,0.5),  hue/0.2);
+		else if (hue < 0.4) colorful = mix(vec3(0.03,0.28,0.5),  vec3(0.08,0.42,0.45), (hue-0.2)/0.2);
+		else if (hue < 0.6) colorful = mix(vec3(0.08,0.42,0.45), vec3(0.32,0.38,0.15), (hue-0.4)/0.2);
+		else if (hue < 0.8) colorful = mix(vec3(0.32,0.38,0.15), vec3(0.45,0.2,0.15),  (hue-0.6)/0.2);
+		else                 colorful = mix(vec3(0.45,0.2,0.15),  vec3(0.35,0.1,0.3),   (hue-0.8)/0.2);
+		
+		col = mix(gray, mix(col, colorful, saturation), saturation);
 		
 		COLOR = vec4(col, 0.92);
 	}
