@@ -65,18 +65,25 @@ func _add_blur() -> void:
 	
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/pause_blur.gdshader")
-	# 把 SubViewport 在屏幕上的 UV 范围传给 shader
 	mat.set_shader_parameter("rect_min", Vector2(svc.position) / vs)
 	mat.set_shader_parameter("rect_max", Vector2(svc.position + svc.size) / vs)
 	_blur_rect.material = mat
 	
-	$Background.add_child(_blur_rect)
+	# 放在 UI CanvasLayer 下面、World 上面
+	var blur_layer := CanvasLayer.new()
+	blur_layer.layer = 0
+	blur_layer.name = "BlurLayer"
+	blur_layer.add_child(_blur_rect)
+	add_child(blur_layer)
 
 
 func _remove_blur() -> void:
 	if _blur_rect:
+		var layer := _blur_rect.get_parent()
 		_blur_rect.queue_free()
 		_blur_rect = null
+		if layer and layer.name == "BlurLayer":
+			layer.queue_free()
 
 #func _on_stage_cleared():
 	#await get_tree().create_timer(2.0).timeout
