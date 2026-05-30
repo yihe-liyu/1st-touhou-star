@@ -26,6 +26,9 @@ func _ready():
 	# 暂停时给 SubViewport 加模糊，UI 层保持清晰
 	if not GameManager.game_state_changed.is_connected(_on_game_state_changed):
 		GameManager.game_state_changed.connect(_on_game_state_changed)
+	
+	# 根据选择的角色替换 PlayerData
+	_setup_player()
 
 func _load_background():
 	if not stage_data or not stage_data.background_scene:
@@ -84,6 +87,17 @@ func _remove_blur() -> void:
 		_blur_rect = null
 		if layer and layer.name == "BlurLayer":
 			layer.queue_free()
+
+
+func _setup_player() -> void:
+	var data_map := [
+		preload("res://data/player_data/reimu_data.tres"),
+		preload("res://data/player_data/marisa_data.tres"),
+	]
+	var player := $World/Player
+	if player and GameState.selected_character < data_map.size():
+		player.player_data = data_map[GameState.selected_character]
+
 
 #func _on_stage_cleared():
 	#await get_tree().create_timer(2.0).timeout
