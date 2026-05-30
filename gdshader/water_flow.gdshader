@@ -24,11 +24,11 @@ float noise(vec2 p) {
 }
 
 void fragment() {
-	// memory: -100=冻结, 0=普通速度, 200=疯狂加速
-	float mem_speed = mix(0.0, mix(1.0, 3.0, memory / 200.0), smoothstep(-100.0, 0.0, memory));
-	float mem_sat   = smoothstep(-100.0, 100.0, memory);  // 0→1 随着 memory
-	float mem_amp   = smoothstep(0.0, 200.0, memory);       // 波幅增强
-	float mem_bright = smoothstep(-100.0, 200.0, memory);     // 亮度 0→1
+	// memory: -100=冻结, 0=半速, 100=正常, 200=2x速
+	float mem_speed = smoothstep(-100.0, 200.0, memory) * 2.0;
+	float mem_sat   = smoothstep(-100.0, 100.0, memory);
+	float mem_amp   = smoothstep(0.0, 200.0, memory);
+	float mem_bright = smoothstep(-100.0, 200.0, memory);
 	
 	float t = TIME * time_scale * mem_speed;
 	

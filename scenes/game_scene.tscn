@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
 [ext_resource type="Resource" uid="uid://teststage001" path="res://data/stages/test_stage.tres" id="2_rurhu"]
+[ext_resource type="Script" uid="uid://dhe5bopvt6owa" path="res://scripts/test/test_memory_cycle.gd" id="3_rvs2r"]
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
 [ext_resource type="Texture2D" uid="uid://dtv267387tbw0" path="res://assets/Textures/front/front02.png" id="6_mw25s"]
@@ -82,6 +83,7 @@ render_target_update_mode = 4
 transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 6, 6)
 
 [node name="World" type="Node2D" parent="." unique_id=1228399696]
+script = ExtResource("3_rvs2r")
 
 [node name="Player" parent="World" unique_id=1148497527 instance=ExtResource("1_w5aja")]
 z_index = 6

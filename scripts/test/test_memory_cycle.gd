@@ -2,7 +2,7 @@ extends Node
 ## 测试脚本：循环 memory_value -100→200→-100
 ## 挂到 game_scene 上测试水面效果
 
-@export var speed: float = 50.0  # 每秒变化量
+@export var speed: float = 25.0  # 每秒变化量
 var _dir: int = 1
 
 
