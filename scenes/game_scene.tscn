@@ -52,8 +52,8 @@ shader_parameter/border_color = Color(0.5, 0.5, 0.5, 1)
 shader_parameter/border_width = 3.0
 shader_parameter/rect_size = Vector2(384, 256)
 shader_parameter/time_scale = 1.0
-shader_parameter/wave_strength = 0.03
-shader_parameter/flow_speed = 0.8
+shader_parameter/wave_strength = 0.5
+shader_parameter/flow_speed = 1.5000000679901202
 
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")

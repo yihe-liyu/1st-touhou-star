@@ -9,6 +9,7 @@ var _score_num: Node2D
 var _power_num: Node2D
 var _max_point_num: Node2D
 var _graze_num: Node2D
+var _memory_rect: ColorRect
 
 
 func _ready() -> void:
@@ -18,6 +19,9 @@ func _ready() -> void:
 	_power_num    = _make_number_sprite("PowerNumber",    $Power.position     + Vector2(128, 0), tex, 10)
 	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(150, 0), tex)
 	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(150, 0), tex)
+	
+	# 水面方框，用于同步 memory 值
+	_memory_rect = $Memory/OutlineRect
 
 	# 颜色
 	_hi_score_num.modulate  = Color(0.735, 0.735, 0.735)
@@ -55,3 +59,7 @@ func _process(_delta: float) -> void:
 
 	if GameState.player and is_instance_valid(GameState.player):
 		_power_num.show_text(GameState.get_power_display() + "/4.00")
+	
+	# 同步 memory → shader saturation
+	if _memory_rect and _memory_rect.material is ShaderMaterial:
+		_memory_rect.material.set_shader_parameter("saturation", GameState.memory / 100.0)

@@ -14,6 +14,7 @@ var current_score: int = 0
 # 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
 var power_raw: int = 200
 var max_point: int = 10000
+var memory: int = 0  # 0~100，控制水面彩度
 var graze_count: int = 0  # 擦弹数
 
 var memory: float = 50.0

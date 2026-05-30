@@ -4,8 +4,9 @@ uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 uniform float time_scale : hint_range(0.1, 5.0) = 1.0;
-uniform float wave_strength : hint_range(0.01, 0.1) = 0.03;
+uniform float wave_strength : hint_range(0.1, 1.0) = 0.5;
 uniform float flow_speed : hint_range(0.1, 3.0) = 0.8;
+uniform float saturation : hint_range(0.0, 1.0) = 0.5;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -46,13 +47,18 @@ void fragment() {
 		float w3 = noise(wuv * 32.0);
 		float w = w1 * 0.5 + w2 * 0.3 + w3 * 0.2;
 		
-		vec3 deep    = vec3(0.05, 0.15, 0.35);
-		vec3 shallow = vec3(0.1, 0.35, 0.55);
+		vec3 deep_gray    = vec3(0.1, 0.1, 0.15);
+		vec3 shallow_gray = vec3(0.4, 0.4, 0.45);
+		vec3 deep_color    = vec3(0.05, 0.15, 0.45);
+		vec3 shallow_color = vec3(0.15, 0.45, 0.7);
+		
 		float depth = w * 0.6 + 0.4;
-		vec3 water_color = mix(deep, shallow, depth);
+		vec3 gray  = mix(deep_gray, shallow_gray, depth);
+		vec3 color = mix(deep_color, shallow_color, depth);
+		vec3 water_color = mix(gray, color, saturation);
 		
 		float highlight = smoothstep(0.55, 0.75, w) * 0.3;
-		water_color += highlight * vec3(0.4, 0.6, 0.8);
+		water_color += highlight * mix(vec3(0.2), vec3(0.4, 0.6, 0.9), saturation);
 		
 		COLOR = vec4(water_color, 0.85);
 	}
