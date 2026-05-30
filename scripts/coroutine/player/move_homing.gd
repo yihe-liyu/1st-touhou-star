@@ -6,7 +6,6 @@ class_name MoveHoming
 @export var min_speed: float = 500.0
 @export var max_speed: float = 1500.0
 @export var homing_duration: float = 1.0
-@export var prediction: float = 0.15  # 预测时间（秒），越大越超前
 
 var _elapsed: float = 0.0
 var _base_speed: float
@@ -33,15 +32,17 @@ func _on_step(api: StageAPI) -> Variant:
 	if still_homing:
 		var nearest := _find_nearest_enemy()
 		if nearest:
-			# 预测敌人未来的位置
-			var enemy_vel: Vector2 = nearest.get("velocity") if "velocity" in nearest else Vector2.ZERO
-			var predicted := nearest.global_position + enemy_vel * prediction
-			var desired_dir := (predicted - target.global_position).normalized()
+			var desired_dir := (nearest.global_position - target.global_position).normalized()
 			var current_dir: Vector2 = target.velocity.normalized()
+			var dot := current_dir.dot(desired_dir)  # 1=对准, -1=反方向
+			# 偏离越大速度越慢，防绕圈
+			var speed_scale: float = remap(dot, -1.0, 1.0, 0.3, 1.0)
+			var final_speed := current_speed * speed_scale
+			
 			var angle_diff: float = current_dir.angle_to(desired_dir)
 			var max_turn := homing_angle_per_sec * turn_factor / Engine.physics_ticks_per_second
 			var actual_turn := clampf(angle_diff, -max_turn, max_turn)
-			target.velocity = current_dir.rotated(actual_turn) * current_speed
+			target.velocity = current_dir.rotated(actual_turn) * final_speed
 		else:
 			target.velocity = target.velocity.normalized() * current_speed
 
