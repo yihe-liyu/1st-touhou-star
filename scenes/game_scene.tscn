@@ -47,13 +47,16 @@ region = Rect2(64, 160, 128, 32)
 atlas = ExtResource("6_mw25s")
 region = Rect2(64, 128, 128, 32)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_liy57"]
+atlas = ExtResource("6_mw25s")
+region = Rect2(64, 224, 128, 32)
+
 [sub_resource type="ShaderMaterial" id="RectOutlineMat"]
 shader = ExtResource("13_water")
 shader_parameter/border_color = Color(0.5, 0.5, 0.5, 1)
 shader_parameter/border_width = 3.0
 shader_parameter/rect_size = Vector2(384, 256)
 shader_parameter/time_scale = 3.0
-shader_parameter/saturation = 0.5
 shader_parameter/memory = 50.0
 shader_parameter/wind_strength = 1.0
 shader_parameter/surge_strength = 1.0
@@ -145,6 +148,11 @@ z_index = 128
 position = Vector2(922, 480)
 texture = SubResource("AtlasTexture_tqxxy")
 
+[node name="Graze2" type="Sprite2D" parent="UI" unique_id=1289444788]
+z_index = 128
+position = Vector2(922, 608)
+texture = SubResource("AtlasTexture_liy57")
+
 [node name="Memory" type="CanvasLayer" parent="UI" unique_id=1250550718]
 layer = 32
 
@@ -153,9 +161,9 @@ material = SubResource("RectOutlineMat")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 984.0
+offset_left = 1000.0
 offset_top = 536.0
-offset_right = -152.0
+offset_right = -136.0
 offset_bottom = -280.0
 grow_horizontal = 2
 grow_vertical = 2

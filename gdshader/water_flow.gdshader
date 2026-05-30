@@ -3,7 +3,7 @@ shader_type canvas_item;
 uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
-uniform float time_scale : hint_range(0.1, 2.0) = 0.4;
+uniform float time_scale : hint_range(1.0, 3.0) = 0.4;
 uniform float memory : hint_range(-100.0, 200.0) = 50.0;
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
@@ -25,7 +25,7 @@ void fragment() {
 		
 		// ── memory 驱动项 ──
 		float mem_speed   = smoothstep(-100.0, 200.0, memory);  // 0→1 波幅
-		float mem_boost   = 1.0 + mem_speed * 0.5;              // 1x→1.5x 涌浪增强
+		float mem_boost   = 1.0 + mem_speed;              // 1x→2x 涌浪增强
 		float mem_sat     = smoothstep(-100.0, 100.0, memory);  // 彩度
 		float mem_bright  = smoothstep(-100.0, 200.0, memory);  // 亮度
 		float mem_frozen  = step(memory, -99.0);               // -100 冻结

@@ -9,19 +9,19 @@ var _score_num: Node2D
 var _power_num: Node2D
 var _max_point_num: Node2D
 var _graze_num: Node2D
+var _memory_num: Node2D
 var _memory_rect: ColorRect
 
 
 func _ready() -> void:
 	var tex := preload("res://assets/Textures/ascii/ascii.png")
-	_hi_score_num = _make_number_sprite("HiScoreNumber",  $HighScore.position + Vector2(150, 0), tex)
-	_score_num    = _make_number_sprite("ScoreNumber",    $Score.position     + Vector2(150, 0), tex)
-	_power_num    = _make_number_sprite("PowerNumber",    $Power.position     + Vector2(128, 0), tex, 10)
-	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(150, 0), tex)
-	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(150, 0), tex)
+	_hi_score_num = _make_number_sprite("HiScoreNumber",  $HighScore.position + Vector2(102, 0), tex, 10)
+	_score_num    = _make_number_sprite("ScoreNumber",    $Score.position     + Vector2(102, 0), tex, 10)
+	_power_num    = _make_number_sprite("PowerNumber",    $Power.position     + Vector2(78, 0), tex, 10)
+	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(102, 0), tex)
+	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(102, 0), tex)
 	
-	# 水面方框，用于同步 memory 值
-	_memory_rect = $Memory/OutlineRect
+	_memory_num = _make_number_sprite("MemoryNumber", $Memory/OutlineRect.position + Vector2(10, -20), tex, 6)
 
 	# 颜色
 	_hi_score_num.modulate  = Color(0.735, 0.735, 0.735)
@@ -32,6 +32,10 @@ func _ready() -> void:
 	# 对齐：不带前导零的用左对齐
 	_max_point_num.left_align = true
 	_graze_num.left_align     = true
+	_memory_num.left_align    = true
+	_memory_num.pct_index     = 12
+	_memory_num.minus_index   = 11
+	_memory_num.char_count    = 14
 
 
 func _make_number_sprite(p_name: String, pos: Vector2, tex: Texture2D = null, dcount: int = 8) -> Node2D:
@@ -56,6 +60,7 @@ func _process(_delta: float) -> void:
 	_score_num.value    = GameState.current_score
 	_max_point_num.value= GameState.max_point
 	_graze_num.value    = GameState.graze_count
+	_memory_num.show_text("%d%%" % int(GameState.memory_value))
 
 	if GameState.player and is_instance_valid(GameState.player):
 		_power_num.show_text(GameState.get_power_display() + "/4.00")
