@@ -24,16 +24,18 @@ var _text: String = ""  # 如果设置了 text，优先用 text
 
 func _ready() -> void:
 	if digit_texture:
-		_digit_width = floor(digit_texture.get_width() / float(char_count))
+		_digit_width = digit_texture.get_width() / float(char_count)
 	_setup_digits()
 
 
 func _setup_digits() -> void:
+	var tex_w := digit_texture.get_width() if digit_texture else 0
+	var init_w := round(tex_w / float(char_count)) if char_count > 0 else 0
 	for i in range(digit_count):
 		var s := Sprite2D.new()
 		s.texture = digit_texture
 		s.region_enabled = true
-		s.region_rect = Rect2(0, 0, _digit_width, digit_texture.get_height())
+		s.region_rect = Rect2(0, 0, init_w, digit_texture.get_height() if digit_texture else 0)
 		s.position.x = i * digit_spacing
 		s.visible = false
 		add_child(s)
@@ -77,7 +79,10 @@ func _process(_delta: float) -> void:
 			idx = minus_index
 		
 		if idx >= 0:
-			_digits[i].region_rect = Rect2(floor(idx * _digit_width), 0, _digit_width, digit_texture.get_height())
+			var tex_w := float(digit_texture.get_width())
+			var exact_x := round(idx * tex_w / float(char_count))
+			var exact_w := round(tex_w / float(char_count))
+			_digits[i].region_rect = Rect2(exact_x, 0, exact_w, digit_texture.get_height())
 			_digits[i].visible = true
 		else:
 			_digits[i].visible = false
