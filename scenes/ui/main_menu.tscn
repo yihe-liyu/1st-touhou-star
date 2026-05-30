@@ -18,10 +18,11 @@ emission_shape = 3
 emission_box_extents = Vector3(720, 100, 0)
 direction = Vector3(-1, 2, 0)
 spread = 10.0
-initial_velocity_min = 2800.0
-initial_velocity_max = 3200.0
+initial_velocity_min = 2700.0
+initial_velocity_max = 3300.0
 gravity = Vector3(0, 0, 0)
 attractor_interaction_enabled = false
+scale_min = 0.39999998
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vs4v7"]
 shader = ExtResource("4")
@@ -48,7 +49,7 @@ stretch_mode = 5
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=2108623833]
 modulate = Color(1, 1, 1, 0)
-amount = 32
+amount = 48
 texture = SubResource("AtlasTexture_btxxm")
 lifetime = 0.5
 process_material = SubResource("ParticleProcessMaterial_wb0q5")

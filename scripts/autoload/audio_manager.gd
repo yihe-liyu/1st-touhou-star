@@ -31,6 +31,7 @@ func _ready() -> void:
 	_bgm_player = AudioStreamPlayer.new()
 	_bgm_player.bus = bgm_bus
 	_bgm_player.process_mode = PROCESS_MODE_ALWAYS
+	_bgm_player.finished.connect(_on_bgm_finished)
 	add_child(_bgm_player)
 	
 	for i in range(SFX_POOL_SIZE):
@@ -45,11 +46,13 @@ func _ready() -> void:
 # ═══ BGM ═══
 
 ## gap: 停止旧音乐后的间隔秒数（默认 0.3）
-func play_bgm(stream: AudioStream, gap: float = 0.3) -> void:
+func play_bgm(stream: AudioStream, gap: float = 0.3, loop: bool = true) -> void:
 	if _bgm_player.playing and _bgm_player.stream == stream:
 		return
 	
-	# 先停当前音乐
+	_current_bgm = stream
+	_loop_bgm = loop
+	
 	_bgm_player.stop()
 	
 	if gap > 0.0:
@@ -61,7 +64,13 @@ func play_bgm(stream: AudioStream, gap: float = 0.3) -> void:
 
 
 func stop_bgm() -> void:
+	_loop_bgm = false
 	_bgm_player.stop()
+
+
+func _on_bgm_finished() -> void:
+	if _loop_bgm and _current_bgm:
+		_bgm_player.play()
 
 
 # ═══ SFX ═══
