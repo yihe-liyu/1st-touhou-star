@@ -8,7 +8,7 @@ uniform float saturation : hint_range(0.0, 1.0) = 0.5;
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
-uniform float rot_speed : hint_range(-0.5, 0.5) = 0.05;  # 旋转速度 rad/s
+uniform float rot_speed : hint_range(-0.5, 0.5) = 0.05;  // 旋转速度 rad/s
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
