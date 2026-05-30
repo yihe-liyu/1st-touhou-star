@@ -1,12 +1,6 @@
 [gd_scene format=3 uid="uid://gmyieto88nr4"]
 
 [ext_resource type="Script" uid="uid://cfjaugwyh60ij" path="res://scripts/scenes/game/pause_menu.gd" id="1_script"]
-[ext_resource type="Shader" uid="uid://db8iswfusbkts" path="res://gdshader/pause_blur.gdshader" id="2_blur"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]
-shader = ExtResource("2_blur")
-shader_parameter/blur_strength = 3.0
-shader_parameter/darken = 0.5
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=1848198582]
 layer = 16
@@ -15,12 +9,12 @@ container_path = NodePath("Container")
 entrance_stagger = 0.08
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=388309025]
-material = SubResource("ShaderMaterial_blur")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
 
 [node name="Container" type="VBoxContainer" parent="." unique_id=2128251895]
 anchors_preset = 8
