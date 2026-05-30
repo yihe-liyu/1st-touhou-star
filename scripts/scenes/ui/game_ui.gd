@@ -11,7 +11,7 @@ var _power_label: Label
 
 
 func _ready() -> void:
-	var tex := preload("res://assets/Textures/ui/digits.png") if ResourceLoader.exists("res://assets/Textures/ui/digits.png") else null
+	var tex := preload("res://assets/Textures/ascii/ascii.png")
 	_score_num = _make_number_sprite("ScoreNumber", $Score.position + Vector2(0, 24), tex)
 	_hi_score_num = _make_number_sprite("HiScoreNumber", $HighScore.position + Vector2(0, 24), tex)
 	_graze_num = _make_number_sprite("GrazeNumber", $Graze.position + Vector2(0, 24), tex)
