@@ -2,20 +2,46 @@
 
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
 [ext_resource type="Resource" uid="uid://teststage001" path="res://data/stages/test_stage.tres" id="2_rurhu"]
-[ext_resource type="Texture2D" uid="uid://btj64lam67h1f" path="res://assets/Textures/front/FalseFront.png" id="5_rurhu"]
+[ext_resource type="Texture2D" uid="uid://xf03xnew77lh" path="res://assets/Textures/front/TrueFront.png" id="5_b5spy"]
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
-[ext_resource type="Texture2D" uid="uid://drnal1svd2dda" path="res://assets/Textures/front/front.png" id="6_utbpp"]
+[ext_resource type="Texture2D" uid="uid://dtv267387tbw0" path="res://assets/Textures/front/front02.png" id="6_mw25s"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game/game_scene.gd" id="9_script"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b5spy"]
-atlas = ExtResource("6_utbpp")
-region = Rect2(64, 608, 168, 32)
+atlas = ExtResource("6_mw25s")
+region = Rect2(64, 256, 104, 32)
+filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mw25s"]
-atlas = ExtResource("6_utbpp")
-region = Rect2(64, 0, 248, 64)
+atlas = ExtResource("6_mw25s")
+region = Rect2(56, 0, 136, 32)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_utbpp"]
+atlas = ExtResource("6_mw25s")
+region = Rect2(56, 32, 136, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tcjrq"]
+atlas = ExtResource("6_mw25s")
+region = Rect2(56, 64, 136, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rvs2r"]
+atlas = ExtResource("6_mw25s")
+region = Rect2(56, 96, 136, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ldkr4"]
+atlas = ExtResource("6_mw25s")
+region = Rect2(56, 192, 136, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5ay1a"]
+atlas = ExtResource("6_mw25s")
+region = Rect2(64, 160, 128, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tqxxy"]
+atlas = ExtResource("6_mw25s")
+region = Rect2(64, 128, 128, 32)
 
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")
@@ -57,7 +83,7 @@ layer = 32
 
 [node name="front" type="Sprite2D" parent="UI" unique_id=1281612929]
 z_index = 128
-texture = ExtResource("5_rurhu")
+texture = ExtResource("5_b5spy")
 offset = Vector2(640, 480)
 
 [node name="diffculty" type="Sprite2D" parent="UI" unique_id=1428832846]
@@ -67,15 +93,38 @@ texture = SubResource("AtlasTexture_b5spy")
 
 [node name="HighScore" type="Sprite2D" parent="UI" unique_id=446842019]
 z_index = 128
-position = Vector2(909, 125)
-scale = Vector2(0.5, 0.5)
+position = Vector2(916, 104)
 texture = SubResource("AtlasTexture_mw25s")
 
-[node name="HighScore2" type="Sprite2D" parent="UI" unique_id=157173611]
+[node name="Score" type="Sprite2D" parent="UI" unique_id=157173611]
 z_index = 128
-position = Vector2(909, 158)
-scale = Vector2(0.5, 0.5)
-texture = SubResource("AtlasTexture_mw25s")
+position = Vector2(916, 160)
+texture = SubResource("AtlasTexture_utbpp")
+
+[node name="Player" type="Sprite2D" parent="UI" unique_id=255440264]
+z_index = 128
+position = Vector2(918, 232)
+texture = SubResource("AtlasTexture_tcjrq")
+
+[node name="Bomb" type="Sprite2D" parent="UI" unique_id=435967303]
+z_index = 128
+position = Vector2(916, 296)
+texture = SubResource("AtlasTexture_rvs2r")
+
+[node name="Power" type="Sprite2D" parent="UI" unique_id=1557163412]
+z_index = 128
+position = Vector2(919, 368)
+texture = SubResource("AtlasTexture_ldkr4")
+
+[node name="Point" type="Sprite2D" parent="UI" unique_id=1844546404]
+z_index = 128
+position = Vector2(920, 424)
+texture = SubResource("AtlasTexture_5ay1a")
+
+[node name="Graze" type="Sprite2D" parent="UI" unique_id=773842415]
+z_index = 128
+position = Vector2(922, 480)
+texture = SubResource("AtlasTexture_tqxxy")
 
 [node name="Title" type="Sprite2D" parent="UI" unique_id=1384045485]
 z_index = 128

@@ -405,6 +405,7 @@ func _spawn_fog():
 	if _fog_sprite:
 		if _fog_tween and _fog_tween.is_valid():
 			_fog_tween.kill()
+		_fog_sprite.global_position = origin_point
 		_fog_sprite.scale = Vector2(2.0, 2.0)
 		_fog_sprite.modulate.a = 1.0
 		_fog_sprite.visible = true
