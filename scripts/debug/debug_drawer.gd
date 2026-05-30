@@ -82,6 +82,8 @@ func _draw():
 		var player = game_state.player
 		if is_instance_valid(player):
 			var r = player.get("hitbox_radius") if "hitbox_radius" in player else 2.0
+			var gr = player.get("graze_radius") if "graze_radius" in player else 24.0
+			draw_arc(player.global_position, gr, 0, TAU, 48, Color(0.3, 0.6, 1.0, 0.6), 1.0)
 			draw_arc(player.global_position, r, 0, TAU, 24, Color.CYAN, 2.0)
 			draw_circle(player.global_position, 2.0, Color.CYAN)
 	
