@@ -34,6 +34,7 @@ func _setup_digits() -> void:
 	for i in range(digit_count):
 		var s: Sprite2D = Sprite2D.new()
 		s.texture = digit_texture
+		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		s.region_enabled = true
 		s.region_rect = Rect2(0, 0, init_w, digit_texture.get_height() if digit_texture else 0)
 		s.position.x = i * digit_spacing
@@ -82,7 +83,8 @@ func _process(_delta: float) -> void:
 			var tex_w: float = float(digit_texture.get_width())
 			var exact_x: float = round(idx * tex_w / float(char_count))
 			var exact_w: float = round(tex_w / float(char_count))
-			_digits[i].region_rect = Rect2(exact_x, 0, exact_w, digit_texture.get_height())
+			# 内缩 0.5px 防止纹理采样渗到隔壁字符
+			_digits[i].region_rect = Rect2(exact_x + 0.5, 0.5, exact_w - 1.0, digit_texture.get_height() - 1.0)
 			_digits[i].visible = true
 		else:
 			_digits[i].visible = false
