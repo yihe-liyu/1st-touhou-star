@@ -11,10 +11,7 @@
 [ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/ui/game_ui.gd" id="10_ui"]
 [ext_resource type="Shader" uid="uid://cnb5ru7l12j3q" path="res://gdshader/rect_outline.gdshader" id="11_rect"]
 [ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/ui/rect_outline.gd" id="12_rect_outline"]
-[ext_resource type="Shader" path="res://gdshader/water_flow.gdshader" id="13_water"]
-
-[sub_resource type="ShaderMaterial" id="WaterMat"]
-shader = ExtResource("13_water")
+[ext_resource type="Shader" uid="uid://dbi40qjrrq0q4" path="res://gdshader/water_flow.gdshader" id="13_water"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b5spy"]
 atlas = ExtResource("6_mw25s")
@@ -50,8 +47,14 @@ region = Rect2(64, 160, 128, 32)
 atlas = ExtResource("6_mw25s")
 region = Rect2(64, 128, 128, 32)
 
+[sub_resource type="ShaderMaterial" id="WaterMat"]
+shader = ExtResource("13_water")
+shader_parameter/time_scale = 1.0
+shader_parameter/wave_strength = 0.03
+shader_parameter/flow_speed = 0.8
+
 [sub_resource type="ShaderMaterial" id="RectOutlineMat"]
-shader = ExtResource("11_rect")
+shader = ExtResource("13_water")
 shader_parameter/border_color = Color(0.5, 0.5, 0.5, 1)
 shader_parameter/border_width = 3.0
 shader_parameter/rect_size = Vector2(384, 256)
@@ -143,25 +146,19 @@ texture = SubResource("AtlasTexture_tqxxy")
 [node name="Memory" type="CanvasLayer" parent="UI" unique_id=1250550718]
 layer = 32
 
-[node name="WaterRect" type="ColorRect" parent="UI/Memory"]
-material = SubResource("WaterMat")
-layout_mode = 1
+[node name="OutlineRect" type="ColorRect" parent="UI/Memory" unique_id=1632815897]
+material = SubResource("RectOutlineMat")
+script = ExtResource("12_rect_outline")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 898.0
-offset_top = 522.0
-offset_right = -62.0
-offset_bottom = -310.0
+offset_left = 984.0
+offset_top = 536.0
+offset_right = -152.0
+offset_bottom = -280.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="OutlineRect" type="ColorRect" parent="UI/Memory" unique_id=1632815897]
-material = SubResource("RectOutlineMat")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
 offset_left = 984.0
 offset_top = 536.0
 offset_right = -152.0
