@@ -4,8 +4,8 @@ class_name MoveHoming
 @export var homing_angle_per_sec: float = deg_to_rad(720)
 @export var accel_time: float = 2.0
 @export var min_speed: float = 500.0
-@export var max_speed: float = 1500.0
-@export var homing_duration: float = 1.0
+@export var max_speed: float = 2000.0
+@export var homing_duration: float = 1.5
 
 var _elapsed: float = 0.0
 var _base_speed: float
@@ -34,15 +34,10 @@ func _on_step(api: StageAPI) -> Variant:
 		if nearest:
 			var desired_dir := (nearest.global_position - target.global_position).normalized()
 			var current_dir: Vector2 = target.velocity.normalized()
-			var dot := current_dir.dot(desired_dir)  # 1=对准, -1=反方向
-			# 偏离越大速度越慢，防绕圈
-			var speed_scale: float = remap(dot, -1.0, 1.0, 0.3, 1.0)
-			var final_speed := current_speed * speed_scale
-			
-			var angle_diff: float = current_dir.angle_to(desired_dir)
-			var max_turn := homing_angle_per_sec * turn_factor / Engine.physics_ticks_per_second
-			var actual_turn := clampf(angle_diff, -max_turn, max_turn)
-			target.velocity = current_dir.rotated(actual_turn) * final_speed
+			# 每帧 lerp 一点点朝向敌人，不绕圈
+			var strength: float = homing_angle_per_sec * turn_factor / Engine.physics_ticks_per_second
+			var new_dir := current_dir.lerp(desired_dir, strength).normalized()
+			target.velocity = new_dir * current_speed
 		else:
 			target.velocity = target.velocity.normalized() * current_speed
 
