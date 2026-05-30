@@ -1,9 +1,11 @@
 extends CanvasLayer
 class_name GameUI
 
-var _score_num: NumberSprite
-var _hi_score_num: NumberSprite
-var _graze_num: NumberSprite
+const NumberSpriteClass = preload("res://scripts/ui/number_sprite.gd")
+
+var _score_num: Node2D
+var _hi_score_num: Node2D
+var _graze_num: Node2D
 var _power_label: Label
 
 
@@ -23,15 +25,12 @@ func _ready() -> void:
 	add_child(_power_label)
 
 
-func _make_number_sprite(node_name: String, pos: Vector2) -> NumberSprite:
-	var ns := NumberSprite.new()
+func _make_number_sprite(node_name: String, pos: Vector2) -> Node2D:
+	var ns := NumberSpriteClass.new()
 	ns.name = node_name
 	ns.position = pos
 	ns.z_index = 128
 	ns.digit_count = 8
-	# 替换为你的数字贴图
-	if ResourceLoader.exists("res://assets/Textures/ui/digits.png"):
-		ns.digit_texture = preload("res://assets/Textures/ui/digits.png")
 	add_child(ns)
 	return ns
 
