@@ -12,18 +12,18 @@ var _power_label: Label
 
 func _ready() -> void:
 	var tex := preload("res://assets/Textures/ascii/ascii.png")
-	_score_num = _make_number_sprite("ScoreNumber", $Score.position + Vector2(0, 24), tex)
-	_hi_score_num = _make_number_sprite("HiScoreNumber", $HighScore.position + Vector2(0, 24), tex)
-	_graze_num = _make_number_sprite("GrazeNumber", $Graze.position + Vector2(0, 24), tex)
-	_power_num = _make_number_sprite("PowerNumber", $Power.position + Vector2(0, 24), tex)
+	_score_num = _make_number_sprite("ScoreNumber", $Score.position + Vector2(150, 0), tex)
+	_hi_score_num = _make_number_sprite("HiScoreNumber", $HighScore.position + Vector2(150, 0), tex)
+	_graze_num = _make_number_sprite("GrazeNumber", $Graze.position + Vector2(150, 0), tex)
+	_power_num = _make_number_sprite("PowerNumber", $Power.position + Vector2(150, 0), tex, 10)
 
 
-func _make_number_sprite(node_name: String, pos: Vector2, tex: Texture2D = null) -> Node2D:
+func _make_number_sprite(node_name: String, pos: Vector2, tex: Texture2D = null, dcount: int = 8) -> Node2D:
 	var ns := NumberSpriteClass.new()
 	ns.name = node_name
 	ns.position = pos
 	ns.z_index = 128
-	ns.digit_count = 8
+	ns.digit_count = dcount
 	ns.digit_texture = tex
 	add_child(ns)
 	return ns
@@ -38,4 +38,4 @@ func _process(_delta: float) -> void:
 	_graze_num.value = GameState.graze_count
 	
 	if GameState.player and is_instance_valid(GameState.player):
-		_power_num.show_text(GameState.get_power_display())
+		_power_num.show_text(GameState.get_power_display() + "/4.00")

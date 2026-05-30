@@ -4,10 +4,10 @@ class_name NumberSprite
 ## 每帧更新，自动创建/回收数字精灵
 
 @export var digit_texture: Texture2D
-@export var char_count: int = 11       # 贴图里字符总数
+@export var char_count: int = 12       # 贴图里字符总数
 @export var dot_index: int = 10        # 小数点在第几位
 @export var digit_count: int = 8       # 最大显示位数
-@export var digit_spacing: float = 16.0  # 字符间距
+@export var digit_spacing: float = 24.0  # 字符间距
 @export var value: int = 0:
 	set(v):
 		value = v
