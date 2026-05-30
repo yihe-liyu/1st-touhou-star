@@ -214,7 +214,7 @@ func _has_any_visible() -> bool:
 # ── 擦弹分段 ──
 
 func mark_grazed(dist: float) -> void:
-	var margin := 5.0
+	var margin := 20.0
 	_grazed_ranges.append({start_dist = dist - margin, end_dist = dist + margin})
 	_merge_grazed()
 
