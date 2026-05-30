@@ -47,6 +47,7 @@ void fragment() {
 		float w3 = noise(wuv * 32.0);
 		float w = w1 * 0.5 + w2 * 0.3 + w3 * 0.2;
 		
+		float depth = w * 0.6 + 0.4;
 		vec3 gray = mix(vec3(0.1), vec3(0.5), depth);
 		
 		// 彩色：用噪声生成色相
