@@ -98,6 +98,7 @@ void fragment() {
 		else                 colorful = mix(vec3(0.45,0.2,0.15),  vec3(0.35,0.1,0.3),   (hue-0.8)/0.2);
 		
 		col = mix(gray, mix(col, colorful, saturation), saturation);
+		col = max(col, 0.0);  // 防止暗纹减出黑斑
 		
 		COLOR = vec4(col, 0.92);
 	}
