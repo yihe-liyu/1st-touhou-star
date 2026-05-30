@@ -5,6 +5,7 @@ uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 uniform float time_scale : hint_range(1.0, 3.0) = 1.5;
 uniform float saturation : hint_range(0.0, 1.0) = 0.5;
+uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -98,6 +99,14 @@ void fragment() {
 		else                 colorful = mix(vec3(0.45,0.2,0.15),  vec3(0.35,0.1,0.3),   (hue-0.8)/0.2);
 		
 		col = mix(gray, mix(col, colorful, saturation), saturation);
+		
+		// ── 风痕拉丝 ── 水平拉伸噪声，像风吹过水面
+		vec2 wuv = vec2(uv.x * 0.8, uv.y * 3.5);
+		float wn1 = noise(wuv + vec2(t * 0.4, t * 0.1));
+		float wn2 = noise(vec2(wuv.x * 3.0 + t * 0.7, wuv.y * 0.3)) * 0.6 + 0.4;
+		float wind = smoothstep(0.55, 0.7, wn1 * wn2) * (1.0 - pow(wn1, 3.0)) * wind_strength;
+		col = mix(col, col * 1.4 + vec3(0.08, 0.12, 0.18), wind);
+		
 		col = max(col, 0.0);  // 防止暗纹减出黑斑
 		
 		COLOR = vec4(col, 0.92);
