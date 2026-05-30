@@ -35,7 +35,7 @@ func _ready() -> void:
 	_memory_num.pct_index     = 13
 	_memory_num.minus_index   = 12
 	_memory_num.char_count    = 14
-	_memory_num.z_index = 1
+	_memory_num.z_index       = 128
 
 
 func _make_number_sprite(p_name: String, pos: Vector2, tex: Texture2D = null, dcount: int = 8) -> Node2D:
