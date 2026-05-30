@@ -45,4 +45,4 @@ func sfx_confirm() -> void:
 	AudioManager.play_sfx(preload("res://assets/Sound/ok.wav"))
 
 func sfx_back() -> void:
-	AudioManager.play_sfx(preload("res://assets/Sound/pause.wav"))
+	AudioManager.play_sfx(preload("res://assets/Sound/cancel.wav"))

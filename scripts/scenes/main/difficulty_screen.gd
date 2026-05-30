@@ -16,6 +16,8 @@ func _on_enter() -> void:
 		if child is Label:
 			_labels.append(child)
 	
+	# 恢复上次选择的难度
+	_index = clampi(GameState.selected_difficulty, 0, _labels.size() - 1)
 	_refresh()
 	
 	# 入场动画：淡入
