@@ -26,12 +26,14 @@ var is_ready: bool = false
 
 # 额外变量
 var extra: Dictionary = {}
+var _grazed: bool = false  # 擦过弹了
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var fog: BulletFog = $Fog
 
 func bind(data: BulletData, direction: Vector2, override: BulletOverride = null):
 	is_ready = false
+	_grazed = false
 	match data.faction:
 		FACTION_ENEMY:
 			z_index = 10

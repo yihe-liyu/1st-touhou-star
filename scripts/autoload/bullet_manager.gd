@@ -165,6 +165,9 @@ func _step_lasers(delta: float) -> void:
 		if laser.phase == CurvedLaserClass.ALIVE and has_player and not hit:
 			if laser.is_hitting_player(player_pos):
 				hit = true
+			elif not laser._grazed and laser.is_hitting_player(player_pos, player.graze_radius):
+				laser._grazed = true
+				_on_graze()
 	
 	if hit and player.has_method("miss"):
 		player.miss()
@@ -202,6 +205,9 @@ func _enemy_bullet_vs_player(bullet: Bullet):
 	if _bullet_hits_target(bullet, player):
 		player.miss()
 		return_bullet(bullet)
+	elif not bullet._grazed and _bullet_grazes_player(bullet, player):
+		bullet._grazed = true
+		_on_graze()
 
 
 func _bomb_bullet_vs_enemies(bullet: Bullet):
@@ -265,6 +271,19 @@ func _is_offscreen(pos: Vector2) -> bool:
 		   pos.x > r.size.x + margin or \
 		   pos.y < -margin or \
 		   pos.y > r.size.y + margin
+
+
+# ═══ 擦弹 ═══
+
+func _bullet_grazes_player(bullet: Bullet, player: Player) -> bool:
+	var center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
+	var total_radius = bullet.hitbox_radius + player.graze_radius
+	return center.distance_squared_to(player.global_position) < total_radius * total_radius
+
+
+func _on_graze() -> void:
+	GameState.graze_count += 1
+	GameState.add_score(10)
 
 
 # ═══════════════════════════════════════

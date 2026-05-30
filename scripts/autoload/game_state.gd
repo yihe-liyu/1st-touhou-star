@@ -5,6 +5,7 @@ var player: Player = null
 var active_enemies: Array = []
 var current_score: int = 0
 var high_scores: Dictionary = {}
+var graze_count: int = 0  # 擦弹数
 ## 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1
 ## 0=Reimu 1=Marisa
@@ -42,6 +43,7 @@ func add_score(amount: int):
 
 func reset_score():
 	current_score = 0
+	graze_count = 0
 
 func _on_enemy_killed(score: int, _position: Vector2):
 	add_score(score)

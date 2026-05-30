@@ -19,6 +19,7 @@ var end_dir: Vector2
 
 # 孔洞（消弹圆打的洞）
 var holes: Array[Dictionary] = []  # [{start_dist, end_dist}]
+var _grazed: bool = false  # 擦过弹了
 
 # 配置
 var data: CurvedLaserData
@@ -47,6 +48,7 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	rotation_speed = p_rot_speed
 	guide_curve = p_curve
 	holes.clear()
+	_grazed = false
 	
 	curve_total_length = _calc_curve_length()
 	var count := guide_curve.get_point_count()
