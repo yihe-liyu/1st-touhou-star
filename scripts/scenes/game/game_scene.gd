@@ -7,7 +7,7 @@ const END_MENU = preload("res://scenes/ui/end_menu.tscn")
 
 @export var stage_data: StageData
 
-var _background_instance: StageBackground
+var _blur_rect: TextureRect
 
 func _ready():
 	# 直接运行此场景时确保状态正确（因没经过 change_scene）
@@ -46,14 +46,38 @@ func _on_player_death():
 
 
 func _on_game_state_changed(_old: int, new: int) -> void:
-	var svc := $Background/SubViewportContainer
 	if new == GameManager.AppState.PAUSED:
-		if not svc.material:
-			var mat := ShaderMaterial.new()
-			mat.shader = preload("res://gdshader/subviewport_blur.gdshader")
-			svc.material = mat
+		_add_blur()
 	elif _old == GameManager.AppState.PAUSED:
-		svc.material = null
+		_remove_blur()
+
+
+func _add_blur() -> void:
+	if _blur_rect:
+		return
+	var sv := $Background/SubViewportContainer/SubViewport
+	var svc := $Background/SubViewportContainer
+	
+	_blur_rect = TextureRect.new()
+	_blur_rect.texture = sv.get_texture()
+	_blur_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_blur_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	_blur_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# 匹配 SubViewportContainer 的位置和大小
+	_blur_rect.position = svc.position
+	_blur_rect.size = svc.size
+	
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://gdshader/subviewport_blur.gdshader")
+	_blur_rect.material = mat
+	
+	$Background.add_child(_blur_rect)
+
+
+func _remove_blur() -> void:
+	if _blur_rect:
+		_blur_rect.queue_free()
+		_blur_rect = null
 
 #func _on_stage_cleared():
 	#await get_tree().create_timer(2.0).timeout
