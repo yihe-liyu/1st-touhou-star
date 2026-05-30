@@ -7,6 +7,7 @@ uniform float time_scale : hint_range(1.0, 3.0) = 1.5;
 uniform float saturation : hint_range(0.0, 1.0) = 0.5;
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
+uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;  // 浪的方向弧度
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -28,7 +29,10 @@ void fragment() {
 	float min_dist = min(min(dl, dr), min(dt, db));
 	if (min_dist <= border_width) { COLOR = border_color; } else {
 		
-		vec2 uv = UV * 2.5;
+		// 旋转 UV 控制浪向
+		float a = wave_angle;
+		vec2 ruv = vec2(UV.x * cos(a) - UV.y * sin(a), UV.x * sin(a) + UV.y * cos(a));
+		vec2 uv = ruv * 2.5;
 		
 		// ── 涌浪层（大尺度） ──
 		float swell1 = sin(uv.x * 2.0 + t * 0.9) * 0.5;
