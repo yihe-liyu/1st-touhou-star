@@ -7,7 +7,7 @@ const END_MENU = preload("res://scenes/ui/end_menu.tscn")
 
 @export var stage_data: StageData
 
-var _blur_rect: TextureRect
+var _blur_rect: ColorRect
 var _background_instance: StageBackground
 
 func _ready():
@@ -56,20 +56,15 @@ func _on_game_state_changed(_old: int, new: int) -> void:
 func _add_blur() -> void:
 	if _blur_rect:
 		return
-	var sv := $Background/SubViewportContainer/SubViewport
 	var svc := $Background/SubViewportContainer
 	
-	_blur_rect = TextureRect.new()
-	_blur_rect.texture = sv.get_texture()
-	_blur_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_blur_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	_blur_rect = ColorRect.new()
 	_blur_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# 匹配 SubViewportContainer 的位置和大小
 	_blur_rect.position = svc.position
 	_blur_rect.size = svc.size
 	
 	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://gdshader/subviewport_blur.gdshader")
+	mat.shader = preload("res://gdshader/pause_blur.gdshader")
 	_blur_rect.material = mat
 	
 	$Background.add_child(_blur_rect)
