@@ -221,4 +221,3 @@ func _fade_in(duration: float = FADE_DURATION):
 	tween.tween_property(_transition_rect, "modulate:a", 0.0, duration)
 	await tween.finished
 	_transition_rect.visible = false
-

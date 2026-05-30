@@ -10,6 +10,8 @@ func _on_ready():
 	GameManager.push_menu(self)
 
 	$Container/Label1.set_meta("locked", true)
+	
+	AudioManager.play_bgm(preload("res://assets/Music/THq01_01.无缘故之回..mp3"))
 
 	# Logo 入场动画
 	_logo.material.set_shader_parameter("progress", 0.0)

@@ -21,6 +21,10 @@ func _ready():
 
 	if not GameEvents.player_death.is_connected(_on_player_death):
 		GameEvents.player_death.connect(_on_player_death)
+	
+	# 暂停时给 SubViewport 加模糊，UI 层保持清晰
+	if not GameManager.game_state_changed.is_connected(_on_game_state_changed):
+		GameManager.game_state_changed.connect(_on_game_state_changed)
 
 func _load_background():
 	if not stage_data or not stage_data.background_scene:
@@ -39,6 +43,17 @@ func _on_player_death():
 	var menu = END_MENU.instantiate()
 	menu.title_text = "Game Over"
 	GameManager.push_overlay_menu(menu)
+
+
+func _on_game_state_changed(_old: int, new: int) -> void:
+	var svc := $Background/SubViewportContainer
+	if new == GameManager.AppState.PAUSED:
+		if not svc.material:
+			var mat := ShaderMaterial.new()
+			mat.shader = preload("res://gdshader/subviewport_blur.gdshader")
+			svc.material = mat
+	elif _old == GameManager.AppState.PAUSED:
+		svc.material = null
 
 #func _on_stage_cleared():
 	#await get_tree().create_timer(2.0).timeout
