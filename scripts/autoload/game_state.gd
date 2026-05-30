@@ -1,17 +1,21 @@
 # GameState.gd
 extends Node
 
-var player: Player = null
-var active_enemies: Array = []
-var current_score: int = 0
-var high_scores: Dictionary = {}
-var graze_count: int = 0  # 擦弹数
-## 0=Easy 1=Normal 2=Hard 3=Lunatic
+# 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1
-## 0=Reimu 1=Marisa
+# 0=Reimu 1=Marisa
 var selected_character: int = 0
-## 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
-var power_raw: int = 300
+var player: Player = null
+
+var active_enemies: Array = []
+
+var high_scores: Dictionary = {}
+var current_score: int = 0
+# 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
+var power_raw: int = 200
+var max_point: int = 10000
+var graze_count: int = 0  # 擦弹数
+
 var _config: ConfigFile
 const SAVE_PATH: String = "user://save_data.cfg"
 

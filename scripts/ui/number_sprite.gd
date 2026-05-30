@@ -7,6 +7,7 @@ class_name NumberSprite
 @export var char_count: int = 12       # 贴图里字符总数
 @export var dot_index: int = 10        # 小数点在第几位
 @export var slash_index: int = -1     # 斜杠在第几位（-1=不显示）
+@export var left_align: bool = false   # true=左对齐不留前导零
 @export var digit_count: int = 8       # 最大显示位数
 @export var digit_spacing: float = 24.0  # 字符间距
 @export var value: int = 0:
@@ -41,12 +42,24 @@ func _setup_digits() -> void:
 func _process(_delta: float) -> void:
 	var text := _text
 	if text == "":
-		text = "%0*d" % [digit_count, value]
+		if left_align:
+			text = str(value)  # 不加前导零
+		else:
+			text = "%0*d" % [digit_count, value]
 	
 	for i in range(digit_count):
-		if i >= text.length():
-			_digits[i].visible = false
-			continue
+		var draw_i := i
+		if left_align:
+			# 左对齐：从左边开始画，超过 text 长度就隐藏
+			if i >= text.length():
+				_digits[i].visible = false
+				continue
+		else:
+			# 右对齐：从右边开始，超出范围隐藏
+			if i >= text.length():
+				_digits[i].visible = false
+				continue
+		
 		var ch := text[i]
 		var idx := -1
 		if ch >= "0" and ch <= "9":
