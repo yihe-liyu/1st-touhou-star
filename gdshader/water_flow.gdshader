@@ -43,7 +43,7 @@ void fragment() {
 		float micro2 = (noise(uv * 20.0 - t * 0.2) - 0.5) * 0.03;
 		
 		float wave = swell1 + swell2 + swell3 + ripple1 + ripple2 + ripple3 + micro + micro2;
-		float normalized = wave * 0.5 + 0.5;
+		float normalized = clamp(wave * 0.5 + 0.5, 0.0, 1.0);
 		
 		// ── 浪形：削尖波峰，圆润波谷 ──
 		float crest = normalized;
