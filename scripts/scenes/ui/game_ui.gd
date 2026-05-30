@@ -21,7 +21,7 @@ func _ready() -> void:
 	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(102, 0), tex)
 	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(102, 0), tex)
 	
-	_memory_num = _make_number_sprite("MemoryNumber", $Memory/OutlineRect.position + Vector2(10, -20), tex, 6)
+	_memory_num = _make_number_sprite("MemoryNumber", $Memory/OutlineRect.position + Vector2(10, 0), tex, 6)
 
 	# 颜色
 	_hi_score_num.modulate  = Color(0.735, 0.735, 0.735)
@@ -32,10 +32,10 @@ func _ready() -> void:
 	# 对齐：不带前导零的用左对齐
 	_max_point_num.left_align = true
 	_graze_num.left_align     = true
-	_memory_num.left_align    = true
 	_memory_num.pct_index     = 13
 	_memory_num.minus_index   = 12
 	_memory_num.char_count    = 14
+	_memory_num.z_index = 1
 
 
 func _make_number_sprite(p_name: String, pos: Vector2, tex: Texture2D = null, dcount: int = 8) -> Node2D:
