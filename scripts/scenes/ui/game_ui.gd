@@ -29,6 +29,9 @@ func _make_number_sprite(node_name: String, pos: Vector2) -> NumberSprite:
 	ns.position = pos
 	ns.z_index = 128
 	ns.digit_count = 8
+	# 替换为你的数字贴图
+	if ResourceLoader.exists("res://assets/Textures/ui/digits.png"):
+		ns.digit_texture = preload("res://assets/Textures/ui/digits.png")
 	add_child(ns)
 	return ns
 
