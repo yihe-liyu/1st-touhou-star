@@ -6,6 +6,8 @@ extends Node
 # ── 声道 ──
 var _bgm_player: AudioStreamPlayer
 var _sfx_players: Array[AudioStreamPlayer] = []
+var _current_bgm: AudioStream
+var _loop_bgm: bool = true
 const SFX_POOL_SIZE := 8
 
 # ── 音量 ──
@@ -103,9 +105,11 @@ func _to_db(linear: float) -> float:
 	return linear_to_db(linear)
 
 
-func _find_bus(name: String) -> StringName:
-	var idx := AudioServer.get_bus_index(name)
-	return name if idx >= 0 else &"Master"
+func _find_bus(bus_name: String) -> StringName:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx >= 0:
+		return StringName(bus_name)
+	return &"Master"
 
 
 func _on_game_state_changed(_old: int, new: int) -> void:
