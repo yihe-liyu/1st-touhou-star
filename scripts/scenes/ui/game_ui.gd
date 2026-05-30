@@ -31,7 +31,7 @@ func _process(_delta: float) -> void:
 	_graze_label.text = "%d" % GameState.graze_count
 	
 	if GameState.player and is_instance_valid(GameState.player):
-		_power_label.text = GameState.player.get_power_display()
+		_power_label.text = GameState.get_power_display()
 
 
 func _create_number_label(node_name: String, pos: Vector2) -> void:
