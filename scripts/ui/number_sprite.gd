@@ -18,25 +18,22 @@ class_name NumberSprite
 		_text = ""
 
 var _digits: Array[Sprite2D] = []
-var _digit_width: float = 0.0
 var _text: String = ""  # 如果设置了 text，优先用 text
 
 
 func _ready() -> void:
-	if digit_texture:
-		_digit_width = digit_texture.get_width() / float(char_count)
 	_setup_digits()
 
 
 func _setup_digits() -> void:
-	var tex_w: float = digit_texture.get_width() if digit_texture else 0.0
-	var init_w: float = round(tex_w / float(char_count)) if char_count > 0 else 0.0
+	var w: float = digit_texture.get_width() / float(char_count) if digit_texture and char_count > 0 else 0.0
+	var h: float = digit_texture.get_height() if digit_texture else 0.0
 	for i in range(digit_count):
 		var s: Sprite2D = Sprite2D.new()
 		s.texture = digit_texture
 		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		s.region_enabled = true
-		s.region_rect = Rect2(0, 0, init_w, digit_texture.get_height() if digit_texture else 0)
+		s.region_rect = Rect2(0, 0, w, h)
 		s.position.x = i * digit_spacing
 		s.visible = false
 		add_child(s)
@@ -81,10 +78,9 @@ func _process(_delta: float) -> void:
 		
 		if idx >= 0:
 			var tex_w: float = float(digit_texture.get_width())
-			var exact_x: float = round(idx * tex_w / float(char_count))
-			var exact_w: float = round(tex_w / float(char_count))
-			# 内缩 0.5px 防止纹理采样渗到隔壁字符
-			_digits[i].region_rect = Rect2(exact_x + 0.5, 0.5, exact_w - 1.0, digit_texture.get_height() - 1.0)
+			var exact_x: float = idx * tex_w / float(char_count)
+			var exact_w: float = tex_w / float(char_count)
+			_digits[i].region_rect = Rect2(exact_x, 0, exact_w, digit_texture.get_height())
 			_digits[i].visible = true
 		else:
 			_digits[i].visible = false
