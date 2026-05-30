@@ -50,17 +50,23 @@ void fragment() {
 		float depth = w * 0.6 + 0.4;
 		vec3 gray = mix(vec3(0.08), vec3(0.45), depth);
 		
-		// 三组水色在波峰波谷间流动
-		vec3 c1 = mix(vec3(0.02, 0.15, 0.35), vec3(0.05, 0.4, 0.6), depth);
-		vec3 c2 = mix(vec3(0.01, 0.25, 0.4), vec3(0.1, 0.5, 0.7), depth);
-		vec3 c3 = mix(vec3(0.03, 0.1, 0.3), vec3(0.0, 0.35, 0.55), depth);
-		vec3 col = mix(mix(c1, c2, w1), c3, w2);
+		// 极光色带——靛→青→金→玫，随波流转
+		float t_col = fract(w1 * 2.0 + w2 * 0.7 + t * 0.05);
+		vec3 col;
+		if (t_col < 0.25)
+			col = mix(vec3(0.08, 0.05, 0.28), vec3(0.04, 0.22, 0.48), t_col / 0.25);
+		else if (t_col < 0.5)
+			col = mix(vec3(0.04, 0.22, 0.48), vec3(0.12, 0.38, 0.42), (t_col - 0.25) / 0.25);
+		else if (t_col < 0.75)
+			col = mix(vec3(0.12, 0.38, 0.42), vec3(0.38, 0.28, 0.15), (t_col - 0.5) / 0.25);
+		else
+			col = mix(vec3(0.38, 0.28, 0.15), vec3(0.3, 0.12, 0.22), (t_col - 0.75) / 0.25);
+		col = mix(vec3(0.06), col, depth);
 		
 		vec3 water_color = mix(gray, col, saturation);
 		
-		// 波峰高光
-		float highlight = smoothstep(0.6, 0.8, w) * 0.25;
-		water_color += highlight * mix(vec3(0.15), vec3(0.3, 0.5, 0.6), saturation);
+		float highlight = smoothstep(0.6, 0.8, w) * 0.2;
+		water_color += highlight * mix(vec3(0.12), vec3(0.22), saturation);
 		
 		COLOR = vec4(water_color, 0.85);
 	}
