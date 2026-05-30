@@ -8,6 +8,7 @@ const END_MENU = preload("res://scenes/ui/end_menu.tscn")
 @export var stage_data: StageData
 
 var _blur_rect: TextureRect
+var _background_instance: StageBackground
 
 func _ready():
 	# 直接运行此场景时确保状态正确（因没经过 change_scene）
