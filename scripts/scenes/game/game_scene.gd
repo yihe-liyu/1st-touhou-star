@@ -57,14 +57,17 @@ func _add_blur() -> void:
 	if _blur_rect:
 		return
 	var svc := $Background/SubViewportContainer
+	var vs := get_viewport().get_visible_rect().size
 	
 	_blur_rect = ColorRect.new()
+	_blur_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_blur_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_blur_rect.position = svc.position
-	_blur_rect.size = svc.size
 	
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/pause_blur.gdshader")
+	# 把 SubViewport 在屏幕上的 UV 范围传给 shader
+	mat.set_shader_parameter("rect_min", Vector2(svc.position) / vs)
+	mat.set_shader_parameter("rect_max", Vector2(svc.position + svc.size) / vs)
 	_blur_rect.material = mat
 	
 	$Background.add_child(_blur_rect)

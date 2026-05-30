@@ -4,16 +4,13 @@ uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
 
 uniform float blur_strength : hint_range(0, 8) = 3.0;
 uniform float darken : hint_range(0, 1) = 0.55;
+uniform vec2 rect_min = vec2(0.0);
+uniform vec2 rect_max = vec2(1.0);
 
 void fragment() {
-	// SCREEN_TEXTURE = 屏幕当前画面
-	// SCREEN_UV = 屏幕坐标
-	// SCREEN_PIXEL_SIZE = 每像素大小
-	
 	vec2 ps = SCREEN_PIXEL_SIZE * blur_strength;
 	vec4 color = vec4(0.0);
 	
-	// 5×5 box blur — 采样周围 25 个像素求平均
 	for (int x = -2; x <= 2; x++) {
 		for (int y = -2; y <= 2; y++) {
 			vec2 offset = vec2(float(x), float(y)) * ps;
@@ -22,6 +19,9 @@ void fragment() {
 	}
 	color /= 25.0;
 	
-	// 变暗 → 毛玻璃效果
-	COLOR = vec4(color.rgb * (1.0 - darken), 1.0);
+	// 只在 SubViewport 区域内模糊，区域外正常显示
+	float in_rect = step(rect_min.x, SCREEN_UV.x) * step(rect_min.y, SCREEN_UV.y)
+	              * step(SCREEN_UV.x, rect_max.x) * step(SCREEN_UV.y, rect_max.y);
+	vec4 original = texture(SCREEN_TEXTURE, SCREEN_UV);
+	COLOR = mix(original, vec4(color.rgb * (1.0 - darken), 1.0), in_rect);
 }
