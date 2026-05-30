@@ -26,7 +26,7 @@ func _process(_delta: float) -> void:
 	if not is_instance_valid(GameState):
 		return
 	
-	_hi_score_label.text = "%08d" % GameState.get_high_score(-1)
+	_hi_score_label.text = "%08d" % GameState.get_high_score(0)
 	_score_label.text = "%08d" % GameState.current_score
 	_graze_label.text = "%d" % GameState.graze_count
 	
