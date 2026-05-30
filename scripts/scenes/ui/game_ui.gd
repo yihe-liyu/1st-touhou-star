@@ -39,6 +39,7 @@ func _create_number_label(node_name: String, pos: Vector2) -> void:
 	lbl.name = node_name
 	lbl.offset_left = pos.x
 	lbl.offset_top = pos.y
+	lbl.z_index = 128
 	lbl.add_theme_font_size_override("font_size", 18)
 	lbl.add_theme_color_override("font_color", Color.WHITE)
 	add_child(lbl)
