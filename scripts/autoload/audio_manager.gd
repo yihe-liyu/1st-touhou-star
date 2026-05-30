@@ -136,6 +136,6 @@ func _on_game_state_changed(_old: int, new: int) -> void:
 	if new == GameManager.AppState.PAUSED:
 		_bgm_player.stream_paused = true
 		_bgm_player2.stream_paused = true
-	elif _old == GameManager.AppState.PAUSED:
+	elif new == GameManager.AppState.PLAYING:
 		_bgm_player.stream_paused = false
 		_bgm_player2.stream_paused = false
