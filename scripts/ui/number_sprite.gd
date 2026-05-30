@@ -43,24 +43,26 @@ func _process(_delta: float) -> void:
 	var text := _text
 	if text == "":
 		if left_align:
-			text = str(value)  # 不加前导零
+			text = str(value)
 		else:
 			text = "%0*d" % [digit_count, value]
 	
+	# 右对齐偏移量
+	var offset := 0
+	if not left_align:
+		offset = digit_count - text.length()
+	
 	for i in range(digit_count):
-		var draw_i := i
-		if left_align:
-			# 左对齐：从左边开始画，超过 text 长度就隐藏
-			if i >= text.length():
-				_digits[i].visible = false
-				continue
-		else:
-			# 右对齐：从右边开始，超出范围隐藏
-			if i >= text.length():
-				_digits[i].visible = false
-				continue
+		if offset > 0 and i < offset:
+			_digits[i].visible = false
+			continue
 		
-		var ch := text[i]
+		var ti := i - offset
+		if ti < 0 or ti >= text.length():
+			_digits[i].visible = false
+			continue
+		
+		var ch := text[ti]
 		var idx := -1
 		if ch >= "0" and ch <= "9":
 			idx = ch.to_int()
