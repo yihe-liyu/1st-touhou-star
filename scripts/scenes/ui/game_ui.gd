@@ -21,13 +21,15 @@ func _ready() -> void:
 	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(102, 0), tex)
 	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(102, 0), tex)
 	
-	_memory_num = _make_number_sprite_on("MemoryNumber", $Memory, $Memory/OutlineRect.position + Vector2(10, 0), tex, 6)
+	_memory_rect = $Memory/OutlineRect
+	_memory_num = _make_number_sprite_on("MemoryNumber", $Memory, $MemoryValue.position + Vector2(78, 0), tex, 6)
 
 	# 颜色
 	_hi_score_num.modulate  = Color(0.735, 0.735, 0.735)
 	_power_num.modulate     = Color(1.0, 0.4, 0.0)
 	_max_point_num.modulate = Color(0.165, 0.831, 1.0)
 	_graze_num.modulate     = Color(0.735, 0.735, 0.735)
+	_memory_num.modulate    = Color(0.592, 0.549, 1.0, 1.0)
 
 	# 对齐：不带前导零的用左对齐
 	_max_point_num.left_align = true

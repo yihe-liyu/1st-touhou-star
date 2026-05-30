@@ -148,7 +148,7 @@ z_index = 128
 position = Vector2(922, 480)
 texture = SubResource("AtlasTexture_tqxxy")
 
-[node name="Graze2" type="Sprite2D" parent="UI" unique_id=1289444788]
+[node name="MemoryValue" type="Sprite2D" parent="UI" unique_id=1289444788]
 z_index = 128
 position = Vector2(922, 608)
 texture = SubResource("AtlasTexture_liy57")
