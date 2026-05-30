@@ -35,11 +35,13 @@ func _ready() -> void:
 	
 	_bgm_player = AudioStreamPlayer.new()
 	_bgm_player.bus = bgm_bus
+	_bgm_player.process_mode = PROCESS_MODE_ALWAYS
 	add_child(_bgm_player)
 	
 	_bgm_player2 = AudioStreamPlayer.new()
 	_bgm_player2.bus = bgm_bus
 	_bgm_player2.volume_db = -80.0  # 静音
+	_bgm_player2.process_mode = PROCESS_MODE_ALWAYS
 	add_child(_bgm_player2)
 	
 	for i in range(SFX_POOL_SIZE):
