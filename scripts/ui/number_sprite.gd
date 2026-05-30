@@ -14,7 +14,6 @@ class_name NumberSprite
 	set(v):
 		value = v
 		_text = ""
-		queue_redraw()
 
 var _digits: Array[Sprite2D] = []
 var _digit_width: float = 0.0
@@ -79,5 +78,4 @@ func _process(_delta: float) -> void:
 
 
 func show_text(t: String) -> void:
-	_text = t
-	queue_redraw()
+	_text = t  # _process 每帧读，无需 queue_redraw
