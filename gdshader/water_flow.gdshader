@@ -47,18 +47,17 @@ void fragment() {
 		float w3 = noise(wuv * 32.0);
 		float w = w1 * 0.5 + w2 * 0.3 + w3 * 0.2;
 		
-		vec3 deep_gray    = vec3(0.1, 0.1, 0.15);
-		vec3 shallow_gray = vec3(0.4, 0.4, 0.45);
-		vec3 deep_color    = vec3(0.05, 0.15, 0.45);
-		vec3 shallow_color = vec3(0.15, 0.45, 0.7);
+		vec3 gray = mix(vec3(0.1), vec3(0.5), depth);
 		
-		float depth = w * 0.6 + 0.4;
-		vec3 gray  = mix(deep_gray, shallow_gray, depth);
-		vec3 color = mix(deep_color, shallow_color, depth);
-		vec3 water_color = mix(gray, color, saturation);
+		// 彩色：用噪声生成色相
+		float hue = fract(w1 * 3.0 + w2 * 1.7 + t * 0.1);
+		vec3 col = 0.5 + 0.5 * cos(6.28318 * (hue + vec3(0.0, 0.33, 0.67)));
+		col = mix(vec3(0.3), col, depth);  // 深处暗
+		
+		vec3 water_color = mix(gray, col, saturation);
 		
 		float highlight = smoothstep(0.55, 0.75, w) * 0.3;
-		water_color += highlight * mix(vec3(0.2), vec3(0.4, 0.6, 0.9), saturation);
+		water_color += highlight * mix(vec3(0.15), vec3(0.3), saturation);
 		
 		COLOR = vec4(water_color, 0.85);
 	}

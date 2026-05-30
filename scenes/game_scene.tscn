@@ -54,6 +54,7 @@ shader_parameter/rect_size = Vector2(384, 256)
 shader_parameter/time_scale = 1.0
 shader_parameter/wave_strength = 0.5
 shader_parameter/flow_speed = 1.5000000679901202
+shader_parameter/saturation = 0.5
 
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")
