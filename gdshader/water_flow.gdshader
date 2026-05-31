@@ -116,6 +116,7 @@ void fragment() {
 	else                 colorful = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
 
 	vec3 gray = mix(vec3(0.0), col, mem_bright);  // 亮度=灰，亮=原色
+	float color_boost = crest * 1.2 * mem_sat;
 	col = mix(gray, col + (colorful - 0.5) * color_boost, mem_sat);
 
 	// ── 亮度 + 纯白 → 纯黑过渡 ──
