@@ -4,11 +4,26 @@ uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 
-uniform float time_scale : hint_range(0.0, 3.0) = 1.5;
+uniform float time_scale : hint_range(0.0, 4.0) = 2.0;
 uniform float memory : hint_range(-100.0, 200.0) = 50.0;
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
+
+// ── 水体颜色 ──
+uniform vec3 water_deep : source_color = vec3(0.02, 0.10, 0.25);
+uniform vec3 water_mid : source_color = vec3(0.06, 0.18, 0.35);
+uniform vec3 water_shore : source_color = vec3(0.12, 0.26, 0.42);
+
+// ── 波浪 ──
+uniform float wave_scale : hint_range(1.0, 20.0) = 3.0;
+uniform float wave_strength : hint_range(0.0, 3.0) = 1.0;
+
+// ── 泡沫 ──
+uniform float foam_amount : hint_range(0.0, 1.0) = 0.15;
+uniform vec3 foam_color : source_color = vec3(0.70, 0.80, 0.88);
+uniform float foam_speed : hint_range(0.0, 5.0) = 1.5;
+uniform float foam_detail : hint_range(10.0, 200.0) = 100.0;
 
 // ── 噪声 ──
 float hash(vec2 p) {
@@ -56,7 +71,7 @@ void fragment() {
 	vec2 centered = UV - 0.5;
 	vec2 ruv = vec2(centered.x*cos(a) - centered.y*sin(a),
 	                centered.x*sin(a) + centered.y*cos(a)) + 0.5;
-	vec2 uv = ruv * 3.0;
+	vec2 uv = ruv * wave_scale;
 
 	// ── FBM 波浪 ──
 	float s = 1.0 + mem_speed * 0.6; // 波幅随 memory 增强
@@ -75,24 +90,18 @@ void fragment() {
 	}
 
 	// ── 颜色 ──
-	vec3 abyss  = vec3(0.005, 0.04, 0.14);
-	vec3 deep   = vec3(0.02, 0.10, 0.25);
-	vec3 mid    = vec3(0.06, 0.18, 0.35);
-	vec3 shore  = vec3(0.12, 0.26, 0.42);
-	vec3 foam_col = vec3(0.70, 0.80, 0.88);
-
 	vec3 col;
 	float d = crest;
-	if (d < 0.3)       col = mix(abyss, deep,  d / 0.3);
-	else if (d < 0.6)  col = mix(deep,  mid,   (d-0.3)/0.3);
-	else if (d < 0.85) col = mix(mid,   shore, (d-0.6)/0.25);
-	else                col = shore;
+	if (d < 0.3)       col = mix(water_deep*0.3, water_deep, d/0.3);
+	else if (d < 0.6)  col = mix(water_deep,  water_mid,   (d-0.3)/0.3);
+	else if (d < 0.85) col = mix(water_mid,   water_shore, (d-0.6)/0.25);
+	else                col = water_shore;
 
 	// 泡沫：波峰 + 噪声纹理
-	float foam_noise = fbm(uv * 25.0 + t * 0.6);
-	float foam_anim = smoothstep(0.4, 0.8, foam_noise);
-	float foam_mask = smoothstep(0.7, 0.92, crest) * foam_anim * 0.9;
-	col = mix(col, foam_col, foam_mask);
+	float foamy = fbm(uv * foam_detail / 30.0 + t * foam_speed * 0.4);
+	float foam_anim = smoothstep(0.4, 0.8, foamy);
+	float foam_mask = smoothstep(0.7, 0.92, crest) * foam_anim * foam_amount;
+	col = mix(col, foam_color, foam_mask);
 
 	// 高光
 	float spec = smoothstep(0.55, 0.78, crest) * (1.0 - foam_mask);
