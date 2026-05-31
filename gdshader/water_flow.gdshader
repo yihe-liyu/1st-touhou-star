@@ -42,8 +42,7 @@ void fragment() {
 	float dt = UV.y * rect_size.y, db = (1.0 - UV.y) * rect_size.y;
 	if (min(min(dl, dr), min(dt, db)) <= border_width) {
 		COLOR = border_color;
-		return;
-	}
+	} else {
 
 	// ── memory 驱动项 ──
 	float mem_speed  = smoothstep(-100.0, 200.0, memory);
@@ -132,4 +131,5 @@ void fragment() {
 	col *= mix(0.3, 1.6, mem_bright);
 
 	COLOR = vec4(col, 0.92);
+	}
 }
