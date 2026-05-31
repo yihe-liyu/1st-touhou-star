@@ -53,6 +53,21 @@ region = Rect2(64, 224, 128, 32)
 
 [sub_resource type="ShaderMaterial" id="RectOutlineMat"]
 shader = ExtResource("13_water")
+shader_parameter/border_color = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/border_width = 3.0
+shader_parameter/rect_size = Vector2(384, 256)
+shader_parameter/time_scale = 4.0
+shader_parameter/memory = 50.0
+shader_parameter/wave_angle = 4.5230002148425
+shader_parameter/water_deep = Color(0.14488885, 0.3653155, 0.74704194, 1)
+shader_parameter/water_mid = Color(0.4086664, 0.6206093, 0.92500776, 1)
+shader_parameter/water_shore = Color(1, 1, 1, 1)
+shader_parameter/wave_scale = 1.0
+shader_parameter/wave_strength = 1.0
+shader_parameter/foam_amount = 0.15
+shader_parameter/foam_color = Color(0.7, 0.8, 0.88, 1)
+shader_parameter/foam_speed = 1.5
+shader_parameter/foam_detail = 100.0
 
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")

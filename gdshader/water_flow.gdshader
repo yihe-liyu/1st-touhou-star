@@ -15,7 +15,6 @@ uniform vec3 water_shore : source_color = vec3(0.12, 0.26, 0.42);
 
 // ── 波浪 ──
 uniform float wave_scale : hint_range(1.0, 20.0) = 3.0;
-uniform float wave_strength : hint_range(0.0, 3.0) = 1.0;
 
 // ── 泡沫 ──
 uniform float foam_amount : hint_range(0.0, 1.0) = 0.15;
@@ -60,7 +59,6 @@ void fragment() {
 	// -100=纯黑  0=灰白(结构可见)  100=全彩  200=纯白
 	float mem_bright = smoothstep(-100.0, 100.0, memory);   // 0→1 (暗→亮)
 	float mem_sat    = smoothstep(0.0, 100.0, memory);      // 0→1 (灰→彩)
-	float mem_white  = smoothstep(100.0, 200.0, memory);    // 0→1 (正常→纯白)
 	float mem_frozen = step(memory, -99.0);
 
 	float t = mem_frozen > 0.5 ? 0.0 : TIME * time_scale;
