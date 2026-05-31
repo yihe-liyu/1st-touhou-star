@@ -22,7 +22,7 @@ func _ready() -> void:
 	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(102, 0), tex)
 	
 	_memory_rect = $Memory/OutlineRect
-	_memory_num = _make_number_sprite_on("MemoryNumber", $Memory, $MemoryValue.position + Vector2(78, 0), tex, 6)
+	_memory_num = _make_number_sprite_on("MemoryNumber", $Memory, $MemoryValue.position + Vector2(60, 0), tex, 6)
 
 	# 颜色
 	_hi_score_num.modulate  = Color(0.735, 0.735, 0.735)
