@@ -85,14 +85,14 @@ void fragment() {
 	// ── 颜色：波值驱动 5 段渐变 ──
 	float hue = fract(wave1*0.7 + wave2*0.5 + t*0.03);
 	vec3 col;
-	if (hue < 0.2)      col = mix(vec3(0.06,0.10,0.45), vec3(0.03,0.26,0.48), hue/0.2);
-	else if (hue < 0.4) col = mix(vec3(0.03,0.26,0.48), vec3(0.06,0.40,0.42), (hue-0.2)/0.2);
-	else if (hue < 0.6) col = mix(vec3(0.06,0.40,0.42), vec3(0.30,0.36,0.14), (hue-0.4)/0.2);
-	else if (hue < 0.8) col = mix(vec3(0.30,0.36,0.14), vec3(0.42,0.18,0.14), (hue-0.6)/0.2);
-	else                 col = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
+	if (hue < 0.2)      col = mix(vec3(0.10,0.18,0.70), vec3(0.05,0.40,0.65), hue/0.2);
+	else if (hue < 0.4) col = mix(vec3(0.05,0.40,0.65), vec3(0.10,0.55,0.55), (hue-0.2)/0.2);
+	else if (hue < 0.6) col = mix(vec3(0.10,0.55,0.55), vec3(0.45,0.50,0.20), (hue-0.4)/0.2);
+	else if (hue < 0.8) col = mix(vec3(0.45,0.50,0.20), vec3(0.60,0.30,0.22), (hue-0.6)/0.2);
+	else                 col = mix(vec3(0.60,0.30,0.22), vec3(0.50,0.15,0.40), (hue-0.8)/0.2);
 	
 	// 波谷暗、波峰亮
-	float depth_shade = mix(0.3, 1.0, crest);
+	float depth_shade = mix(0.5, 1.2, crest);
 	col *= depth_shade;
 
 	// 泡沫：波峰 + 噪声纹理
