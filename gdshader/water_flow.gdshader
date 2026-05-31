@@ -115,14 +115,18 @@ void fragment() {
 	else if (hue < 0.8) colorful = mix(vec3(0.30,0.36,0.14), vec3(0.42,0.18,0.14), (hue-0.6)/0.2);
 	else                 colorful = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
 
-	vec3 gray = mix(vec3(0.05), col, mem_sat);
-	float color_boost = crest * 1.0 * mem_sat;  // 波峰处彩色强，波谷弱
+	vec3 gray = mix(vec3(0.0), col, mem_bright);  // 亮度=灰，亮=原色
 	col = mix(gray, col + (colorful - 0.5) * color_boost, mem_sat);
 
-	// ── 亮度 + 纯白过渡 ──
+	// ── 亮度 + 纯白 → 纯黑过渡 ──
 	col = max(col, 0.0);
-	col = mix(col, vec3(1.0), mem_white);  // 200→纯白
-	col *= mix(0.0, 1.0, mem_bright);       // -100→正常亮度
+	vec3 white = vec3(1.0);
+	vec3 black = vec3(0.0);
+	// 0~200: 渐入纯白; -100~0: 渐入纯黑
+	float toward_white = smoothstep(100.0, 200.0, memory);
+	float toward_black = 1.0 - smoothstep(-100.0, 0.0, memory);
+	col = mix(col, white, toward_white);
+	col = mix(col, black, toward_black);
 
 	COLOR = vec4(col, 0.92);
 	}
