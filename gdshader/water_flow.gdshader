@@ -56,9 +56,8 @@ void fragment() {
 	float mem_sat    = smoothstep(0.0, 100.0, memory);      // 0→1 (灰→彩)
 	float mem_frozen = step(memory, -99.0);
 
-	float mem_speed = smoothstep(-100.0, 200.0, memory) * 10.0;  // 0~10
-	float t = shader_time;
-	float ms = mem_speed;
+	float t = shader_time;  // 已含速度，永不倒退
+	float ms = 1.0;           // 频率固定，速度由 shader_time 管
 
 	// ── 旋转 ──
 	float a = wave_angle;
