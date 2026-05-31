@@ -114,8 +114,9 @@ void fragment() {
 	else if (hue < 0.8) colorful = mix(vec3(0.30,0.36,0.14), vec3(0.42,0.18,0.14), (hue-0.6)/0.2);
 	else                 colorful = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
 
-	vec3 gray = mix(vec3(0.05), col, mem_sat);        // 不饱和时→灰，饱和时→原色
-	col = mix(gray, col + (colorful - 0.5) * 0.3, mem_sat);  // 彩色叠加不盖底色
+	vec3 gray = mix(vec3(0.05), col, mem_sat);
+	float color_boost = crest * 0.3 * mem_sat;  // 波峰处彩色强，波谷弱
+	col = mix(gray, col + (colorful - 0.5) * color_boost, mem_sat);
 
 	// ── 亮度 ──
 	col = max(col, 0.0);
