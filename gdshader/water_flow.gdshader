@@ -57,8 +57,9 @@ void fragment() {
 	float mem_sat    = smoothstep(0.0, 100.0, memory);      // 0→1 (灰→彩)
 	float mem_frozen = step(memory, -99.0);
 
-	float mem_speed = smoothstep(-100.0, 200.0, memory) * time_scale;
-	float t = TIME * mem_speed;
+	float mem_speed = smoothstep(-100.0, 200.0, memory) * time_scale;  // 0~time_scale
+	float t = TIME * time_scale;  // 时间永远向前，不倒流
+	float ms = mem_speed;         // 频率缩放
 
 	// ── 旋转 ──
 	float a = wave_angle;
@@ -69,8 +70,8 @@ void fragment() {
 
 	// ── FBM 波浪 ──
 	float s = 1.0 + mem_bright * 0.6;
-	float wave1 = fbm(uv * 4.0 + vec2(t*0.3, t*0.25)) * s;
-	float wave2 = fbm(uv * 5.5 + vec2(-t*0.25, t*0.35)) * s * 0.7;
+	float wave1 = fbm(uv * 4.0 + vec2(t*ms*0.3, t*ms*0.25)) * s;
+	float wave2 = fbm(uv * 5.5 + vec2(-t*ms*0.25, t*ms*0.35)) * s * 0.7;
 	float wave = (wave1 + wave2) - 0.85; // → -1~1 范围
 
 	float normalized = clamp(wave * 0.5 + 0.5, 0.0, 1.0);
@@ -84,7 +85,7 @@ void fragment() {
 	}
 
 	// ── 颜色：波值驱动 5 段渐变 ──
-	float hue = fract(wave1*0.7 + wave2*0.5 + t*0.03);
+	float hue = fract(wave1*0.7 + wave2*0.5 + t*ms*0.03);
 	vec3 col;
 	if (hue < 0.2)      col = mix(vec3(0.10,0.18,0.70), vec3(0.05,0.40,0.65), hue/0.2);
 	else if (hue < 0.4) col = mix(vec3(0.05,0.40,0.65), vec3(0.10,0.55,0.55), (hue-0.2)/0.2);
@@ -97,7 +98,7 @@ void fragment() {
 	col *= depth_shade;
 
 	// 泡沫：波峰 + 噪声纹理
-	float foamy = fbm(uv * foam_detail / 30.0 + t * foam_speed * 0.4);
+	float foamy = fbm(uv * foam_detail / 30.0 + t * ms * foam_speed * 0.4);
 	float foam_anim = smoothstep(0.4, 0.8, foamy);
 	float foam_mask = smoothstep(0.7, 0.92, crest) * foam_anim * foam_amount;
 	col = mix(col, foam_color, foam_mask);
