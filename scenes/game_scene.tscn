@@ -6,8 +6,8 @@
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
 [ext_resource type="Texture2D" uid="uid://dtv267387tbw0" path="res://assets/Textures/front/front02.png" id="6_mw25s"]
-[ext_resource type="Texture2D" uid="uid://cc1au4xtkecte" path="res://assets/Textures/front/TrueFront2.png" id="6_tcjrq"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
+[ext_resource type="Texture2D" uid="uid://btj64lam67h1f" path="res://assets/Textures/front/FalseFront.png" id="7_rvs2r"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game/game_scene.gd" id="9_script"]
 [ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/ui/game_ui.gd" id="10_ui"]
 [ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/ui/rect_outline.gd" id="12_rect_outline"]
@@ -59,9 +59,9 @@ shader_parameter/rect_size = Vector2(384, 256)
 shader_parameter/time_scale = 4.0
 shader_parameter/memory = 200.0
 shader_parameter/wave_angle = 4.5230002148425
-shader_parameter/water_deep = Color(0.02, 0.1, 0.25, 1)
-shader_parameter/water_mid = Color(0.06, 0.18, 0.35, 1)
-shader_parameter/water_shore = Color(0.12, 0.26, 0.42, 1)
+shader_parameter/water_deep = Color(0.14488885, 0.3653155, 0.74704194, 1)
+shader_parameter/water_mid = Color(0.4086664, 0.6206093, 0.92500776, 1)
+shader_parameter/water_shore = Color(1, 1, 1, 1)
 shader_parameter/wave_scale = 1.0
 shader_parameter/wave_strength = 1.0
 shader_parameter/foam_amount = 0.15
@@ -111,7 +111,7 @@ script = ExtResource("10_ui")
 
 [node name="front" type="Sprite2D" parent="UI" unique_id=1281612929]
 z_index = 128
-texture = ExtResource("6_tcjrq")
+texture = ExtResource("7_rvs2r")
 offset = Vector2(640, 480)
 
 [node name="diffculty" type="Sprite2D" parent="UI" unique_id=1428832846]

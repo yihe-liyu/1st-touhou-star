@@ -57,9 +57,10 @@ void fragment() {
 	} else {
 
 	// ── memory 驱动项 ──
-	float mem_speed  = smoothstep(-100.0, 200.0, memory);
-	float mem_sat    = smoothstep(-100.0, 100.0, memory);
-	float mem_bright = smoothstep(-100.0, 200.0, memory);
+	// -100=纯黑  0=灰白(结构可见)  100=全彩  200=纯白
+	float mem_bright = smoothstep(-100.0, 100.0, memory);   // 0→1 (暗→亮)
+	float mem_sat    = smoothstep(0.0, 100.0, memory);      // 0→1 (灰→彩)
+	float mem_white  = smoothstep(100.0, 200.0, memory);    // 0→1 (正常→纯白)
 	float mem_frozen = step(memory, -99.0);
 
 	float t = mem_frozen > 0.5 ? 0.0 : TIME * time_scale;
@@ -72,7 +73,7 @@ void fragment() {
 	vec2 uv = ruv * wave_scale;
 
 	// ── FBM 波浪 ──
-	float s = 1.0 + mem_speed * 0.6; // 波幅随 memory 增强
+	float s = 1.0 + mem_bright * 0.6;
 	float wave1 = fbm(uv * 4.0 + vec2(t*0.3, t*0.25)) * s;
 	float wave2 = fbm(uv * 5.5 + vec2(-t*0.25, t*0.35)) * s * 0.7;
 	float wave = (wave1 + wave2) - 0.85; // → -1~1 范围
@@ -115,12 +116,13 @@ void fragment() {
 	else                 colorful = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
 
 	vec3 gray = mix(vec3(0.05), col, mem_sat);
-	float color_boost = crest * 1.2 * mem_sat;  // 波峰处彩色强，波谷弱
+	float color_boost = crest * 1.0 * mem_sat;  // 波峰处彩色强，波谷弱
 	col = mix(gray, col + (colorful - 0.5) * color_boost, mem_sat);
 
-	// ── 亮度 ──
+	// ── 亮度 + 纯白过渡 ──
 	col = max(col, 0.0);
-	col *= mix(0.3, 1.6, mem_bright);
+	col = mix(col, vec3(1.0), mem_white);  // 200→纯白
+	col *= mix(0.0, 1.0, mem_bright);       // -100→正常亮度
 
 	COLOR = vec4(col, 0.92);
 	}
