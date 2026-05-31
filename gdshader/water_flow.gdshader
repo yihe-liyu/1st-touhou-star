@@ -4,12 +4,11 @@ uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 
-uniform float time_scale : hint_range(0.1, 2.0) = 0.4;
+uniform float time_scale : hint_range(0.0, 3.0) = 1.5;
 uniform float memory : hint_range(-100.0, 200.0) = 50.0;
 uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
 uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
-uniform float rot_speed : hint_range(-0.5, 0.5) = 0.05;
 
 // ── 噪声 ──
 float hash(vec2 p) {
@@ -53,7 +52,7 @@ void fragment() {
 	float t = mem_frozen > 0.5 ? 0.0 : TIME * time_scale;
 
 	// ── 旋转 ──
-	float a = wave_angle + TIME * rot_speed;
+	float a = wave_angle;
 	vec2 centered = UV - 0.5;
 	vec2 ruv = vec2(centered.x*cos(a) - centered.y*sin(a),
 	                centered.x*sin(a) + centered.y*cos(a)) + 0.5;
