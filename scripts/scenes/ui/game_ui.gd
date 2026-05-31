@@ -82,4 +82,4 @@ func _process(_delta: float) -> void:
 	if _memory_rect and _memory_rect.material is ShaderMaterial:
 		_memory_rect.material.set_shader_parameter("memory", float(GameState.memory_value))
 		_shader_time += _delta * smoothstep(-100.0, 200.0, GameState.memory_value) * 10.0
-		_memory_rect.material.set_shader_parameter("shader_time", _shader_time * 2.0)  # x2 提速
+		_memory_rect.material.set_shader_parameter("shader_time", _shader_time)
