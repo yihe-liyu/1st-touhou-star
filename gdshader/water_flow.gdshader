@@ -4,8 +4,7 @@ uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 
-uniform float time_scale : hint_range(0.0, 10.0) = 2.0;  // 最大速度
-uniform float memory : hint_range(-100.0, 200.0) = 50.0;
+uniform float shader_time : hint_range(0.0, 100000.0) = 0.0;  // 外部递增时间，不倒退
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
 
 // ── 水体颜色 ── (由 wave 驱动，无需手动调)
@@ -57,9 +56,9 @@ void fragment() {
 	float mem_sat    = smoothstep(0.0, 100.0, memory);      // 0→1 (灰→彩)
 	float mem_frozen = step(memory, -99.0);
 
-	float mem_speed = smoothstep(-100.0, 200.0, memory) * time_scale;  // 0~time_scale
-	float t = TIME * time_scale;  // 时间永远向前，不倒流
-	float ms = mem_speed;         // 频率缩放
+	float mem_speed = smoothstep(-100.0, 200.0, memory) * 10.0;  // 0~10
+	float t = shader_time;
+	float ms = mem_speed;
 
 	// ── 旋转 ──
 	float a = wave_angle;
@@ -71,7 +70,7 @@ void fragment() {
 	// ── FBM 波浪 ──
 	float s = 1.0 + mem_bright * 0.6;
 	float wave1 = fbm(uv * 4.0 + vec2(t*ms*0.3, t*ms*0.25)) * s;
-	float wave2 = fbm(uv * 5.5 + vec2(-t*ms*0.25, t*ms*0.35)) * s * 0.7;
+	float wave2 = fbm(uv * 5.5 + vec2(t*ms*0.2, t*ms*0.35)) * s * 0.7;
 	float wave = (wave1 + wave2) - 0.85; // → -1~1 范围
 
 	float normalized = clamp(wave * 0.5 + 0.5, 0.0, 1.0);

@@ -11,6 +11,7 @@ var _max_point_num: Node2D
 var _graze_num: Node2D
 var _memory_num: Node2D
 var _memory_rect: ColorRect
+var _shader_time: float = 0.0
 
 
 func _ready() -> void:
@@ -77,6 +78,8 @@ func _process(_delta: float) -> void:
 	if GameState.player and is_instance_valid(GameState.player):
 		_power_num.show_text(GameState.get_power_display() + "/4.00")
 	
-	# 同步 memory → shader saturation
+	# 同步 memory → shader
 	if _memory_rect and _memory_rect.material is ShaderMaterial:
 		_memory_rect.material.set_shader_parameter("memory", float(GameState.memory_value))
+		_shader_time += _delta * smoothstep(-100.0, 200.0, GameState.memory_value) * 10.0
+		_memory_rect.material.set_shader_parameter("shader_time", _shader_time)
