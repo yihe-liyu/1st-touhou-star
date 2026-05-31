@@ -57,7 +57,7 @@ void fragment() {
 	float mem_sat    = smoothstep(0.0, 100.0, memory);      // 0→1 (灰→彩)
 	float mem_frozen = step(memory, -99.0);
 
-	float t = mem_frozen > 0.5 ? 0.0 : TIME * time_scale * (0.5 + mem_bright * 1.5);
+	float t = mem_frozen > 0.5 ? 0.0 : TIME * time_scale * smoothstep(-100.0, 200.0, memory) * 10.0;
 
 	// ── 旋转 ──
 	float a = wave_angle;
