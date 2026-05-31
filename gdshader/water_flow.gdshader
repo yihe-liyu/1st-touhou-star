@@ -4,7 +4,8 @@ uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 
-uniform float shader_time : hint_range(0.0, 100000.0) = 0.0;  // 外部递增时间，不倒退
+uniform float shader_time : hint_range(0.0, 100000.0) = 0.0;
+uniform float memory : hint_range(-100.0, 200.0) = 50.0;
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
 
 // ── 水体颜色 ── (由 wave 驱动，无需手动调)
