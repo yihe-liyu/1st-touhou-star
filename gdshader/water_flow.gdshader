@@ -6,8 +6,6 @@ uniform vec2 rect_size = vec2(384.0, 256.0);
 
 uniform float time_scale : hint_range(0.0, 4.0) = 2.0;
 uniform float memory : hint_range(-100.0, 200.0) = 50.0;
-uniform float wind_strength : hint_range(0.0, 1.0) = 0.4;
-uniform float surge_strength : hint_range(0.0, 1.0) = 0.6;
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
 
 // ── 水体颜色 ──
@@ -106,21 +104,6 @@ void fragment() {
 	// 高光
 	float spec = smoothstep(0.55, 0.78, crest) * (1.0 - foam_mask);
 	col += spec * 0.07 * vec3(0.3, 0.5, 0.72);
-
-	// ── 风痕 ──
-	vec2 wuv = vec2(uv.x * 0.6, uv.y * 3.0);
-	float wn1 = noise(wuv + vec2(t*0.4, t*0.1));
-	float wn2 = noise(vec2(wuv.x*2.5 + t*0.6, wuv.y*0.3)) * 0.5 + 0.5;
-	float wind = smoothstep(0.55, 0.72, wn1*wn2) * (1.0 - pow(wn1, 3.0)) * wind_strength;
-	col = mix(col, col*1.3 + vec3(0.06, 0.10, 0.16), wind);
-
-	// ── 暗涌 ──
-	vec2 suv = uv * 1.6;
-	float surge1 = fbm(suv * 2.0 + t * 0.15);
-	float surge2 = fbm(suv * 2.8 - t * 0.12) * 0.6;
-	float surge = (surge1 + surge2 - 0.8) * surge_strength;
-	float sd = surge * 0.5 + 0.5;
-	col = mix(col*0.65, col*1.12 + vec3(0.02, 0.05, 0.10), sd);
 
 	// ── 彩色插值（memory 驱动） ──
 	float hue = fract(wave1*0.7 + wave2*0.5 + t*0.03);
