@@ -15,6 +15,7 @@ var _shader_time: float = 0.0
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS  # 暂停时水面动画不冻
 	var tex := preload("res://assets/Textures/ascii/ascii.png")
 	_hi_score_num = _make_number_sprite("HiScoreNumber",  $HighScore.position + Vector2(102, 0), tex, 10)
 	_score_num    = _make_number_sprite("ScoreNumber",    $Score.position     + Vector2(102, 0), tex, 10)
