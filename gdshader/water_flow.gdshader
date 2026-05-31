@@ -87,11 +87,22 @@ void fragment() {
 	}
 
 	// ── 颜色 ──
+	// ── 彩色插值：用 hue 偏移 water_mid ──
+	float hue = fract(wave1*0.7 + wave2*0.5 + t*0.03);
+	vec3 hue_shift;
+	if (hue < 0.2)      hue_shift = mix(vec3(0.06,0.10,0.45), vec3(0.03,0.26,0.48), hue/0.2);
+	else if (hue < 0.4) hue_shift = mix(vec3(0.03,0.26,0.48), vec3(0.06,0.40,0.42), (hue-0.2)/0.2);
+	else if (hue < 0.6) hue_shift = mix(vec3(0.06,0.40,0.42), vec3(0.30,0.36,0.14), (hue-0.4)/0.2);
+	else if (hue < 0.8) hue_shift = mix(vec3(0.30,0.36,0.14), vec3(0.42,0.18,0.14), (hue-0.6)/0.2);
+	else                 hue_shift = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
+	
+	vec3 color_mid = mix(water_mid, hue_shift * 0.8, mem_sat);  // 彩度越高 water_mid 越彩色
+	
 	vec3 col;
 	float d = crest;
 	if (d < 0.3)       col = mix(water_deep*0.3, water_deep, d/0.3);
-	else if (d < 0.6)  col = mix(water_deep,  water_mid,   (d-0.3)/0.3);
-	else if (d < 0.85) col = mix(water_mid,   water_shore, (d-0.6)/0.25);
+	else if (d < 0.6)  col = mix(water_deep,  color_mid,   (d-0.3)/0.3);
+	else if (d < 0.85) col = mix(color_mid,   water_shore, (d-0.6)/0.25);
 	else                col = water_shore;
 
 	// 泡沫：波峰 + 噪声纹理
@@ -104,18 +115,9 @@ void fragment() {
 	float spec = smoothstep(0.55, 0.78, crest) * (1.0 - foam_mask);
 	col += spec * 0.07 * vec3(0.3, 0.5, 0.72);
 
-	// ── 彩色插值（memory 驱动） ──
-	float hue = fract(wave1*0.7 + wave2*0.5 + t*0.03);
-	vec3 colorful;
-	if (hue < 0.2)      colorful = mix(vec3(0.06,0.10,0.45), vec3(0.03,0.26,0.48), hue/0.2);
-	else if (hue < 0.4) colorful = mix(vec3(0.03,0.26,0.48), vec3(0.06,0.40,0.42), (hue-0.2)/0.2);
-	else if (hue < 0.6) colorful = mix(vec3(0.06,0.40,0.42), vec3(0.30,0.36,0.14), (hue-0.4)/0.2);
-	else if (hue < 0.8) colorful = mix(vec3(0.30,0.36,0.14), vec3(0.42,0.18,0.14), (hue-0.6)/0.2);
-	else                 colorful = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
-
-	vec3 gray = mix(vec3(0.0), col, mem_bright);  // 亮度=灰，亮=原色
-	float color_boost = crest * 2.5 * mem_sat;
-	col = mix(gray, col + (colorful - 0.5) * color_boost, mem_sat);
+	// ── 灰度过渡 ──
+	vec3 gray_col = mix(vec3(0.05), vec3(0.4), crest);
+	col = mix(gray_col, col, mem_sat);
 
 	// ── 亮度 + 纯白 → 纯黑过渡 ──
 	col = max(col, 0.0);
