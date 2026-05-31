@@ -4,7 +4,7 @@ uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
 
-uniform float shader_time;
+uniform float shader_time;  // ⚠ 代码驱动，编辑器中请勿手动改
 uniform float memory : hint_range(-100.0, 200.0) = 50.0;
 uniform float wave_angle : hint_range(0.0, 6.2832) = 0.0;
 
@@ -53,9 +53,8 @@ void fragment() {
 
 	// ── memory 驱动项 ──
 	// -100=纯黑  0=灰白(结构可见)  100=全彩  200=纯白
-	float mem_bright = smoothstep(-100.0, 100.0, memory);   // 0→1 (暗→亮)
-	float mem_sat    = smoothstep(0.0, 100.0, memory);      // 0→1 (灰→彩)
-	float mem_frozen = step(memory, -99.0);
+	float mem_bright = smoothstep(-100.0, 100.0, memory);
+	float mem_sat    = smoothstep(0.0, 100.0, memory);
 
 	float t = shader_time;  // 已含速度，永不倒退
 	float ms = 1.0;           // 频率固定，速度由 shader_time 管
