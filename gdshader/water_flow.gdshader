@@ -115,7 +115,7 @@ void fragment() {
 	else                 colorful = mix(vec3(0.42,0.18,0.14), vec3(0.32,0.08,0.28), (hue-0.8)/0.2);
 
 	vec3 gray = mix(vec3(0.05), col, mem_sat);
-	float color_boost = crest * 0.3 * mem_sat;  // 波峰处彩色强，波谷弱
+	float color_boost = crest * 1.2 * mem_sat;  // 波峰处彩色强，波谷弱
 	col = mix(gray, col + (colorful - 0.5) * color_boost, mem_sat);
 
 	// ── 亮度 ──
