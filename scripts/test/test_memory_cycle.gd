@@ -6,12 +6,12 @@ extends Node
 var _dir: int = 1
 
 
-func _process(delta: float) -> void:
-	GameState.memory_value += speed * delta * _dir
-	
-	if GameState.memory_value >= 200.0:
-		GameState.memory_value = 200.0
-		_dir = -1
-	elif GameState.memory_value <= -100.0:
-		GameState.memory_value = -100.0
-		_dir = 1
+#func _process(delta: float) -> void:
+	#GameState.memory_value += speed * delta * _dir
+	#
+	#if GameState.memory_value >= 200.0:
+		#GameState.memory_value = 200.0
+		#_dir = -1
+	#elif GameState.memory_value <= -100.0:
+		#GameState.memory_value = -100.0
+		#_dir = 1
