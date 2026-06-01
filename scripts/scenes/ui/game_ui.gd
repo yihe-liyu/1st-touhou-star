@@ -3,6 +3,7 @@ class_name GameUI
 ## 游戏 HUD —— Score / HiScore / Power / MaxPoint / Graze
 
 const NumberSpriteClass = preload("res://scripts/ui/number_sprite.gd")
+const SeparatorClass = preload("res://scripts/ui/ui_separator.gd")
 
 var _hi_score_num: Node2D
 var _score_num: Node2D
@@ -17,11 +18,19 @@ var _shader_time: float = 0.0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS  # 暂停时水面动画不冻
 	var tex := preload("res://assets/Textures/ascii/ascii.png")
+	
 	_hi_score_num = _make_number_sprite("HiScoreNumber",  $HighScore.position + Vector2(102, 0), tex, 10)
+	_add_separator(Vector2(832, 124), 450.0, Color(0.685, 0.685, 0.685, 0.5))
 	_score_num    = _make_number_sprite("ScoreNumber",    $Score.position     + Vector2(102, 0), tex, 10)
+	_add_separator(Vector2(832, 180), 450.0, Color(1.0, 1.0, 1.0, 0.5))
+	_add_separator(Vector2(832, 274), 450.0, Color(0.961, 0.825, 0.963, 0.502))
+	_add_separator(Vector2(832, 344), 450.0, Color(0.735, 1.0, 0.732, 0.502))
 	_power_num    = _make_number_sprite("PowerNumber",    $Power.position     + Vector2(78, 0), tex, 10)
+	_add_separator(Vector2(832, 396), 450.0, Color(1.0, 0.805, 0.704, 0.502))
 	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(102, 0), tex)
+	_add_separator(Vector2(832, 452), 450.0, Color(0.689, 0.933, 1.0, 0.502))
 	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(102, 0), tex)
+	_add_separator(Vector2(832, 508), 450.0, Color(0.685, 0.685, 0.685, 0.5))
 	
 	_memory_rect = $Memory/OutlineRect
 	_memory_num = _make_number_sprite_on("MemoryNumber", $Memory, Vector2(980, 608), tex, 6)
@@ -48,6 +57,17 @@ func _make_number_sprite_on(p_name: String, parent: Node, pos: Vector2, tex: Tex
 	parent.add_child(ns)
 	ns.z_index = 0  # 同层内靠到最上
 	return ns
+
+
+func _add_separator(pos: Vector2, len: float, col: Color) -> void:
+	var sep := SeparatorClass.new()
+	sep.position = pos
+	sep.line_length = len
+	sep.line_color = col
+	sep.line_width = 4
+	sep.fade_ratio = 0.25
+	sep.z_index = 128
+	add_child(sep)
 
 
 func _make_number_sprite(p_name: String, pos: Vector2, tex: Texture2D = null, dcount: int = 8) -> Node2D:

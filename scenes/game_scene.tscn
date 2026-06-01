@@ -5,8 +5,8 @@
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
 [ext_resource type="Texture2D" uid="uid://dtv267387tbw0" path="res://assets/Textures/front/front02.png" id="6_mw25s"]
+[ext_resource type="Texture2D" uid="uid://xf03xnew77lh" path="res://assets/Textures/front/TrueFront.png" id="6_tcjrq"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
-[ext_resource type="Texture2D" uid="uid://btj64lam67h1f" path="res://assets/Textures/front/FalseFront.png" id="7_rvs2r"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game/game_scene.gd" id="9_script"]
 [ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/ui/game_ui.gd" id="10_ui"]
 [ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/ui/rect_outline.gd" id="12_rect_outline"]
@@ -52,7 +52,7 @@ region = Rect2(64, 224, 128, 32)
 
 [sub_resource type="ShaderMaterial" id="RectOutlineMat"]
 shader = ExtResource("13_water")
-shader_parameter/border_color = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/border_color = Color(1, 1, 1, 0.5)
 shader_parameter/border_width = 3.0
 shader_parameter/rect_size = Vector2(384, 256)
 shader_parameter/shader_time = 0.0
@@ -105,7 +105,7 @@ script = ExtResource("10_ui")
 
 [node name="front" type="Sprite2D" parent="UI" unique_id=1281612929]
 z_index = 128
-texture = ExtResource("7_rvs2r")
+texture = ExtResource("6_tcjrq")
 offset = Vector2(640, 480)
 
 [node name="diffculty" type="Sprite2D" parent="UI" unique_id=1428832846]
@@ -130,22 +130,22 @@ texture = SubResource("AtlasTexture_tcjrq")
 
 [node name="Bomb" type="Sprite2D" parent="UI" unique_id=435967303]
 z_index = 128
-position = Vector2(920, 296)
+position = Vector2(920, 304)
 texture = SubResource("AtlasTexture_rvs2r")
 
 [node name="Power" type="Sprite2D" parent="UI" unique_id=1557163412]
 z_index = 128
-position = Vector2(920, 368)
+position = Vector2(920, 376)
 texture = SubResource("AtlasTexture_ldkr4")
 
 [node name="Point" type="Sprite2D" parent="UI" unique_id=1844546404]
 z_index = 128
-position = Vector2(920, 424)
+position = Vector2(920, 432)
 texture = SubResource("AtlasTexture_5ay1a")
 
 [node name="Graze" type="Sprite2D" parent="UI" unique_id=773842415]
 z_index = 128
-position = Vector2(920, 480)
+position = Vector2(920, 488)
 texture = SubResource("AtlasTexture_tqxxy")
 
 [node name="MemoryValue" type="Sprite2D" parent="UI" unique_id=1289444788]
