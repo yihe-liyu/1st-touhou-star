@@ -205,6 +205,9 @@ func _player_bullet_vs_enemies(bullet: Bullet):
 			continue
 		if _bullet_hits_target(bullet, enemy):
 			enemy.take_damage(bullet.damage)
+			
+			GameState.reduce_memory(0.03)
+			
 			_spawn_hit_effect(bullet.hit_effect, bullet.global_position, bullet.velocity)
 			return_bullet(bullet)
 			return
@@ -296,6 +299,9 @@ func _bullet_grazes_player(bullet: Bullet, player: Player) -> bool:
 func _on_graze() -> void:
 	GameState.graze_count += 1
 	GameState.add_score(10)
+	
+	GameState.add_memory(0.1)
+	
 	if not _graze_sfx_played:
 		_graze_sfx_played = true
 		AudioManager.play_sfx(preload("res://assets/Sound/graze.wav"), 4.0)

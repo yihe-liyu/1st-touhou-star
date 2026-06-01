@@ -14,12 +14,14 @@ var current_score: int = 0
 # 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
 var power_raw: int = 200
 var max_point: int = 10000
-var memory: int = 0  # 0~100，控制水面彩度
 var graze_count: int = 0  # 擦弹数
 
-var memory_value: float = 100.0  # -100=黑白冻结, 0~100=渐变, 200=狂乱
+var memory_value: float = 50.0  # 0~100=正常, -100=黑白冻结, 200=狂乱
 
 var _config: ConfigFile
+# 记忆值每秒自然恢复量
+const MEMORY_REGEN: float = 0.05
+
 const SAVE_PATH: String = "user://save_data.cfg"
 
 func _ready():
@@ -67,6 +69,15 @@ func add_power(amount: int) -> void:
 
 func on_miss_power_penalty() -> void:
 	power_raw = clampi(power_raw - 50, 0, 300)
+
+func _process(delta: float) -> void:
+	memory_value = clampf(memory_value + MEMORY_REGEN * delta, 0.0, 100.0)
+
+func add_memory(amount: float) -> void:
+	memory_value = clampf(memory_value + amount, 0.0, 100.0)
+
+func reduce_memory(amount: float) -> void:
+	memory_value = clampf(memory_value - amount, 0.0, 100.0)
 
 func get_active_enemies() -> Array:
 	return active_enemies

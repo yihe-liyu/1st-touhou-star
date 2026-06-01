@@ -20,7 +20,7 @@ var is_focused: bool = false
 var is_invincible: bool = false
 
 var hitbox_radius: float = 5.0
-var graze_radius: float = 24.0  # 擦弹判定半径
+var graze_radius: float = 40.0  # 擦弹判定半径
 
 @onready var hitpoint_display: HitPointDisplay = $HitPointDisplay
 @onready var muzzle: Marker2D = $Muzzle

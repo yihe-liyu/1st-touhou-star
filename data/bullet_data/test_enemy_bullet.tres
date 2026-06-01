@@ -7,13 +7,14 @@
 atlas = ExtResource("1_tex")
 region = Rect2(16, 160, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_1"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_58eum"]
 atlas = ExtResource("1_tex")
-region = Rect2(176, 160, 16, 16)
+region = Rect2(176, 208, 16, 16)
+filter_clip = true
 
 [resource]
 script = ExtResource("2_sc")
-texture = SubResource("AtlasTexture_1")
+texture = SubResource("AtlasTexture_58eum")
 velocity = Vector2(0, 250)
 faction = 1
 can_be_canceled = true
