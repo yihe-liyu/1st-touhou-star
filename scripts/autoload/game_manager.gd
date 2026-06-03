@@ -144,9 +144,9 @@ func clear_menus():
 func push_overlay_menu(menu: CanvasLayer):
 	_overlay_menu_stack.append(menu)
 	_set_state(AppState.PAUSED)
-	get_tree().paused = true
 	menu.process_mode = PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(menu)
+	get_tree().paused = true
 
 func pop_overlay_menu(menu: CanvasLayer):
 	_overlay_menu_stack.erase(menu)

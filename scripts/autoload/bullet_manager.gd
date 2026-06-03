@@ -223,6 +223,11 @@ func _enemy_bullet_vs_player(bullet: Bullet):
 	elif not bullet._grazed and _bullet_grazes_player(bullet, player):
 		bullet._grazed = true
 		_on_graze()
+		# 记忆值 50~100% 时，擦弹有概率消弹
+		if GameState.memory_value >= 50.0:
+			var chance := remap(GameState.memory_value, 50.0, 100.0, 0.05, 0.30)
+			if randf() < chance:
+				return_bullet(bullet)
 
 
 func _bomb_bullet_vs_enemies(bullet: Bullet):

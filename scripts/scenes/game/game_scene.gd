@@ -2,6 +2,7 @@ extends Node
 class_name GameScene
 
 const END_MENU = preload("res://scenes/ui/end_menu.tscn")
+const GAME_OVER_MENU = preload("res://scenes/ui/game_over_menu.tscn")
 
 @onready var _sub_viewport: SubViewport = $Background/SubViewportContainer/SubViewport
 
@@ -44,7 +45,7 @@ func _exit_tree():
 
 func _on_player_death():
 	await get_tree().create_timer(2.0).timeout
-	var menu = END_MENU.instantiate()
+	var menu = GAME_OVER_MENU.instantiate()
 	menu.title_text = "Game Over"
 	GameManager.push_overlay_menu(menu)
 

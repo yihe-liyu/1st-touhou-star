@@ -1,5 +1,6 @@
 shader_type canvas_item;
 
+uniform float alpha_mult : hint_range(0, 1) = 1.0;
 uniform vec4 border_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
 uniform float border_width : hint_range(1.0, 10.0) = 2.0;
 uniform vec2 rect_size = vec2(384.0, 256.0);
@@ -48,7 +49,7 @@ void fragment() {
 	float dl = UV.x * rect_size.x, dr = (1.0 - UV.x) * rect_size.x;
 	float dt = UV.y * rect_size.y, db = (1.0 - UV.y) * rect_size.y;
 	if (min(min(dl, dr), min(dt, db)) <= border_width) {
-		COLOR = border_color;
+		COLOR = vec4(border_color.rgb, border_color.a * alpha_mult);
 	} else {
 
 	// ── memory 驱动项 ──
@@ -119,6 +120,6 @@ void fragment() {
 	col = mix(col, white, toward_white);
 	col = mix(col, black, toward_black);
 
-	COLOR = vec4(col, 0.92);
+	COLOR = vec4(col, 0.92 * alpha_mult);
 	}
 }

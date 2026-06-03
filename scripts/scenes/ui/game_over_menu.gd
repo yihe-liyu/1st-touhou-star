@@ -1,26 +1,19 @@
 extends BaseMenu
-class_name PauseMenu
+class_name GameOverMenu
 
-## 如果为 true，禁用「返回游戏」选项，只能返回标题或退出
-var game_over_mode: bool = false
+@export var title_label: Label
+@export var title_text: String = "Game Over"
 
 
 func _on_ready():
-	# 入场：暗色遮罩淡入
+	# Overlay 淡入（和 pause_menu 一致）
 	$Overlay.modulate.a = 0.0
-	
-	if game_over_mode:
-		var resume := $"Container/ResumeLabel"
-		if resume:
-			resume.set_meta("locked", true)
-			# 重新刷新颜色，让 locked 立即生效
-			refresh_colors(true)
-	
-	AudioManager.play_sfx(preload("res://assets/Sound/pause.wav"))
-
 	var tw = create_tween()
 	tw.tween_property($Overlay, "modulate:a", 1.0, 0.3)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	if title_label:
+		title_label.text = title_text
 
 
 func _on_leave():
@@ -34,14 +27,12 @@ func _on_leave():
 func _on_item_selected(index: int):
 	match index:
 		0:
-			if not game_over_mode:
-				GameManager.resume_game()
+			GameManager.pop_overlay_menu(self)
+			GameManager.reload_current_scene()
 		1:
+			GameManager.pop_overlay_menu(self)
 			GameManager.change_scene.call_deferred("res://scenes/ui/main_menu.tscn", GameManager.AppState.MENU)
-		2:
-			get_tree().quit.call_deferred()
 
 
 func _on_back():
-	if not game_over_mode:
-		GameManager.resume_game()
+	_on_item_selected(1)

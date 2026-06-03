@@ -12,9 +12,14 @@ var active_enemies: Array = []
 var high_scores: Dictionary = {}
 var current_score: int = 0
 # 火力值内部表示：0 = 1.00, 300 = 4.00，每 1 单位 = 0.01
-var power_raw: int = 200
+var power_raw: int = 0
 var max_point: int = 10000
 var graze_count: int = 0  # 擦弹数
+
+var lives: int = 2           # 完整残机数（0~8）
+var life_fragments: int = 0  # 残机碎片数（0~4）
+var bomb_count: int = 3      # 完整 Bomb 数（0~8）
+var bomb_fragments: int = 0  # Bomb 碎片数（0~4）
 
 var memory_value: float = 50.0  # 0~100=正常, -100=黑白冻结, 200=狂乱
 
@@ -69,6 +74,24 @@ func add_power(amount: int) -> void:
 
 func on_miss_power_penalty() -> void:
 	power_raw = clampi(power_raw - 50, 0, 300)
+
+## 捡到残机碎片：集满 5 个合成一个完整残机
+func collect_life_fragment() -> void:
+	life_fragments += 1
+	if life_fragments >= 5:
+		life_fragments = 0
+		if lives < 8:
+			lives += 1
+
+
+## 捡到 Bomb 碎片：集满 5 个合成一个完整 Bomb
+func collect_bomb_fragment() -> void:
+	bomb_fragments += 1
+	if bomb_fragments >= 5:
+		bomb_fragments = 0
+		if bomb_count < 8:
+			bomb_count += 1
+
 
 func _process(delta: float) -> void:
 	memory_value = clampf(memory_value + MEMORY_REGEN * delta, 0.0, 100.0)

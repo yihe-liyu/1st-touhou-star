@@ -18,7 +18,7 @@ var _tasks: Array[Task] = []
 
 class Task extends RefCounted:
 	var callable: Callable
-	var wait_time: float = 0.0
+	var wake_time: float = 0.0  # 用绝对时间代替倒计时
 
 
 func run(method: Callable):
@@ -31,13 +31,13 @@ func run_parallel(method: Callable):
 func _start_task(method: Callable):
 	var task := Task.new()
 	task.callable = method
+	task.wake_time = 0.0  # 第一帧立即执行
 	_tasks.append(task)
 	is_running = true
 
 func stop():
 	if not is_running:
 		return
-	# 先把所有 callable 置空，帮助释放闭包里捕获的对象
 	for task in _tasks:
 		task.callable = Callable()
 	_tasks.clear()
@@ -45,21 +45,22 @@ func stop():
 	cancelled.emit()
 
 func _physics_process(delta: float):
+	var now := Time.get_ticks_usec() / 1000000.0
+	
 	for i in range(_tasks.size() - 1, -1, -1):
 		var task := _tasks[i]
 		if not task.callable.is_valid():
 			_tasks.remove_at(i)
 			continue
 
-		if task.wait_time > 0.0:
-			task.wait_time -= delta
+		if task.wake_time > now:
 			continue
 
 		var result = task.callable.call()
 
 		if typeof(result) == TYPE_FLOAT or typeof(result) == TYPE_INT:
 			if result > 0:
-				task.wait_time = float(result)
+				task.wake_time = now + result  # 绝对时间
 			else:
 				_tasks.remove_at(i)
 		elif result == true:

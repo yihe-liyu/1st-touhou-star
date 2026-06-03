@@ -18,6 +18,13 @@ class_name UISeparator
 @export var line_length: float = 280.0
 ## 两端渐变占全长的比例（0.0~0.5）
 @export var fade_ratio: float = 0.2
+## 生长进度（0.0=看不见, 1.0=全长），用于入场动画
+@export var progress: float = 1.0: set = set_progress
+
+
+func set_progress(v: float) -> void:
+	progress = clampf(v, 0.0, 1.0)
+	queue_redraw()
 
 
 func _ready() -> void:
@@ -25,8 +32,11 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	var fade_len := line_length * fade_ratio
-	var mid_len := line_length - fade_len * 2.0
+	var draw_len := line_length * progress
+	if draw_len <= 0:
+		return
+	var fade_len := draw_len * fade_ratio
+	var mid_len := draw_len - fade_len * 2.0
 	
 	if mid_len <= 0:
 		# 全渐变模式：两端渐变直接相接

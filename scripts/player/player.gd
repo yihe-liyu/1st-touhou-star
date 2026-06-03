@@ -137,6 +137,9 @@ func _on_animation_finished() -> void:
 			change_state(RIGHT)
 
 func miss() -> void:
+	if is_invincible:
+		return
+	
 	var pos = global_position
 	MissEffectManager.add_circle(pos, 2.5, 1280)
 	MissEffectManager.add_circle(pos + Vector2(100, 0), 2.5, 1280)
@@ -147,4 +150,13 @@ func miss() -> void:
 	
 	BulletManager.start_death_clear(pos, 2048, 3.0)
 	
-	# TODO: 无敌时间、残机扣除、死亡处理
+	# 残机扣除
+	if GameState.lives > 0:
+		GameState.lives -= 1
+		# 无敌时间
+		is_invincible = true
+		await get_tree().create_timer(3.0).timeout
+		is_invincible = false
+	else:
+		# 残机为 0 → Game Over
+		GameEvents.player_death.emit()
