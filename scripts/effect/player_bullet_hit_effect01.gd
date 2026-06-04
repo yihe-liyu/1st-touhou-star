@@ -6,15 +6,20 @@ class_name PlayerBulletHitEffect
 
 var velocity: Vector2 = Vector2.ZERO
 var _life: float = 0.0
+var _tint: Color = Color.WHITE
 
 func set_velocity(vel: Vector2):
 	velocity = vel.normalized() * 300.0
 	self.rotation = velocity.angle()
 
+func set_tint(color: Color):
+	_tint = color
+	animation.modulate = color
+
 func _ready():
 	animation.play("explode")
 	var tw = create_tween()
-	tw.parallel().tween_property(animation, "modulate", Color(1, 1, 1, 0), 0.4)
+	tw.parallel().tween_property(animation, "modulate", Color(_tint.r, _tint.g, _tint.b, 0), 0.4)
 	tw.tween_callback(queue_free)
 
 func _physics_process(delta: float) -> void:

@@ -12,24 +12,26 @@ var _blur_rect: ColorRect
 var _background_instance: StageBackground
 
 func _ready():
-	# 直接运行此场景时确保状态正确（因没经过 change_scene）
-	if GameManager.current_state != GameManager.AppState.PLAYING:
-		GameManager._set_state(GameManager.AppState.PLAYING)
-
+	# 尽早进入 PLAYING，入场动画期间也允许暂停
+	GameManager._set_state(GameManager.AppState.PLAYING)
+	
 	_load_background()
-
-	if stage_data:
-		StageManager.load_stage(stage_data)
 
 	if not GameEvents.player_death.is_connected(_on_player_death):
 		GameEvents.player_death.connect(_on_player_death)
 	
-	# 暂停时给 SubViewport 加模糊，UI 层保持清晰
 	if not GameManager.game_state_changed.is_connected(_on_game_state_changed):
 		GameManager.game_state_changed.connect(_on_game_state_changed)
 	
-	# 根据选择的角色替换 PlayerData
 	_setup_player()
+	
+	# 等 UI 入场动画播完再开始关卡（暂停时动画冻住，恢复后继续）
+	var ui := $"UI"
+	if ui and ui.has_signal("entry_finished"):
+		await ui.entry_finished
+	
+	if stage_data:
+		StageManager.load_stage(stage_data)
 
 func _load_background():
 	if not stage_data or not stage_data.background_scene:
@@ -73,7 +75,6 @@ func _add_blur() -> void:
 	mat.set_shader_parameter("rect_max", Vector2(svc.position + svc.size) / vs)
 	_blur_rect.material = mat
 	
-	# 放在 UI CanvasLayer 下面、World 上面
 	var blur_layer := CanvasLayer.new()
 	blur_layer.layer = 15
 	blur_layer.name = "BlurLayer"
@@ -97,14 +98,6 @@ func _setup_player() -> void:
 	]
 	var player := $World/Player
 	if player and GameState.selected_character < data_map.size():
-		# 直接替换数据并强制重新应用
 		player.player_data = data_map[GameState.selected_character]
 		player._apply_player_data()
 		player._reinit_shoot()
-
-
-#func _on_stage_cleared():
-	#await get_tree().create_timer(2.0).timeout
-	#var menu = END_MENU.instantiate()
-	#menu.title_text = "Stage Clear!"
-	#GameManager.push_overlay_menu(menu)

@@ -18,12 +18,10 @@ func load_stage(data: StageData):
 		push_error("StageManager: StageData has no create_script")
 		return
 
-	# 预加载资源，让卡顿发生在黑场期间而非第一次发弹时
-	_preload_stage_assets(data)
-	
+	GameState.reset_all()
+
 	current_stage = data
 	_stage_active = true
-	GameState.reset_score()
 
 	var stage_script = data.create_script.new()
 	add_child(stage_script)
@@ -63,15 +61,6 @@ func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 
 func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bullet:
 	return BulletManager.shoot_enemy_bullet(data, position, direction)
-
-## 预加载关卡资源：遍历所有可能用到的贴图，提前加载到 GPU
-func _preload_stage_assets(data: StageData) -> void:
-	# 预加载关卡脚本的子弹/敌人数据中引用的贴图
-	# 方法是遍历所有 Resource，touch 它们的 texture 属性
-	# 最简单的：直接加载敌人贴图（最常卡的地方）
-	ResourceLoader.load("res://assets/Textures/bullet/bullet1.png", "Texture2D")
-	ResourceLoader.load("res://assets/Textures/enemy/enemy.png", "Texture2D")
-
 
 func _add_enemy_to_scene(enemy: Enemy):
 	var parent = get_tree().current_scene

@@ -6,14 +6,19 @@ class_name PlayerBulletHitEffect02
 
 var velocity: Vector2 = Vector2.ZERO
 var _life: float = 0.0
+var _tint: Color = Color.WHITE
 
 func set_velocity(vel: Vector2):
 	velocity = vel.normalized() * 750.0
 	self.rotation = velocity.angle() + RNG.randf_range(-0.1, 0.1)
 
+func set_tint(color: Color):
+	_tint = color
+	sprite.modulate = color
+
 func _ready():
 	var tw = create_tween()
-	tw.tween_property(sprite, "modulate", Color(4, 4, 4, 0), 0.2)
+	tw.tween_property(sprite, "modulate", Color(_tint.r * 4, _tint.g * 4, _tint.b * 4, 0), 0.2)
 	tw.tween_callback(queue_free)
 
 func _physics_process(delta: float) -> void:

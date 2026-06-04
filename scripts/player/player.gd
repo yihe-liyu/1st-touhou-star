@@ -150,6 +150,9 @@ func miss() -> void:
 	
 	BulletManager.start_death_clear(pos, 2048, 3.0)
 	
+	# Miss 后记忆值增加 25%
+	GameState.add_memory(25.0)
+	
 	# 残机扣除
 	if GameState.lives > 0:
 		GameState.lives -= 1

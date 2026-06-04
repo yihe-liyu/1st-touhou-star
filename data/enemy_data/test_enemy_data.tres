@@ -1,49 +1,13 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://cb505yupublnp"]
 
 [ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_jjwni"]
-[ext_resource type="Texture2D" uid="uid://bgn5feo55byah" path="res://assets/Textures/enemy/enemy.png" id="2_4dide"]
 [ext_resource type="Script" uid="uid://dsqm303nf7hug" path="res://scripts/coroutine/examples/test_create.gd" id="4_test_shoot"]
 [ext_resource type="Script" uid="uid://xeu5jb8qorbw" path="res://scripts/coroutine/stages/move_entrance.gd" id="5_move"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_hxnam"]
-atlas = ExtResource("2_4dide")
-region = Rect2(0, 320, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_o1iwf"]
-atlas = ExtResource("2_4dide")
-region = Rect2(32, 320, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_uu3h1"]
-atlas = ExtResource("2_4dide")
-region = Rect2(64, 320, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_vsyem"]
-atlas = ExtResource("2_4dide")
-region = Rect2(96, 320, 32, 32)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_10yxv"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_hxnam")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_o1iwf")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_uu3h1")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_vsyem")
-}],
-"loop": true,
-"name": &"idle",
-"speed": 10.0
-}]
+[ext_resource type="PackedScene" path="res://scenes/enemy_visual_test.tscn" id="6_vis"]
 
 [resource]
 script = ExtResource("1_jjwni")
-sprite_frames = SubResource("SpriteFrames_10yxv")
+visual_scene = ExtResource("6_vis")
 max_hp = 5000
 hitbox_radius = 28.0
 create_script = ExtResource("4_test_shoot")

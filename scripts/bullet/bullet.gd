@@ -47,8 +47,16 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		effective_dir = direction.rotated(override.angle_offset)
 
 	sprite.texture = data.texture
-	damage = override.damage if override and override.damage >= 0 else data.damage
 	faction = data.faction
+	damage = override.damage if override and override.damage >= 0 else data.damage
+	
+	# 自机子弹：记忆值越低越红
+	sprite.modulate = data.tint
+	if faction == FACTION_PLAYER:
+		var mem := GameState.memory_value
+		if mem < 50.0:
+			var red := remap(mem, 0.0, 50.0, 1.0, 0.0)
+			sprite.modulate = sprite.modulate.lerp(Color.RED, red * 0.5)
 	can_be_canceled = override.can_be_canceled if override and override._override_cancel else data.can_be_canceled
 	hit_effect = data.hit_effect
 
@@ -79,6 +87,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 			fog.fog_finished.disconnect(_on_fog_ready)
 		fog.fog_finished.connect(_on_fog_ready, CONNECT_ONE_SHOT)
 		fog.play(data.fog_texture)
+		fog.modulate = data.tint
 	else:
 		fog.visible = false
 		is_ready = true

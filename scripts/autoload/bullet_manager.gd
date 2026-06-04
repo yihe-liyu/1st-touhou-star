@@ -200,15 +200,20 @@ func _resolve_collisions(bullet: Bullet):
 
 
 func _player_bullet_vs_enemies(bullet: Bullet):
+	# 记忆值 0~50% 时增加子机子弹伤害（0%→+15%, 50%→+5%）
+	var bonus := 1.0
+	if bullet.faction == Bullet.FACTION_PLAYER and GameState.memory_value < 50.0:
+		bonus = 1.0 + remap(GameState.memory_value, 0.0, 50.0, 0.15, 0.05)
+	
 	for enemy in GameState.get_active_enemies():
 		if not is_instance_valid(enemy):
 			continue
 		if _bullet_hits_target(bullet, enemy):
-			enemy.take_damage(bullet.damage)
+			enemy.take_damage(ceilf(bullet.damage * bonus))
 			
 			GameState.reduce_memory(0.03)
 			
-			_spawn_hit_effect(bullet.hit_effect, bullet.global_position, bullet.velocity)
+			_spawn_hit_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			return_bullet(bullet)
 			return
 
@@ -272,7 +277,7 @@ func _check_rect(bullet: Bullet, target: Node2D) -> bool:
 	return closest.distance_squared_to(local_target) < target_radius * target_radius
 
 
-func _spawn_hit_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = Vector2.ZERO):
+func _spawn_hit_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE):
 	if not effect_scene:
 		return
 	var effect = effect_scene.instantiate()
@@ -282,6 +287,8 @@ func _spawn_hit_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector
 	effect.global_position = pos
 	if effect.has_method("set_velocity"):
 		effect.set_velocity(velocity)
+	if effect.has_method("set_tint"):
+		effect.set_tint(tint)
 
 
 func _is_offscreen(pos: Vector2) -> bool:

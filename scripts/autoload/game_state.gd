@@ -55,9 +55,17 @@ func get_high_score(stage_id: int) -> int:
 func add_score(amount: int):
 	current_score += amount
 
-func reset_score():
+func reset_all():
 	current_score = 0
 	graze_count = 0
+	power_raw = 0
+	lives = 2
+	life_fragments = 0
+	bomb_count = 3
+	bomb_fragments = 0
+	memory_value = 50.0
+
+
 
 func _on_enemy_killed(score: int, _position: Vector2):
 	add_score(score)

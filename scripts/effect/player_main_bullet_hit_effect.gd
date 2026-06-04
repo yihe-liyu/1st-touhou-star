@@ -11,6 +11,9 @@ func set_velocity(vel: Vector2):
 	velocity = vel.normalized() * 300.0
 	self.rotation = velocity.angle()
 
+func set_tint(color: Color):
+	animation.modulate = color
+
 func _ready():
 	animation.play("explode")
 	# 安全：tween 结束后自动 queue_free

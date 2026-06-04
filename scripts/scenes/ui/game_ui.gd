@@ -2,6 +2,9 @@ extends CanvasLayer
 class_name GameUI
 ## 游戏 HUD —— Score / HiScore / Power / MaxPoint / Graze
 
+## 入场动画完成时发射，供 GameScene 等待
+signal entry_finished()
+
 const NumberSpriteClass = preload("res://scripts/ui/number_sprite.gd")
 const SeparatorClass = preload("res://scripts/ui/ui_separator.gd")
 
@@ -173,30 +176,16 @@ func _play_entry_animation() -> void:
 				else:
 					t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
 		)
-
-
-## Title Logo 粒子汇聚入场动画
-func _title_setup() -> void:
-	var title := $"Title"
-	var logo_shader := preload("res://gdshader/logo_entrance.gdshader")
-	var mat := ShaderMaterial.new()
-	mat.shader = logo_shader
-	mat.set_shader_parameter("progress", 0.0)
-	mat.set_shader_parameter("alpha_mult", 0.0)
-	title.material = mat
 	
-	# 延迟到其他元素入场完成后播放
-	var total_delay := _entry_queue.size() * ENTRY_INTERVAL
-	var tw := create_tween()
-	tw.tween_interval(total_delay + 0.2)
-	tw.tween_callback(func():
-		if not is_instance_valid(title):
-			return
-		var t := create_tween().set_parallel(true)
-		t.set_trans(Tween.TRANS_CUBIC)
-		t.set_ease(Tween.EASE_OUT)
-		t.tween_property(mat, "shader_parameter/progress", 1.0, 1.5)
-		t.tween_property(mat, "shader_parameter/alpha_mult", 1.0, 0.8)
+	# 所有入场动画完成后通知 GameScene
+	var total := _entry_queue.size() * ENTRY_INTERVAL + 0.35
+	# Title 粒子动画较长（1.5s），如果存在则等它
+	if $"Title" and $"Title".material:
+		total = maxf(total, _entry_queue.size() * ENTRY_INTERVAL + 0.2 + 1.5)
+	var done := create_tween()
+	done.tween_interval(total + 0.1)
+	done.tween_callback(func():
+		entry_finished.emit()
 	)
 
 

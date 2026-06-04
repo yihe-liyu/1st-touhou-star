@@ -5,8 +5,10 @@ class_name BulletData
 enum Faction {PLAYER, ENEMY, BOMB}
 enum HitboxShape {CIRCLE, RECTANGLE}
 
-## 子弹贴图
+## 子弹贴图（白色/浅灰底图，用 tint 染色）
 @export var texture: Texture2D
+## 贴图染色（白色=原色）
+@export var tint: Color = Color.WHITE
 ## 基础伤害值
 @export var damage: int = 10
 ## 速度向量（方向+速率，会被 speed_mult 缩放）
@@ -33,7 +35,7 @@ enum HitboxShape {CIRCLE, RECTANGLE}
 @export_group("Spawn")
 ## 是否在生成前播放弹雾特效（一张贴图渐渐缩小）
 @export var spawn_fog: bool = false
-## 弹雾贴图
+## 弹雾贴图（白色底图，用 tint 染色）
 @export var fog_texture: Texture2D
 
 @export_group("", "")

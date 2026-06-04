@@ -1,6 +1,6 @@
 extends Node
 class_name CoroutineRunner
-## 无 await 的协程调度器 —— 所有任务在 _physics_process 里步进
+## 协程调度器 —— 所有任务在 _physics_process 里步进
 ##
 ## 每个任务是一个 callable，每帧被调用，返回值约定：
 ##   float/int > 0  → 等待这么秒后再次调用
@@ -9,20 +9,25 @@ class_name CoroutineRunner
 ##
 ## run()      — 先清掉所有旧任务再启动
 ## run_parallel() — 追加一个并行任务
+##
+## 计时方式：累积 _physics_process 的 delta，暂停时不累积。
+## 恢复后不会追帧，时钟从暂停处继续。
 
 signal finished()
 signal cancelled()
 
 var is_running: bool = false
 var _tasks: Array[Task] = []
+var _clock: float = 0.0  # 游戏内时间（物理帧累积，暂停时冻结）
 
 class Task extends RefCounted:
 	var callable: Callable
-	var wake_time: float = 0.0  # 用绝对时间代替倒计时
+	var wake_time: float = 0.0
 
 
 func run(method: Callable):
 	stop()
+	_clock = 0.0
 	_start_task(method)
 
 func run_parallel(method: Callable):
@@ -31,7 +36,7 @@ func run_parallel(method: Callable):
 func _start_task(method: Callable):
 	var task := Task.new()
 	task.callable = method
-	task.wake_time = 0.0  # 第一帧立即执行
+	task.wake_time = _clock  # 第一帧立即执行
 	_tasks.append(task)
 	is_running = true
 
@@ -44,8 +49,8 @@ func stop():
 	is_running = false
 	cancelled.emit()
 
-func _physics_process(delta: float):
-	var now := Time.get_ticks_usec() / 1000000.0
+func _physics_process(delta: float) -> void:
+	_clock += delta
 	
 	for i in range(_tasks.size() - 1, -1, -1):
 		var task := _tasks[i]
@@ -53,14 +58,14 @@ func _physics_process(delta: float):
 			_tasks.remove_at(i)
 			continue
 
-		if task.wake_time > now:
+		if task.wake_time > _clock:
 			continue
 
 		var result = task.callable.call()
 
 		if typeof(result) == TYPE_FLOAT or typeof(result) == TYPE_INT:
 			if result > 0:
-				task.wake_time = now + result  # 绝对时间
+				task.wake_time = _clock + result
 			else:
 				_tasks.remove_at(i)
 		elif result == true:
