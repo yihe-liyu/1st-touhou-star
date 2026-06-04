@@ -1,39 +1,78 @@
 # 东方星 STG — 架构改进规划
 
 > 本文档描述项目当前架构的改进方向，供后续开发时参考。
-> 每个改进项包含：现状分析、建议方案、预计工作量。
+> 已完成项标记 ✅，新发现问题会追加。
 
 ---
 
-## P0 — 必须尽快修
+## ✅ 已完成
 
-### 1. `GameState` 缺少统一重置方法
+### 1. ~~`GameState` 缺少统一重置方法~~ ✅
 
-**现状**：`reset_score()` 只重置 `current_score` 和 `graze_count`，后来新增的
-`lives`、`life_fragments`、`bomb_count`、`bomb_fragments`、`memory_value`、
-`power_raw` 都没有重置。Retry 关卡后状态污染。
+在 `game_state.gd` 添加了 `reset_all()`，在 `StageManager.load_stage` 中调用，
+替代旧的 `reset_score()`。重置项：score / graze / power / lives / life_fragments /
+bomb_count / bomb_fragments / memory。
 
-**建议**：
-```gdscript
-func reset_all():
-    current_score = 0
-    graze_count = 0
-    power_raw = 0
-    memory_value = 50.0
-    lives = 2
-    life_fragments = 0
-    bomb_count = 3
-    bomb_fragments = 0
-```
-在 `StageManager.load_stage` 里替换掉现有的 `reset_score()` 调用。
+**提交**：cb2df44
 
-**文件**：`scripts/autoload/game_state.gd`、`scripts/autoload/stage_manager.gd`
+### 2. ~~协程暂停后跳帧~~ ✅
+
+`CoroutineRunner` 从 `Time.get_ticks_usec()` 绝对时间改为 `_clock += delta` 累积时间。
+暂停时 `_physics_process` 不跑，`_clock` 不递增；恢复后从上次处继续，不追帧。
+
+**提交**：cb2df44
+
+### 3. ~~暂停期间 BGM 偷跑~~ ✅
+
+`play_bgm` 的 `create_timer` 参数改为 `(gap, false)`，暂停时 timer 不走。
+`AudioManager._on_game_state_changed` 用 `stream_paused` 代替 `stop()`。
+
+**提交**：cb2df44
+
+### 4. ~~UI 入场动画期间暂停冲突~~ ✅
+
+`GameUI` 添加 `entry_finished` 信号，入场 tween 完毕后发射。
+`GameScene._ready` 第一行 `_set_state(PLAYING)`，入场期间即可暂停。
+暂停时 tween 自然冻结（`TWEEN_PAUSE_BOUND`），恢复后继续。
+
+**提交**：cb2df44
+
+### 5. ~~敌人外观硬编码~~ ✅
+
+`EnemyData` 去掉了 `sprite_frames`，改为 `visual_scene: PackedScene`。
+新增 `EnemyVisual` 脚本（idle/righting/right 状态机，flip_h 翻转）。
+旧测试敌人已迁移。
+
+**提交**：cb2df44
+
+### 6. ~~子弹染色系统~~ ✅
+
+`BulletData` 新增 `tint: Color` 字段，`bullet.bind()` 时 `sprite.modulate = data.tint`。
+弹雾跟弹幕同色（`fog.modulate = data.tint`）。
+记忆值 < 50% 时自机子弹自动变红（`remap(memory, 0,50, 1,0)`）。
+击中特效通过 `set_tint(color)` 传递颜色。
+
+**提交**：cb2df44
+
+### 7. ~~音效同帧去重~~ ✅
+
+`AudioManager.play_sfx` 检查 `_played_this_frame` 数组，同帧相同流只播一次。
+`_process` 每帧清空记录（只在有播放时启用）。
+
+**提交**：cb2df44
+
+### 8. ~~AudioManager 热重载后丢失 Player~~ ✅
+
+`_init_players()` 在 `_ready` 和 `play_bgm`/`play_sfx` 中双重调用（懒 init），
+热重载后首次调用自动重建播放器。
+
+**提交**：cb2df44
 
 ---
 
 ## P1 — 下一阶段开发前重构
 
-### 2. `BulletManager` 拆分（~400 行 → 4 个文件）
+### 9. `BulletManager` 拆分（~400 行 → 4 个文件）
 
 **现状**：`BulletManager` 包含子弹池管理、碰撞检测分流、激光步进、死亡清弹、擦弹判定、音效触发、击中特效生成。
 
@@ -46,11 +85,9 @@ func reset_all():
 | `scripts/autoload/laser_system.gd` | `fire_laser`、`_step_lasers`、`clear_all_lasers` |
 | `scripts/autoload/death_clear.gd` | `start_death_clear`、`_process_death_clears`、`_cut_laser` |
 
-`BulletManager` 保留为 autoload，持有以上模块的实例，对外提供统一 API。
-
 **注意**：此重构不改变外部调用接口，只内部拆分。
 
-### 3. 玩家射击脚本去重
+### 10. 玩家射击脚本去重
 
 **现状**：`cs_reimu.gd` 和 `cs_marisa.gd` 各约 60 行，但 `_on_step` 里的
 `match _phase: 0: run_parallel(...); 1: sync_options + return true`
@@ -63,13 +100,12 @@ func _get_main_bullet_data() -> BulletData: ...
 func _get_option_bullet_data(focused: bool) -> BulletData: ...
 func _get_option_info(power: int, focused: bool) -> OptionInfo: ...
 
-# OptionInfo 在基类定义为：
 class OptionInfo:
     var offsets: Array[Vector2]
     var visual_script: Script
 ```
 
-这样加第三个角色（咲夜？早苗？）只需 ~30 行。
+加第三个角色（咲夜？早苗？）只需 ~30 行。
 
 **文件**：
 - `scripts/coroutine/player/base/cs_player.gd`（重构基类）
@@ -80,42 +116,34 @@ class OptionInfo:
 
 ## P2 — 开始做真关卡时
 
-### 4. `BulletPattern` 弹幕模式组合系统
+### 11. `BulletPattern` 弹幕模式组合系统
 
-**现状**：`test_create.gd`、`test_fancy_curve.gd`、`test_laser.gd` 是手写的单次弹幕模式。做真 Boss 战时需要几十种弹幕组合。
+**现状**：`test_create.gd`、`test_fancy_curve.gd`、`test_laser.gd` 是手写的单次弹幕。真 Boss 战需要几十种弹幕组合。
 
-**建议**：抽象出可复用的弹幕模式类：
+**建议**：抽象出可复用的弹幕模式：
 ```gdscript
 class_name BulletPattern extends RefCounted
-## 发射一次弹幕并返回下次执行的时间
-
-func execute(api: StageAPI, origin: Node2D) -> float:
-    # 返回 seconds to next fire
+func execute(api: StageAPI, origin: Node2D) -> float:  # seconds to next fire
     return 1.0
 ```
 
-子类示例：
-- `CirclePattern` — 圆形弹幕（角度步进、子弹数、速度）
-- `AimPattern` — 自机狙（每 N 帧发射一发）
-- `WavePattern` — 波浪弹幕（角度偏移 + 三角函数）
-- `LaserPattern` — 激光阵列
+子类：`CirclePattern`、`AimPattern`、`WavePattern`、`LaserPattern`
 
 在 CreateScript 里组合：
 ```gdscript
 var _phases: Array[BulletPattern] = [
     CirclePattern.new(count=32, speed=200, interval=1.5),
     AimPattern.new(interval=0.3),
-    WavePattern.new(count=8, amplitude=30),
 ]
 ```
 
 **文件**：新建 `scripts/patterns/` 目录
 
-### 5. `GameManager` 职责拆分
+### 12. `GameManager` 职责拆分
 
 **现状**：`GameManager` 兼顾状态机、场景切换、黑场过渡、菜单栈、暂停控制。
 
-**建议**：拆成 3 个独立 autoload 或内部模块：
+**建议**：拆成 3 个模块：
 
 | 模块 | 职责 |
 |------|------|
@@ -123,82 +151,36 @@ var _phases: Array[BulletPattern] = [
 | `MenuStack` | `push_menu`、`pop_menu`、`push_overlay_menu` |
 | `PauseControl` | `pause_game`、`resume_game`、`_cleanup_pause` |
 
-`GameManager` 保留为顶层门面，持有以上实例。
-
-**文件**：
-- `scripts/autoload/scene_transition.gd`（新建）
-- `scripts/autoload/menu_stack.gd`（新建）
-- `scripts/autoload/game_manager.gd`（精简）
+**文件**：`scripts/autoload/scene_transition.gd`、`scripts/autoload/menu_stack.gd`（新建）
 
 ---
 
 ## P3 — 锦上添花
 
-### 6. 关卡数据运行时校验
+### 13. 关卡数据运行时校验
 
-**现状**：`StageData.create_script` 是 `Script` 类型，编辑器可能拖入非协程脚本。
+**建议**：`StageManager.load_stage` 断言 `stage_script is StageScript`。
+`EnemyData.visual_scene`、`BulletData.movement_script` 同样处理。
 
-**建议**：在 `StageManager.load_stage` 开头：
-```gdscript
-assert(stage_script is StageScript, "create_script must be a StageScript")
-```
+### 14. 菜单选项注入式配置
 
-对 `EnemyData.visual_scene`、`EnemyData.create_script`、`BulletData.movement_script` 同样处理。
+**建议**：`BaseMenu` 加 `@export var item_configs: Array[Dictionary]`，
+`_collect_items` 时自动创建 Label 并绑定回调。
 
-### 7. 菜单选项注入式配置
+### 15. `AudioManager` 交叉淡入淡出
 
-**现状**：`PauseMenu._on_item_selected` 是硬编码的 `match index: 0: ... 1: ... 2: ...`。
+**建议**：`crossfade_bgm(new_stream, duration)` 双 Player 交叉淡入。
 
-**建议**：给 `BaseMenu` 加：
-```gdscript
-@export var item_configs: Array[Dictionary] = []
-# [{text: "Resume", callback: "_on_resume"}, ...]
-```
-`_collect_items` 时自动创建 Label 并绑定回调。这样不用继承就能配菜单。
+### 16. 命中特效基类
 
-### 8. `AudioManager` 交叉淡入淡出
-
-**现状**：`play_bgm` 通过 `stop → await gap → play` 切换，中间有空白。
-
-**建议**：加 `crossfade_bgm(new_stream, duration)`，用两个 AudioStreamPlayer 做交叉淡入：
-```gdscript
-func crossfade_bgm(new_stream: AudioStream, duration: float = 0.5):
-    var old_player = _bgm_player
-    var new_player = _get_free_bgm_player()
-    new_player.stream = new_stream
-    new_player.volume_db = -80
-    new_player.play()
-    # tween old.volume_db → -80, new.volume_db → 0, 同时进行
-```
-
-### 9. `Enemy.bullet_manager` 直接引用 `get_node` 改为 `@onready`
-
-`debug_drawer.gd` 里：
-```gdscript
-@onready var bullet_manager = get_node_or_null("/root/BulletManager")
-```
-这种写法在 `DebugDrawer` 里是合理的（可选功能）。但 `StageAPI` 里 `BulletManager.shoot_enemy_bullet` 直接引用全局——作为 autoload API 这是正确的。
-
-不过更好的做法是用 `%BulletManager`（唯一名称访问）代替 `/root/BulletManager`（路径访问），节点改名不会断裂。
-
-### 10. 弹幕命中特效去 Static
-
-四个命中特效脚本 `player_bullet_hit_effect01.gd`、`player_bullet_hit_effect02.gd`、`player_main_bullet_hit_effect.gd` 各自独立实现，但 `set_tint`、`set_velocity` 的接口相同。
-
-**建议**：提取一个 `HitEffect` 基类：
-```gdscript
-class_name HitEffect extends Node2D
-func set_velocity(vel: Vector2): pass
-func set_tint(color: Color): pass
-```
-三个特效脚本继承它，`_spawn_hit_effect` 里 `as HitEffect` 即可。
+**建议**：提取 `HitEffect` 基类（`set_velocity`、`set_tint`），三个特效脚本继承。
 
 ---
 
 ## 💡 长期方向（不紧急）
 
-- **Replay 系统** — 记录每帧的 `RNG.seed` + 玩家输入，可回放
+- **Replay 系统** — 记录每帧的 `RNG.seed` + 玩家输入
 - **Spell Card 框架** — Boss 多阶段 + 血量条 + 动态难度
-- **道具掉落系统** — Power Item、Point Item、残机碎片、Bomb 碎片
-- **关卡编辑器** — 可视化编排弹幕模式的工具
-- **单元测试** — 用 GDScript 的 `assert` 做协程调度器和碰撞检测的回归测试
+- **道具掉落系统** — Power Item、Point Item、残机/Bomb 碎片
+- **关卡编辑器** — 可视化编排弹幕模式
+- **单元测试** — GDScript `assert` 协程调度和碰撞检测回归测试
