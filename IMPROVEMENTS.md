@@ -87,7 +87,7 @@ bomb_count / bomb_fragments / memory。
 
 **注意**：此重构不改变外部调用接口，只内部拆分。
 
-### 10. 玩家射击脚本去重
+### 10. 玩家射击脚本去重 ✅
 
 **现状**：`cs_reimu.gd` 和 `cs_marisa.gd` 各约 60 行，但 `_on_step` 里的
 `match _phase: 0: run_parallel(...); 1: sync_options + return true`

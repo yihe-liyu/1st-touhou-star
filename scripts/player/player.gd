@@ -72,6 +72,7 @@ func _init_shoot_script() -> void:
 	if not player_data or not player_data.shoot_script:
 		return
 	_shoot_script = player_data.shoot_script.new()
+	assert(_shoot_script is PlayerShootScript, "Player: shoot_script must be a PlayerShootScript")
 	add_child(_shoot_script)
 	var api = StageAPI.new(_shoot_script)
 	_shoot_script.start_shooting(api)

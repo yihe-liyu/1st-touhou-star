@@ -24,6 +24,7 @@ func load_stage(data: StageData):
 	_stage_active = true
 
 	var stage_script = data.create_script.new()
+	assert(stage_script is StageScript, "StageManager: create_script must be a StageScript")
 	add_child(stage_script)
 	_stage_script = stage_script
 	stage_script.finished.connect(_on_stage_finished)
