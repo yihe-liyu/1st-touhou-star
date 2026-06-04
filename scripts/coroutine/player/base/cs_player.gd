@@ -4,18 +4,98 @@ class_name PlayerShootScript
 const OPTION = preload("res://assets/Textures/player/pl00.png")
 
 var _options: Array[Node2D] = []
+var _phase: int = 0
+
 
 func start_shooting(api: StageAPI):
 	run(_on_step.bind(api))
 
-func _on_step(_api: StageAPI) -> Variant:
-	return false
+
+## 主状态机 — 子类不覆写
+func _on_step(api: StageAPI) -> Variant:
+	match _phase:
+		0:
+			run_parallel(_main_step.bind(api))
+			run_parallel(_option_step.bind(api))
+			_phase = 1
+			return true
+		1:
+			var player = api.get_player()
+			if not is_instance_valid(player):
+				return true
+			_sync_options(player, api)
+			return true
+		_:
+			return false
+
 
 func stop():
 	_cleanup_options()
 	super.stop()
 
-func _sync_options(leader: Node2D, visual_script: Script, wanted: int, offsets: Array, api: StageAPI) -> void:
+
+# ── 子类覆写 ──
+
+## 返回 {visual_script, counts[], offsets_focus[], offsets_spread[]}
+## 其中 counts/offsets 按 power 升序索引，如 [2, 4] 表示 power_low→2, power_high→4
+func _option_setup() -> Dictionary:
+	return {}
+
+
+## 主射击：返回 frame 间隔（seconds）
+func _main_shoot(_api: StageAPI, _player: Player) -> float:
+	return 0.0
+
+
+## 僚机射击：返回 frame 间隔（seconds）。options > 0 确保有僚机
+func _option_shoot(_api: StageAPI, _options_count: int) -> float:
+	return 0.0
+
+
+# ── 通用实现 ──
+
+func _main_step(api: StageAPI) -> Variant:
+	if not Input.is_action_pressed("shoot"):
+		return true
+	var player = api.get_player()
+	if not is_instance_valid(player):
+		return true
+	var interval := _main_shoot(api, player)
+	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"), -8.0)
+	return interval
+
+
+func _option_step(api: StageAPI) -> Variant:
+	if not Input.is_action_pressed("shoot"):
+		return true
+	if _options.size() > 0:
+		return _option_shoot(api, _options.size())
+	return true
+
+
+func _sync_options(leader: Node2D, api: StageAPI) -> void:
+	var setup := _option_setup()
+	if setup.is_empty():
+		return
+	
+	var pw := GameState.power_raw
+	var focused := Input.is_action_pressed("focus")
+	
+	var levels: Array = setup.get("counts", [])
+	var offsets_focus: Array = setup.get("offsets_focus", [])
+	var offsets_spread: Array = setup.get("offsets_spread", [])
+	var visual_script: Script = setup.get("visual_script")
+	
+	# 确定当前 power 等级
+	var idx := 0
+	for i in range(levels.size() - 1, -1, -1):
+		if pw >= setup.get("power_thresholds", [0])[i]:
+			idx = i
+			break
+	
+	var wanted: int = levels[idx] if idx < levels.size() else 0
+	var offsets: Array = (offsets_focus[idx] if focused else offsets_spread[idx]) if idx < offsets_focus.size() else []
+	
 	while _options.size() < wanted:
 		var opt := Node2D.new()
 		opt.global_position = leader.global_position
@@ -56,9 +136,11 @@ func _sync_options(leader: Node2D, visual_script: Script, wanted: int, offsets: 
 		if visual:
 			visual.update_visual(api, leader)
 
+
 func _shoot_options(api: StageAPI, bullet_data: BulletData, count: int, spread: float, dir: Vector2, offset: Vector2) -> void:
 	for opt in _options:
 		api.shoot_spread(bullet_data, count, spread, dir, opt.global_position + offset)
+
 
 func _cleanup_options() -> void:
 	for opt in _options:

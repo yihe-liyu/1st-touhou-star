@@ -72,7 +72,7 @@ bomb_count / bomb_fragments / memory。
 
 ## P1 — 下一阶段开发前重构
 
-### 9. `BulletManager` 拆分（~400 行 → 4 个文件）
+### 9. `BulletManager` 拆分（~400 行 → 5 个文件） ✅
 
 **现状**：`BulletManager` 包含子弹池管理、碰撞检测分流、激光步进、死亡清弹、擦弹判定、音效触发、击中特效生成。
 
