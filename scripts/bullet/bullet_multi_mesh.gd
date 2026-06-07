@@ -25,16 +25,16 @@ func _sync():
 		var tex = bullet.batch_texture()
 		if not tex:
 			continue
-		var key = tex.resource_path + "|" + str(bullet.faction)
+		var key = tex.resource_path + "|" + str(bullet.faction) + "|" + str(bullet.tint_mode)
 		if not active_groups.has(key):
-			active_groups[key] = {tex = tex, faction = bullet.faction, bullets = []}
+			active_groups[key] = {tex = tex, faction = bullet.faction, tint_mode = bullet.tint_mode, bullets = []}
 		active_groups[key].bullets.append(bullet)
 
 	# 更新每个分组的 MultiMesh
 	for key in active_groups:
 		var g = active_groups[key]
 		var bullets: Array = g.bullets
-		var eg = _get_or_create_group(key, g.tex, g.faction, bullets.size())
+		var eg = _get_or_create_group(key, g.tex, g.faction, g.tint_mode, bullets.size())
 
 		var mm: MultiMesh = eg.mm
 		mm.instance_count = bullets.size()
@@ -52,7 +52,7 @@ func _sync():
 			_groups[key].mmi.visible = false
 			_groups[key].mm.instance_count = 0
 
-func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: int) -> Dictionary:
+func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: int, min_size: int) -> Dictionary:
 	if _groups.has(key):
 		var entry = _groups[key]
 		if entry.mm.instance_count < min_size:
@@ -99,6 +99,7 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 	mat.shader = shader
 	mat.set_shader_parameter("tex", use_tex)
 	mat.set_shader_parameter("region", use_region)
+	mat.set_shader_parameter("tint_mode", tint_mode)
 	mm.mesh = mesh
 
 	# ── MultiMeshInstance2D ──

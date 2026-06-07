@@ -38,6 +38,10 @@ enum HitboxShape {CIRCLE, RECTANGLE}
 ## 弹雾贴图（白色底图，用 tint 染色）
 @export var fog_texture: Texture2D
 
+@export_group("Tint")
+## 0=乘法叠加, 1=灰度混合（白色保持不变）
+@export var tint_mode: int = 0
+
 @export_group("", "")
 ## 移动逻辑脚本。留空则默认直线飞行 (MoveLinear)
 @export var movement_script: Script

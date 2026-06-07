@@ -27,6 +27,7 @@ var is_ready: bool = false
 # 额外变量
 var extra: Dictionary = {}
 var _grazed: bool = false  # 擦过弹了
+var tint_mode: int = 0  # 0=乘法, 1=灰度混合
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var fog: BulletFog = $Fog
@@ -48,6 +49,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 
 	sprite.texture = data.texture
 	faction = data.faction
+	tint_mode = data.tint_mode
 	damage = override.damage if override and override.damage >= 0 else data.damage
 	
 	# 自机弹 2 倍大，敌弹 1 倍
