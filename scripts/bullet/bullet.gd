@@ -50,6 +50,9 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 	faction = data.faction
 	damage = override.damage if override and override.damage >= 0 else data.damage
 	
+	# 自机弹 2 倍大，敌弹 1 倍
+	scale = Vector2(2, 2) if faction == FACTION_PLAYER else Vector2.ONE
+	
 	# 自机子弹：记忆值越低越红
 	sprite.modulate = data.tint
 	if faction == FACTION_PLAYER:

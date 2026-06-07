@@ -2,19 +2,16 @@
 
 [ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="1_tex"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_sc"]
+[ext_resource type="Texture2D" uid="uid://ca2vt7t1xuwbi" path="res://assets/Textures/bullet/bullet.png" id="3_58eum"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_toa2m"]
 atlas = ExtResource("1_tex")
 region = Rect2(16, 160, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_58eum"]
-atlas = ExtResource("1_tex")
-region = Rect2(176, 208, 16, 16)
-filter_clip = true
-
 [resource]
 script = ExtResource("2_sc")
-texture = SubResource("AtlasTexture_58eum")
+texture = ExtResource("3_58eum")
+tint = Color(1, 0, 0, 1)
 velocity = Vector2(0, 250)
 faction = 1
 can_be_canceled = true

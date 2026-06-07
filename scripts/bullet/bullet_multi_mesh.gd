@@ -44,6 +44,7 @@ func _sync():
 			var b = bullets[i]
 			var t = Transform2D(b.rotation, b.scale, 0.0, b.global_position)
 			mm.set_instance_transform_2d(i, t)
+			mm.set_instance_color(i, b.sprite.modulate)
 
 	# 隐藏没有在用的分组
 	for key in _groups:
@@ -76,7 +77,7 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, min_size: i
 	# ── 创建 MultiMesh ──
 	var mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_2D
-	mm.use_colors = false
+	mm.use_colors = true
 	mm.instance_count = max(min_size, 64)
 
 	# ── 创建 2D 四边形网格 ──
