@@ -11,6 +11,8 @@ region = Rect2(16, 160, 32, 32)
 [resource]
 script = ExtResource("2_sc")
 texture = ExtResource("3_58eum")
+tint = Color(1, 0, 0, 1)
+tint_mode = 1
 velocity = Vector2(0, 250)
 faction = 1
 can_be_canceled = true

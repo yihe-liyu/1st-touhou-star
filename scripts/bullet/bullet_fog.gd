@@ -6,18 +6,30 @@ signal fog_finished
 var duration: float = 0.3
 var start_scale: float = 2.0
 
-func play(p_texture: Texture2D):
+const BLEND_SHADER = preload("res://gdshader/bullet_fog_blend.gdshader")
+
+
+func play(p_texture: Texture2D, p_tint: Color = Color.WHITE, p_mode: int = 0):
 	if texture == p_texture:
-		fog_finished.emit()  # 同样纹理，直接完成
+		fog_finished.emit()
 		return
 	
-	# 杀旧 tween 防冲突
 	for child in get_children():
 		if child.has_method("kill"):
 			child.kill()
 	
 	texture = p_texture
-	modulate.a = 1.0
+	
+	if p_mode == 1:
+		if not material:
+			var mat = ShaderMaterial.new()
+			mat.shader = BLEND_SHADER
+			material = mat
+		modulate = p_tint
+	else:
+		material = null
+		modulate = p_tint
+	
 	scale = Vector2(start_scale, start_scale)
 	visible = true
 
@@ -29,7 +41,9 @@ func play(p_texture: Texture2D):
 	tween.tween_property(self, "modulate:a", 0.0, duration)
 	tween.finished.connect(_on_tween_finished)
 
+
 func _on_tween_finished():
 	visible = false
+	material = null
 	texture = null
 	fog_finished.emit()
