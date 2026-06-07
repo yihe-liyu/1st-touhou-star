@@ -30,7 +30,7 @@ func _ready():
 	_transition.setup(self)
 
 	_menus = MenuClass.new()
-	_menus.setup(_set_state)
+	_menus.setup(self, _set_state)
 
 	_pause_control = PauseClass.new()
 	_pause_control.setup(self, _set_state)

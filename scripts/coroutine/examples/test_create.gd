@@ -15,4 +15,4 @@ func _on_step(api: StageAPI) -> Variant:
 	api.shoot_spread(BULLET_DATA, 8, TAU, Vector2.RIGHT.rotated(deg_to_rad(_i * 2)), node2d.global_position)
 	AudioManager.play_sfx(preload("res://assets/Sound/tan00.wav"), -8.0)
 	_i += 1
-	return api.seconds(0.2)
+	return api.frames(1)
