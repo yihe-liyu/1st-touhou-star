@@ -4,11 +4,18 @@ class_name BulletData
 
 enum Faction {PLAYER, ENEMY, BOMB}
 enum HitboxShape {CIRCLE, RECTANGLE}
+enum TintMode {MULTIPLY, BLEND}
 
 ## 子弹贴图（白色/浅灰底图，用 tint 染色）
 @export var texture: Texture2D
+
+@export_group("Tint")
 ## 贴图染色（白色=原色）
 @export var tint: Color = Color.WHITE
+## MULTIPLY=乘法叠加, BLEND=灰度混合（白色保持不变）
+@export var tint_mode: TintMode = TintMode.MULTIPLY
+@export_group("", "")
+
 ## 基础伤害值
 @export var damage: int = 10
 ## 速度向量（方向+速率，会被 speed_mult 缩放）
@@ -38,9 +45,7 @@ enum HitboxShape {CIRCLE, RECTANGLE}
 ## 弹雾贴图（白色底图，用 tint 染色）
 @export var fog_texture: Texture2D
 
-@export_group("Tint")
-## 0=乘法叠加, 1=灰度混合（白色保持不变）
-@export var tint_mode: int = 0
+@export_group("", "")
 
 @export_group("", "")
 ## 移动逻辑脚本。留空则默认直线飞行 (MoveLinear)
