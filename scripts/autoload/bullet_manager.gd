@@ -2,10 +2,10 @@
 extends Node2D
 
 # ═══ 子模块 ───
-const PoolClass = preload("res://scripts/autoload/bullet_pool.gd")
-const PhysicsClass = preload("res://scripts/autoload/bullet_physics.gd")
-const LaserClass = preload("res://scripts/autoload/laser_system.gd")
-const DeathClearClass = preload("res://scripts/autoload/death_clear.gd")
+const PoolClass = preload("res://scripts/autoload/bullet/bullet_pool.gd")
+const PhysicsClass = preload("res://scripts/autoload/bullet/bullet_physics.gd")
+const LaserClass = preload("res://scripts/autoload/bullet/laser_system.gd")
+const DeathClearClass = preload("res://scripts/autoload/bullet/death_clear.gd")
 
 var _pool
 var _physics
@@ -63,19 +63,19 @@ func _physics_process(delta: float) -> void:
 
 # ═══ 子弹 API（委托给 pool）═══
 
-func shoot_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+func shoot_bullet(data, pos: Vector2, direction: Vector2, override = null):
 	return _pool.shoot(data, pos, direction, override)
 
-func shoot_player_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+func shoot_player_bullet(data, pos: Vector2, direction: Vector2, override = null):
 	return _pool.shoot_player(data, pos, direction, override)
 
-func shoot_enemy_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+func shoot_enemy_bullet(data, pos: Vector2, direction: Vector2, override = null):
 	return _pool.shoot_enemy(data, pos, direction, override)
 
-func shoot_bomb_bullet(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+func shoot_bomb_bullet(data, pos: Vector2, direction: Vector2, override = null):
 	return _pool.shoot_bomb(data, pos, direction, override)
 
-func return_bullet(bullet: Bullet):
+func return_bullet(bullet):
 	_pool.return_bullet(bullet)
 
 

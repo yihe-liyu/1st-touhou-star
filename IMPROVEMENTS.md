@@ -157,7 +157,7 @@ var _phases: Array[BulletPattern] = [
 
 ## P3 — 锦上添花
 
-### 13. 关卡数据运行时校验
+### 13. 关卡数据运行时校验 ✅
 
 **建议**：`StageManager.load_stage` 断言 `stage_script is StageScript`。
 `EnemyData.visual_scene`、`BulletData.movement_script` 同样处理。
