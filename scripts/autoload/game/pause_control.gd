@@ -4,11 +4,13 @@ extends RefCounted
 
 const PAUSE_MENU_SCENE: String = "res://scenes/ui/pause_menu.tscn"
 
+var _parent: Node
 var _on_state_changed: Callable
 var _instance = null
 
 
-func setup(on_state_changed: Callable) -> void:
+func setup(parent: Node, on_state_changed: Callable) -> void:
+	_parent = parent
 	_on_state_changed = on_state_changed
 
 
@@ -22,8 +24,8 @@ func pause() -> void:
 	var scene = load(PAUSE_MENU_SCENE)
 	_instance = scene.instantiate()
 	_instance.process_mode = Node.PROCESS_MODE_ALWAYS
-	_instance.get_tree().root.add_child(_instance)
-	_instance.get_tree().paused = true
+	_parent.get_tree().root.add_child(_instance)
+	_parent.get_tree().paused = true
 
 
 func resume() -> void:
@@ -34,7 +36,7 @@ func resume() -> void:
 			_instance.queue_free()
 		_instance = null
 
-	_instance.get_tree().paused = false
+	_parent.get_tree().paused = false
 	_on_state_changed.call(GameManager.AppState.PLAYING)
 
 

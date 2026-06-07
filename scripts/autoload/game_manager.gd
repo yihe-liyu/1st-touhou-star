@@ -33,7 +33,7 @@ func _ready():
 	_menus.setup(_set_state)
 
 	_pause_control = PauseClass.new()
-	_pause_control.setup(_set_state)
+	_pause_control.setup(self, _set_state)
 
 
 func _process(_delta):
