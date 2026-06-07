@@ -19,16 +19,6 @@ func play(p_texture: Texture2D, p_tint: Color = Color.WHITE, p_mode: int = 0):
 			child.kill()
 	
 	texture = p_texture
-	
-	if p_mode == 1:
-		if not material or not material is ShaderMaterial:
-			var mat = ShaderMaterial.new()
-			mat.shader = BLEND_SHADER
-			material = mat
-	else:
-		material = null
-	
-	modulate = p_tint
 	scale = Vector2(start_scale, start_scale)
 	visible = true
 
@@ -37,8 +27,27 @@ func play(p_texture: Texture2D, p_tint: Color = Color.WHITE, p_mode: int = 0):
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.set_parallel(true)
 	tween.tween_property(self, "scale", Vector2(0.5, 0.5), duration)
-	tween.tween_property(self, "modulate:a", 0.0, duration)
+	
+	if p_mode == 1:
+		# BLEND: shader 用 fog_tint uniform，不动 modulate
+		if not material or not material is ShaderMaterial:
+			var mat = ShaderMaterial.new()
+			mat.shader = BLEND_SHADER
+			material = mat
+		modulate = Color.WHITE
+		material.set_shader_parameter("fog_tint", p_tint)
+		tween.tween_method(_set_fog_tint_alpha.bind(material), 1.0, 0.0, duration)
+	else:
+		# MULTIPLY: 标准 Sprite2D，Godot 自动乘 modulate
+		material = null
+		modulate = p_tint
+		tween.tween_property(self, "modulate:a", 0.0, duration)
+	
 	tween.finished.connect(_on_tween_finished)
+
+
+func _set_fog_tint_alpha(a: float, mat: ShaderMaterial):
+	mat.set_shader_parameter("fog_tint:a", a)
 
 
 func _on_tween_finished():
