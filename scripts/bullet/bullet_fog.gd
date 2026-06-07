@@ -6,8 +6,6 @@ signal fog_finished
 var duration: float = 0.3
 var start_scale: float = 2.0
 
-const BLEND_SHADER = preload("res://gdshader/bullet_fog_blend.gdshader")
-
 
 func play(p_texture: Texture2D, p_tint: Color = Color.WHITE, p_mode: int = 0):
 	if texture == p_texture:
@@ -20,14 +18,12 @@ func play(p_texture: Texture2D, p_tint: Color = Color.WHITE, p_mode: int = 0):
 	
 	texture = p_texture
 	
+	# BLEND 模式下把白色部分提亮再乘 tint，近似灰度混合
 	if p_mode == 1:
-		if not material:
-			var mat = ShaderMaterial.new()
-			mat.shader = BLEND_SHADER
-			material = mat
-		modulate = p_tint
+		var blended = Color.WHITE.lerp(p_tint, 0.5)
+		blended.a = p_tint.a
+		modulate = blended
 	else:
-		material = null
 		modulate = p_tint
 	
 	scale = Vector2(start_scale, start_scale)
@@ -44,6 +40,5 @@ func play(p_texture: Texture2D, p_tint: Color = Color.WHITE, p_mode: int = 0):
 
 func _on_tween_finished():
 	visible = false
-	material = null
 	texture = null
 	fog_finished.emit()
