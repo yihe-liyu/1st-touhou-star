@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://1fnettupnpbi" path="res://scripts/bullet/bullet_fog.gd" id="2_fog"]
 
 [node name="Bullet" type="Node2D" unique_id=679847363]
-scale = Vector2(1, 1)
+scale = Vector2(2, 2)
 script = ExtResource("1_mkf8s")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1492511607]
