@@ -27,6 +27,7 @@ var _scroll_mult: float = 1.0
 
 func _ready() -> void:
 	if not mesh:
+		# 运行时创建：从 @export 属性建 mesh + 材料
 		var cylinder_mesh := CylinderMesh.new()
 		cylinder_mesh.top_radius = radius
 		cylinder_mesh.bottom_radius = radius
@@ -42,15 +43,18 @@ func _ready() -> void:
 		
 		cylinder_mesh.material = mat
 		self.mesh = cylinder_mesh
-		return
-	
-	var mat := _get_material()
-	if mat:
-		mat.set_shader_parameter("tiling", Vector2(tiling_u, tiling_v))
-		mat.set_shader_parameter("modulate", modulate)
-		if base_texture:
-			mat.set_shader_parameter("base_texture", base_texture)
-		mat.set_shader_parameter("uv_offset", Vector2.ZERO)
+	else:
+		# tscn 预制 mesh：同步几何属性 + 初始化 UV 偏移
+		var cm := mesh as CylinderMesh
+		if cm:
+			cm.top_radius = radius
+			cm.bottom_radius = radius
+			cm.height = height
+		var mat := _get_material()
+		if mat:
+			mat.set_shader_parameter("uv_offset", Vector2.ZERO)
+			if base_texture:
+				mat.set_shader_parameter("base_texture", base_texture)
 
 
 func _process(delta: float) -> void:

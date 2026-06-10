@@ -64,12 +64,29 @@ top_radius = 200.0
 bottom_radius = 200.0
 height = 80.0
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4pmte"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0dhpc"]
+transparency = 1
 albedo_texture = ExtResource("8_0dhpc")
 
-[sub_resource type="QuadMesh" id="QuadMesh_g553e"]
+[sub_resource type="PlaneMesh" id="PlaneMesh_4pmte"]
+material = SubResource("StandardMaterial3D_0dhpc")
+size = Vector2(8, 8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4pmte"]
+transparency = 1
+albedo_texture = ExtResource("8_0dhpc")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_cnhea"]
 material = SubResource("StandardMaterial3D_4pmte")
-size = Vector2(32, 32)
+size = Vector2(5, 5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4fpqy"]
+transparency = 1
+albedo_texture = ExtResource("8_0dhpc")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_coa3m"]
+material = SubResource("StandardMaterial3D_4fpqy")
+size = Vector2(3, 3)
 
 [node name="Stage01Background" type="Node3D" unique_id=924663568]
 script = ExtResource("1_script")
@@ -102,13 +119,22 @@ modulate = Color(0.3, 0.8, 0.4, 1)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -100)
 mesh = SubResource("CylinderMesh_Test")
 script = ExtResource("5_cyl")
+height = 400.0
 scroll_speed = 0.1
 
 [node name="BackgroundScroll" type="Node3D" parent="." unique_id=14382981 node_paths=PackedStringArray("follow")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -20)
 script = ExtResource("7_g553e")
 follow = NodePath("../Ground")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BackgroundScroll" unique_id=1616234947]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, -10)
-mesh = SubResource("QuadMesh_g553e")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="BackgroundScroll" unique_id=1548191424]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("PlaneMesh_4pmte")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="BackgroundScroll" unique_id=451335359]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+mesh = SubResource("PlaneMesh_cnhea")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="BackgroundScroll" unique_id=1724066109]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+mesh = SubResource("PlaneMesh_coa3m")
