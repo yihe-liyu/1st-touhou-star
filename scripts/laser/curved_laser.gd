@@ -407,6 +407,9 @@ func _spawn_fog():
 			_fog_tween.kill()
 		_fog_sprite.global_position = origin_point
 		_fog_sprite.scale = Vector2(2.0, 2.0)
+		if _fog_sprite.material:
+			_fog_sprite.material.set_shader_parameter("fog_tint", data.laser_color)
+		_fog_sprite.modulate = Color.WHITE
 		_fog_sprite.modulate.a = 1.0
 		_fog_sprite.visible = true
 		return
@@ -417,6 +420,14 @@ func _spawn_fog():
 	_fog_sprite.scale = Vector2(2.0, 2.0)
 	_fog_sprite.global_position = origin_point
 	_fog_sprite.z_index = 51
+	
+	# BLEND shader：白色不变，只染暗部
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://gdshader/bullet_fog_blend.gdshader")
+	mat.set_shader_parameter("fog_tint", data.laser_color)
+	_fog_sprite.material = mat
+	_fog_sprite.modulate = Color.WHITE
+	
 	add_child(_fog_sprite)
 
 
@@ -427,7 +438,7 @@ func _toggle_fog(v: bool):
 		if _fog_tween and _fog_tween.is_valid():
 			_fog_tween.kill()
 		_fog_sprite.scale = Vector2(2.0, 2.0)
-		_fog_sprite.modulate.a = 1.0
+		_fog_sprite.material.set_shader_parameter("fog_tint:a", 1.0)
 		_fog_sprite.visible = true
 	else:
 		if _fog_tween and _fog_tween.is_valid():
@@ -437,7 +448,11 @@ func _toggle_fog(v: bool):
 		_fog_tween.set_trans(Tween.TRANS_QUAD)
 		_fog_tween.set_parallel(true)
 		_fog_tween.tween_property(_fog_sprite, "scale", Vector2.ZERO, 0.3)
-		_fog_tween.tween_property(_fog_sprite, "modulate:a", 0.0, 0.3)
+		_fog_tween.tween_method(_set_laser_fog_alpha, 1.0, 0.0, 0.3)
+
+
+func _set_laser_fog_alpha(a: float):
+	_fog_sprite.material.set_shader_parameter("fog_tint:a", a)
 
 
 func _apply_phase():

@@ -155,9 +155,12 @@ class OptionInfo:
 `crossfade_bgm(stream, duration)` 双播放器交叉淡入，旧渐弱→新渐强。
 暂停时两个播放器一起 `stream_paused`，音量调整同步。
 
-### 16. 命中特效基类
+### 16. ~~命中特效基类~~ ✅
 
-**建议**：提取 `HitEffect` 基类（`set_velocity`、`set_tint`），三个特效脚本继承。
+**提交**：065ea8e
+
+提取 `HitEffect` 基类：`velocity`、`_physics_process`、超时 `queue_free` 统一处理。
+三个子类（Effect01/Effect02/MainEffect）各覆写 `_get_speed`/`_setup`/`_on_velocity_set`/`_process_extra`。
 
 ---
 
