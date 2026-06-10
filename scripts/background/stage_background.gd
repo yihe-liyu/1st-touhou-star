@@ -7,7 +7,6 @@ var world_environment: WorldEnvironment
 var _elapsed: float = 0.0
 var _events: Dictionary = {}
 var _active: bool = false
-var _tweening: bool = false
 
 func _ready():
 	camera = _find_camera()
@@ -119,7 +118,7 @@ func _update_scroll(delta: float):
 func _on_setup():
 	pass
 
-func _on_update(_delta: float, _elapsed: float):
+func _on_update(_delta: float, _t: float):
 	pass
 
 func _on_cleanup():
