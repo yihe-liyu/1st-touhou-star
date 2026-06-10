@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cr6xlqf21b8rt" path="res://assets/Textures/bullet/弹雾.png" id="1_58eum"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_sc"]
 [ext_resource type="Texture2D" uid="uid://1l44n2f56xqt" path="res://assets/Textures/bullet/棱弹.png" id="3_58eum"]
-[ext_resource type="PackedScene" path="res://scenes/effect/enemy_bullet_clear.tscn" id="4_hitfx"]
+[ext_resource type="PackedScene" uid="uid://bkxjsyu2sqdty" path="res://scenes/effect/enemy_bullet_clear.tscn" id="4_hitfx"]
 
 [resource]
 script = ExtResource("2_sc")

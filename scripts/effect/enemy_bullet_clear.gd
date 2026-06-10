@@ -7,10 +7,10 @@ const BLEND_SHADER = preload("res://gdshader/bullet_fog_blend.gdshader")
 
 
 func _ready() -> void:
-	# 挂 BLEND shader，后续 activate → _setup() 会用到
 	var mat := ShaderMaterial.new()
 	mat.shader = BLEND_SHADER
 	sprite.material = mat
+	sprite.modulate = Color.WHITE  # modulate 不动，shader 控颜色
 
 
 func _get_speed() -> float:
@@ -18,19 +18,20 @@ func _get_speed() -> float:
 
 
 func _setup() -> void:
-	sprite.scale = Vector2(0.5, 0.5)
+	sprite.scale = Vector2(0.3, 0.3)
 	
 	var mat := sprite.material as ShaderMaterial
 	mat.set_shader_parameter("fog_tint:a", 1.0)
 	
-	# 弹开 → 缩小 → 淡出
+	# 阶段 1：弹开（0→0.4s）
 	var tw := create_tween()
-	tw.set_parallel(true)
 	tw.set_trans(Tween.TRANS_CUBIC)
 	tw.set_ease(Tween.EASE_OUT)
 	tw.tween_property(sprite, "scale", Vector2(2.5, 2.5), 0.4)
+	
+	# 阶段 2：缩回 + 淡出（0.4→0.9s）
 	tw.tween_callback(func():
-		var tw2: Tween = create_tween()
+		var tw2 := create_tween()
 		tw2.set_parallel(true)
 		tw2.set_trans(Tween.TRANS_CUBIC)
 		tw2.set_ease(Tween.EASE_IN)
@@ -50,4 +51,4 @@ func _set_alpha(a: float, mat: ShaderMaterial) -> void:
 
 
 func _get_life_limit() -> float:
-	return 1.0
+	return 1.5
