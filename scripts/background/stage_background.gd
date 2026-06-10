@@ -1,7 +1,9 @@
 extends Node3D
 class_name StageBackground
 
+## 公开：背景脚本可直接读写
 var camera: Camera3D
+var world_environment: WorldEnvironment
 var _elapsed: float = 0.0
 var _events: Dictionary = {}
 var _active: bool = false
@@ -9,6 +11,7 @@ var _tweening: bool = false
 
 func _ready():
 	camera = _find_camera()
+	world_environment = _find_world_environment()
 	_on_setup()
 
 func _process(delta):
@@ -29,6 +32,12 @@ func _find_camera() -> Camera3D:
 		var cam_node = parent.get_node_or_null("Camera3D")
 		if cam_node is Camera3D:
 			return cam_node
+	return null
+
+func _find_world_environment() -> WorldEnvironment:
+	for child in get_children():
+		if child is WorldEnvironment:
+			return child
 	return null
 
 func schedule(time_sec: float, callback: Callable):
