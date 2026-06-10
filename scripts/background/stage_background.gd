@@ -1,6 +1,8 @@
 extends Node3D
 class_name StageBackground
 
+static var current: StageBackground
+
 var camera: Camera3D
 var _elapsed: float = 0.0
 var _events: Dictionary = {}
@@ -8,6 +10,7 @@ var _active: bool = false
 var _tweening: bool = false
 
 func _ready():
+	current = self
 	camera = _find_camera()
 	_on_setup()
 
@@ -20,6 +23,8 @@ func _process(delta):
 	_on_update(delta, _elapsed)
 
 func _exit_tree():
+	if current == self:
+		current = null
 	_events.clear()
 	_on_cleanup()
 

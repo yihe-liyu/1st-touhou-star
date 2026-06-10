@@ -13,18 +13,6 @@
 fog_enabled = true
 fog_light_color = Color(0.3180198, 0.31801978, 0.31801975, 1)
 
-[sub_resource type="ShaderMaterial" id="Mat_Ground"]
-render_priority = 0
-shader = ExtResource("3_shader")
-shader_parameter/base_texture = ExtResource("4_grass")
-shader_parameter/tiling = Vector2(6, 6)
-shader_parameter/uv_offset = Vector2(0, 0)
-shader_parameter/modulate = Color(1, 1, 1, 1)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_Ground"]
-material = SubResource("Mat_Ground")
-size = Vector2(256, 256)
-
 [sub_resource type="ShaderMaterial" id="Mat_Far"]
 render_priority = 0
 shader = ExtResource("3_shader")
@@ -96,9 +84,9 @@ environment = SubResource("Environment_cnuel")
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=140750901]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("PlaneMesh_Ground")
 script = ExtResource("2_plane")
 scroll_speed = Vector2(0, -0.1)
+base_texture = ExtResource("4_grass")
 
 [node name="FarTest" type="MeshInstance3D" parent="." unique_id=2082062911]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -59)
@@ -110,6 +98,7 @@ modulate = Color(0.5, 0.3, 0.8, 1)
 
 [node name="NearTest" type="MeshInstance3D" parent="." unique_id=491896622]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+visible = false
 mesh = SubResource("PlaneMesh_Near")
 script = ExtResource("2_plane")
 scroll_speed = Vector2(1, 0)
@@ -117,6 +106,7 @@ modulate = Color(0.3, 0.8, 0.4, 1)
 
 [node name="CylinderTest" type="MeshInstance3D" parent="." unique_id=1155874398]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -100)
+visible = false
 mesh = SubResource("CylinderMesh_Test")
 script = ExtResource("5_cyl")
 height = 400.0
@@ -126,6 +116,8 @@ scroll_speed = 0.1
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -20)
 script = ExtResource("7_g553e")
 follow = NodePath("../Ground")
+count = 2
+spacing = Vector3(0, 0, 30)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="BackgroundScroll" unique_id=1548191424]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

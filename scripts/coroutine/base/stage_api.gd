@@ -112,5 +112,35 @@ func _cubic_bezier_curve(p0: Vector2, p1: Vector2, p2: Vector2) -> Curve2D:
 		curve.add_point(pos)
 	return curve
 
-func _fire_straight_fallback(data: Resource, origin: Vector2, length: float):
+func fire_straight_fallback(data: Resource, origin: Vector2, length: float):
 	return fire_straight_laser(data, origin, Vector2.DOWN, length)
+
+# ---------- 背景装饰物 ----------
+
+## 生成背景装饰物（3D 物体，挂在背景场景里）
+## 
+## @param scene  装饰物 PackedScene
+## @param pos3d  3D 世界坐标
+## @param follow_plane  可选：跟随某个 BackgroundPlane 的速度
+## @return 生成的 BackgroundObject 或 null
+func spawn_decor(scene: PackedScene, pos3d: Vector3, follow_plane: BackgroundPlane = null) -> BackgroundObject:
+	if not active():
+		return null
+	var bg := StageBackground.current
+	if not bg:
+		return null
+	var obj := scene.instantiate()
+	var wrapper: BackgroundObject
+	if obj is BackgroundObject:
+		wrapper = obj
+	else:
+		# 包一层 Node3D，挂 BackgroundObject 脚本
+		wrapper = BackgroundObject.new()
+		wrapper.name = obj.name + "_decor"
+		obj.name = "Mesh"
+	wrapper.position = pos3d
+	wrapper.follow = follow_plane
+	if obj != wrapper:
+		wrapper.add_child(obj)
+	bg.add_child(wrapper)
+	return wrapper
