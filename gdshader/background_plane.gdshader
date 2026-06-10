@@ -10,5 +10,4 @@ void fragment() {
 	vec2 uv = UV * tiling + uv_offset;
 	vec4 col = texture(base_texture, uv);
 	ALBEDO = col.rgb * modulate.rgb;
-	ALPHA = col.a * modulate.a;
 }
