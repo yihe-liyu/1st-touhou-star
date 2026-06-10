@@ -54,7 +54,10 @@ func process(delta: float) -> void:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
 				if bullet.hit_effect:
+					print("[DeathClear] spawning effect for bullet at ", bullet.global_position, " tint=", bullet.sprite.modulate)
 					HitEffectPool.play(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
+				else:
+					print("[DeathClear] bullet has no hit_effect!")
 				_pool.return_bullet(bullet)
 		
 		# 切穿激光

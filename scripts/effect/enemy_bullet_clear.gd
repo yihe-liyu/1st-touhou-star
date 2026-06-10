@@ -20,7 +20,8 @@ func _get_speed() -> float:
 
 
 func _setup() -> void:
-	# 杀旧 tween 防冲突
+	print("[EnemyBulletClear] _setup called, global_pos=", global_position, " scale=", scale)
+	
 	if _tween and _tween.is_valid():
 		_tween.kill()
 	
@@ -34,8 +35,8 @@ func _setup() -> void:
 	_tween.set_parallel(true)
 	_tween.set_trans(Tween.TRANS_CUBIC)
 	_tween.set_ease(Tween.EASE_IN)
-	_tween.tween_property(sprite, "scale", Vector2(0.2, 0.2), 0.4)
-	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.4)
+	_tween.tween_property(sprite, "scale", Vector2(0.2, 0.2), 0.6)
+	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.6)
 	_tween.tween_callback(_finish)
 
 

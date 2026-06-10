@@ -22,7 +22,10 @@ func _ready() -> void:
 func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> HitEffect:
 	var effect := _acquire(scene)
 	if effect:
+		print("[HitEffectPool] play scene=", scene.resource_path, " pos=", pos, " tint=", tint)
 		effect.activate(pos, vel, tint, _return_method)
+	else:
+		print("[HitEffectPool] FAILED to acquire scene=", scene.resource_path)
 	return effect
 
 
