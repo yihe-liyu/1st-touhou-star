@@ -7,6 +7,25 @@ var _pools: Dictionary = {}  # PackedScene → Array[HitEffect]
 var _return_method: Callable
 
 
+## 直接实例化（不用池），挂到 World 节点
+static func spawn(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> void:
+	if not scene:
+		return
+	var eff = scene.instantiate()
+	var world = Engine.get_main_loop().current_scene.get_node_or_null("World")
+	var target = world if world else Engine.get_main_loop().current_scene
+	target.add_child(eff)
+	eff.z_index = 100
+	if eff.has_method("activate"):
+		eff.activate(pos, vel, tint)
+	else:
+		eff.global_position = pos
+		if eff.has_method("set_velocity"):
+			eff.set_velocity(vel)
+		if eff.has_method("set_tint"):
+			eff.set_tint(tint)
+
+
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	_return_method = _recycle

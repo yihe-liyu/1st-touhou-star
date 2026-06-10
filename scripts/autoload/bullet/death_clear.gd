@@ -54,7 +54,7 @@ func process(delta: float) -> void:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
 				if bullet.hit_effect:
-					_spawn_effect(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
+					HitEffectPool.spawn(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 		
 		# 切穿激光
