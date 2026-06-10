@@ -14,7 +14,7 @@ func _setup() -> void:
 	animation.play("explode")
 	var tw := create_tween()
 	tw.parallel().tween_property(animation, "modulate", Color(_tint.r, _tint.g, _tint.b, 0), 0.4)
-	tw.tween_callback(queue_free)
+	tw.tween_callback(_finish)
 
 
 func set_tint(color: Color) -> void:

@@ -132,12 +132,4 @@ func on_graze() -> void:
 func _spawn_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> void:
 	if not effect_scene:
 		return
-	var effect = effect_scene.instantiate()
-	var scene = Engine.get_main_loop().current_scene
-	if is_instance_valid(scene):
-		scene.add_child(effect)
-	effect.global_position = pos
-	if effect.has_method("set_velocity"):
-		effect.set_velocity(velocity)
-	if effect.has_method("set_tint"):
-		effect.set_tint(tint)
+	HitEffectPool.play(effect_scene, pos, velocity, tint)

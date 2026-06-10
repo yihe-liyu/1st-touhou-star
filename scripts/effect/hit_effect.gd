@@ -1,13 +1,37 @@
 extends Node2D
 class_name HitEffect
-## 命中特效基类 — 子类只需覆写少量方法
+## 命中特效基类 — 支持对象池回收
+##
+## 用法（池化）：
+##   HitEffectPool.play(scene, pos, vel, tint)
+##
+## 用法（手动）：
+##   effect.activate(pos, vel, tint)
+##   # 播完后自动 invisible + _on_finish()
 
 var velocity: Vector2 = Vector2.ZERO
 var _age: float = 0.0
+var _on_finish: Callable  # 回收回调，池化时由 HitEffectPool 注入
 
 
-func _ready() -> void:
+func activate(p_pos: Vector2, p_vel: Vector2, p_tint: Color, p_on_finish: Callable = Callable()) -> void:
+	global_position = p_pos
+	_age = 0.0
+	visible = true
+	_on_finish = p_on_finish
+	set_velocity(p_vel)
+	set_tint(p_tint)
 	_setup()
+
+
+## 播完后调此方法，而不是 queue_free
+func _finish() -> void:
+	for tween in get_children():
+		if tween is Tween and tween.is_valid():
+			tween.kill()
+	visible = false
+	if _on_finish.is_valid():
+		_on_finish.call(self)
 
 
 # ── 公共接口 ──
@@ -27,12 +51,12 @@ func _get_speed() -> float:
 	return 300.0
 
 
-## 存活上限（秒），超时强制 queue_free
+## 存活上限（秒），超时自动 _finish
 func _get_life_limit() -> float:
 	return 2.0
 
 
-## _ready 时调用一次，播放动画、创建 tween 等
+## 每次 activate 时调用一次，播放动画、创建 tween 等
 func _setup() -> void:
 	pass
 
@@ -54,4 +78,4 @@ func _physics_process(delta: float) -> void:
 	_process_extra(delta)
 	_age += delta
 	if _age > _get_life_limit():
-		queue_free()
+		_finish()

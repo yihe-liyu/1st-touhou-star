@@ -78,9 +78,7 @@ func die():
 	GameState.active_enemies.erase(self)
 	
 	if death_effect:
-		var effect = death_effect.instantiate()
-		get_tree().current_scene.add_child(effect)
-		effect.global_position = global_position
+		HitEffectPool.play(death_effect, global_position)
 	
 	GameEvents.enemy_killed.emit(score_value, global_position)
 	
