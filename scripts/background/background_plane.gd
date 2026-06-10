@@ -46,8 +46,12 @@ func _get_material() -> ShaderMaterial:
 
 
 func _process(delta: float) -> void:
-	# TODO: 先注释，确认位置正常后再恢复
-	pass
+	var mat := _get_material()
+	if not mat:
+		return
+	var uv: Vector2 = mat.get_shader_parameter("uv_offset")
+	uv += scroll_speed * delta * _scroll_mult
+	mat.set_shader_parameter("uv_offset", uv)
 
 
 ## 由 StageBackground 状态机调用，控制全局滚动倍率
