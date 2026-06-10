@@ -193,7 +193,7 @@ stage01_background
 
 ---
 
-## Step 5：BackgroundScroll 打包节点
+## Step 5：BackgroundScroll 打包节点 ✅ 完成
 
 ### 做什么
 有些东西不是平面——比如一棵树、一根柱子。把这些 3D 物体打包成一个组，统一滚动。
