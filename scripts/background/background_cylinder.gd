@@ -44,7 +44,7 @@ func _ready() -> void:
 		cylinder_mesh.material = mat
 		self.mesh = cylinder_mesh
 	else:
-		# tscn 预制 mesh：同步几何属性 + 初始化 UV 偏移
+		# tscn 预制 mesh：同步几何属性 + Inspector 属性写回材质
 		var cm := mesh as CylinderMesh
 		if cm:
 			cm.top_radius = radius
@@ -52,6 +52,8 @@ func _ready() -> void:
 			cm.height = height
 		var mat := _get_material()
 		if mat:
+			mat.set_shader_parameter("tiling", Vector2(tiling_u, tiling_v))
+			mat.set_shader_parameter("modulate", modulate)
 			mat.set_shader_parameter("uv_offset", Vector2.ZERO)
 			if base_texture:
 				mat.set_shader_parameter("base_texture", base_texture)
