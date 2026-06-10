@@ -20,12 +20,15 @@ func _get_speed() -> float:
 
 
 func _setup() -> void:
+	print("[_setup] START")
 	_ensure_material()
+	print("[_setup] material ok")
 	
 	if _tween and _tween.is_valid():
 		_tween.kill()
 	
 	var sp := _sprite()
+	print("[_setup] sprite=", sp)
 	sp.scale = Vector2.ONE
 	
 	var mat := sp.material as ShaderMaterial
