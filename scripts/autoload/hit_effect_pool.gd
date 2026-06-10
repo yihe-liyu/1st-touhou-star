@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 ## 命中特效对象池 — 避免频繁 instantiate()/queue_free()
 ##
 ## 用法:

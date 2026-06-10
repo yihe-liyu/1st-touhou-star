@@ -1,13 +1,13 @@
 extends Node2D
 class_name HitEffect
-## 命中特效基类 — 支持对象池回收
-##
-## 用法（池化）：
-##   HitEffectPool.play(scene, pos, vel, tint)
-##
-## 用法（手动）：
-##   effect.activate(pos, vel, tint)
-##   # 播完后自动 invisible + _on_finish()
+# 命中特效基类 — 支持对象池回收
+#
+# 用法（池化）：
+#   HitEffectPool.play(scene, pos, vel, tint)
+#
+# 用法（手动）：
+#   effect.activate(pos, vel, tint)
+#   # 播完后自动 invisible + _on_finish()
 
 var velocity: Vector2 = Vector2.ZERO
 var _age: float = 0.0
@@ -26,9 +26,6 @@ func activate(p_pos: Vector2, p_vel: Vector2, p_tint: Color, p_on_finish: Callab
 
 ## 播完后调此方法，而不是 queue_free
 func _finish() -> void:
-	for tween in get_children():
-		if tween is Tween and tween.is_valid():
-			tween.kill()
 	visible = false
 	if _on_finish.is_valid():
 		_on_finish.call(self)

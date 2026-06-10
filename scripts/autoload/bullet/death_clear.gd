@@ -53,6 +53,8 @@ func process(delta: float) -> void:
 			if not is_instance_valid(bullet) or bullet.faction != 1 or not bullet.is_ready:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
+				if bullet.hit_effect:
+					HitEffectPool.play(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 		
 		# 切穿激光
