@@ -18,25 +18,24 @@ func _get_speed() -> float:
 
 
 func _setup() -> void:
-	sprite.scale = Vector2(0.3, 0.3)
+	sprite.scale = Vector2(0.5, 0.5)
 	
 	var mat := sprite.material as ShaderMaterial
 	mat.set_shader_parameter("fog_tint:a", 1.0)
 	
 	# 弹开 → 缩小 → 淡出
-	var tw: Tween = create_tween()
+	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.set_trans(Tween.TRANS_CUBIC)
 	tw.set_ease(Tween.EASE_OUT)
-	tw.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.15)
-	tw.tween_method(_set_alpha.bind(mat), 1.0, 0.3, 0.15)
+	tw.tween_property(sprite, "scale", Vector2(2.5, 2.5), 0.4)
 	tw.tween_callback(func():
 		var tw2: Tween = create_tween()
 		tw2.set_parallel(true)
 		tw2.set_trans(Tween.TRANS_CUBIC)
 		tw2.set_ease(Tween.EASE_IN)
-		tw2.tween_property(sprite, "scale", Vector2(0.1, 0.1), 0.25)
-		tw2.tween_method(_set_alpha.bind(mat), 0.3, 0.0, 0.25)
+		tw2.tween_property(sprite, "scale", Vector2(0.5, 0.5), 0.5)
+		tw2.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.5)
 		tw2.tween_callback(_finish)
 	)
 

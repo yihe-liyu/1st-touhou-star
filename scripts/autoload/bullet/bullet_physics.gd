@@ -64,6 +64,8 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 		if GameState.memory_value >= 50.0:
 			var chance := remap(GameState.memory_value, 50.0, 100.0, 0.05, 0.30)
 			if randf() < chance:
+				if bullet.hit_effect:
+					HitEffectPool.play(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 
 
