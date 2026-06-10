@@ -1,5 +1,5 @@
 shader_type canvas_item;
-uniform vec4 fog_tint : source_color = vec4(1.0);
+uniform vec4 fog_tint = vec4(1.0);
 
 void fragment() {
 	vec4 col = texture(TEXTURE, UV);
