@@ -5,12 +5,14 @@ class_name EnemyBulletClear
 
 const BLEND_SHADER = preload("res://gdshader/bullet_fog_blend.gdshader")
 
+var _tween: Tween
+
 
 func _ready() -> void:
 	var mat := ShaderMaterial.new()
 	mat.shader = BLEND_SHADER
 	sprite.material = mat
-	sprite.modulate = Color.WHITE  # modulate 不动，shader 控颜色
+	sprite.modulate = Color.WHITE
 
 
 func _get_speed() -> float:
@@ -18,27 +20,23 @@ func _get_speed() -> float:
 
 
 func _setup() -> void:
-	sprite.scale = Vector2(0.3, 0.3)
+	# 杀旧 tween 防冲突
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	
+	# 从正常大小开始，只缩小+淡出
+	sprite.scale = Vector2.ONE
 	
 	var mat := sprite.material as ShaderMaterial
 	mat.set_shader_parameter("fog_tint:a", 1.0)
 	
-	# 阶段 1：弹开（0→0.4s）
-	var tw := create_tween()
-	tw.set_trans(Tween.TRANS_CUBIC)
-	tw.set_ease(Tween.EASE_OUT)
-	tw.tween_property(sprite, "scale", Vector2(2.5, 2.5), 0.4)
-	
-	# 阶段 2：缩回 + 淡出（0.4→0.9s）
-	tw.tween_callback(func():
-		var tw2 := create_tween()
-		tw2.set_parallel(true)
-		tw2.set_trans(Tween.TRANS_CUBIC)
-		tw2.set_ease(Tween.EASE_IN)
-		tw2.tween_property(sprite, "scale", Vector2(0.5, 0.5), 0.5)
-		tw2.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.5)
-		tw2.tween_callback(_finish)
-	)
+	_tween = create_tween()
+	_tween.set_parallel(true)
+	_tween.set_trans(Tween.TRANS_CUBIC)
+	_tween.set_ease(Tween.EASE_IN)
+	_tween.tween_property(sprite, "scale", Vector2(0.2, 0.2), 0.4)
+	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.4)
+	_tween.tween_callback(_finish)
 
 
 func set_tint(color: Color) -> void:
@@ -51,4 +49,4 @@ func _set_alpha(a: float, mat: ShaderMaterial) -> void:
 
 
 func _get_life_limit() -> float:
-	return 1.5
+	return 1.0

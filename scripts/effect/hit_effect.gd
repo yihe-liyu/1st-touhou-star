@@ -16,6 +16,8 @@ var _on_finish: Callable  # 回收回调，池化时由 HitEffectPool 注入
 
 func activate(p_pos: Vector2, p_vel: Vector2, p_tint: Color, p_on_finish: Callable = Callable()) -> void:
 	process_mode = PROCESS_MODE_PAUSABLE
+	scale = Vector2.ONE
+	rotation = 0.0
 	global_position = p_pos
 	_age = 0.0
 	visible = true
