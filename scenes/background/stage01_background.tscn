@@ -76,6 +76,7 @@ scroll_speed = Vector2(0, -0.1)
 
 [node name="FarTest" type="MeshInstance3D" parent="." unique_id=2082062911]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -59)
+visible = false
 mesh = SubResource("PlaneMesh_Far")
 script = ExtResource("2_plane")
 scroll_speed = Vector2(0.1, 0)

@@ -139,7 +139,7 @@ stage01_background
 
 ---
 
-## Step 4：BackgroundCylinder 节点
+## Step 4：BackgroundCylinder 节点 ✅ 完成
 
 ### 做什么
 新建圆柱体节点，解决「天空穹顶」和「环绕云层」——平面走到边界就没了，圆柱体永远有内容。
