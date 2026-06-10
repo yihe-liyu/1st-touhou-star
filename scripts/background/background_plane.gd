@@ -23,8 +23,7 @@ func _ready() -> void:
 	var plane_mesh := PlaneMesh.new()
 	plane_mesh.size = plane_size
 	plane_mesh.orientation = PlaneMesh.FACE_Z
-	self.mesh = plane_mesh
-
+	
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/background_plane.gdshader")
 	mat.set_shader_parameter("tiling", tiling)
@@ -32,11 +31,16 @@ func _ready() -> void:
 	if base_texture:
 		mat.set_shader_parameter("base_texture", base_texture)
 	mat.set_shader_parameter("uv_offset", Vector2.ZERO)
-	self.material_override = mat
+	
+	plane_mesh.material = mat  # 挂在 mesh 上，不用 material_override
+	self.mesh = plane_mesh
 
 
 func _process(delta: float) -> void:
-	var mat := material_override as ShaderMaterial
+	var plane_mesh := mesh as PlaneMesh
+	if not plane_mesh:
+		return
+	var mat := plane_mesh.material as ShaderMaterial
 	if not mat:
 		return
 	var uv: Vector2 = mat.get_shader_parameter("uv_offset")
