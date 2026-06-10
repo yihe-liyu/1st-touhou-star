@@ -33,6 +33,13 @@ func load_stage(data: StageData):
 	var api = StageAPI.new(stage_script)
 	stage_script.start_stage(api)
 
+	if current_background and data.background_script:
+		var bg_script = data.background_script.new()
+		assert(bg_script is BackgroundScript)
+		current_background.add_child(bg_script)
+		var bg_api = StageAPI.new(bg_script)
+		bg_script.start_background(bg_api)
+
 	stage_started.emit()
 
 
