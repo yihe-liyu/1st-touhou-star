@@ -116,30 +116,11 @@ class OptionInfo:
 
 ## P2 — 开始做真关卡时
 
-### 11. `BulletPattern` 弹幕模式组合系统
+### 11. ~~`BulletPattern` 弹幕模式组合系统~~（搁置）
 
-**现状**：`test_create.gd`、`test_fancy_curve.gd`、`test_laser.gd` 是手写的单次弹幕。真 Boss 战需要几十种弹幕组合。
+用户决定暂时不做通用弹幕模式系统，直接在 CreateScript 里手写组合。
 
-**建议**：抽象出可复用的弹幕模式：
-```gdscript
-class_name BulletPattern extends RefCounted
-func execute(api: StageAPI, origin: Node2D) -> float:  # seconds to next fire
-    return 1.0
-```
-
-子类：`CirclePattern`、`AimPattern`、`WavePattern`、`LaserPattern`
-
-在 CreateScript 里组合：
-```gdscript
-var _phases: Array[BulletPattern] = [
-    CirclePattern.new(count=32, speed=200, interval=1.5),
-    AimPattern.new(interval=0.3),
-]
-```
-
-**文件**：新建 `scripts/patterns/` 目录
-
-### 12. `GameManager` 职责拆分
+### 12. `GameManager` 职责拆分 ✅
 
 **现状**：`GameManager` 兼顾状态机、场景切换、黑场过渡、菜单栈、暂停控制。
 

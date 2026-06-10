@@ -91,7 +91,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		if fog.fog_finished.is_connected(_on_fog_ready):
 			fog.fog_finished.disconnect(_on_fog_ready)
 		fog.fog_finished.connect(_on_fog_ready, CONNECT_ONE_SHOT)
-		fog.play(data.fog_texture, data.tint, tint_mode)
+		fog.play(data.fog_texture, data.tint)
 	else:
 		fog.visible = false
 		is_ready = true

@@ -10,10 +10,10 @@ enum TintMode {MULTIPLY, BLEND}
 @export var texture: Texture2D
 
 @export_group("Tint")
-## 贴图染色（白色=原色）
-@export var tint: Color = Color.WHITE
 ## MULTIPLY=乘法叠加, BLEND=灰度混合（白色保持不变）
 @export var tint_mode: TintMode = TintMode.MULTIPLY
+## 贴图染色
+@export var tint: Color = Color.WHITE
 @export_group("", "")
 
 ## 基础伤害值
