@@ -20,15 +20,12 @@ func _get_speed() -> float:
 
 
 func _setup() -> void:
-	print("[_setup] START")
 	_ensure_material()
-	print("[_setup] material ok")
 	
 	if _tween and _tween.is_valid():
 		_tween.kill()
 	
 	var sp := _sprite()
-	print("[_setup] sprite=", sp)
 	sp.scale = Vector2.ONE
 	
 	var mat := sp.material as ShaderMaterial
@@ -40,7 +37,8 @@ func _setup() -> void:
 	_tween.set_ease(Tween.EASE_IN)
 	_tween.tween_property(sp, "scale", Vector2(0.2, 0.2), 0.6)
 	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.6)
-	_tween.tween_callback(_finish)
+	# callback 不能 parallel，否则 0 时刻就触发
+	_tween.chain().tween_callback(_finish)
 
 
 func set_tint(color: Color) -> void:

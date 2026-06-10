@@ -17,10 +17,10 @@ static func spawn(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO,
 	target.add_child(eff)
 	eff.global_position = pos
 	eff.z_index = 100
-	if eff.has_method("_setup"):
-		eff._setup()
 	if eff.has_method("set_tint"):
 		eff.set_tint(tint)
+	if eff.has_method("_setup"):
+		eff._setup()
 
 
 func _ready() -> void:
