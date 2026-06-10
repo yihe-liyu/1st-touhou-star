@@ -7,6 +7,7 @@ signal stage_cleared()
 signal all_enemies_defeated()
 
 var current_stage: StageData
+var current_background: StageBackground
 var _stage_active: bool = false
 var _stage_script: StageScript
 
@@ -38,6 +39,7 @@ func load_stage(data: StageData):
 func stop_stage():
 	_stage_active = false
 	current_stage = null
+	current_background = null
 	if _stage_script and is_instance_valid(_stage_script):
 		_stage_script.stop()
 		_stage_script.queue_free()

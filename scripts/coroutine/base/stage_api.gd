@@ -126,7 +126,7 @@ func _fire_straight_fallback(data: Resource, origin: Vector2, length: float):
 func spawn_decor(scene: PackedScene, pos3d: Vector3, follow_plane: BackgroundPlane = null) -> BackgroundObject:
 	if not active():
 		return null
-	var bg := StageBackground.current
+	var bg := StageManager.current_background
 	if not bg:
 		return null
 	var obj := scene.instantiate()

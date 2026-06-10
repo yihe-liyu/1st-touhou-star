@@ -38,6 +38,7 @@ func _load_background():
 		return
 	_background_instance = stage_data.background_scene.instantiate()
 	_sub_viewport.add_child(_background_instance)
+	StageManager.current_background = _background_instance
 
 func _exit_tree():
 	if _background_instance and is_instance_valid(_background_instance):
