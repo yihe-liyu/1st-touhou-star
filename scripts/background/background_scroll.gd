@@ -17,7 +17,7 @@ func _process(delta: float) -> void:
 	var offset := speed * delta * _scroll_mult
 	for child in get_children():
 		if child is Node3D:
-			child.position += Vector3(offset.x, offset.y, 0)
+			child.position += Vector3(offset.x, 0, offset.y)
 
 
 func set_scroll_mult(m: float) -> void:
