@@ -9,7 +9,7 @@
 fog_enabled = true
 fog_light_color = Color(0.3180198, 0.31801978, 0.31801975, 1)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_cnuel"]
+[sub_resource type="ShaderMaterial" id="Mat_Ground"]
 render_priority = 0
 shader = ExtResource("3_shader")
 shader_parameter/base_texture = ExtResource("4_grass")
@@ -17,18 +17,56 @@ shader_parameter/tiling = Vector2(6, 6)
 shader_parameter/uv_offset = Vector2(0, 0)
 shader_parameter/modulate = Color(1, 1, 1, 1)
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_srm4r"]
-material = SubResource("ShaderMaterial_cnuel")
+[sub_resource type="ShaderMaterial" id="Mat_Far"]
+render_priority = 0
+shader = ExtResource("3_shader")
+shader_parameter/base_texture = ExtResource("4_grass")
+shader_parameter/tiling = Vector2(3, 3)
+shader_parameter/uv_offset = Vector2(0, 0)
+shader_parameter/modulate = Color(0.5, 0.3, 0.8, 1)
+
+[sub_resource type="ShaderMaterial" id="Mat_Near"]
+render_priority = 0
+shader = ExtResource("3_shader")
+shader_parameter/base_texture = ExtResource("4_grass")
+shader_parameter/tiling = Vector2(3, 3)
+shader_parameter/uv_offset = Vector2(0, 0)
+shader_parameter/modulate = Color(0.3, 0.8, 0.4, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_Ground"]
+material = SubResource("Mat_Ground")
 size = Vector2(256, 256)
 
-[node name="Stage01Background" type="Node3D" unique_id=1460936483]
+[sub_resource type="PlaneMesh" id="PlaneMesh_Far"]
+material = SubResource("Mat_Far")
+size = Vector2(256, 256)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_Near"]
+material = SubResource("Mat_Near")
+size = Vector2(256, 256)
+
+[node name="Stage01Background" type="Node3D"]
 script = ExtResource("1_script")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=457592250]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_cnuel")
 
-[node name="Ground" type="MeshInstance3D" parent="." unique_id=510930997]
+[node name="Ground" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -68)
-mesh = SubResource("PlaneMesh_srm4r")
+mesh = SubResource("PlaneMesh_Ground")
 script = ExtResource("2_plane")
-scroll_speed = Vector2(0, -0.1)
+scroll_speed = Vector2(0, -1)
+
+[node name="FarTest" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -200)
+mesh = SubResource("PlaneMesh_Far")
+script = ExtResource("2_plane")
+scroll_speed = Vector2(0.1, 0)
+modulate = Color(0.5, 0.3, 0.8, 1)
+
+[node name="NearTest" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
+mesh = SubResource("PlaneMesh_Near")
+script = ExtResource("2_plane")
+scroll_speed = Vector2(1, 0)
+modulate = Color(0.3, 0.8, 0.4, 1)

@@ -13,7 +13,7 @@
 
 ---
 
-## Step 1：BackgroundPlane 节点
+## Step 1：BackgroundPlane 节点 ✅ 完成
 
 ### 做什么
 新建一个 `BackgroundPlane` 节点，把一个彩色测试平面渲染到背景上。
@@ -375,8 +375,9 @@ Background.set_state(StageBackground.State.BOSS_WARNING)
 
 ## 避坑提醒
 
-1. **PlaneMesh 朝向**：`FACE_Z` = 平放地面，`FACE_Y` = 竖立墙壁。选错看不到。
-2. **Z 坐标**：负的才在相机前方（Camera3D 默认看 -Z）。
-3. **unshaded**：背景不受灯光影响，贴图什么色就显示什么色。
-4. **cull_disabled**：背面不剔除，圆柱体外面才能看到。
-5. **新节点不要 queue_free 旧 shader**：老 stage01_background 的 shader 正在用，新 shader 另起一个文件。
+1. ~~PlaneMesh 朝向~~：`FACE_Z` = 平放地面，`FACE_Y` = 竖立墙壁。选错看不到。
+2. ~~Z 坐标~~：负的才在相机前方（Camera3D 默认看 -Z）。
+3. ~~unshaded~~：背景不受灯光影响，贴图什么色就显示什么色。
+4. **shader 不要写 `ALPHA =`**：unshaded spatial 里设 ALPHA 会触发 alpha blending，导致平面透明/消失。
+5. **runtime `PlaneMesh.new()` 不靠谱**：在 `_ready()` 里 `self.mesh = PlaneMesh.new()` 会导致渲染位置异常（飞天上）。mesh 配置放 tscn 的 `[sub_resource]` 里，脚本只改 shader 参数。
+6. **`material_override` 可能被父脚本覆盖**：如果 StageBackground 的 `_update_scroll` 还在跑，它会写 `child.material_override`。优先挂 `plane_mesh.material`。
