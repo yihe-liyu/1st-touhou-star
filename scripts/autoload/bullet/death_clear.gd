@@ -53,19 +53,8 @@ func process(delta: float) -> void:
 			if not is_instance_valid(bullet) or bullet.faction != 1 or not bullet.is_ready:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
-				# 直接实例化调试
 				if bullet.hit_effect:
-					var eff = bullet.hit_effect.instantiate()
-					var world = Engine.get_main_loop().current_scene.get_node_or_null("World")
-					if world:
-						world.add_child(eff)
-					else:
-						Engine.get_main_loop().current_scene.add_child(eff)
-					eff.global_position = bullet.global_position
-					eff.z_index = 200
-					print("[DEBUG] effect spawned at ", bullet.global_position, " parent=", eff.get_parent(), " in_tree=", eff.is_inside_tree())
-				else:
-					print("[DeathClear] bullet has no hit_effect!")
+					HitEffectPool.play(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 		
 		# 切穿激光

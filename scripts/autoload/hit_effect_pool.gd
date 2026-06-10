@@ -12,13 +12,11 @@ func _ready() -> void:
 	_return_method = _recycle
 
 
-## 播放一个命中特效
 func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> HitEffect:
 	var effect := _acquire(scene)
 	if not effect:
 		return null
 	
-	# 挂到 World 节点（Node2D，在正确的 CanvasLayer 层级）
 	var current: Node = Engine.get_main_loop().current_scene
 	var world := current.get_node_or_null("World") if current else null
 	var target := world if world else current
@@ -28,7 +26,7 @@ func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: C
 		else:
 			target.add_child(effect)
 	
-	effect.z_index = 100  # 确保在最上层
+	effect.z_index = 100
 	effect.activate(pos, vel, tint, _return_method)
 	return effect
 

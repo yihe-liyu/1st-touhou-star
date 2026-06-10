@@ -41,12 +41,7 @@ func set_tint(color: Color) -> void:
 	_ensure_material()
 	var mat := sprite.material as ShaderMaterial
 	if mat:
-		# 临时：太黑的颜色调亮，保证可见
-		var use := color
-		if use.v < 0.3:
-			use = Color.RED
-			use.a = color.a
-		mat.set_shader_parameter("fog_tint", use)
+		mat.set_shader_parameter("fog_tint", color)
 
 
 func _ensure_material() -> void:
