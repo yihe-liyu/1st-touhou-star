@@ -31,6 +31,7 @@ func _ready() -> void:
 	mat.set_shader_parameter("modulate", modulate)
 	if base_texture:
 		mat.set_shader_parameter("base_texture", base_texture)
+	mat.set_shader_parameter("uv_offset", Vector2.ZERO)
 	self.material_override = mat
 
 
@@ -38,7 +39,10 @@ func _process(delta: float) -> void:
 	var mat := material_override as ShaderMaterial
 	if not mat:
 		return
-	var uv := mat.get_shader_parameter("uv_offset") as Vector2
+	var raw := mat.get_shader_parameter("uv_offset")
+	if raw == null:
+		return
+	var uv: Vector2 = raw
 	uv += scroll_speed * delta * _scroll_mult
 	mat.set_shader_parameter("uv_offset", uv)
 
