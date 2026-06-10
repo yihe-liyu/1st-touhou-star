@@ -112,7 +112,7 @@ func _cubic_bezier_curve(p0: Vector2, p1: Vector2, p2: Vector2) -> Curve2D:
 		curve.add_point(pos)
 	return curve
 
-func fire_straight_fallback(data: Resource, origin: Vector2, length: float):
+func _fire_straight_fallback(data: Resource, origin: Vector2, length: float):
 	return fire_straight_laser(data, origin, Vector2.DOWN, length)
 
 # ---------- 背景装饰物 ----------
