@@ -61,7 +61,7 @@ func _main_step(api: StageAPI) -> Variant:
 	if not is_instance_valid(player):
 		return true
 	var interval := _main_shoot(api, player)
-	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"), -8.0)
+	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"), -12.0)
 	return interval
 
 

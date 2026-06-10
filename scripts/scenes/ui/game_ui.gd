@@ -9,7 +9,7 @@ const NumberSpriteClass = preload("res://scripts/ui/number_sprite.gd")
 const SeparatorClass = preload("res://scripts/ui/ui_separator.gd")
 
 ## 入场动画：每个元素的间隔时间（秒）
-const ENTRY_INTERVAL: float = 0.04
+const ENTRY_INTERVAL: float = 0.03
 ## 入场动画：单个元素滑入持续时间（秒）
 const ENTRY_DURATION: float = 0.25
 
@@ -179,9 +179,6 @@ func _play_entry_animation() -> void:
 	
 	# 所有入场动画完成后通知 GameScene
 	var total := _entry_queue.size() * ENTRY_INTERVAL + 0.35
-	# Title 粒子动画较长（1.5s），如果存在则等它
-	if $"Title" and $"Title".material:
-		total = maxf(total, _entry_queue.size() * ENTRY_INTERVAL + 0.2 + 1.5)
 	var done := create_tween()
 	done.tween_interval(total + 0.1)
 	done.tween_callback(func():

@@ -1,15 +1,10 @@
 [gd_resource type="Resource" script_class="CurvedLaserData" format=3 uid="uid://ctuhlhfsed3li"]
 
 [ext_resource type="Script" uid="uid://c5pgwn4s2lnfd" path="res://scripts/data/curved_laser_data.gd" id="1_data"]
-[ext_resource type="Texture2D" uid="uid://bvwqv534iju8l" path="res://assets/Textures/bullet/bullet1.png" id="2_1b2ku"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_k0pyc"]
-atlas = ExtResource("2_1b2ku")
-region = Rect2(16, 32, 32, 32)
-filter_clip = true
+[ext_resource type="Texture2D" uid="uid://cr6xlqf21b8rt" path="res://assets/Textures/bullet/弹雾.png" id="2_1b2ku"]
 
 [resource]
 script = ExtResource("1_data")
 glow_intensity = 1.0
-spawn_fog_texture = SubResource("AtlasTexture_k0pyc")
+spawn_fog_texture = ExtResource("2_1b2ku")
 max_lifetime = 15.0

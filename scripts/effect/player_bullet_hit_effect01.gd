@@ -1,30 +1,30 @@
-# PlayerBulletHitEffect01.gd
-extends Node2D
+extends HitEffect
 class_name PlayerBulletHitEffect
 
 @onready var animation: AnimatedSprite2D = $AnimatedSprite2D
 
-var velocity: Vector2 = Vector2.ZERO
-var _life: float = 0.0
 var _tint: Color = Color.WHITE
 
-func set_velocity(vel: Vector2):
-	velocity = vel.normalized() * 300.0
-	self.rotation = velocity.angle()
 
-func set_tint(color: Color):
-	_tint = color
-	animation.modulate = color
+func _get_speed() -> float:
+	return 300.0
 
-func _ready():
+
+func _setup() -> void:
 	animation.play("explode")
-	var tw = create_tween()
+	var tw := create_tween()
 	tw.parallel().tween_property(animation, "modulate", Color(_tint.r, _tint.g, _tint.b, 0), 0.4)
 	tw.tween_callback(queue_free)
 
-func _physics_process(delta: float) -> void:
-	self.position += velocity * delta
-	self.scale += Vector2(10, 10) * delta
-	_life += delta
-	if _life > 2.0:
-		queue_free()
+
+func set_tint(color: Color) -> void:
+	_tint = color
+	animation.modulate = color
+
+
+func _on_velocity_set() -> void:
+	rotation = velocity.angle()
+
+
+func _process_extra(delta: float) -> void:
+	scale += Vector2(10, 10) * delta

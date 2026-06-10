@@ -148,9 +148,12 @@ class OptionInfo:
 **建议**：`BaseMenu` 加 `@export var item_configs: Array[Dictionary]`，
 `_collect_items` 时自动创建 Label 并绑定回调。
 
-### 15. `AudioManager` 交叉淡入淡出
+### 15. ~~`AudioManager` 交叉淡入淡出~~ ✅
 
-**建议**：`crossfade_bgm(new_stream, duration)` 双 Player 交叉淡入。
+**提交**：ffd7e92
+
+`crossfade_bgm(stream, duration)` 双播放器交叉淡入，旧渐弱→新渐强。
+暂停时两个播放器一起 `stream_paused`，音量调整同步。
 
 ### 16. 命中特效基类
 
