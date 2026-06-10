@@ -27,6 +27,7 @@ func _setup() -> void:
 	
 	var sp := _sprite()
 	sp.scale = Vector2.ONE
+	rotation = randf_range(0.0, TAU)  # 随机朝向
 	
 	var mat := sp.material as ShaderMaterial
 	mat.set_shader_parameter("fog_tint:a", 1.0)
@@ -35,8 +36,8 @@ func _setup() -> void:
 	_tween.set_parallel(true)
 	_tween.set_trans(Tween.TRANS_CUBIC)
 	_tween.set_ease(Tween.EASE_IN)
-	_tween.tween_property(sp, "scale", Vector2(0.2, 0.2), 0.6)
-	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.6)
+	_tween.tween_property(sp, "scale", Vector2(0.2, 0.2), 0.35)
+	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.35)
 	# callback 不能 parallel，否则 0 时刻就触发
 	_tween.chain().tween_callback(_finish)
 
@@ -46,7 +47,14 @@ func set_tint(color: Color) -> void:
 	var sp := _sprite()
 	var mat := sp.material as ShaderMaterial
 	if mat:
-		mat.set_shader_parameter("fog_tint", color)
+		# 提亮 1.5x，让消弹特效比弹幕更亮
+		var bright := Color(
+			minf(color.r * 1.5, 1.0),
+			minf(color.g * 1.5, 1.0),
+			minf(color.b * 1.5, 1.0),
+			color.a
+		)
+		mat.set_shader_parameter("fog_tint", bright)
 
 
 func _ensure_material() -> void:
