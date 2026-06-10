@@ -3,6 +3,10 @@ class_name EnemyBulletClear
 
 @onready var sprite: Sprite2D = $Sprite2D
 
+# 池里 instantiate 时还没进树，@onready 不会触发，用 get_node 兜底
+func _get_sprite() -> Sprite2D:
+	return sprite if sprite else $Sprite2D
+
 const BLEND_SHADER = preload("res://gdshader/bullet_fog_blend.gdshader")
 
 var _tween: Tween
