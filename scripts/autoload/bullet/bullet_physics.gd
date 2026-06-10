@@ -65,7 +65,7 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 			var chance := remap(GameState.memory_value, 50.0, 100.0, 0.05, 0.30)
 			if randf() < chance:
 				if bullet.hit_effect:
-					HitEffectPool.play(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
+					_spawn_effect(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 
 
@@ -134,4 +134,13 @@ func on_graze() -> void:
 func _spawn_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> void:
 	if not effect_scene:
 		return
-	HitEffectPool.play(effect_scene, pos, velocity, tint)
+	var eff = effect_scene.instantiate()
+	var world = Engine.get_main_loop().current_scene.get_node_or_null("World")
+	var target = world if world else Engine.get_main_loop().current_scene
+	target.add_child(eff)
+	eff.global_position = pos
+	eff.z_index = 100
+	if eff.has_method("set_velocity"):
+		eff.set_velocity(velocity)
+	if eff.has_method("set_tint"):
+		eff.set_tint(tint)
