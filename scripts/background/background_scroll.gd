@@ -16,7 +16,7 @@ func _process(delta: float) -> void:
 		# UV 速度 → 世界速度：plane_size / tiling 换算
 		var ratio_x := follow.plane_size.x / follow.tiling.x if follow.tiling.x > 0 else 1.0
 		var ratio_y := follow.plane_size.y / follow.tiling.y if follow.tiling.y > 0 else 1.0
-		offset = Vector3(follow.scroll_speed.x * ratio_x, 0, follow.scroll_speed.y * ratio_y) * delta * _scroll_mult
+		offset = Vector3(follow.scroll_speed.x * ratio_x, 0, -follow.scroll_speed.y * ratio_y) * delta * _scroll_mult
 	else:
 		offset = scroll_speed * delta * _scroll_mult
 	for child in get_children():
