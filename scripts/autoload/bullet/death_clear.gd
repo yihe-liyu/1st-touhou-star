@@ -54,12 +54,7 @@ func process(delta: float) -> void:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
 				if bullet.hit_effect:
-					var eff = bullet.hit_effect.instantiate()
-					var world = Engine.get_main_loop().current_scene.get_node_or_null("World")
-					var target = world if world else Engine.get_main_loop().current_scene
-					target.add_child(eff)
-					eff.global_position = bullet.global_position
-					eff.z_index = 100
+					_spawn_effect(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 		
 		# 切穿激光

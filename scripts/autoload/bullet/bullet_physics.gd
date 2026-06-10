@@ -138,9 +138,12 @@ func _spawn_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = 
 	var world = Engine.get_main_loop().current_scene.get_node_or_null("World")
 	var target = world if world else Engine.get_main_loop().current_scene
 	target.add_child(eff)
-	eff.global_position = pos
 	eff.z_index = 100
-	if eff.has_method("set_velocity"):
-		eff.set_velocity(velocity)
-	if eff.has_method("set_tint"):
-		eff.set_tint(tint)
+	if eff.has_method("activate"):
+		eff.activate(pos, velocity, tint)
+	else:
+		eff.global_position = pos
+		if eff.has_method("set_velocity"):
+			eff.set_velocity(velocity)
+		if eff.has_method("set_tint"):
+			eff.set_tint(tint)
