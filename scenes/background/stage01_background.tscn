@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://14hmn1qoll6l"]
 
 [ext_resource type="Script" uid="uid://b2aqhbms4xuer" path="res://scripts/background/stage01_background.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://dk0cc5a6lkcd0" path="res://gdshader/background_plane.gdshader" id="2_shader"]
 [ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="3_grass"]
 
 [sub_resource type="Environment" id="Environment_cnuel"]
@@ -8,8 +9,7 @@ fog_enabled = true
 fog_light_color = Color(0.3180198, 0.31801978, 0.31801975, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cnuel"]
-render_priority = 0
-shader = preload("res://gdshader/background_plane.gdshader")
+shader = ExtResource("2_shader")
 shader_parameter/base_texture = ExtResource("3_grass")
 shader_parameter/tiling = Vector2(6, 6)
 
