@@ -20,20 +20,29 @@ var _scroll_mult: float = 1.0
 
 
 func _ready() -> void:
-	var plane_mesh := PlaneMesh.new()
-	plane_mesh.size = plane_size
-	plane_mesh.orientation = PlaneMesh.FACE_Z
+	# 如果 Inspector 里已经配了 mesh (含材料), 直接复用
+	if not mesh:
+		var plane_mesh := PlaneMesh.new()
+		plane_mesh.size = plane_size
+		plane_mesh.orientation = PlaneMesh.FACE_Z
+		self.mesh = plane_mesh
 	
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://gdshader/background_plane.gdshader")
-	mat.set_shader_parameter("tiling", tiling)
-	mat.set_shader_parameter("modulate", modulate)
-	if base_texture:
-		mat.set_shader_parameter("base_texture", base_texture)
-	mat.set_shader_parameter("uv_offset", Vector2.ZERO)
-	
-	plane_mesh.material = mat  # 挂在 mesh 上，不用 material_override
-	self.mesh = plane_mesh
+	var mat := _get_material()
+	if mat:
+		mat.set_shader_parameter("tiling", tiling)
+		mat.set_shader_parameter("modulate", modulate)
+		if base_texture:
+			mat.set_shader_parameter("base_texture", base_texture)
+		mat.set_shader_parameter("uv_offset", Vector2.ZERO)
+
+
+func _get_material() -> ShaderMaterial:
+	var plane_mesh := mesh as PlaneMesh
+	if plane_mesh and plane_mesh.material is ShaderMaterial:
+		return plane_mesh.material
+	if material_override is ShaderMaterial:
+		return material_override
+	return null
 
 
 func _process(delta: float) -> void:
