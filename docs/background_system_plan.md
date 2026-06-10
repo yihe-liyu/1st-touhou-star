@@ -347,7 +347,7 @@ Background.set_state(StageBackground.State.BOSS_WARNING)
 
 ---
 
-## 步骤总览
+## 步骤总览 ✅ 全部完成
 
 | Step | 内容 | 新文件 | 预计量 |
 |------|------|--------|--------|
