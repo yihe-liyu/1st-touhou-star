@@ -2,22 +2,23 @@ class_name BackgroundScroll
 extends Node3D
 
 ## 独立滚动速度（follow 为空时生效）
-@export var scroll_speed: Vector2 = Vector2(0, 0)
+@export var scroll_speed: Vector3 = Vector3(0, 0, 0)
 
-## 跟随节点 —— 拖入一个 BackgroundPlane，自动复用它的速度
+## 跟随节点 —— 拖入一个 BackgroundPlane，自动复用它的速度（XZ 方向）
 @export var follow: BackgroundPlane
 
 var _scroll_mult: float = 1.0
 
 
 func _process(delta: float) -> void:
-	var speed := scroll_speed
+	var offset: Vector3
 	if follow:
-		speed = follow.scroll_speed
-	var offset := speed * delta * _scroll_mult
+		offset = Vector3(follow.scroll_speed.x, 0, follow.scroll_speed.y) * delta * _scroll_mult
+	else:
+		offset = scroll_speed * delta * _scroll_mult
 	for child in get_children():
 		if child is Node3D:
-			child.position += Vector3(offset.x, 0, offset.y)
+			child.position += offset
 
 
 func set_scroll_mult(m: float) -> void:
