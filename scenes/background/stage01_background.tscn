@@ -104,10 +104,10 @@ mesh = SubResource("CylinderMesh_Test")
 script = ExtResource("5_cyl")
 scroll_speed = 0.1
 
-[node name="BackgroundScroll" type="Node3D" parent="." unique_id=14382981]
+[node name="BackgroundScroll" type="Node3D" parent="." unique_id=14382981 node_paths=PackedStringArray("follow")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 script = ExtResource("7_g553e")
-scroll_speed = Vector2(0, 1)
+follow = NodePath("../Ground")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="BackgroundScroll" unique_id=1616234947]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, -10)
