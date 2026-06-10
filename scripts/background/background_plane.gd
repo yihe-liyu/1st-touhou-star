@@ -20,10 +20,10 @@ var _scroll_mult: float = 1.0
 
 
 func _ready() -> void:
-	var mesh := PlaneMesh.new()
-	mesh.size = plane_size
-	mesh.orientation = PlaneMesh.FACE_Z
-	self.mesh = mesh
+	var plane_mesh := PlaneMesh.new()
+	plane_mesh.size = plane_size
+	plane_mesh.orientation = PlaneMesh.FACE_Z
+	self.mesh = plane_mesh
 
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/background_plane.gdshader")
