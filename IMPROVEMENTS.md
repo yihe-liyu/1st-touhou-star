@@ -143,7 +143,7 @@ class OptionInfo:
 **建议**：`StageManager.load_stage` 断言 `stage_script is StageScript`。
 `EnemyData.visual_scene`、`BulletData.movement_script` 同样处理。
 
-### 14. 菜单选项注入式配置
+### 14. 菜单选项注入式配置 ⬜
 
 **建议**：`BaseMenu` 加 `@export var item_configs: Array[Dictionary]`，
 `_collect_items` 时自动创建 Label 并绑定回调。
@@ -162,12 +162,38 @@ class OptionInfo:
 提取 `HitEffect` 基类：`velocity`、`_physics_process`、超时 `queue_free` 统一处理。
 三个子类（Effect01/Effect02/MainEffect）各覆写 `_get_speed`/`_setup`/`_on_velocity_set`/`_process_extra`。
 
----
+### 17. 敌弹消弹特效对象池化 ⬜
 
-## 💡 长期方向（不紧急）
+**现状**：`HitEffectPool.spawn()` 每帧 `instantiate` + `add_child(World)` + `activate`。
+0.35s 后 `_finish` 设 `visible=false`，节点留在树里不回收。高频消弹时产生大量悬挂节点。
 
-- **Replay 系统** — 记录每帧的 `RNG.seed` + 玩家输入
-- **Spell Card 框架** — Boss 多阶段 + 血量条 + 动态难度
-- **道具掉落系统** — Power Item、Point Item、残机/Bomb 碎片
-- **关卡编辑器** — 可视化编排弹幕模式
-- **单元测试** — GDScript `assert` 协程调度和碰撞检测回归测试
+**建议**：`spawn()` 内部接池：
+- `_acquire()` 优先从 `_pools[scene]` 取 `not visible` 实例
+- `_finish` 回调 (`_on_finish`) 把实例标记为不可见 → 回池
+- 池大小不设硬上限，按需扩容
+
+### 18. 道具掉落系统 ⬜
+
+**建议**：
+- 消灭敌人掉落 Power Item / Point Item / 残机碎片 / Bomb 碎片
+- 自动回收线（屏幕底部吸附）、POC（道具回收线）
+- 满火力后 Power Item 变 Point Item
+
+### 19. Spell Card 框架 ⬜
+
+**建议**：
+- Boss 多阶段 + 血量条 HUD
+- Spell Card Bonus（收卡时不 Bomb/不 Miss）
+- 动态难度（Rank 系统）
+
+### 20. Replay 系统 ⬜
+
+**建议**：每帧记录 RNG 种子 + 玩家输入 → 可完整回放
+
+### 21. 关卡编辑器 ⬜
+
+**建议**：可视化编排弹幕模式时间轴
+
+### 22. 单元测试 ⬜
+
+**建议**：GDScript `assert` 协程调度和碰撞检测回归测试
