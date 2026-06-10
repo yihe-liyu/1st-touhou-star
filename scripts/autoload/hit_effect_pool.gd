@@ -8,7 +8,7 @@ var _return_method: Callable
 
 
 ## 直接实例化（不用池），挂到 World 节点
-static func spawn(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> void:
+func spawn(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> void:
 	if not scene:
 		return
 	var eff = scene.instantiate()
