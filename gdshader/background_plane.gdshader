@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_disabled;
+render_mode unshaded;
 
 uniform sampler2D base_texture : source_color;
 uniform vec2 tiling = vec2(6.0);

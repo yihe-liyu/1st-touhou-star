@@ -15,9 +15,7 @@ script = ExtResource("1_script")
 environment = SubResource("Environment_cnuel")
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1102995471]
-script = ExtResource("2_plane")
-plane_size = Vector2(256, 256)
-tiling = Vector2(6, 6)
-scroll_speed = Vector2(0, 1)
-base_texture = ExtResource("3_grass")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -68)
+script = ExtResource("2_plane")
+scroll_speed = Vector2(0, -1)
+base_texture = ExtResource("3_grass")
