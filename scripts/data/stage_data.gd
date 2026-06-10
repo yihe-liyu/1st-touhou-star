@@ -5,4 +5,3 @@ class_name StageData
 @export var stage_name: String = "Stage 1"
 @export var create_script: Script
 @export var background_scene: PackedScene
-@export var background_script: Script
