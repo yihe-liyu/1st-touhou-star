@@ -37,15 +37,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var plane_mesh := mesh as PlaneMesh
-	if not plane_mesh:
-		return
-	var mat := plane_mesh.material as ShaderMaterial
-	if not mat:
-		return
-	var uv: Vector2 = mat.get_shader_parameter("uv_offset")
-	uv += scroll_speed * delta * _scroll_mult
-	mat.set_shader_parameter("uv_offset", uv)
+	# TODO: 先注释，确认位置正常后再恢复
+	pass
 
 
 ## 由 StageBackground 状态机调用，控制全局滚动倍率
