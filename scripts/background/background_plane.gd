@@ -42,7 +42,9 @@ func _process(delta: float) -> void:
 	var raw := mat.get_shader_parameter("uv_offset")
 	if raw == null:
 		return
-	var uv: Vector2 = raw
+	var uv := Vector2.ZERO
+	if raw is Vector2:
+		uv = raw
 	uv += scroll_speed * delta * _scroll_mult
 	mat.set_shader_parameter("uv_offset", uv)
 
