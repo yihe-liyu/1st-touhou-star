@@ -31,7 +31,18 @@ func _ready() -> void:
 		cylinder_mesh.top_radius = radius
 		cylinder_mesh.bottom_radius = radius
 		cylinder_mesh.height = height
+		
+		var mat := ShaderMaterial.new()
+		mat.shader = preload("res://gdshader/background_cylinder.gdshader")
+		mat.set_shader_parameter("tiling", Vector2(tiling_u, tiling_v))
+		mat.set_shader_parameter("modulate", modulate)
+		if base_texture:
+			mat.set_shader_parameter("base_texture", base_texture)
+		mat.set_shader_parameter("uv_offset", Vector2.ZERO)
+		
+		cylinder_mesh.material = mat
 		self.mesh = cylinder_mesh
+		return
 	
 	var mat := _get_material()
 	if mat:
