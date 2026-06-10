@@ -1,20 +1,20 @@
 [gd_scene format=3 uid="uid://14hmn1qoll6l"]
 
-[ext_resource type="Script" path="res://scripts/background/stage01_background.gd" id="1_script"]
-[ext_resource type="Script" path="res://scripts/background/background_plane.gd" id="2_plane"]
-[ext_resource type="Texture2D" path="res://assets/Textures/background/stage01/grass.jpeg" id="3_grass"]
+[ext_resource type="Script" uid="uid://b2aqhbms4xuer" path="res://scripts/background/stage01_background.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cys5ctkx6l5h8" path="res://scripts/background/background_plane.gd" id="2_plane"]
+[ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="3_grass"]
 
 [sub_resource type="Environment" id="Environment_cnuel"]
 fog_enabled = true
 fog_light_color = Color(0.3180198, 0.31801978, 0.31801975, 1)
 
-[node name="Stage01Background" type="Node3D"]
+[node name="Stage01Background" type="Node3D" unique_id=1821124503]
 script = ExtResource("1_script")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2047488261]
 environment = SubResource("Environment_cnuel")
 
-[node name="Ground" type="MeshInstance3D" parent="."]
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=1102995471]
 script = ExtResource("2_plane")
 plane_size = Vector2(256, 256)
 tiling = Vector2(6, 6)
