@@ -10,21 +10,25 @@ fog_enabled = true
 fog_light_color = Color(0.3180198, 0.31801978, 0.31801975, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cnuel"]
+render_priority = 0
 shader = ExtResource("3_shader")
 shader_parameter/base_texture = ExtResource("4_grass")
 shader_parameter/tiling = Vector2(6, 6)
+shader_parameter/uv_offset = Vector2(0, 0)
+shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_srm4r"]
 material = SubResource("ShaderMaterial_cnuel")
 size = Vector2(256, 256)
 
-[node name="Stage01Background" type="Node3D"]
+[node name="Stage01Background" type="Node3D" unique_id=1460936483]
 script = ExtResource("1_script")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=457592250]
 environment = SubResource("Environment_cnuel")
 
-[node name="Ground" type="MeshInstance3D" parent="."]
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=510930997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -68)
-script = ExtResource("2_plane")
 mesh = SubResource("PlaneMesh_srm4r")
+script = ExtResource("2_plane")
+scroll_speed = Vector2(0, -0.1)
