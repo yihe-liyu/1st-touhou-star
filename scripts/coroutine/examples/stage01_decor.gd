@@ -65,12 +65,12 @@ var _i: int = 0
 func _on_step(api: StageAPI) -> Variant:
 
 	# ─── 阶段 0: 生成装饰物 (0~29 步, 共约 12 秒) ───
-	if _i < 30:
+	if _i < 60:
 		# 树 —— 每步生成一棵, 绑定地面
 		api.spawn_decor(
 			_make_billboard(Vector2(8, 8), tree_texture),
 			# 随机位置: X ±400, Z -30~ -60 (地面区)
-			Vector3(randf_range(-400, 400), 0, randf_range(-60, -30)),
+			Vector3(randf_range(-400, 400), 4, randf_range(-60, -30)),
 			ground   # ← 跟地面同步滚动
 		)
 
@@ -78,17 +78,17 @@ func _on_step(api: StageAPI) -> Variant:
 		if _i % 3 == 0:
 			api.spawn_decor(
 				_make_billboard(Vector2(3, 3), rock_texture),
-				Vector3(randf_range(-400, 400), 0, randf_range(-50, -20)),
+				Vector3(randf_range(-400, 400), 4, randf_range(-50, -20)),
 				ground
 			)
 
 		_i += 1
-		return api.seconds(0.4)    # 0.4 秒后生成下一棵
+		return api.seconds(0.2)    # 0.2 秒后生成下一棵
 
 
 	# ─── 阶段 1: Boss 出场 (第 30 步) ───
 	# 雾变暗紫 + 密度上升 + 相机收窄 FOV
-	if _i == 30:
+	if _i == 60:
 		_i += 1
 
 		# 拿 Environment 对象 —— 雾的所有属性都在这里
