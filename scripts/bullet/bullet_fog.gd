@@ -4,7 +4,7 @@ class_name BulletFog
 signal fog_finished
 
 var duration: float = 0.3
-var start_scale: float = 1.0
+var start_scale: float = 2.0
 
 const BLEND_SHADER = preload("res://gdshader/bullet_fog_blend.gdshader")
 
