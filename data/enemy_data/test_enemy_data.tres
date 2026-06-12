@@ -12,5 +12,4 @@ max_hp = 500
 hitbox_radius = 28.0
 create_script = ExtResource("4_test_shoot")
 move_script = ExtResource("1_hxnam")
-item_life_full = 1
 metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

@@ -1,5 +1,5 @@
 # 📐 东方星 STG 引擎 — 系统规格书
-## 版本 1.0 · 2026-06-12
+## 版本 1.1 · 2026-06-12
 ## 基于项目现状逆向提炼 + 规范化约定
 
 ---
@@ -26,6 +26,7 @@
 ├─────────────────────────────────────────┤
 │             实体层                       │
 │  Player  Enemy  Bullet  CurvedLaser     │
+│  Item  ItemPool                        │
 │  BackgroundPlane/Cylinder/Object        │
 │  HitEffect                              │
 ├─────────────────────────────────────────┤
@@ -64,8 +65,8 @@
 | 项目 | 内容 |
 |------|------|
 | **职责** | 全局游戏数据 **唯一真源** |
-| **拥有** | score, lives, bombs, power, memory, graze, difficulty, character |
-| **读写规则** | 系统通过方法读写（`add_score()`, `reduce_memory()`），不直接改属性 |
+| **拥有** | score, lives, bombs, power, max_point, memory, graze, difficulty, character |
+| **读写规则** | 系统通过方法读写（`add_score()`, `add_power()`, `add_max_point()`, `collect_life_fragment()`），不直接改属性 |
 | **禁止** | 任何协程/实体不直接改 `GameState.current_score` |
 | **reset_all()** | 关卡开始时调用，清零所有运行时数据 |
 | **enable** | 只在 `PLAYING` 时启用 `_process` |
@@ -113,7 +114,42 @@
 | **spawn()** | 直接实例化（不用池），简单效果用 |
 | **上限** | 每种 PackedScene 最多 16 个实例 |
 
-### 2.8 CoroutineRunner（基类）
+### 2.8 Item 系统
+
+#### Item
+| 项目 | 内容 |
+|------|------|
+| **类型** | `POWER / POINT / LIFE_FRAG / BOMB_FRAG / LIFE_FULL / BOMB_FULL` |
+| **节点** | `Area2D`（碰撞层 128, 掩码 1=Player）|
+| **运动** | 上抛 ↑180 → 重力 ↓240/s² → 终端 ↓180 |
+| **收集** | 碰撞 Player / 靠近 128px / 玩家 y<256 → 飞向玩家 800px/s |
+| **focus** | 吸附范围 ×1.5 |
+| **_dead** | 收集/回收前设 true, 所有回调入口检查 |
+
+#### ItemPool
+| 项目 | 内容 |
+|------|------|
+| **池容量** | 64 个 |
+| **模式** | 常驻 tree, `spawn()/recycle()` 无 queue_free |
+| **查找** | `StageAPI._find_item_pool()` → World/ItemPool |
+
+#### 掉落配置 (EnemyData)
+| 项目 | 内容 |
+|------|------|
+| `item_power/point/life/bomb` | 各掉几个 |
+| `item_life_full/bomb_full` | 完整残机/Bomb 个数 |
+| `item_scatter` | 生成位置随机散布 |
+
+#### 得分逻辑
+| 项目 | 内容 |
+|------|------|
+| **Point** | `GameState.add_max_point()`: +max_point 分, max_point+=10 |
+| **Power** | `GameState.add_power(1)` → power_raw+1 |
+| **碎片** | `collect_*_fragment()`: 5碎片→1命/Bomb |
+| **Full** | `collect_*_full()`: 内部调 5×fragment |
+| **上限** | 命≤8, Bomb≤8, power_raw≤300 |
+
+### 2.9 CoroutineRunner（基类）
 | 项目 | 内容 |
 |------|------|
 | **机制** | `run(callable)` → `_physics_process` 每帧调 callable |
@@ -121,7 +157,7 @@
 | **stop()** | 清全部任务，发 `cancelled` 信号 |
 | **注意** | `run()` 内部调 `stop()` — 子类覆写 `stop()` 时注意初始态不被意外触发 |
 
-### 2.9 StageAPI
+### 2.10 StageAPI
 | 项目 | 内容 |
 |------|------|
 | **职责** | 协程与系统的唯一桥梁 |
@@ -241,11 +277,37 @@ Enemy.die():
   ├ active_enemies.erase(self)
   ├ HitEffectPool.play(death_effect)
   ├ enemy_killed.emit(score, pos)
+  ├ _drop_item() → ItemPool.spawn (从 EnemyData 配置)
   ├ stop create + move 协程
   └ queue_free()
 ```
 
-### 3.5 子弹生命周期
+### 3.5 Item 生命周期
+```
+ItemPool.spawn(pos, type)
+  → _pool.pop_back() 或 instantiate (capped)
+  → Item.setup(type, pos)
+       ├ _dead=false, _auto_collect=false
+       ├ _velocity=(0,-180) 上抛
+       └ 设贴图
+  → visible=true, physics_process=true
+
+Item._physics_process(delta):
+  if _dead: return
+  ├ 玩家 y<256 或距离<prox → _auto_collect=true
+  ├ auto_collect: 飞向玩家 800px/s
+  ├ else: 重力加速 → _velocity.y=min(vy+240*dt, 180)
+  └ y>960 → _dead, _recycle()
+
+Item collect (area_entered → Player):
+  → collect(): _dead=true, visible=false, physics=false
+  → 计分/加命 → _recycle()
+
+ItemPool.recycle(item):
+  → 已在池中跳过 → visible=false, physics=false → 入池
+```
+
+### 3.6 子弹生命周期
 ```
 发射:
   BulletPool.shoot(data, pos, dir)
@@ -285,11 +347,13 @@ return_bullet:
 | power | GameState | GameState.add_power() | Player shoot calc |
 | memory | GameState | bullet_physics, Player.miss() | bullet tint, memory shader |
 | graze | GameState | bullet_physics.on_graze() | GameUI |
+| max_point | GameState | GameState.add_max_point() | Item, GameUI |
 | difficulty | GameState | DifficultyScreen | 各处 |
 | character | GameState | CharacterScreen | GameScene |
 | active_enemies | GameState | Enemy._ready/_exit/die | StageScript.all_defeated() |
 | active_bullets | BulletPool | BulletPool.shoot/return_bullet | BulletPhysics, BulletMultiMesh |
 | active_lasers | LaserSystem | LaserSystem.fire/clear | LaserSystem.step |
+| item_pool | World/ItemPool | ItemPool.spawn/recycle | Enemy._drop_item, StageAPI |
 | current_stage | StageManager | StageManager.load/stop_stage | 各处只读 |
 | current_background | StageManager | GameScene._load_background | StageAPI.spawn_decor |
 
@@ -309,6 +373,7 @@ return_bullet:
   api.all_defeated()         — active_enemies 为空
   api.fire_*_laser(...)      — 各种激光
   api.spawn_decor(scene, pos3d, follow_plane)
+  api.spawn_item(type, pos)
   api.active()               — 协程是否还在跑
 
 ❌ 禁止的:
@@ -361,6 +426,16 @@ Player:
   miss()            → 被弹处理
   ⚠️ miss() 不能 await（由碰撞回调同步调用）
   ⚠️ miss() 内无敌计时用信号/Tween
+
+Item:
+  setup(type, pos)  → 池复用初始化
+  collect()         → 收集逻辑（内部调用，不外部触发）
+  ⚠️ Item 不外部实例化，走 ItemPool.spawn()
+
+ItemPool:
+  spawn(pos, type)  → 生成 item (池复用优先)
+  recycle(item)     → 回收入池（内部调用，不外部触发）
+  ⚠️ 不 queue_free，常驻 tree
 ```
 
 ### 5.4 禁止操作清单
