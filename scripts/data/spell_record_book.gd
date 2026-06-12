@@ -4,28 +4,35 @@ class_name SpellRecordBook
 
 const SpellRecordClass = preload("res://scripts/data/spell_record.gd")
 
-@export var records: Dictionary = {}  # spell_id → SpellRecord
+@export var records: Array[Resource] = []
 
 func get_record(spell_id: String):
-	return records.get(spell_id, null)
+	for r in records:
+		if r.get("spell_id") == spell_id:
+			return r
+	return null
 
 func record_attempt(spell_id: String, captured: bool, score: int, elapsed: float) -> void:
 	var r = get_record(spell_id)
 	if not r: return
-	r.attempts += 1
+	r.set("attempts", r.get("attempts") + 1)
 	if captured:
-		r.captures += 1
-		if score > r.best_score:
-			r.best_score = score
-		if elapsed > 0 and (r.best_time == 0 or elapsed < r.best_time):
-			r.best_time = elapsed
+		r.set("captures", r.get("captures") + 1)
+		if score > r.get("best_score"):
+			r.set("best_score", score)
+		if elapsed > 0:
+			var bt = r.get("best_time")
+			if bt == 0 or elapsed < bt:
+				r.set("best_time", elapsed)
 
 func get_capture_rate(spell_id: String) -> float:
 	var r = get_record(spell_id)
-	if r.attempts == 0:
-		return 0.0
-	return float(r.captures) / float(r.attempts)
+	if not r: return 0.0
+	var att: int = r.get("attempts")
+	if att == 0: return 0.0
+	return float(r.get("captures")) / float(att)
 
 func get_history(spell_id: String) -> String:
 	var r = get_record(spell_id)
-	return "%d/%d" % [r.captures, r.attempts]
+	if not r: return "0/0"
+	return "%d/%d" % [r.get("captures"), r.get("attempts")]
