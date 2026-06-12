@@ -37,8 +37,8 @@ func _load_background():
 	if not stage_data or not stage_data.background_scene:
 		return
 	_background_instance = stage_data.background_scene.instantiate()
+	StageManager.current_background = _background_instance  # 先设, add_child 触发 _ready 时可用
 	_sub_viewport.add_child(_background_instance)
-	StageManager.current_background = _background_instance
 
 func _exit_tree():
 	if _background_instance and is_instance_valid(_background_instance):
