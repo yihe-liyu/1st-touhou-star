@@ -72,13 +72,7 @@ for l in _active_lasers:
 ```
 - 复用后激光处于 ALIVE 但可能残留旧 shader 参数、旧 fog_sprite。`init()` 重置了大部分状态，但 `_seg_lines` 的 `Line2D.width` / `width_curve` 未重置。
 
-### #22 BulletFog.play 相同 texture 直接 emit finished
-```gdscript
-if texture == p_texture:
-    fog_finished.emit()  # 跳过动画，但 fog 可能还在上次的 tween 中
-    return
-```
-- 如果上次 fog 的 tween 没完（create_tween 在 Sprite2D 上），新 play 跳过动画但旧 tween 继续跑，可能 interfere。
+### #22 BulletFog.play 相同 texture 直接 emit finished ✅
 
 ### #23 ~ Array[Task] → Godot 4.6 支持内类泛型, false alarm
 
