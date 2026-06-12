@@ -97,7 +97,7 @@ func _on_phase_clear(captured: bool) -> void:
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
-	if _current_phase.spell_id != "":
+	if _current_phase.spell_id != 0:
 		GameState.record_spell(_current_phase.spell_id, captured, _bonus, _elapsed)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
