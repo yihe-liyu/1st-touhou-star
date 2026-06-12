@@ -8,7 +8,7 @@
 [resource]
 script = ExtResource("1_jjwni")
 visual_scene = ExtResource("6_vis")
-max_hp = 5000
+max_hp = 500
 hitbox_radius = 28.0
 create_script = ExtResource("4_test_shoot")
 move_script = ExtResource("1_hxnam")

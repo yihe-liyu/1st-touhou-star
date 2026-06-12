@@ -107,6 +107,7 @@ func _setup_player() -> void:
 		player._reinit_shoot()
 
 func _on_stage_cleared():
+	return  # TODO: 暂关闭, 调试完再启
 	if stage_data and stage_data.next_stage:
 		# 有下一关 → 重加载
 		stage_data = stage_data.next_stage
