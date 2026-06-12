@@ -7,7 +7,7 @@
 
 ---
 
-## 🔴 P0 — 致命问题 (4)
+## 🔴 P0 — 致命问题 (5)
 
 ### #1 Player.miss() 用 `await` → 函数态重叠 / 泄露
 **文件：** `scripts/player/player.gd:146` `scripts/autoload/bullet/bullet_physics.gd:55` `scripts/autoload/bullet/laser_system.gd:85`
@@ -26,15 +26,30 @@ _pool.return_bullet(bullet) # ← 3 秒后才执行, bullet 可能已被他处�
 - 场景切换/player free 后 timer 到期 → `is_invincible = false` 写入野指针。
 - **建议：** `miss()` 不能有 await。无敌改用 Tween 或 `_process` 手动倒计时。
 
-### #2 RNG autoload 形同虚设 → replay 不可行
+### #2 EnemyVisual 巡逻端点动画抖闪 ✅ 已修复（延迟退出 idle）
+
+### #3 RNG autoload 形同虚设 → replay 不可行
 **文件：** `scripts/autoload/rng.gd` + 全文搜索
 - `bullet_physics.gd:66` `stage01_decor.gd:40` `test_decor.gd:13` `enemy_bullet_clear.gd:30` 全用全局 `randf()`，不走 `RNG.randf()`。
 - **建议：** 全局替换 `randf(` → `RNG.randf(` `randf_range(` → `RNG.randf_range(`。
 
-### #3 场景切换时 BulletManager._physics_process 仍在碰撞
+### #4 场景切换时 BulletManager._physics_process 仍在碰撞
 **文件：** `scripts/autoload/bullet_manager.gd`
 - `scene_transition.change_scene` → `change_scene_to_file()` → `BulletManager.clear_all()`。但 `_physics_process` 在 autoload 上照常跑。
 - **建议：** 加 `_paused` flag，transition 期间跳过。
+
+### #5 碰撞链路中 `player.miss()` 调用 await → `_physics_process` 函数态重叠
+**文件：** `scripts/autoload/bullet/bullet_physics.gd:55` `scripts/autoload/bullet/laser_system.gd:85`
+```gdscript
+# bullet_physics._enemy_vs_player
+player.miss()              # ← 内部 await 3 秒，挂起 _physics_process
+_pool.return_bullet(bullet) # ← 3 秒后执行，bullet 可能已被他处回收
+
+# laser_system.step
+if hit: player.miss()      # 同样问题
+```
+- 3 秒后 resume 时 bullet/player 可能已 free 或状态不一致。
+- **建议：** 同 #1——`miss()` 去 await。
 
 
 ## 🟠 P1 — 高优先级 (6)
@@ -174,12 +189,12 @@ if texture == p_texture:
 
 | 类别 | 数量 |
 |------|------|
-| 🔴 P0 致命 | 4 |
+| 🔴 P0 致命 | 5 (含 1 已修复) |
 | 🟠 P1 高优 | 6 |
 | 🟡 P2 性能/债 | 12 |
 | 🟢 P3 风格 | 6 |
 | 🔵 缺失功能 | 8 |
-| **总计** | **35** |
+| **总计** | **36** |
 
 ---
 
