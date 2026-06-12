@@ -61,6 +61,11 @@ func _build_data() -> void:
 		_stages.sort_custom(func(a, b): return a.num < b.num)
 	
 	if _stages.is_empty():
+		var lbl := Label.new()
+		lbl.text = "No stages found"
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 20)
+		_stage_box.add_child(lbl)
 		return
 	_stage_index = 0
 	_change_stage(0)
