@@ -22,6 +22,7 @@ var _phases: Array = []
 
 func _on_enter() -> void:
 	_build_data()
+	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
 	_build_lists()
 	_highlight()
 	modulate.a = 0.0
@@ -77,7 +78,6 @@ func _build_lists() -> void:
 		lbl.text += suffix
 		_stage_box.add_child(lbl)
 	_build_phase_list()
-	_refresh_char()
 
 func _build_phase_list() -> void:
 	_clear(_phase_box)
@@ -149,6 +149,8 @@ func _make_label(text: String) -> Label:
 
 func _refresh_char() -> void:
 	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
+	_build_lists()
+	_highlight()
 	_build_lists()
 	_highlight()
 
