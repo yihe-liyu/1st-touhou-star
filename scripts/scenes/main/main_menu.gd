@@ -37,7 +37,8 @@ func _open_spell_practice() -> void:
 	var menu := preload("res://scenes/ui/spell_practice_menu.tscn").instantiate()
 	menu.tree_exited.connect(func(): input_enabled = true)
 	add_child(menu)
-	menu.open()
+	if menu.has_method("_on_enter"):
+		menu._on_enter()
 
 
 # ═══ 标题菜单 停用/恢复 ═══

@@ -3,60 +3,136 @@
 [ext_resource type="Script" path="res://scripts/scenes/main/spell_practice_menu.gd" id="1_script"]
 
 [node name="SpellPracticeMenu" type="Control"]
-script = ExtResource("1_script")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_script")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="Overlay" type="ColorRect" parent="."]
 layout_mode = 0
-offset_left = 64.0
-offset_top = 64.0
-offset_right = 480.0
-offset_bottom = 576.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
-layout_mode = 2
-
-[node name="Detail" type="ColorRect" parent="."]
+[node name="Title" type="Label" parent="."]
 layout_mode = 0
-offset_left = 512.0
-offset_top = 64.0
-offset_right = 896.0
-offset_bottom = 576.0
-color = Color(0.1, 0.1, 0.15, 0.9)
+anchor_top = 0.08
+anchor_right = 1.0
+anchor_bottom = 0.16
+theme_override_font_sizes/font_size = 26
+text = "Spell Practice"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Name" type="Label" parent="Detail"]
+[node name="StagePanel" type="Control" parent="."]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 368.0
-offset_bottom = 48.0
-text = "选择符卡"
+anchor_left = 0.1
+anchor_top = 0.22
+anchor_right = 0.35
+anchor_bottom = 0.65
 
-[node name="Story" type="Label" parent="Detail"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 80.0
-offset_right = 368.0
-offset_bottom = 112.0
-text = "故事: -"
+[node name="StageLabel" type="Label" parent="StagePanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 0.0
+offset_right = 80.0
+offset_bottom = 30.0
+grow_horizontal = 2
+text = "Stage"
+horizontal_alignment = 1
 
-[node name="Practice" type="Label" parent="Detail"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 120.0
-offset_right = 368.0
-offset_bottom = 152.0
-text = "练习: -"
+[node name="VBoxContainer" type="VBoxContainer" parent="StagePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
 
-[node name="Best" type="Label" parent="Detail"]
+[node name="PhasePanel" type="Control" parent="."]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 160.0
-offset_right = 368.0
-offset_bottom = 192.0
-text = "最高分: -"
+anchor_left = 0.38
+anchor_top = 0.22
+anchor_right = 0.63
+anchor_bottom = 0.65
+
+[node name="PhaseLabel" type="Label" parent="PhasePanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 0.0
+offset_right = 80.0
+offset_bottom = 30.0
+grow_horizontal = 2
+text = "Phase"
+horizontal_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PhasePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="DiffPanel" type="Control" parent="."]
+layout_mode = 0
+anchor_left = 0.66
+anchor_top = 0.22
+anchor_right = 0.91
+anchor_bottom = 0.65
+
+[node name="DiffLabel" type="Label" parent="DiffPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 0.0
+offset_right = 80.0
+offset_bottom = 30.0
+grow_horizontal = 2
+text = "Difficulty"
+horizontal_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DiffPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="CharPanel" type="Control" parent="."]
+layout_mode = 0
+anchor_left = 0.3
+anchor_top = 0.72
+anchor_right = 0.7
+anchor_bottom = 0.82
+
+[node name="CharName" type="Label" parent="CharPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 22
+text = "← 博丽灵梦 →"
+horizontal_alignment = 1
+vertical_alignment = 1
