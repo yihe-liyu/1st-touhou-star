@@ -9,8 +9,9 @@ var _phase: int = 0
 func _on_step(api: StageAPI) -> Variant:
 	match _phase:
 		0:
+			AudioManager.play_bgm(preload("res://assets/Music/THq01_02.夜间漫步.mp3"), 0.0)
 			_phase = 1
-			return api.frames(1)
+			return api.seconds(2.0)
 		1:
 			api.spawn_enemy(ENEMY_DATA, Vector2(448, 50))
 			_phase = 2
