@@ -35,12 +35,7 @@
 **文件：** `scripts/scenes/main/difficulty_screen.gd` `character_screen.gd`
 - 用 `KEY_UP` `KEY_Z` 裸码。GameManager 注册的 `ui_accept` 等 input actions 无效。手柄不可用。
 
-### #11 SceneTransition 切换场景只等一帧
-**文件：** `scripts/autoload/game/scene_transition.gd:30`
-```gdscript
-await _parent.get_tree().process_frame
-```
-- 新场景 `_ready()` 可能未全部执行完。应等 scene 就绪信号。
+### #11 ~ SceneTransition 只等一帧 → 不成立（tree.paused 已上锁）
 
 ---
 
