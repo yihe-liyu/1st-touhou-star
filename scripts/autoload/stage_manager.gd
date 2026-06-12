@@ -87,10 +87,10 @@ func spawn_boss(data: BossData, position: Vector2, api: StageAPI) -> Node:
 func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bullet:
 	return BulletManager.shoot_enemy_bullet(data, position, direction)
 
-func _add_enemy_to_scene(enemy: Enemy):
+func _add_enemy_to_scene(node: Node2D):
 	var parent = get_tree().current_scene
 	if parent:
 		var world = parent.get_node_or_null("World")
 		if world:
 			parent = world
-	parent.add_child(enemy)
+	parent.add_child(node)

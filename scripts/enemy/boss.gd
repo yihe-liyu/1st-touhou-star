@@ -1,14 +1,17 @@
 # Boss.gd
 class_name Boss
-extends Enemy
+extends Area2D
 
 var boss_data: BossData
-var _invincible: bool = false
+var hp: int = 0
+var hitbox_radius: float = 24.0
+
+var _api: StageAPI
 var _phase_index: int = -1
 var _current_phase: PhaseData
 var _bonus: int = 0
 var _elapsed: float = 0.0
-var _api: StageAPI
+var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
 
@@ -18,22 +21,22 @@ func current_bonus() -> int: return _bonus
 
 func setup(bd: BossData, api: StageAPI) -> void:
 	boss_data = bd
-	score_value = bd.score_value
 	_api = api
 	
-	# 碰撞体
 	var shape := CircleShape2D.new()
-	shape.radius = 24.0
+	shape.radius = hitbox_radius
 	var col := CollisionShape2D.new()
 	col.shape = shape
 	add_child(col)
 	
 	collision_layer = 4
 	collision_mask = 2
-	hitbox_radius = 24.0
+	area_entered.connect(_on_area_entered)
 
 func start_boss() -> void:
 	set_process(true)
+	GameState.active_enemies.append(self)
+	tree_exited.connect(func(): GameState.active_enemies.erase(self))
 	GameEvents.boss_spawned.emit(self)
 	_next_phase()
 
@@ -57,7 +60,6 @@ func _next_phase() -> void:
 	if _current_phase.name != "":
 		GameEvents.phase_start.emit(_current_phase)
 	
-	# 起移动/弹幕协程
 	if _current_phase.move_script:
 		_move = _current_phase.move_script.new()
 		add_child(_move)
@@ -68,23 +70,22 @@ func _next_phase() -> void:
 		_shoot.start_creating(_api)
 
 func _process(delta: float) -> void:
-	if not _current_phase:
-		return
+	if not _current_phase: return
 	
 	_elapsed += delta
 	
-	# 奖励分递减
 	if _bonus > 0:
 		var tick := maxi(1, int(float(_current_phase.bonus) / _current_phase.time_limit * delta))
 		_bonus = maxi(0, _bonus - tick)
 	
 	GameEvents.phase_bonus_tick.emit(_bonus)
 	
-	# 超时
 	if _elapsed >= _current_phase.time_limit:
-		var captured := _current_phase.is_timeout_only
-		_on_phase_clear(captured)
-		return
+		_on_phase_clear(_current_phase.is_timeout_only)
+
+func _on_area_entered(_area: Area2D) -> void:
+	# 子弹碰撞由 BulletPhysics 处理
+	pass
 
 func take_damage(damage: int) -> void:
 	if _invincible: return
@@ -96,7 +97,6 @@ func _on_phase_clear(captured: bool) -> void:
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
-	# 记录收取
 	if _current_phase.spell_id != "":
 		GameState.record_spell(_current_phase.spell_id, captured, _bonus, _elapsed)
 	
@@ -107,5 +107,6 @@ func _on_phase_clear(captured: bool) -> void:
 
 func _die_boss() -> void:
 	set_process(false)
+	GameState.active_enemies.erase(self)
 	GameEvents.boss_defeated.emit(self)
-	die()
+	queue_free()
