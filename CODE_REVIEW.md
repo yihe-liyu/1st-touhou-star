@@ -39,8 +39,7 @@
 
 ### #13 EnemyVisual 每帧 `get_parent()` ✅
 
-### #14 BulletPool 动态扩容无上限
-- POOL_SIZE=4000 不够时动态创建，没 cap。加 max 或用 LRU。
+### #14 BulletPool 动态扩容无上限 ✅
 
 ### #15 ~ BulletMultiMesh is_instance_valid → 不计开销, false alarm
 

@@ -3,6 +3,7 @@ class_name BulletPool
 extends RefCounted
 
 const POOL_SIZE: int = 4000
+const MAX_TOTAL: int = 5000  # 硬上限，超限回收最老子弹
 
 var use_multi_mesh: bool = true
 
@@ -36,10 +37,18 @@ func shoot(data: BulletData, pos: Vector2, direction: Vector2, override: BulletO
 	var bullet: Bullet
 	
 	if bullet_pool.is_empty():
-		bullet = bullet_scene.instantiate()
-		if use_multi_mesh:
-			bullet.get_node("Sprite2D").visible = false
-		_parent.add_child(bullet)
+		var total := active_bullets.size() + bullet_pool.size()
+		if total >= MAX_TOTAL:
+			# 硬上限：回收最老的活跃子弹腾位
+			if active_bullets.size() > 0:
+				return_bullet(active_bullets[0])
+			else:
+				return null
+		else:
+			bullet = bullet_scene.instantiate()
+			if use_multi_mesh:
+				bullet.get_node("Sprite2D").visible = false
+			_parent.add_child(bullet)
 	else:
 		bullet = bullet_pool.pop_back()
 	
