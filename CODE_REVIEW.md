@@ -5,22 +5,7 @@
 
 ## 🔴 P0 — 致命问题 (5)
 
-### #1 Player.miss() 用 `await` → 函数态重叠 / 泄露
-**文件：** `scripts/player/player.gd:146` `scripts/autoload/bullet/bullet_physics.gd:55` `scripts/autoload/bullet/laser_system.gd:85`
-```gdscript
-# player.gd miss():
-is_invincible = true
-await get_tree().create_timer(3.0).timeout  # ← 挂起整个调用链
-is_invincible = false
-
-# bullet_physics._enemy_vs_player / laser_system.step:
-player.miss()              # ← 碰撞回调中触发 await, _physics_process 被挂起
-_pool.return_bullet(bullet) # ← 3 秒后才执行, bullet 可能已被他处回收
-```
-- 碰撞回调走 `_physics_process` → 挂起后下一帧 `_physics_process` 照常跑 → **多帧重叠执行**。
-- 3 秒内再中弹 is_invincible 已 true 提前 return，但第一个 await 还在跑。
-- 场景切换/player free 后 timer 到期 → `is_invincible = false` 写入野指针。
-- **建议：** `miss()` 不能有 await。无敌改用 Tween 或 `_process` 手动倒计时。
+### #1 Player.miss() 用 `await` → 函数态重叠 / 泄露 ✅
 
 ### #2 EnemyVisual 巡逻端点动画抖闪 ✅
 
@@ -31,18 +16,7 @@ _pool.return_bullet(bullet) # ← 3 秒后才执行, bullet 可能已被他处�
 - `scene_transition.change_scene` → `change_scene_to_file()` → `BulletManager.clear_all()`。但 `_physics_process` 在 autoload 上照常跑。
 - **建议：** 加 `_paused` flag，transition 期间跳过。
 
-### #5 碰撞链路中 `player.miss()` 调用 await → `_physics_process` 函数态重叠
-**文件：** `scripts/autoload/bullet/bullet_physics.gd:55` `scripts/autoload/bullet/laser_system.gd:85`
-```gdscript
-# bullet_physics._enemy_vs_player
-player.miss()              # ← 内部 await 3 秒，挂起 _physics_process
-_pool.return_bullet(bullet) # ← 3 秒后执行，bullet 可能已被他处回收
-
-# laser_system.step
-if hit: player.miss()      # 同样问题
-```
-- 3 秒后 resume 时 bullet/player 可能已 free 或状态不一致。
-- **建议：** 同 #1——`miss()` 去 await。
+### #5 碰撞链路中 `player.miss()` 调用 await → `_physics_process` 函数态重叠 ✅（同 #1）
 
 
 ## 🟠 P1 — 高优先级 (6)

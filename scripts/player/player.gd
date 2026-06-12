@@ -18,6 +18,7 @@ var anim_state: String = IDLE
 var input_vector: Vector2 = Vector2.ZERO
 var is_focused: bool = false
 var is_invincible: bool = false
+var _invincible_timer: float = 0.0
 
 var hitbox_radius: float = 5.0
 var graze_radius: float = 40.0  # 擦弹判定半径
@@ -60,6 +61,12 @@ func _apply_player_data() -> void:
 	GameState.player = self
 
 func _physics_process(delta):
+	# 无敌倒计时（替代 await，不挂起调用链）
+	if is_invincible:
+		_invincible_timer -= delta
+		if _invincible_timer <= 0.0:
+			is_invincible = false
+	
 	input_vector.x = Input.get_axis("move_left", "move_right")
 	input_vector.y = Input.get_axis("move_up", "move_down")
 	is_focused = Input.is_action_pressed("focus")
@@ -157,10 +164,9 @@ func miss() -> void:
 	# 残机扣除
 	if GameState.lives > 0:
 		GameState.lives -= 1
-		# 无敌时间
+		# 无敌：倒计时 3 秒，_physics_process 自动倒数（不 await，不挂起调用链）
 		is_invincible = true
-		await get_tree().create_timer(3.0).timeout
-		is_invincible = false
+		_invincible_timer = 3.0
 	else:
 		# 残机为 0 → Game Over
 		GameEvents.player_death.emit()
