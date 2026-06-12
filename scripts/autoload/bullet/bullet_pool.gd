@@ -39,7 +39,7 @@ func shoot(data: BulletData, pos: Vector2, direction: Vector2, override: BulletO
 	if bullet_pool.is_empty():
 		var total := active_bullets.size() + bullet_pool.size()
 		if total >= MAX_TOTAL:
-			# 硬上限：回收最老的活跃子弹腾位
+			# active_bullets 只 append/erase，头元素永远最老
 			if active_bullets.size() > 0:
 				return_bullet(active_bullets[0])
 			else:
