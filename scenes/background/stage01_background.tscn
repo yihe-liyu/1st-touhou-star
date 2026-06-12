@@ -20,7 +20,7 @@ shader = ExtResource("3_shader")
 shader_parameter/base_texture = ExtResource("4_grass")
 shader_parameter/tiling = Vector2(6, 6)
 shader_parameter/uv_offset = Vector2(0, 0)
-shader_parameter/modulate = Color(0.65988344, 0.25586697, 0.039210677, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_Ground"]
 material = SubResource("Mat_Ground")
@@ -62,6 +62,3 @@ scroll_speed = 0.1
 [node name="Node" type="Node" parent="." unique_id=2059976144]
 script = ExtResource("7_g553e")
 tree_tex = ExtResource("8_0dhpc")
-rock_tex = ExtResource("8_0dhpc")
-pillar_tex = ExtResource("8_0dhpc")
-grass_tex = ExtResource("8_0dhpc")
