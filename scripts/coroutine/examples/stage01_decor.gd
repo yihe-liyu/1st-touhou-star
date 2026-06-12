@@ -109,11 +109,11 @@ func _on_step(api: StageAPI) -> Variant:
 		t0.tween_property(bg.world_environment.environment, "fog_density", 0.10, 5.0)
 		bg.tween_post_processing(0.80, 1.0, 0.7, 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-35), 0, deg_to_rad(-5)), 3.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
-		# 地面加速 + FOV 拉宽 → 冲刺感
-		bg.camera.fov = 55.0  # 先缩窄
+		# 地面加速 + FOV 先缩再冲 → 冲刺感
 		var t := bg.create_tween().set_parallel(true)
-		t.tween_property(bg.camera, "fov", 75.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-		t.tween_method(_camera_accel, 1.0, 4.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		t.tween_property(bg.camera, "fov", 55.0, 0.5).set_ease(Tween.EASE_OUT)
+		t.tween_property(bg.camera, "fov", 75.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD).set_delay(0.5)
+		t.tween_method(_camera_accel, 1.0, 4.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD).set_delay(0.5)
 		return api.frames(1)
 
 	#if _t == 1050:
