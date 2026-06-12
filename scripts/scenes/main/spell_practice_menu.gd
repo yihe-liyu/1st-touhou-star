@@ -14,8 +14,8 @@ var _diff_index: int = 0
 var _char_index: int = 0
 var _ready: bool = false
 
-const DIFF_NAMES := ["Easy", "Normal", "Hard", "Lunatic"]
-const CHAR_NAMES := ["博丽灵梦", "雾雨魔理沙"]
+const DIFF_NAMES := SpellRecord.DIFF_NAMES
+const CHAR_NAMES := SpellRecord.CHAR_NAMES
 var _stages: Array = []
 var _phases: Array = []
 

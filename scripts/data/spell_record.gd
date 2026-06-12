@@ -2,6 +2,12 @@
 extends Resource
 class_name SpellRecord
 
+enum Character { REIMU, MARISA }
+const CHAR_NAMES := ["博丽灵梦", "雾雨魔理沙"]
+
+enum Difficulty { EASY, NORMAL, HARD, LUNATIC }
+const DIFF_NAMES := ["Easy", "Normal", "Hard", "Lunatic"]
+
 @export var character: int = 0           ## 角色 0=Reimu 1=Marisa
 @export var stage: int = 1               ## 关卡号
 @export var phase: int = 1               ## 第几张符卡/非符（从1开始）

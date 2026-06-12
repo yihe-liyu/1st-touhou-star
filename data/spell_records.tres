@@ -1,6 +1,12 @@
 [gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://b6fp32tb1i7ky"]
 
 [ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]
+
+[sub_resource type="Resource" id="Resource_lls5d"]
+script = ExtResource("2_record")
+metadata/_custom_type_script = "uid://bphbnlbdvkqg6"
 
 [resource]
 script = ExtResource("1_book")
+records = Array[Resource]([SubResource("Resource_lls5d")])
