@@ -3,13 +3,13 @@
 [ext_resource type="Texture2D" uid="uid://cr6xlqf21b8rt" path="res://assets/Textures/bullet/弹雾.png" id="1_58eum"]
 [ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="2_sc"]
 [ext_resource type="PackedScene" uid="uid://bkxjsyu2sqdty" path="res://scenes/effect/enemy_bullet_clear.tscn" id="4_hitfx"]
-[ext_resource type="Texture2D" uid="uid://1i0j6bcbage7" path="res://assets/Textures/bullet/滴弹.png" id="4_lcntc"]
+[ext_resource type="Texture2D" uid="uid://dcawi5nd63ra" path="res://assets/Textures/bullet/鳞弹.png" id="4_lcntc"]
 
 [resource]
 script = ExtResource("2_sc")
 texture = ExtResource("4_lcntc")
 tint_mode = 1
-tint = Color(0, 1, 1, 1)
+tint = Color(1, 0, 1, 1)
 velocity = Vector2(0, 250)
 hit_effect = ExtResource("4_hitfx")
 faction = 1
