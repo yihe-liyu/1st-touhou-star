@@ -46,8 +46,7 @@
 
 ### #16 ~ HitEffectPool current_scene → 不计开销, false alarm
 
-### #17 StageBackground._process_events O(n) 扫描
-- 用排序列表 + 摘到期事件，免每帧全扫。
+### #17 ~ O(n) 扫描 → 事件数<20, false alarm
 
 ### #18 ~ StageAPI 持 runner 强引用 → GC-safe, false alarm
 
