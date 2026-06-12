@@ -33,9 +33,9 @@ func _on_item_selected(index: int):
 
 
 func _open_spell_practice() -> void:
-	input_enabled = false
+	_deactivate_title()
 	var menu := preload("res://scenes/ui/spell_practice_menu.tscn").instantiate()
-	menu.tree_exited.connect(func(): input_enabled = true)
+	menu.tree_exited.connect(_activate_title)
 	add_child(menu)
 	if menu.has_method("_on_enter"):
 		menu._on_enter()
