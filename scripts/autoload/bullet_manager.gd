@@ -18,6 +18,7 @@ var active_bullets: Array:
 
 var use_multi_mesh: bool = true
 var _multi_mesh: Node2D
+var _processing_paused: bool = false
 const BulletMultiMeshClass = preload("res://scripts/bullet/bullet_multi_mesh.gd")
 
 
@@ -44,6 +45,8 @@ func _ready():
 # ═══ 每帧 ═══
 
 func _physics_process(delta: float) -> void:
+	if _processing_paused:
+		return
 	_physics.reset_frame()
 	
 	# 死亡清弹
@@ -103,3 +106,9 @@ func clear_all():
 
 func clear_bullets():
 	_pool.clear()
+
+func pause_processing() -> void:
+	_processing_paused = true
+
+func resume_processing() -> void:
+	_processing_paused = false

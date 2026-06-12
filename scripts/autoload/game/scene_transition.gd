@@ -28,6 +28,7 @@ func _setup_transition() -> void:
 
 
 func change_scene(path: String, current_scene_path: String, on_scene_left: Callable, on_scene_entered: Callable) -> String:
+	BulletManager.pause_processing()
 	_parent.get_tree().paused = true
 
 	if current_scene_path != "":
@@ -44,6 +45,7 @@ func change_scene(path: String, current_scene_path: String, on_scene_left: Calla
 	await _fade_in()
 
 	_parent.get_tree().paused = false
+	BulletManager.resume_processing()
 
 	return path
 

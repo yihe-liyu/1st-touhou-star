@@ -11,10 +11,7 @@
 
 ### #3 RNG autoload 形同虚设 → replay 不可行 ✅
 
-### #4 场景切换时 BulletManager._physics_process 仍在碰撞
-**文件：** `scripts/autoload/bullet_manager.gd`
-- `scene_transition.change_scene` → `change_scene_to_file()` → `BulletManager.clear_all()`。但 `_physics_process` 在 autoload 上照常跑。
-- **建议：** 加 `_paused` flag，transition 期间跳过。
+### #4 场景切换时 BulletManager._physics_process 仍在碰撞 ✅
 
 ### #5 碰撞链路中 `player.miss()` 调用 await → `_physics_process` 函数态重叠 ✅（同 #1）
 
