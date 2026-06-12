@@ -57,6 +57,12 @@ func _on_step(api: StageAPI) -> Variant:
 	_t += 1
 
 	# ── 开头：黑雾已由 _on_init 设好, 从这里开始渐渐化开 ──
+	# ── 雾开始化开: 相机缓缓右旋 + 微升 ──
+	if _t == 2:
+		bg.rotate_camera(Vector3(deg_to_rad(-28), 0, deg_to_rad(3)), 5.0)
+		bg.pan_camera(Vector3(0, 1, -2), 5.0)
+		return api.frames(1)
+
 	if _t == 30:
 		_fog_to(Color(0.08, 0.06, 0.10), 0.10, 58.0, 1.5)
 		return api.frames(1)
@@ -97,6 +103,8 @@ func _on_step(api: StageAPI) -> Variant:
 	# ── 雾压回 (30s~35s): Boss 逼近 ──
 	if _t == 900:
 		_fog_to(Color(0.12, 0.04, 0.20), 0.08, 55.0, 5.0)
+		bg.tween_post_processing(0.7, 1.2, 0.6, 5.0)  # 压暗+降饱和
+		bg.rotate_camera(Vector3(deg_to_rad(-30), 0, deg_to_rad(-2)), 5.0)
 		return api.frames(1)
 
 	if _t == 1050:
@@ -139,7 +147,7 @@ func _make(tex: Texture2D, size: Vector2) -> PackedScene:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_texture = tex
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	pm.material = mat
 	mi.mesh = pm
 	var ps := PackedScene.new()
