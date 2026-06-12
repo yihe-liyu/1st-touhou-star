@@ -63,7 +63,7 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 		on_graze()
 		if GameState.memory_value >= 50.0:
 			var chance := remap(GameState.memory_value, 50.0, 100.0, 0.05, 0.30)
-			if randf() < chance:
+			if RNG.randf() < chance:
 				if bullet.hit_effect:
 					_spawn_effect(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)

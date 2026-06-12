@@ -28,7 +28,7 @@ _pool.return_bullet(bullet) # ← 3 秒后才执行, bullet 可能已被他处�
 
 ### #2 EnemyVisual 巡逻端点动画抖闪 ✅ 已修复（延迟退出 idle）
 
-### #3 RNG autoload 形同虚设 → replay 不可行
+### #3 RNG autoload 形同虚设 → replay 不可行 ✅ 已修复（全部 randf/randf_range → RNG.*）
 **文件：** `scripts/autoload/rng.gd` + 全文搜索
 - `bullet_physics.gd:66` `stage01_decor.gd:40` `test_decor.gd:13` `enemy_bullet_clear.gd:30` 全用全局 `randf()`，不走 `RNG.randf()`。
 - **建议：** 全局替换 `randf(` → `RNG.randf(` `randf_range(` → `RNG.randf_range(`。

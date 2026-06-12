@@ -37,8 +37,8 @@ func _on_init(api: StageAPI) -> void:
 
 	# 黑雾里预生成树, 雾散时已经在场
 	for i in range(80):
-		var x = randf_range(-50, 50)
-		var z = randf_range(-180, 20)
+		var x = RNG.randf_range(-50, 50)
+		var z = RNG.randf_range(-180, 20)
 		_spawn(api, tree_tex, Vector2(8, 8), 4.0, x, z)
 
 
@@ -67,8 +67,8 @@ func _on_step(api: StageAPI) -> Variant:
 		return api.frames(1)
 
 	if _t % 3 == 0:
-		var x = randf_range(-70, 70)
-		var z = randf_range(-220, -180)
+		var x = RNG.randf_range(-70, 70)
+		var z = RNG.randf_range(-220, -180)
 		_spawn(api, tree_tex, Vector2(8, 8), 4.0, x, z)
 
 	# ── 雾压回 (30s~35s): Boss 逼近 ──
@@ -108,7 +108,7 @@ func _spawn_cluster(api: StageAPI, tex: Texture2D, size: Vector2, y: float, cent
 	for i in range(6):
 		api.spawn_decor(
 			_make(tex, size),
-			Vector3(center_x + randf_range(-spread, spread), y, center_z + randf_range(-spread * 0.5, spread * 0.5)),
+			Vector3(center_x + RNG.randf_range(-spread, spread), y, center_z + RNG.randf_range(-spread * 0.5, spread * 0.5)),
 			ground
 		)
 

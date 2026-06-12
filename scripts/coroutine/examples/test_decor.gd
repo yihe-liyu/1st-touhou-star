@@ -10,6 +10,6 @@ func _on_step(api: StageAPI) -> Variant:
 	if _i >= 20 or not ground:
 		return false
 	
-	api.spawn_decor(tree_prefab, Vector3(randf_range(-400, 400), 0, -50 + randf_range(-30, 0)), ground)
+	api.spawn_decor(tree_prefab, Vector3(RNG.randf_range(-400, 400), 0, -50 + RNG.randf_range(-30, 0)), ground)
 	_i += 1
 	return api.seconds(0.3)

@@ -27,7 +27,7 @@ func _setup() -> void:
 	
 	var sp := _sprite()
 	sp.scale = Vector2.ONE
-	rotation = randf_range(0.0, TAU)  # 随机朝向
+	rotation = RNG.randf_range(0.0, TAU)  # 随机朝向
 	
 	var mat := sp.material as ShaderMaterial
 	mat.set_shader_parameter("fog_tint:a", 1.0)
