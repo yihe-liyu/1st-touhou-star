@@ -2,7 +2,7 @@ extends CoroutineRunner
 class_name BackgroundScript
 ## 背景装饰物协程
 ##
-## _on_init(api)  → 场景加载后立即调用（在 _ready 阶段, 场景还没渲染）
+## _on_init(api)  → 场景加载后立即调用, 协程未启动, 只做同步设置(禁止 seconds/frames)
 ## _on_step(api)  → 协程主循环，返回 float(true/false 同 CoroutineRunner 约定
 ##
 ## 不自动启动，由 StageBackground._on_setup() 调 _on_init，

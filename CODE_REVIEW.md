@@ -65,7 +65,7 @@
 
 ### #24 ~ 挂载点不一致 → global_position 下无影响, false alarm
 ### #25 ~ _blur_rect 名字无所谓, false alarm
-### #26 BackgroundScript._on_init 与 start_background 时序不文档化
+### #26 _on_init 时序说明 ✅
 ### #27 菜单/UI 输入不统一
 ### #28 `@export` 变量全无注释
 ### #29 无统一日志系统
