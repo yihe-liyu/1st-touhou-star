@@ -101,7 +101,6 @@ func _on_setup():
 	for child in get_children():
 		if child is BackgroundScript:
 			child._on_init(StageAPI.new(child))
-	pass
 
 func _on_update(_delta: float, _t: float):
 	pass
