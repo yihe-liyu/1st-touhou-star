@@ -137,9 +137,9 @@ func _make(tex: Texture2D, size: Vector2) -> PackedScene:
 	pm.size = size
 	pm.orientation = PlaneMesh.FACE_Z
 	var mat := StandardMaterial3D.new()
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_texture = tex
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 	pm.material = mat
 	mi.mesh = pm
 	var ps := PackedScene.new()
