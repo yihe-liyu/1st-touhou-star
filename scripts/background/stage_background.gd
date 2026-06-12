@@ -86,10 +86,7 @@ func set_camera_pos(pos: Vector3):
 		camera.transform = t
 
 ## 广播滚动倍率给所有子节点
-func set_scroll_mult(m: float) -> void:
-	for child in get_children():
-		if child.has_method("set_scroll_mult"):
-			child.set_scroll_mult(m)
+var scroll_mult: float = 1.0
 
 func get_camera_offset() -> Vector3:
 	if camera:

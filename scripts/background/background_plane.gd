@@ -59,10 +59,13 @@ func _process(delta: float) -> void:
 	if not mat:
 		return
 	var uv: Vector2 = mat.get_shader_parameter("uv_offset")
-	uv += scroll_speed * delta * _scroll_mult
+	var mult := _scroll_mult
+	var parent := get_parent()
+	if parent is StageBackground:
+		mult = parent.scroll_mult
+	uv += scroll_speed * delta * mult
 	mat.set_shader_parameter("uv_offset", uv)
 
 
-## 由 StageBackground 状态机调用，控制全局滚动倍率
 func set_scroll_mult(m: float) -> void:
 	_scroll_mult = m

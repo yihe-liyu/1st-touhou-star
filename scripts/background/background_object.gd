@@ -11,13 +11,17 @@ var _scroll_mult: float = 1.0
 
 
 func _process(delta: float) -> void:
+	var mult := _scroll_mult
+	var grandfather := get_parent()
+	if grandfather is StageBackground:
+		mult = grandfather.scroll_mult
 	var offset: Vector3
 	if follow:
 		var ratio_x := follow.plane_size.x / follow.tiling.x if follow.tiling.x > 0 else 1.0
 		var ratio_y := follow.plane_size.y / follow.tiling.y if follow.tiling.y > 0 else 1.0
-		offset = Vector3(follow.scroll_speed.x * ratio_x, 0, -follow.scroll_speed.y * ratio_y) * delta * _scroll_mult
+		offset = Vector3(follow.scroll_speed.x * ratio_x, 0, -follow.scroll_speed.y * ratio_y) * delta * mult
 	else:
-		offset = scroll_speed * delta * _scroll_mult
+		offset = scroll_speed * delta * mult
 	position += offset
 
 

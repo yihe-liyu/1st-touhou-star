@@ -61,7 +61,11 @@ func _process(delta: float) -> void:
 	if not mat:
 		return
 	var uv: Vector2 = mat.get_shader_parameter("uv_offset")
-	uv.x += scroll_speed * delta * _scroll_mult
+	var mult := _scroll_mult
+	var grandparent := get_parent()
+	if grandparent is StageBackground:
+		mult = grandparent.scroll_mult
+	uv.x += scroll_speed * delta * mult
 	mat.set_shader_parameter("uv_offset", uv)
 
 

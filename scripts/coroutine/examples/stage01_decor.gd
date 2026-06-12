@@ -72,13 +72,14 @@ func _on_step(api: StageAPI) -> Variant:
 	if _t == 120:
 		_fog_to(Color(0.30, 0.30, 0.30), 0.01, 68.0, 1.5)
 		return api.frames(1)
+		
+	if _t % 4 == 0:
+		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -50, 50, -220, -120)
 
 	# ── 地面装饰物阶段 (5s~30s) ──
 	if _t >= 150 and _t < 900:
 
 		# 树 (稀疏, 每 1s — 开头已有 20 棵)
-		if _t % 2 == 0:
-			_spawn(api, tree_tex, Vector2(8, 8), 4.0, -40, 40, -220, -120)
 
 		# 柱子 (稀疏, 每 1.5s)
 		if _t % 45 == 0:
@@ -137,7 +138,7 @@ func _spawn_cluster(api: StageAPI, tex: Texture2D, size: Vector2, y: float, cent
 		)
 
 func _camera_accel(mult: float):
-	bg.set_scroll_mult(mult)
+	bg.scroll_mult = mult
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
