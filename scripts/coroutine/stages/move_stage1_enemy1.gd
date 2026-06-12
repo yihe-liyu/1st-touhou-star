@@ -21,7 +21,7 @@ class_name MoveStage1Enemy1
 @export var patrol_x: float = 320.0
 
 ## 左右摆幅（像素）
-@export var range: float = 100.0
+@export var patrol_range: float = 100.0
 
 ## 单程时间（秒）
 @export var period: float = 1.5
@@ -57,7 +57,7 @@ func _on_step(api: StageAPI) -> Variant:
 
 		Phase.PATROL:
 			_going_right = not _going_right
-			var dest := patrol_x + range if _going_right else patrol_x - range
+			var dest := patrol_x + patrol_range if _going_right else patrol_x - patrol_range
 
 			_tween = target.create_tween()
 			_tween.tween_property(target, "global_position:x", dest, period) \

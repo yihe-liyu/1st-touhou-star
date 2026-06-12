@@ -27,9 +27,7 @@
 ### #8 Bomb 输入 action 未定义 + 无 bomb 功能
 - `project.godot` 无 `bomb` action。`Player` 无 `bomb()` 方法。`GameState` 有 `bomb_count` 但无法用。
 
-### #9 `range` 变量名遮蔽内置 `range()`
-**文件：** `scripts/coroutine/stages/move_stage1_enemy1.gd:24`
-- `@export var range: float` → Warning。脚本内无法再调用 `range(10)`。
+### #9 `range` 变量名遮蔽内置 `range()` ✅
 
 ### #10 难度/角色选择界面硬编码 keycode，不走 InputMap
 **文件：** `scripts/scenes/main/difficulty_screen.gd` `character_screen.gd`

@@ -9,7 +9,7 @@ class_name MovePatrol
 ##   每周期 Tween 到对侧极端, 协程等 period 秒后翻向。
 
 ## 左右摆动幅度（像素）
-var range: float = 100.0
+var patrol_range: float = 100.0
 
 ## 单程时间（秒）
 var period: float = 1.5
@@ -30,7 +30,7 @@ func _on_step(api: StageAPI) -> Variant:
 		return false
 
 	_going_right = not _going_right
-	var dest := _start_x + range if _going_right else _start_x - range
+	var dest := _start_x + patrol_range if _going_right else _start_x - patrol_range
 
 	var tween := target.create_tween()
 	tween.tween_property(target, "global_position:x", dest, period) \
