@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://bs4kvlj26u00n"]
 
-[ext_resource type="Script" path="res://scripts/scenes/main/spell_practice_menu.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dujmkustdxmnt" path="res://scripts/scenes/main/spell_practice_menu.gd" id="1_script"]
 
-[node name="SpellPracticeMenu" type="Control"]
+[node name="SpellPracticeMenu" type="Control" unique_id=1171372302]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,14 +11,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Overlay" type="ColorRect" parent="."]
+[node name="Overlay" type="ColorRect" parent="." unique_id=1621601733]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="Title" type="Label" parent="."]
+[node name="Title" type="Label" parent="." unique_id=1928062111]
 layout_mode = 0
 anchor_top = 0.05
 anchor_right = 1.0
@@ -28,7 +28,7 @@ text = "Spell Practice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StageBox" type="VBoxContainer" parent="."]
+[node name="StageBox" type="VBoxContainer" parent="." unique_id=93595811]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.12
@@ -39,7 +39,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="PhaseBox" type="VBoxContainer" parent="."]
+[node name="PhaseBox" type="VBoxContainer" parent="." unique_id=1905384998]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.4
@@ -50,7 +50,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="DiffBox" type="VBoxContainer" parent="."]
+[node name="DiffBox" type="VBoxContainer" parent="." unique_id=1346330875]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.68
@@ -61,14 +61,14 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
 
-[node name="CharPanel" type="Control" parent="."]
-layout_mode = 0
+[node name="CharPanel" type="Control" parent="." unique_id=1959503935]
+anchors_preset = 0
 anchor_left = 0.3
 anchor_top = 0.88
 anchor_right = 0.7
 anchor_bottom = 0.94
 
-[node name="CharName" type="Label" parent="CharPanel"]
+[node name="CharName" type="Label" parent="CharPanel" unique_id=229453241]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

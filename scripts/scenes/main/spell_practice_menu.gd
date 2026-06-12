@@ -102,7 +102,8 @@ func _build_diff_list() -> void:
 
 func _clear(vbox: VBoxContainer) -> void:
 	for child in vbox.get_children():
-		child.queue_free()
+		vbox.remove_child(child)
+		child.free()
 
 func _make_label(text: String) -> Label:
 	var lbl := Label.new()
