@@ -57,10 +57,10 @@ func _on_step(api: StageAPI) -> Variant:
 	_t += 1
 
 	# ── 开头：黑雾已由 _on_init 设好, 从这里开始渐渐化开 ──
-	# ── 雾开始化开: 相机缓缓加速右旋 + 微升 ──
+	# ── 雾化开: 相机升高 + 慢旋 ──
 	if _t == 2:
-		bg.rotate_camera(Vector3(deg_to_rad(-20), 0, deg_to_rad(8)), 5.0, Tween.EASE_IN, Tween.TRANS_QUAD)
-		bg.pan_camera(Vector3(0, 2, -5), 5.0, Tween.EASE_IN, Tween.TRANS_QUAD)
+		bg.pan_camera(Vector3(0, 5, -3), 6.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
+		bg.rotate_camera(Vector3(deg_to_rad(-22), 0, deg_to_rad(6)), 6.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
 		return api.frames(1)
 
 	if _t == 30:
@@ -74,7 +74,7 @@ func _on_step(api: StageAPI) -> Variant:
 		return api.frames(1)
 		
 	if _t % 3 == 0:
-		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -50, 50, -220, -120)
+		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -50, 50, -220, -180)
 
 	# ── 地面装饰物阶段 (5s~30s) ──
 	if _t >= 150 and _t < 900:
