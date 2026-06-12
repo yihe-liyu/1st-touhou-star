@@ -115,6 +115,23 @@ func _cubic_bezier_curve(p0: Vector2, p1: Vector2, p2: Vector2) -> Curve2D:
 func _fire_straight_fallback(data: Resource, origin: Vector2, length: float):
 	return fire_straight_laser(data, origin, Vector2.DOWN, length)
 
+func spawn_item(type: int, position: Vector2) -> void:
+	if not active():
+		return
+	var pool := _find_item_pool()
+	if not pool:
+		return
+	pool.spawn(position, type)
+
+func _find_item_pool() -> Node:
+	if not is_instance_valid(runner):
+		return null
+	# ItemPool 是 World 的直接子节点
+	var world := runner.get_parent()
+	if world:
+		return world.get_node_or_null("ItemPool")
+	return null
+
 # ---------- 背景装饰物 ----------
 
 ## 生成背景装饰物（3D 物体，挂在背景场景里）

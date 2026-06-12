@@ -15,6 +15,11 @@ func _ready():
 	# 尽早进入 PLAYING，入场动画期间也允许暂停
 	GameManager._set_state(GameManager.AppState.PLAYING)
 	
+	# Item 池
+	var item_pool: Node = load("res://scripts/item/item_pool.gd").new()
+	item_pool.name = "ItemPool"
+	$World.add_child(item_pool)
+	
 	_load_background()
 
 	if not GameEvents.player_death.is_connected(_on_player_death):

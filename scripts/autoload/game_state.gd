@@ -91,8 +91,15 @@ func collect_life_fragment() -> void:
 	life_fragments += 1
 	if life_fragments >= 5:
 		life_fragments = 0
-		if lives < 8:
-			lives += 1
+		_add_life()
+
+func _add_life() -> void:
+	if lives < 8:
+		lives += 1
+
+func collect_life_full() -> void:
+	for i in range(5):
+		collect_life_fragment()
 
 
 ## 捡到 Bomb 碎片：集满 5 个合成一个完整 Bomb
@@ -100,8 +107,15 @@ func collect_bomb_fragment() -> void:
 	bomb_fragments += 1
 	if bomb_fragments >= 5:
 		bomb_fragments = 0
-		if bomb_count < 8:
-			bomb_count += 1
+		_add_bomb()
+
+func _add_bomb() -> void:
+	if bomb_count < 8:
+		bomb_count += 1
+
+func collect_bomb_full() -> void:
+	for i in range(5):
+		collect_bomb_fragment()
 
 
 func _on_state_changed(_old: int, new: int) -> void:

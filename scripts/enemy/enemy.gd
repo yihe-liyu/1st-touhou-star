@@ -77,6 +77,9 @@ func take_damage(damage: int):
 func die():
 	GameState.active_enemies.erase(self)
 	
+	# 掉落 item
+	_drop_item()
+	
 	if death_effect:
 		HitEffectPool.play(death_effect, global_position)
 	
@@ -88,3 +91,31 @@ func die():
 		_move_script.stop()
 	
 	queue_free()
+
+func _drop_item() -> void:
+	if not enemy_data:
+		return
+	var pool := _find_item_pool()
+	if not pool:
+		return
+	
+	_spawn_items(pool, Item.Type.POWER, enemy_data.item_power)
+	_spawn_items(pool, Item.Type.POINT, enemy_data.item_point)
+	_spawn_items(pool, Item.Type.LIFE_FRAGMENT, enemy_data.item_life)
+	_spawn_items(pool, Item.Type.BOMB_FRAGMENT, enemy_data.item_bomb)
+	_spawn_items(pool, Item.Type.LIFE_FULL, enemy_data.item_life_full)
+	_spawn_items(pool, Item.Type.BOMB_FULL, enemy_data.item_bomb_full)
+
+func _spawn_items(pool: Node, type: int, count: int) -> void:
+	for i in range(count):
+		var offset := Vector2(
+			RNG.randf_range(-enemy_data.item_scatter, enemy_data.item_scatter),
+			RNG.randf_range(-enemy_data.item_scatter * 0.5, 0)
+		)
+		pool.spawn(global_position + offset, type)
+
+func _find_item_pool() -> Node:
+	var world := get_parent()
+	if world:
+		return world.get_node_or_null("ItemPool")
+	return null
