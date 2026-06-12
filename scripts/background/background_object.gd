@@ -19,6 +19,9 @@ func _process(delta: float) -> void:
 	else:
 		offset = scroll_speed * delta * _scroll_mult
 	position += offset
+	# 超出视野自动回收
+	if position.z > 50:
+		queue_free()
 
 
 func set_scroll_mult(m: float) -> void:
