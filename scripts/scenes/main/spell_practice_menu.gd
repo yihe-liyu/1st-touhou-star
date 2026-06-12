@@ -4,15 +4,13 @@ extends Control
 @onready var _stage_box: VBoxContainer = $StageBox
 @onready var _phase_box: VBoxContainer = $PhaseBox
 @onready var _diff_box: VBoxContainer = $DiffBox
-@onready var _diff_name: Label = $DiffName
-@onready var _diff_hint: Label = $DiffHint
 @onready var _char_label: Label = $CharPanel/CharName
 
 enum Section { STAGE, PHASE, DIFF }
 var _section: int = Section.STAGE
 var _stage_index: int = 0
 var _phase_index: int = 0
-var _diff_index: int = 1
+var _diff_index: int = 0
 var _char_index: int = 0
 var _ready: bool = false
 
@@ -48,7 +46,7 @@ func _build_data() -> void:
 	_change_stage(0)
 
 func _get_test_phases() -> Array:
-	var p1 := PhaseData.new(); p1.spell_names = ["", "", "", ""]; p1.spell_id = 0  # 非符
+	var p1 := PhaseData.new(); p1.spell_names = ["", "", "", ""]; p1.spell_id = 0
 	var p2 := PhaseData.new(); p2.spell_names = ["梦符「Easy」", "梦符「Normal」", "梦符「Hard」", "梦符「Lunatic」"]; p2.spell_id = 1
 	var p3 := PhaseData.new(); p3.spell_names = ["结界「Easy」", "结界「Normal」", "结界「Hard」", "结界「Lunatic」"]; p3.spell_id = 2
 	return [p1, p2, p3]
@@ -70,22 +68,37 @@ func _build_lists() -> void:
 
 func _build_phase_list() -> void:
 	_clear(_phase_box)
-	for i in _phases.size():
-		var nm: String = _phases[i].get("name") if _phases[i].has_method("get") else ""
+	var spell_c := 0
+	var non_c := 0
+	for p in _phases:
+		var nm: String = p.get("name") if p.has_method("get") else ""
 		if nm == "":
-			# 非符：数非符个数
-			var count := 1
-			for j in range(i):
-				if _phases[j].get("name") == "":
-					count += 1
-			_phase_box.add_child(_make_label("非符%d" % count))
+			non_c += 1
+			_phase_box.add_child(_make_label("非符%d" % non_c))
 		else:
-			# 符卡：数符卡个数
-			var count := 1
-			for j in range(i):
-				if _phases[j].get("name") != "":
-					count += 1
-			_phase_box.add_child(_make_label("符卡%d" % count))
+			spell_c += 1
+			_phase_box.add_child(_make_label("符卡%d" % spell_c))
+
+func _build_diff_list() -> void:
+	_clear(_diff_box)
+	if _phase_index >= _phases.size(): return
+	var names = _phases[_phase_index].get("spell_names")
+	if not names is Array: return
+	
+	for i in names.size():
+		var vbox := VBoxContainer.new()
+		var nl := Label.new()
+		nl.text = names[i] if names[i] != "" else "-"
+		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nl.add_theme_font_size_override("font_size", 18)
+		vbox.add_child(nl)
+		var hl := Label.new()
+		hl.text = DIFF_NAMES[i]
+		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		hl.add_theme_font_size_override("font_size", 12)
+		hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		vbox.add_child(hl)
+		_diff_box.add_child(vbox)
 
 func _clear(vbox: VBoxContainer) -> void:
 	for child in vbox.get_children():
@@ -106,29 +119,17 @@ func _refresh_char() -> void:
 func _highlight() -> void:
 	_dim_all(_stage_box)
 	_dim_all(_phase_box)
-	_dim_all(_diff_box)
+	_dim_diff()
 	
 	match _section:
 		Section.STAGE:
 			_highlight_one(_stage_box, _stage_index)
-			_diff_name.text = ""
-			_diff_hint.text = ""
 		Section.PHASE:
 			_highlight_one(_phase_box, _phase_index)
-			_diff_name.text = ""
-			_diff_hint.text = ""
+			_build_diff_list()
+			_dim_diff()
 		Section.DIFF:
-			_highlight_one(_diff_box, _diff_index)
-			# 显示符卡具体名字
-			if _phase_index < _phases.size():
-				var names = _phases[_phase_index].get("spell_names")
-				if names is Array and names.size() > _diff_index:
-					_diff_name.text = names[_diff_index]
-				else:
-					_diff_name.text = ""
-			else:
-				_diff_name.text = ""
-			_diff_hint.text = DIFF_NAMES[_diff_index]
+			_highlight_diff(_diff_index)
 
 func _dim_all(vbox: VBoxContainer) -> void:
 	for child in vbox.get_children():
@@ -139,11 +140,28 @@ func _highlight_one(vbox: VBoxContainer, idx: int) -> void:
 	for i in children.size():
 		children[i].modulate = Color.WHITE if i == idx else Color(0.4, 0.4, 0.4)
 
+func _dim_diff() -> void:
+	for item in _diff_box.get_children():
+		for child in item.get_children():
+			child.modulate = Color(0.3, 0.3, 0.3)
+
+func _highlight_diff(idx: int) -> void:
+	var items := _diff_box.get_children()
+	for i in items.size():
+		var vbox := items[i]
+		for child in vbox.get_children():
+			child.modulate = Color.WHITE if i == idx else Color(0.4, 0.4, 0.4)
+
+# ═══ 索引 ═══
+
 func _max_idx() -> int:
 	match _section:
 		Section.STAGE: return _stages.size() - 1
 		Section.PHASE: return _phases.size() - 1
-		Section.DIFF:  return DIFF_NAMES.size() - 1
+		Section.DIFF:
+			if _phase_index >= _phases.size(): return -1
+			var names = _phases[_phase_index].get("spell_names")
+			return names.size() - 1 if names is Array else -1
 	return 0
 
 func _get_idx() -> int:
@@ -156,7 +174,7 @@ func _get_idx() -> int:
 func _set_idx(v: int) -> void:
 	match _section:
 		Section.STAGE: _stage_index = v; _change_stage(v)
-		Section.PHASE: _phase_index = v
+		Section.PHASE: _phase_index = v; _build_diff_list(); _dim_diff()
 		Section.DIFF:  _diff_index = v
 
 # ═══ 输入 ═══
@@ -196,7 +214,11 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_accept"):
 		if _section == Section.DIFF:
 			_start_practice()
-		elif _max_idx() >= 0:
+		elif _section == Section.PHASE:
+			_section = Section.DIFF
+			_build_diff_list()
+			_highlight()
+		else:
 			_section += 1
 			_highlight()
 		get_viewport().set_input_as_handled()
@@ -205,6 +227,7 @@ func _start_practice() -> void:
 	if _phases.is_empty(): return
 	var phase = _phases[_phase_index]
 	if not phase: return
-	var pname: String = phase.get("spell_names")[_diff_index] if phase.get("spell_names") is Array else ""
+	var names = phase.get("spell_names")
+	var pname: String = names[_diff_index] if names is Array else ""
 	print("练习: ", pname, " 难度:", DIFF_NAMES[_diff_index], " 角色:", CHAR_NAMES[_char_index])
 	_on_leave()

@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://1c7u1oisiglo"]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://dujmkustdxmnt" path="res://scripts/scenes/main/spell_practice_menu.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/scenes/main/spell_practice_menu.gd" id="1_script"]
 
-[node name="SpellPracticeMenu" type="Control" unique_id=1522023246]
+[node name="SpellPracticeMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,14 +11,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Overlay" type="ColorRect" parent="." unique_id=1993506265]
+[node name="Overlay" type="ColorRect" parent="."]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="Title" type="Label" parent="." unique_id=378345270]
+[node name="Title" type="Label" parent="."]
 layout_mode = 0
 anchor_top = 0.05
 anchor_right = 1.0
@@ -28,67 +28,47 @@ text = "Spell Practice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StageBox" type="VBoxContainer" parent="." unique_id=644931527]
+[node name="StageBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.12
 anchor_top = 0.19
 anchor_right = 0.36
-anchor_bottom = 0.65
+anchor_bottom = 0.75
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="PhaseBox" type="VBoxContainer" parent="." unique_id=13010995]
+[node name="PhaseBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.4
 anchor_top = 0.19
 anchor_right = 0.64
-anchor_bottom = 0.65
+anchor_bottom = 0.75
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="DiffBox" type="VBoxContainer" parent="." unique_id=1839353556]
+[node name="DiffBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.68
 anchor_top = 0.19
 anchor_right = 0.92
-anchor_bottom = 0.65
+anchor_bottom = 0.85
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 
-[node name="DiffName" type="Label" parent="." unique_id=185050096]
+[node name="CharPanel" type="Control" parent="."]
 layout_mode = 0
-anchor_left = 0.12
-anchor_top = 0.68
-anchor_right = 0.92
-anchor_bottom = 0.74
-theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="DiffHint" type="Label" parent="." unique_id=1276444708]
-layout_mode = 0
-anchor_left = 0.12
-anchor_top = 0.74
-anchor_right = 0.92
-anchor_bottom = 0.8
-theme_override_font_sizes/font_size = 14
-horizontal_alignment = 0
-vertical_alignment = 1
-
-[node name="CharPanel" type="Control" parent="." unique_id=725154829]
-anchors_preset = 0
 anchor_left = 0.3
-anchor_top = 0.85
+anchor_top = 0.88
 anchor_right = 0.7
-anchor_bottom = 0.93
+anchor_bottom = 0.94
 
-[node name="CharName" type="Label" parent="CharPanel" unique_id=1517711935]
+[node name="CharName" type="Label" parent="CharPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
