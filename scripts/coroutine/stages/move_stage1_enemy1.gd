@@ -30,6 +30,7 @@ enum Phase { ENTRANCE, PATROL }
 var _phase: Phase = Phase.ENTRANCE
 var _going_right: bool = true
 var _tween: Tween
+var _was_running: bool = false
 
 
 func _find_visual() -> EnemyVisual:
@@ -62,6 +63,7 @@ func start_moving(api: StageAPI, p_target: Node2D):
 func _on_step(api: StageAPI) -> Variant:
 	if not api.active() or not is_instance_valid(target):
 		return false
+	_was_running = true
 
 	match _phase:
 		Phase.ENTRANCE:
@@ -89,7 +91,8 @@ func _on_step(api: StageAPI) -> Variant:
 func stop():
 	if _tween and _tween.is_valid():
 		_tween.kill()
-	var visual := _find_visual()
-	if visual:
-		visual.set_moving(false)
+	if _was_running:
+		var visual := _find_visual()
+		if visual:
+			visual.set_moving(false)
 	super.stop()
