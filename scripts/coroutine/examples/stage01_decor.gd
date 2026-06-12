@@ -142,7 +142,7 @@ func _spawn_cluster(api: StageAPI, tex: Texture2D, size: Vector2, y: float, cent
 		)
 
 func _camera_accel(mult: float):
-	bg.scroll_mult = mult
+	ground.scroll_speed = Vector2(0, -0.1 * mult)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
