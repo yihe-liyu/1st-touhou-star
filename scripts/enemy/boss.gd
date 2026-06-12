@@ -20,6 +20,17 @@ func setup(bd: BossData, api: StageAPI) -> void:
 	boss_data = bd
 	score_value = bd.score_value
 	_api = api
+	
+	# 碰撞体
+	var shape := CircleShape2D.new()
+	shape.radius = 24.0
+	var col := CollisionShape2D.new()
+	col.shape = shape
+	add_child(col)
+	
+	collision_layer = 4
+	collision_mask = 2
+	hitbox_radius = 24.0
 
 func start_boss() -> void:
 	set_process(true)
