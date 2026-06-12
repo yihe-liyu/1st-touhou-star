@@ -77,8 +77,8 @@ func _on_step(api: StageAPI) -> Variant:
 	if _t >= 150 and _t < 900:
 
 		# 树 (稀疏, 每 1s — 开头已有 20 棵)
-		if _t % 30 == 0:
-			_spawn(api, tree_tex, Vector2(8, 8), 4.0, -400, 400, -260, -30)
+		if _t % 2 == 0:
+			_spawn(api, tree_tex, Vector2(8, 8), 4.0, -40, 40, -220, -120)
 
 		# 柱子 (稀疏, 每 1.5s)
 		if _t % 45 == 0:
@@ -102,7 +102,7 @@ func _on_step(api: StageAPI) -> Variant:
 
 	# ── 雾压回 (30s~35s): Boss 逼近 ──
 	if _t == 900:
-		_fog_to(Color(0.25, 0.10, 0.35), 0.06, 55.0, 5.0)
+		_fog_to(Color(0.25, 0.10, 0.35), 0.10, 55.0, 5.0)
 		bg.tween_post_processing(0.80, 1.0, 0.7, 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-35), 0, deg_to_rad(-5)), 3.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
 		# 地面加速 + FOV 拉宽 → 冲刺感
