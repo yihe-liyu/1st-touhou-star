@@ -4,6 +4,8 @@ extends Control
 @onready var _stage_box: VBoxContainer = $StageBox
 @onready var _phase_box: VBoxContainer = $PhaseBox
 @onready var _diff_box: VBoxContainer = $DiffBox
+@onready var _diff_name: Label = $DiffName
+@onready var _diff_hint: Label = $DiffHint
 @onready var _char_label: Label = $CharPanel/CharName
 
 enum Section { STAGE, PHASE, DIFF }
@@ -46,9 +48,9 @@ func _build_data() -> void:
 	_change_stage(0)
 
 func _get_test_phases() -> Array:
-	var p1 := PhaseData.new(); p1.name = "非符1"; p1.spell_id = 0
-	var p2 := PhaseData.new(); p2.name = "测试「First」"; p2.spell_id = 1
-	var p3 := PhaseData.new(); p3.name = "测试「Second」"; p3.spell_id = 2
+	var p1 := PhaseData.new(); p1.spell_names = ["", "", "", ""]; p1.spell_id = 0  # 非符
+	var p2 := PhaseData.new(); p2.spell_names = ["梦符「Easy」", "梦符「Normal」", "梦符「Hard」", "梦符「Lunatic」"]; p2.spell_id = 1
+	var p3 := PhaseData.new(); p3.spell_names = ["结界「Easy」", "结界「Normal」", "结界「Hard」", "结界「Lunatic」"]; p3.spell_id = 2
 	return [p1, p2, p3]
 
 func _change_stage(idx: int) -> void:
@@ -63,21 +65,27 @@ func _build_lists() -> void:
 	_clear(_stage_box)
 	for s in _stages:
 		_stage_box.add_child(_make_label(s.name))
-	
 	_build_phase_list()
-	
-	_clear(_diff_box)
-	for d in DIFF_NAMES:
-		_diff_box.add_child(_make_label(d))
-	
 	_refresh_char()
 
 func _build_phase_list() -> void:
 	_clear(_phase_box)
-	for p in _phases:
-		var nm: String = p.get("name")
-		if nm == "": nm = "非符"
-		_phase_box.add_child(_make_label(nm))
+	for i in _phases.size():
+		var nm: String = _phases[i].get("name") if _phases[i].has_method("get") else ""
+		if nm == "":
+			# 非符：数非符个数
+			var count := 1
+			for j in range(i):
+				if _phases[j].get("name") == "":
+					count += 1
+			_phase_box.add_child(_make_label("非符%d" % count))
+		else:
+			# 符卡：数符卡个数
+			var count := 1
+			for j in range(i):
+				if _phases[j].get("name") != "":
+					count += 1
+			_phase_box.add_child(_make_label("符卡%d" % count))
 
 func _clear(vbox: VBoxContainer) -> void:
 	for child in vbox.get_children():
@@ -103,10 +111,24 @@ func _highlight() -> void:
 	match _section:
 		Section.STAGE:
 			_highlight_one(_stage_box, _stage_index)
+			_diff_name.text = ""
+			_diff_hint.text = ""
 		Section.PHASE:
 			_highlight_one(_phase_box, _phase_index)
+			_diff_name.text = ""
+			_diff_hint.text = ""
 		Section.DIFF:
 			_highlight_one(_diff_box, _diff_index)
+			# 显示符卡具体名字
+			if _phase_index < _phases.size():
+				var names = _phases[_phase_index].get("spell_names")
+				if names is Array and names.size() > _diff_index:
+					_diff_name.text = names[_diff_index]
+				else:
+					_diff_name.text = ""
+			else:
+				_diff_name.text = ""
+			_diff_hint.text = DIFF_NAMES[_diff_index]
 
 func _dim_all(vbox: VBoxContainer) -> void:
 	for child in vbox.get_children():
@@ -116,12 +138,6 @@ func _highlight_one(vbox: VBoxContainer, idx: int) -> void:
 	var children := vbox.get_children()
 	for i in children.size():
 		children[i].modulate = Color.WHITE if i == idx else Color(0.4, 0.4, 0.4)
-
-func _get_box() -> VBoxContainer:
-	match _section:
-		Section.STAGE: return _stage_box
-		Section.PHASE: return _phase_box
-	return _diff_box
 
 func _max_idx() -> int:
 	match _section:
@@ -189,6 +205,6 @@ func _start_practice() -> void:
 	if _phases.is_empty(): return
 	var phase = _phases[_phase_index]
 	if not phase: return
-	var pname: String = phase.get("name") if phase.has_method("get") else str(phase)
+	var pname: String = phase.get("spell_names")[_diff_index] if phase.get("spell_names") is Array else ""
 	print("练习: ", pname, " 难度:", DIFF_NAMES[_diff_index], " 角色:", CHAR_NAMES[_char_index])
 	_on_leave()

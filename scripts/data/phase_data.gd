@@ -2,7 +2,8 @@
 extends Resource
 class_name PhaseData
 
-@export var name: String = ""            ## 符卡名（空串=非符不显示）
+@export var name: String = ""            ## 符卡名（空串=非符，练习菜单忽略此项）
+@export var spell_names: Array[String] = [] ## 各难度符卡名 [Easy, Normal, Hard, Lunatic]
 @export var spell_id: int = 0             ## 记录用唯一ID，0=不记
 @export var bonus: int = 0               ## 初始奖励分
 @export var time_limit: float = 30.0     ## 时限（秒）
