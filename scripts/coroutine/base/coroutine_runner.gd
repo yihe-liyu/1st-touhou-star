@@ -61,14 +61,7 @@ func _physics_process(delta: float) -> void:
 		if task.wake_time > _clock:
 			continue
 
-		var result
-		var ok = task.callable.call()
-		if typeof(ok) == TYPE_OBJECT and ok is GDScriptFunctionState:
-			# callable 内部 await → 协程挂死, 移除并报错
-			push_error("CoroutineRunner: await detected in %s, removing task." % task.callable.get_method())
-			_tasks.remove_at(i)
-			continue
-		result = ok
+		var result = task.callable.call()
 
 		if typeof(result) == TYPE_FLOAT or typeof(result) == TYPE_INT:
 			if result > 0:

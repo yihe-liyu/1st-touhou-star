@@ -31,12 +31,8 @@ func _ready():
 	# 等 UI 入场动画播完再开始关卡（5 秒兜底防永久挂起）
 	var ui := $"UI"
 	if ui and ui.has_signal("entry_finished"):
-		var done := false
-		ui.entry_finished.connect(func(): done = true, CONNECT_ONE_SHOT)
-		var timer := get_tree().create_timer(5.0)
-		await timer.timeout
-		if not done:
-			push_warning("GameScene: UI entry_finished timeout, starting anyway.")
+		var t := get_tree().create_timer(5.0)
+		await _first_signal([ui.entry_finished, t.timeout])
 	
 	if stage_data:
 		StageManager.load_stage(stage_data)
@@ -126,3 +122,10 @@ func _on_stage_cleared():
 		var menu = END_MENU.instantiate()
 		menu.title_text = "Stage Clear!"
 		GameManager.push_overlay_menu(menu)
+
+func _first_signal(signals: Array) -> void:
+	var done := false
+	for sig in signals:
+		sig.connect(func(): done = true, CONNECT_ONE_SHOT)
+	while not done:
+		await get_tree().process_frame
