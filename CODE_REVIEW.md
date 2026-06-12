@@ -59,8 +59,7 @@
 **文件：** `scripts/autoload/bullet/bullet_pool.gd:65`
 - CONNECT_ONE_SHOT 的 fog_finished 会自动断，`return_bullet` 再 disconnect 虽被 is_connected 保了，但代码脆弱。应抽成 `bullet.reset()`。
 
-### #20 BulletMultiMesh._groups 从不清理
-- 多种纹理 + faction 累积 MMI 节点。场景切换时 clean。
+### #20 BulletMultiMesh._groups 从不清理 ✅
 
 ### #21 CurvedLaser 池复用逻辑错误
 **文件：** `scripts/autoload/bullet/laser_system.gd:25`
