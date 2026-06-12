@@ -8,10 +8,10 @@ const CHAR_NAMES := ["博丽灵梦", "雾雨魔理沙"]
 enum Difficulty { EASY, NORMAL, HARD, LUNATIC }
 const DIFF_NAMES := ["Easy", "Normal", "Hard", "Lunatic"]
 
-@export var character: int = 0           ## 角色 0=Reimu 1=Marisa
-@export var stage: int = 1               ## 关卡号
-@export var phase: int = 1               ## 第几张符卡/非符（从1开始）
-@export var difficulty: int = 1          ## 难度 0=Easy 1=Normal 2=Hard 3=Lunatic
+@export var character: Character = Character.REIMU  ## 角色
+@export var stage: int = 1                             ## 关卡号
+@export var phase: int = 1                             ## 第几张符卡/非符（从1开始）
+@export var difficulty: Difficulty = Difficulty.NORMAL ## 难度
 @export var spell_name: String = ""      ## 符卡名（显示用）
 @export var attempts: int = 0            ## 挑战次数（故事）
 @export var captures: int = 0            ## 收取次数（故事）
