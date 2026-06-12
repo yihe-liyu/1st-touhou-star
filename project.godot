@@ -14,7 +14,7 @@ config/name="1st Touhou Star ~ Broadest and Narrowest"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 boot_splash/show_image=false
-config/icon="uid://265iemmlnsx3"
+config/icon="res://1st Touhou Star ~ Broadest and Narrowest.png"
 
 [autoload]
 
