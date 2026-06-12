@@ -10,6 +10,7 @@
 | 5 | 碰撞链路 miss await（同 #1） | 同 #1 |
 | 6 | GameUI 碎片 +30px 偏移 | 碎片标记 meta 跳过位移 |
 | 7 | GameUI entry_finished 偏小 | total +1.5s 缓冲最长动画 |
+| 8 | Bomb 输入缺失 | cancel&bomb → X 键 |
 | 9 | range 遮蔽内置 range() | → patrol_range |
 | 10 | 菜单硬编码 keycode | → is_action_pressed |
 | 12 | GameState 非游戏跑 _process | 监听 PLAYING 状态开关 |
@@ -20,10 +21,7 @@
 | 22 | BulletFog 旧 tween 残留 | play() 开头 kill |
 | 37 | play_bgm await 杀协程 | → tween 回调 |
 
-## ❌ 待定 (1)
-| # | 问题 |
-|---|------|
-| 8 | Bomb 输入/功能缺失 |
+## ❌ 待定 (0) — 全部修完 🎉
 
 ## 🔵 Feature (7)
 | # | 功能 |
