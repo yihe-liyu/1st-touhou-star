@@ -28,21 +28,21 @@ func _ready() -> void:
 		frames.set_animation_loop(RIGHTING, false)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	var parent := get_parent() as Node2D
 	if not parent:
 		return
 	var dx := parent.global_position.x - _last_pos.x
-	_speed = abs(dx)
+	_speed = abs(dx) / max(delta, 0.001)  # 像素/秒
 	_last_pos = parent.global_position
 	
 	# 翻向
-	if dx > 0.5:
+	if dx > 0.1:
 		flip_h = false
-	elif dx < -0.5:
+	elif dx < -0.1:
 		flip_h = true
 	
-	var moving := _speed >= 2.0
+	var moving := _speed >= 30.0
 	
 	match anim_state:
 		IDLE:
