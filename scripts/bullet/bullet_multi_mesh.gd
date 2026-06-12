@@ -60,10 +60,10 @@ func clear():
 
 func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: int, min_size: int) -> Dictionary:
 	if _groups.has(key):
-		var eg = _groups[key]
-		if eg.mm.instance_count < min_size:
-			eg.mm.instance_count = min_size
-		return eg
+		var existing = _groups[key]
+		if existing.mm.instance_count < min_size:
+			existing.mm.instance_count = min_size
+		return existing
 
 	# ── 处理 AtlasTexture → 用图集 + UV 偏移 ──
 	var use_tex = tex
