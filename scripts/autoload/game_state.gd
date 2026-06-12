@@ -58,6 +58,12 @@ func get_high_score(stage_id: int) -> int:
 func add_score(amount: int):
 	current_score += amount
 
+func add_max_point() -> int:
+	var pts := max_point
+	max_point += 10
+	current_score += pts
+	return pts
+
 func reset_all():
 	current_score = 0
 	graze_count = 0

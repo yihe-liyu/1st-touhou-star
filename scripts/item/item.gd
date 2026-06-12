@@ -93,7 +93,7 @@ func collect() -> void:
 		Type.POWER:
 			GameState.add_power(1)
 		Type.POINT:
-			GameState.add_score(value)
+			GameState.add_max_point()
 		Type.LIFE_FRAGMENT:
 			GameState.collect_life_fragment()
 		Type.BOMB_FRAGMENT:
