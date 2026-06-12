@@ -24,9 +24,6 @@ func load_stage(data: StageData):
 	current_stage = data
 	_stage_active = true
 
-	if data.bgm:
-		AudioManager.crossfade_bgm(data.bgm, 1.0)
-
 	var stage_script = data.create_script.new()
 	assert(stage_script is StageScript, "StageManager: create_script must be a StageScript")
 	add_child(stage_script)
