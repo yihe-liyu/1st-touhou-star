@@ -53,9 +53,9 @@ func _sync():
 			_groups[key].mm.instance_count = 0
 
 func clear():
-	for entry in _groups.values():
-		if is_instance_valid(entry.mmi):
-			entry.mmi.queue_free()
+	for grp in _groups.values():
+		if is_instance_valid(grp.mmi):
+			grp.mmi.queue_free()
 	_groups.clear()
 
 func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: int, min_size: int) -> Dictionary:
