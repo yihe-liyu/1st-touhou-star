@@ -38,7 +38,7 @@ var _t: int = 0   # 总步数 (≈ 帧数, 因为 stage API 按帧推进)
 func _on_init(api: StageAPI) -> void:
 	var env := bg.world_environment.environment
 	env.fog_light_color = Color.BLACK
-	env.fog_density = 0.15
+	env.fog_density = 0.5
 	bg.camera.fov = 55.0
 
 	# 黑雾里预生成树和石头, 雾散时已经在场
