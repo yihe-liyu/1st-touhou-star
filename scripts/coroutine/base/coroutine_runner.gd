@@ -17,7 +17,7 @@ signal finished()
 signal cancelled()
 
 var is_running: bool = false
-var _tasks: Array[Task] = []
+var _tasks: Array = []  # 元素为 Task
 var _clock: float = 0.0  # 游戏内时间（物理帧累积，暂停时冻结）
 
 class Task extends RefCounted:
