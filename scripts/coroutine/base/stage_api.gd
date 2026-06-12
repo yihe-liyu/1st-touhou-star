@@ -124,8 +124,6 @@ func _fire_straight_fallback(data: Resource, origin: Vector2, length: float):
 ## @param follow_plane  可选：跟随某个 BackgroundPlane 的速度
 ## @return 生成的 BackgroundObject 或 null
 func spawn_decor(scene: PackedScene, pos3d: Vector3, follow_plane: BackgroundPlane = null) -> BackgroundObject:
-	if not active():
-		return null
 	var bg := StageManager.current_background
 	if not bg:
 		return null
