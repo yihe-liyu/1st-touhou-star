@@ -36,17 +36,13 @@ func _ready() -> void:
 		plane_mesh.material = mat
 		self.mesh = plane_mesh
 	else:
-		# tscn 预制：尺寸同步 + Inspector 属性写回材质
+		# tscn 预制网格 → 只同步尺寸，不重写材质（材质已在 tscn 里配好）
 		var pm := mesh as PlaneMesh
-		if pm:
+		if pm and pm.size != plane_size:
 			pm.size = plane_size
 		var mat := _get_material()
 		if mat:
-			mat.set_shader_parameter("tiling", tiling)
-			mat.set_shader_parameter("modulate", modulate)
 			mat.set_shader_parameter("uv_offset", Vector2.ZERO)
-			if base_texture:
-				mat.set_shader_parameter("base_texture", base_texture)
 
 
 func _get_material() -> ShaderMaterial:
