@@ -23,6 +23,9 @@ func _ready():
 	if not GameManager.game_state_changed.is_connected(_on_game_state_changed):
 		GameManager.game_state_changed.connect(_on_game_state_changed)
 	
+	if not StageManager.stage_cleared.is_connected(_on_stage_cleared):
+		StageManager.stage_cleared.connect(_on_stage_cleared)
+	
 	_setup_player()
 	
 	# 等 UI 入场动画播完再开始关卡（暂停时动画冻住，恢复后继续）
@@ -102,3 +105,19 @@ func _setup_player() -> void:
 		player.player_data = data_map[GameState.selected_character]
 		player._apply_player_data()
 		player._reinit_shoot()
+
+func _on_stage_cleared():
+	if stage_data and stage_data.next_stage:
+		# 有下一关 → 重加载
+		stage_data = stage_data.next_stage
+		StageManager.stop_stage()
+		if _background_instance:
+			_background_instance.queue_free()
+			_background_instance = null
+		_load_background()
+		StageManager.load_stage(stage_data)
+	else:
+		# 最后一关 → 结算
+		var menu = END_MENU.instantiate()
+		menu.title_text = "Stage Clear!"
+		GameManager.push_overlay_menu(menu)

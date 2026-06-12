@@ -29,7 +29,7 @@
 | 30 | Item/道具系统 |
 | 31 | Boss/Spell Card |
 | 32 | Replay 系统 |
-| 33 | 关卡结算流程 |
+| 33 | 关卡结算流程 ✅ |
 | 34 | 暂停菜单缺选项 |
-| 35 | StageData 缺 bgm 字段 |
-| 36 | 手柄支持 | 暂不需要 |
+| 35 | StageData bgm + next_stage ✅ |
+| 36 | 手柄支持 （暂不需要） |
