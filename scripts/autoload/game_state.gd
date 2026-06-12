@@ -4,7 +4,7 @@ extends Node
 const BossScript = preload("res://scripts/enemy/boss.gd")
 const SpellBookClass = preload("res://scripts/data/spell_record_book.gd")
 
-const SPELL_BOOK_PATH := "user://spell_records.tres"
+const SPELL_BOOK_PATH := "res://data/spell_records.tres"
 
 # 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1

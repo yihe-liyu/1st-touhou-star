@@ -7,14 +7,11 @@ const SpellRecordClass = preload("res://scripts/data/spell_record.gd")
 @export var records: Dictionary = {}  # spell_id → SpellRecord
 
 func get_record(spell_id: String):
-	if not records.has(spell_id):
-		var r = SpellRecordClass.new()
-		r.spell_id = spell_id
-		records[spell_id] = r
-	return records[spell_id]
+	return records.get(spell_id, null)
 
 func record_attempt(spell_id: String, captured: bool, score: int, elapsed: float) -> void:
 	var r = get_record(spell_id)
+	if not r: return
 	r.attempts += 1
 	if captured:
 		r.captures += 1

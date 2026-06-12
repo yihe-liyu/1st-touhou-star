@@ -1,7 +1,27 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SpellRecordBook" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+[ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="2_record"]
+
+[sub_resource type="Resource" id="rec_01"]
+script = ExtResource("2_record")
+spell_id = "test_01"
+attempts = 0
+captures = 0
+best_score = 0
+best_time = 0.0
+
+[sub_resource type="Resource" id="rec_02"]
+script = ExtResource("2_record")
+spell_id = "test_02"
+attempts = 0
+captures = 0
+best_score = 0
+best_time = 0.0
 
 [resource]
 script = ExtResource("1_book")
-records = {}
+records = {
+"test_01": SubResource("rec_01"),
+"test_02": SubResource("rec_02")
+}
