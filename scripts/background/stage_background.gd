@@ -97,6 +97,10 @@ func move_camera(target_pos: Vector3, duration: float):
 	tween.tween_property(camera, "transform", Transform3D(camera.transform.basis, target_pos), duration)
 
 func _on_setup():
+	# 在所有节点 _ready 完成后, 通告每个 BackgroundScript 初始化
+	for child in get_children():
+		if child is BackgroundScript:
+			child._on_init(StageAPI.new(child))
 	pass
 
 func _on_update(_delta: float, _t: float):

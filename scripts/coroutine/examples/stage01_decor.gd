@@ -31,26 +31,32 @@ var _t: int = 0   # 总步数 (≈ 帧数, 因为 stage API 按帧推进)
 # 协程入口
 # ═══════════════════════════════════════════
 
+# ═══════════════════════════════════════════
+# 初始化 — 场景 _ready 阶段调用, 渲染之前
+# ═══════════════════════════════════════════
+
+func _on_init(api: StageAPI) -> void:
+	var env := bg.world_environment.environment
+	env.fog_light_color = Color.BLACK
+	env.fog_density = 0.15
+	bg.camera.fov = 55.0
+
+	# 黑雾里预生成树和石头, 雾散时已经在场
+	for i in range(40):
+		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -20, 20, -120, 20)
+	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 0, -40, 120)
+	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, -300, -50, 80)
+	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 250, -45, 100)
+
+
+# ═══════════════════════════════════════════
+# 协程入口
+# ═══════════════════════════════════════════
+
 func _on_step(api: StageAPI) -> Variant:
 	_t += 1
 
-	# ── 开头: 黑雾弥漫, 什么都看不见 ──
-	if _t == 1:
-		var env := bg.world_environment.environment
-		env.fog_light_color = Color.BLACK
-		env.fog_density = 0.15
-		bg.camera.fov = 55.0
-
-		# 黑雾里先生成背景树和石头, 雾散时已经在那儿了
-		for i in range(20):
-			_spawn(api, tree_tex, Vector2(8, 8), 4.0, -400, 400, -260, -30)
-		_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 0, -40, 120)
-		_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, -300, -50, 80)
-		_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 250, -45, 100)
-
-		return api.frames(1)
-
-	# ── 渐渐化开 (1s~6s) ──
+	# ── 开头：黑雾已由 _on_init 设好, 从这里开始渐渐化开 ──
 	if _t == 30:
 		_fog_to(Color(0.08, 0.06, 0.10), 0.10, 58.0, 1.5)
 		return api.frames(1)
