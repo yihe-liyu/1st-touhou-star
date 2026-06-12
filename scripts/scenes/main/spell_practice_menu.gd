@@ -38,9 +38,10 @@ func _on_leave() -> void:
 # ═══ 数据 ═══
 
 func _build_data() -> void:
+	# TODO: 从真实关卡数据读取
 	_stages = [
-		{name="Stage 1", phases=_get_test_phases()},
-		{name="Stage 2", phases=[]},
+		{name="Stage 1", num=1, phases=_get_test_phases()},
+		{name="Stage 2", num=2, phases=[]},
 	]
 	_stage_index = 0
 	_change_stage(0)
@@ -62,7 +63,19 @@ func _change_stage(idx: int) -> void:
 func _build_lists() -> void:
 	_clear(_stage_box)
 	for s in _stages:
-		_stage_box.add_child(_make_label(s.name))
+		var lbl := _make_label(s.name)
+		var book: Resource = GameState.spell_book
+		var records: Array = book.get_by_stage(_char_index, s.num)
+		var cap := 0
+		var att := 0
+		for r in records:
+			cap += r.get("captures")
+			att += r.get("attempts")
+		var suffix := ""
+		if att > 0:
+			suffix = "  %d/%d" % [cap, att]
+		lbl.text += suffix
+		_stage_box.add_child(lbl)
 	_build_phase_list()
 	_refresh_char()
 
@@ -70,20 +83,37 @@ func _build_phase_list() -> void:
 	_clear(_phase_box)
 	var spell_c := 0
 	var non_c := 0
-	for p in _phases:
-		var nm: String = p.get("name") if p.has_method("get") else ""
+	var stage_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
+	var book: Resource = GameState.spell_book
+	
+	for i in _phases.size():
+		var nm: String = _phases[i].get("name") if _phases[i].has_method("get") else ""
+		var suffix := ""
+		# 显示该符卡所有难度合计
+		var cap := 0
+		var att := 0
+		for d in range(4):
+			var r = book.get_record(_char_index, stage_num, i + 1, d)
+			if r:
+				cap += r.get("captures")
+				att += r.get("attempts")
+		if att > 0:
+			suffix = "  %d/%d" % [cap, att]
+		
 		if nm == "":
 			non_c += 1
-			_phase_box.add_child(_make_label("非符%d" % non_c))
+			_phase_box.add_child(_make_label("非符%d%s" % [non_c, suffix]))
 		else:
 			spell_c += 1
-			_phase_box.add_child(_make_label("符卡%d" % spell_c))
+			_phase_box.add_child(_make_label("符卡%d%s" % [spell_c, suffix]))
 
 func _build_diff_list() -> void:
 	_clear(_diff_box)
 	if _phase_index >= _phases.size(): return
 	var names = _phases[_phase_index].get("spell_names")
 	if not names is Array: return
+	var stage_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
+	var book: Resource = GameState.spell_book
 	
 	for i in names.size():
 		var vbox := VBoxContainer.new()
@@ -92,8 +122,13 @@ func _build_diff_list() -> void:
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.add_theme_font_size_override("font_size", 18)
 		vbox.add_child(nl)
+		
 		var hl := Label.new()
-		hl.text = DIFF_NAMES[i]
+		var r = book.get_record(_char_index, stage_num, _phase_index + 1, i)
+		var capture_str := ""
+		if r:
+			capture_str = "%d/%d" % [r.get("captures"), r.get("attempts")]
+		hl.text = "%s  %s" % [DIFF_NAMES[i], capture_str]
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		hl.add_theme_font_size_override("font_size", 12)
 		hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -114,6 +149,8 @@ func _make_label(text: String) -> Label:
 
 func _refresh_char() -> void:
 	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
+	_build_lists()
+	_highlight()
 
 # ═══ 高亮 ═══
 
@@ -228,7 +265,8 @@ func _start_practice() -> void:
 	if _phases.is_empty(): return
 	var phase = _phases[_phase_index]
 	if not phase: return
+	var stage_num: int = _stages[_stage_index].get("num", 1)
 	var names = phase.get("spell_names")
 	var pname: String = names[_diff_index] if names is Array else ""
-	print("练习: ", pname, " 难度:", DIFF_NAMES[_diff_index], " 角色:", CHAR_NAMES[_char_index])
+	print("练习: ", pname, " 角色:", CHAR_NAMES[_char_index], " Stage:", stage_num, " Phase:", _phase_index + 1, " 难度:", DIFF_NAMES[_diff_index])
 	_on_leave()

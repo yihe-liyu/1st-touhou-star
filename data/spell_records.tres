@@ -1,18 +1,8 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://bknsvsxifdy22"]
+[gd_resource type="Resource" script_class="SpellRecordBook" load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
-[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]
-
-[sub_resource type="Resource" id="rec_01"]
-script = ExtResource("2_record")
-spell_id = 1
-spell_name = "测试「First」"
-
-[sub_resource type="Resource" id="rec_02"]
-script = ExtResource("2_record")
-spell_id = 2
-spell_name = "测试「Second」"
+[ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+[ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="2_record"]
 
 [resource]
 script = ExtResource("1_book")
-records = Array[Resource]([SubResource("rec_01"), SubResource("rec_02")])
+records = Array[Resource]([])

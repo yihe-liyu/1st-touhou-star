@@ -14,6 +14,7 @@ var _elapsed: float = 0.0
 var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
+var _stage_id: int = 1
 
 func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
@@ -98,7 +99,11 @@ func _on_phase_clear(captured: bool) -> void:
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
 	if _current_phase.spell_id != 0:
-		GameState.record_spell(_current_phase.spell_id, captured, _bonus, _elapsed)
+		var ch: int = GameState.selected_character
+		var st: int = _stage_id
+		var ph: int = _phase_index + 1
+		var diff: int = GameState.selected_difficulty
+		GameState.record_spell(ch, st, ph, diff, captured, _bonus, _elapsed)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

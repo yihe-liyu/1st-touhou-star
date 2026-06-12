@@ -22,12 +22,12 @@ func _load_spell_book() -> void:
 func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
 
-func record_spell(spell_id: int, captured: bool, score: int, elapsed: float) -> void:
-	spell_book.record_attempt(spell_id, captured, score, elapsed)
+func record_spell(ch: int, st: int, ph: int, diff: int, captured: bool, score: int, elapsed: float) -> void:
+	spell_book.record_attempt(ch, st, ph, diff, captured, score, elapsed)
 	_save_spell_book()
 
-func record_practice(spell_id: int, captured: bool) -> void:
-	spell_book.record_practice(spell_id, captured)
+func record_practice(ch: int, st: int, ph: int, diff: int, captured: bool) -> void:
+	spell_book.record_practice(ch, st, ph, diff, captured)
 	_save_spell_book()
 
 var active_enemies: Array = []
