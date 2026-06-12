@@ -28,11 +28,10 @@ func _ready():
 	
 	_setup_player()
 	
-	# 等 UI 入场动画播完再开始关卡（5 秒兜底防永久挂起）
+	# 等 UI 入场动画播完再开始关卡（暂停时动画冻住，恢复后继续）
 	var ui := $"UI"
 	if ui and ui.has_signal("entry_finished"):
-		var t := get_tree().create_timer(5.0)
-		await _first_signal([ui.entry_finished, t.timeout])
+		await ui.entry_finished
 	
 	if stage_data:
 		StageManager.load_stage(stage_data)
@@ -122,10 +121,3 @@ func _on_stage_cleared():
 		var menu = END_MENU.instantiate()
 		menu.title_text = "Stage Clear!"
 		GameManager.push_overlay_menu(menu)
-
-func _first_signal(signals: Array) -> void:
-	var done := false
-	for sig in signals:
-		sig.connect(func(): done = true, CONNECT_ONE_SHOT)
-	while not done:
-		await get_tree().process_frame
