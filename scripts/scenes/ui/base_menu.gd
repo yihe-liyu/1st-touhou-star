@@ -13,7 +13,9 @@ const ACCEPT_COOLDOWN: float = 0.2
 @export var normal_color: Color = Color(0.5, 0.5, 0.5, 1.0)
 ## 锁定选项的颜色（无法选中）
 @export var locked_color: Color = Color(0.15, 0.15, 0.15, 1.0)
+## 入场间隔(秒/元素)
 @export var entrance_stagger: float = 0.0
+## 入场单元素动画时长
 @export var entrance_duration: float = 0.25
 @export var auto_entrance: bool = true
 
