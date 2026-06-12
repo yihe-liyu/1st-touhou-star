@@ -35,18 +35,27 @@ var _t: int = 0   # 总步数 (≈ 帧数, 因为 stage API 按帧推进)
 # 初始化 — 场景 _ready 阶段调用, 渲染之前
 # ═══════════════════════════════════════════
 
-func _on_init(api: StageAPI) -> void:
+func _on_init(_api: StageAPI) -> void:
 	var env := bg.world_environment.environment
 	env.fog_light_color = Color.BLACK
 	env.fog_density = 0.15
 	bg.camera.fov = 55.0
 
-	# 黑雾里预生成树和石头, 雾散时已经在场
-	for i in range(40):
-		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -20, 20, -120, 20)
-	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 0, -40, 120)
-	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, -300, -50, 80)
-	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 250, -45, 100)
+	# 直接建一个测试树, 绕过 PackedScene
+	var mi := MeshInstance3D.new()
+	mi.name = "TestTree"
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(8, 8)
+	pm.orientation = PlaneMesh.FACE_Z
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = tree_tex
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+	pm.material = mat
+	mi.mesh = pm
+	mi.position = Vector3(0, 4, -50)
+	bg.add_child(mi)
+	print("[_on_init] 直接建树: texture=%s, pos=%s, visible=%s" % [tree_tex, mi.position, mi.visible])
 
 
 # ═══════════════════════════════════════════
