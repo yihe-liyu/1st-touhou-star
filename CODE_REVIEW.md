@@ -1,84 +1,37 @@
-# 🔍 东方星 STG 项目全面审查报告
-## 审查日期：2026-06-12
+# 🔍 东方星 STG 项目审查报告
 
----
+## ✅ 已修复 (17)
+| # | 问题 | 修法 |
+|---|------|------|
+| 1 | player.miss await 挂起 _physics_process | 无敌改 _physics_process 倒计时 |
+| 2 | EnemyVisual 巡逻端点动画抖闪 | 延迟退出 idle（speed<30 持续 0.2s） |
+| 3 | RNG 未使用 → replay 不可行 | 全项目 rand* → RNG.* |
+| 4 | 场景切换时 bullet 碰撞 | BulletManager._processing_paused flag |
+| 5 | 碰撞链路 miss await（同 #1） | 同 #1 |
+| 6 | GameUI 碎片 +30px 偏移 | 碎片标记 meta 跳过位移 |
+| 7 | GameUI entry_finished 偏小 | total +1.5s 缓冲最长动画 |
+| 9 | range 遮蔽内置 range() | → patrol_range |
+| 10 | 菜单硬编码 keycode | → is_action_pressed |
+| 12 | GameState 非游戏跑 _process | 监听 PLAYING 状态开关 |
+| 13 | EnemyVisual 每帧 get_parent | 缓存 _parent |
+| 14 | BulletPool 扩容无上限 | MAX_TOTAL=5000 硬上限 |
+| 20 | BulletMultiMesh._groups 不清理 | clear() + clear_all 调 |
+| 21 | CurvedLaser 复用泄漏 Line2D | _setup_line 加守卫 |
+| 22 | BulletFog 旧 tween 残留 | play() 开头 kill |
+| 37 | play_bgm await 杀协程 | → tween 回调 |
 
-## 🔴 P0 — 致命问题 (5)
+## ❌ 待定 (1)
+| # | 问题 |
+|---|------|
+| 8 | Bomb 输入/功能缺失 |
 
-### #1 Player.miss() 用 `await` → 函数态重叠 / 泄露 ✅
-
-### #2 EnemyVisual 巡逻端点动画抖闪 ✅
-
-### #3 RNG autoload 形同虚设 → replay 不可行 ✅
-
-### #4 场景切换时 BulletManager._physics_process 仍在碰撞 ✅
-
-### #5 碰撞链路中 `player.miss()` 调用 await → `_physics_process` 函数态重叠 ✅（同 #1）
-
-
-## 🟠 P1 — 高优先级 (6)
-
-### #6 GameUI 碎片图标入场 X 坐标偏移 +30px ✅
-
-### #7 GameUI `entry_finished` total 计算偏小 ✅
-
-### #8 Bomb 输入 action 未定义 + 无 bomb 功能
-- `project.godot` 无 `bomb` action。`Player` 无 `bomb()` 方法。`GameState` 有 `bomb_count` 但无法用。
-
-### #9 `range` 变量名遮蔽内置 `range()` ✅
-
-### #10 难度/角色选择界面硬编码 keycode，不走 InputMap ✅
-
-### #11 ~ SceneTransition 只等一帧 → 不成立（tree.paused 已上锁）
-
----
-
-## 🟡 P2 — 性能/技术债 (12)
-
-### #12 GameState._process 非游戏中也在跑 ✅
-
-### #13 EnemyVisual 每帧 `get_parent()` ✅
-
-### #14 BulletPool 动态扩容无上限 ✅
-
-### #15 ~ BulletMultiMesh is_instance_valid → 不计开销, false alarm
-
-### #16 ~ HitEffectPool current_scene → 不计开销, false alarm
-
-### #17 ~ O(n) 扫描 → 事件数<20, false alarm
-
-### #18 ~ StageAPI 持 runner 强引用 → GC-safe, false alarm
-
-### #19 ~ return_bullet disconnect fog → is_connected 保护, safe
-
-### #20 BulletMultiMesh._groups 从不清理 ✅
-
-### #21 CurvedLaser 池复用逻辑错误 ✅
-
-### #22 BulletFog.play 相同 texture 直接 emit finished ✅
-
-### #23 ~ Array[Task] → Godot 4.6 支持内类泛型, false alarm
-
----
-
-## 🟢 P3 — 代码质量 (6)
-
-### #24 ~ 挂载点不一致 → global_position 下无影响, false alarm
-### #25 ~ _blur_rect 名字无所谓, false alarm
-### #26 _on_init 时序说明 ✅
-### #27 ~ 输入已随 #10 统一, ✅
-### #28 ~ @export 注释可渐进补 ✅
-### #29 ~ 无统一日志 → 项目规模小, 约定即可, false alarm
-
----
-
-## 🔵 Feature — 缺失功能 (8)
-
-### #30 无 Item/道具系统
-### #31 无 Boss / Spell Card 系统
-### #32 无 Replay 系统
-### #33 关卡结束无结算流程
-### #34 暂停菜单缺"重开"和"返回标题"
-### #35 StageData 缺 bgm 字段
-### #36 无手柄支持
-### #37 Await 深度污染 ✅（play_bgm await→tween, 协程不杀）
+## 🔵 Feature (7)
+| # | 功能 |
+|---|------|
+| 30 | Item/道具系统 |
+| 31 | Boss/Spell Card |
+| 32 | Replay 系统 |
+| 33 | 关卡结算流程 |
+| 34 | 暂停菜单缺选项 |
+| 35 | StageData 缺 bgm 字段 |
+| 36 | 手柄支持 |
