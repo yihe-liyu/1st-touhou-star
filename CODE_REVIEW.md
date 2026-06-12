@@ -1,276 +1,210 @@
 # 🔍 东方星 STG 项目全面审查报告
 ## 审查日期：2026-06-12
-## 审查范围：全部 .gd 脚本、架构、性能、安全性、可维护性
+## 审查范围：全部 .gd 脚本、shader、project.godot、架构、性能、安全性
+## 版本：v1.1（深度补充审查 — 2026-06-12）
+
+**阅读了 37 个文件**，覆盖 autoload、核心系统、UI、背景、子弹、激光、敌人、玩家、协程。
 
 ---
 
-## ⚠️ 严重问题（必须修复）
+## 🔴 P0 — 致命问题 (5)
 
-### 1. Player.miss() 中使用 `await` 会泄露/崩溃
+### #1 Player.miss() 用 `await` → 函数态重叠 / 泄露
 **文件：** `scripts/player/player.gd:146`
 ```gdscript
 is_invincible = true
 await get_tree().create_timer(3.0).timeout
 is_invincible = false
 ```
-- 如果玩家在 3 秒无敌期间死亡（lives=0），`miss()` 第二次被调用时上一个 `await` 还没返回，is_invincible 会被置为 true 第二次，然后第一个 await 返回时置 false，**无敌时间被吞掉**。
-- 更严重：如果场景切换或玩家 `queue_free()`，await 的 timer 还在跑。
-- **建议：** 改为 `Tween` 或 `SceneTreeTimer` + 回调，并在 `_exit_tree` 中取消。
+- 3 秒无敌期间再中弹 → `miss()` 再次被调 → is_invincible 已 true → 提前 return。但第一个 await 还在跑！场景切换/player free 后 timer 到期 → `is_invincible = false` 写入野指针。
+- **严重：碰撞回调 `_enemy_vs_player` / `laser_system.step` 中调用 `miss()`，`miss` 中 await 挂起整个 `_physics_process` 调用链。下一帧 `_physics_process` 照常运行 → 多帧重叠执行。**
+- **建议：** `miss()` 不能有 await。无敌改用 Tween 或 _process 手动倒计时。
 
-### 2. EnemyVisual 速度检测阈值为 30px/s，但 Patrol 巡逻端点速度降为 0
+### #2 EnemyVisual 巡逻端点动画抖闪
 **文件：** `scripts/enemy/enemy_visual.gd`
-- 巡逻用 SINE EASE_IN_OUT，端点处 `speed < 30` 触发 IDLE，但下一秒方向翻转又 >30 触发 RIGHTING。
-- 如果 patrol `period=1.5, range=100`，峰值速度约 105px/s，threshold=30 意味着端点附近约 30% 时间是 IDLE。动画在 IDLE ↔ RIGHTING ↔ RIGHT 快速切换会**抖动闪烁**。
-- **建议：** 加一个延迟退出 timer（speed<30 持续 0.2s 才切 IDLE），或使用 `hysteresis`（进入阈值 ≠ 退出阈值）。
+- SINE EASE_IN_OUT 巡逻，端点 speed≈0 < 30 → IDLE，下帧翻向 speed>30 → RIGHTING → RIGHT。无限来回切换。
+- **建议：** 退出 moving 加 0.2s 延迟（hysteresis），或提高阈值。
 
-### 3. StageManager.stop_stage() 不停止背景协程
-**文件：** `scripts/autoload/stage_manager.gd:48`
-```gdscript
-func stop_stage():
-    current_background = null
-    if _stage_script and is_instance_valid(_stage_script):
-        _stage_script.stop()
-        _stage_script.queue_free()
-```
-- `StageManager.start_background()` 播过的 `BackgroundScript` 子协程没被停止！虽然 `current_background` 设为 null，但 `BackgroundScript` 挂在 `current_background` 节点上——如果 StageBackground 没被 free，协程继续跑。
-- **建议：** 停止所有 `BackgroundScript` 子节点。
+### #3 RNG autoload 形同虚设 → replay 不可行
+**文件：** `scripts/autoload/rng.gd` + 全文搜索
+- `bullet_physics.gd:66` `stage01_decor.gd:40` `test_decor.gd:13` `enemy_bullet_clear.gd:30` 全用全局 `randf()`，不走 `RNG.randf()`。
+- **建议：** 全局替换 `randf(` → `RNG.randf(` `randf_range(` → `RNG.randf_range(`。
 
-### 4. 场景切换时 BulletManager 仍在处理碰撞
+### #4 场景切换时 BulletManager._physics_process 仍在碰撞
 **文件：** `scripts/autoload/bullet_manager.gd`
-- `scene_transition.gd` 先 `change_scene_to_file()` 然后 `BulletManager.clear_all()`。但 `_physics_process` 在 change_scene 后仍在运行（autoload），新场景可能还没准备好。
-- 更严重：`_physics_process` 中的 `_pool.active_bullets[i]` 可能在迭代中被 `return_bullet()` 移除（如碰撞回收），导致 `is_offscreen` 检查到无效引用。
-- **建议：** 加一个 `_paused` flag，场景切换期间跳过 `_physics_process`。
+- `scene_transition.change_scene` → `change_scene_to_file()` → `BulletManager.clear_all()`。但 `_physics_process` 在 autoload 上照常跑。
+- **建议：** 加 `_paused` flag，transition 期间跳过。
 
-### 5. `active_bullets.is_offscreen` 循环越界风险
-**文件：** `scripts/autoload/bullet_manager.gd:58`
+### #5 碰撞链路中 `player.miss()` 调用 await → `_physics_process` 函数态重叠
+**文件：** `scripts/autoload/bullet/bullet_physics.gd:55` `scripts/autoload/bullet/laser_system.gd:85`
 ```gdscript
-for i in range(_pool.active_bullets.size() - 1, -1, -1):
-    if _pool.is_offscreen(_pool.active_bullets[i].global_position):
-        _pool.return_bullet(_pool.active_bullets[i])
+# bullet_physics._enemy_vs_player
+player.miss()              # ← 内部 await 3 秒，挂起 _physics_process
+_pool.return_bullet(bullet) # ← 3 秒后执行，bullet 可能已被他处回收
+
+# laser_system.step
+if hit: player.miss()      # 同样问题
 ```
-- `return_bullet()` 调用 `active_bullets.erase(bullet)`，使数组缩短。反向遍历 `i` 仍在有效范围，但 `active_bullets[i]` 的索引可能已变——因为 `erase` 改变了数组。应该从 `i` 位置重新读取。
-- **实际上没有 bug**（erase 后 i 索引不变，下一个迭代 i-1 仍有效），但代码意图不够清晰。
+- 3 秒后 resume 时 bullet/player 可能已 free 或状态不一致。
+- **建议：** 同 #1——`miss()` 去 await。
 
 ---
 
-## ⚡ 性能问题
+## 🟠 P1 — 高优先级 (6)
 
-### 6. GameState._process 每帧跑，即使不在游戏中
-**文件：** `scripts/autoload/game_state.gd:93`
-```gdscript
-func _process(delta: float) -> void:
-    memory_value = clampf(memory_value + MEMORY_REGEN * delta, 0.0, 100.0)
-```
-- `memory_value` 每帧增长 0.05/s，但只在游戏中需要。主菜单/暂停时也在跑，浪费。
-- **建议：** 只在 `AppState.PLAYING` 时执行，或者把 `set_process(false)` 放到非游戏状态。
-
-### 7. EnemyVisual._process 每帧找 parent
-**文件：** `scripts/enemy/enemy_visual.gd`
-```gdscript
-func _process(delta: float) -> void:
-    var parent := get_parent() as Node2D
-    if not parent: return
-```
-- 每个敌人每帧都做 `get_parent()` + `as` 转型。如果 30 个敌人同时存在，就有 30 次 `get_parent()`。
-- **建议：** 在 `_ready()` 缓存 parent 引用。
-
-### 8. BulletPool.shoot() 动态扩容无上限
-**文件：** `scripts/autoload/bullet/bullet_pool.gd:42`
-```gdscript
-if bullet_pool.is_empty():
-    bullet = bullet_scene.instantiate()
-    _parent.add_child(bullet)
-```
-- POOL_SIZE=4000 但 shoot 时如果池空了会动态创建，**没有上限**。理论上可以创建无限多子弹（比如无限弹幕 bug）。
-- **建议：** 加一个 max 上限，超限时复用最早的 active bullet。
-
-### 9. StageBackground `_process_events` O(n) 扫描
-**文件：** `scripts/background/stage_background.gd`
-```gdscript
-func _process_events():
-    for time in _events:
-        if _elapsed >= time:
-```
-- 每帧遍历所有已调度事件。事件多时（100+）浪费。
-- **建议：** 改用排序列表，只检查最早的到期时间。或使用 `Array` 排序 + 移除已过期的。
-
----
-
-## 🏗️ 架构问题
-
-### 10. StageAPI 通过 RefCounted 传递，但 runner 是 Node
-**文件：** `scripts/coroutine/base/stage_api.gd`
-- `StageAPI` extends `RefCounted`，包含一个 `runner: CoroutineRunner`（extends Node）。如果 runner 被释放了，StageAPI 上 `active()` 返回 false，但其他的引用（如 lambda 中捕获的 api）会导致 RefCounted 不释放。
-- 实际上这不是问题（runner 被释放 → RefCounted 引用 → GC 释放），但**语义混乱**——runner 是 Node，本不该被 RefCounted 持有。
-- **建议：** StageAPI 持 `WeakRef(runner)` 更安全。
-
-### 11. Enemy.create_script 和 move_script 的职责分工模糊
-**文件：** `scripts/enemy/enemy.gd`
-- CreateScript 负责"创建弹幕"——但实际上弹幕发射是在 `_on_step` 协程里持续运行的。MoveScript 负责"移动"——但 CreateScript 也能改 target 的位置。
-- 两者都继承 `CoroutineRunner`，都能调用 `api.spawn_enemy()` 和 `api.shoot_spread()`。**谁该发射弹幕？** 都在 create_script 里？还是移动脚本里的回调？设计不清晰。
-- **建议：** 明确约定：CreateScript 仅一次性初始化，MoveScript 负责弹幕发射（类似 Touhou 的 ECL）。
-
-### 12. BulletManager 作为 Autoload Node2D，但子弹挂在 World 下
-**文件：** `scripts/autoload/stage_manager.gd:79`
-```gdscript
-func _add_enemy_to_scene(enemy: Enemy):
-    var parent = get_tree().current_scene
-    if parent:
-        var world = parent.get_node_or_null("World")
-        if world:
-            parent = world
-    parent.add_child(enemy)
-```
-- 子弹通过 BulletManager.add_child 挂（pool setup），但敌人通过 StageManager 挂到 World 下。**不一致**。
-- BulletManager 是 Autoload Node2D，它的坐标系是根节点的，子弹发到它的子节点里，而不是 World 下。如果 World 有摄像机偏移，子弹位置会错。
-- **建议：** 统一挂载点——全部挂 `World` 下，或全部挂 BulletManager 下。
-
-### 13. BackgroundScript._on_init 与 start_background 时序混乱
-**文件：** `scripts/autoload/stage_manager.gd:36`
-```gdscript
-# _on_init 先被叫（via StageBackground._on_setup）
-# start_background 后被叫（via StageManager.load_stage → start_background）
-```
-- `stage_background.gd._on_setup()` 在 `_ready()` 中调 `_on_init(api)`。
-- `StageManager.load_stage()` 中调 `start_background(api)`，运行协程。
-- **但 `_on_init` 时的 api 是一个临时 StageAPI**，没有运行协程的能力。如果 `_on_init` 里写了 `api.seconds(1)`（虽然在 `_on_init` 里不应该用），会静默失败。
-- **建议：** 文档化 `_on_init` 只做同步设置；或者 `_on_init` 时也 mark 一下 "这一帧不能用协程 API"。
-
-### 14. GameScene 中 `_blur_rect` 生命周期不匹配
-**文件：** `scripts/scenes/game/game_scene.gd:61`
-```gdscript
-func _add_blur() -> void:
-    if _blur_rect: return
-    ...
-    var blur_layer := CanvasLayer.new()
-    blur_layer.layer = 15
-    blur_layer.add_child(_blur_rect)
-    add_child(blur_layer)
-```
-- `_blur_rect` 引用了一个 ColorRect，但它的父节点是 `blur_layer`。当 `_remove_blur()` 调用 `_blur_rect.queue_free()` 后，`_blur_rect = null`，但 `blur_layer` 自己也被 `queue_free()`。如果 GameScene 在 blur_layer 被释放后还在访问 `_blur_rect`，没问题（_blur_rect = null）。但如果暂停→恢复→快速暂停，`_add_blur` 中 `_blur_rect` 仍是 null，没问题。
-- 实际上没问题，但 `_blur_rect` 既不是 `@onready` 也不在树中，**命名和语义不匹配**。
-
-### 15. GameUI 中 `_entry_queue` 追加 16 个碎片图标，但没设 modulate.a
+### #6 GameUI 碎片图标入场 X 坐标偏移 +30px
 **文件：** `scripts/scenes/ui/game_ui.gd:146`
-- `_fragment_init` 创建 16 个 Sprite2D 加到 `_entry_queue`，但它们已经 `modulate.a = 0.0`。
-- 入场动画中 `is_memory` 检查不匹配这些碎片（它们不是 memory 节点），走"其他元素"分支：`position.x += 30`——**但碎片的位置是绝对坐标，不该 +30**！
-- **Bug：** 16 个碎片图标的 X 坐标被入场动画多加了 30 像素，位置错位。
+- 16 个 Sprite2D 碎片已有绝对坐标，入场动画对所有非特殊节点 `position.x += 30`。Bug！
 
-### 16. `range` 变量名与 `GDScript built-in range()` 冲突
-**文件：** `scripts/coroutine/stages/move_patrol.gd` 和 `move_stage1_enemy1.gd`
-```
-WARNING: The variable "range" has the same name as a built-in function.
-```
-- 使用 `@export var range: float`，遮蔽了 GDScript 的 `range()`。在脚本内调用 `range(10)` 会失败。
-- **建议：** 改名为 `patrol_range` 或 `amplitude`。
+### #7 GameUI `entry_finished` total 计算偏小
+**文件：** `scripts/scenes/ui/game_ui.gd:143`
+- `total = queue.size * ENTRY_INTERVAL`，但 Title logo (1.5s) + diffculty (1s) 远超 ENTRY_INTERVAL。entry_finished 可能在其他元素未入场完时 emit。
 
----
+### #8 Bomb 输入 action 未定义 + 无 bomb 功能
+- `project.godot` 无 `bomb` action。`Player` 无 `bomb()` 方法。`GameState` 有 `bomb_count` 但无法用。
 
-## 🐛 潜在 Bug
+### #9 `range` 变量名遮蔽内置 `range()`
+**文件：** `scripts/coroutine/stages/move_stage1_enemy1.gd:24`
+- `@export var range: float` → Warning。脚本内无法再调用 `range(10)`。
 
-### 17. Enemy.die() 调用 GameEvents.enemy_killed → GameState._on_enemy_killed → add_score —— 但 enemy 还未 free
-- 在 `die()` 里，`GameState.active_enemies.erase(self)` 先于 `GameEvents.enemy_killed.emit()`。如果 `enemy_killed` 的回调中又调了 `all_defeated()`，敌人数已准确。
-- 但如果 `enemy_killed` 回调里调了 `queue_free` 的其他操作（如 `death_effect` 播放），HitEffectPool 依赖 enemy 还在——没问题，`queue_free` 是延迟的。
+### #10 难度/角色选择界面硬编码 keycode，不走 InputMap
+**文件：** `scripts/scenes/main/difficulty_screen.gd` `character_screen.gd`
+- 用 `KEY_UP` `KEY_Z` 裸码。GameManager 注册的 `ui_accept` 等 input actions 无效。手柄不可用。
 
-### 18. AudioManager.play_bgm gap timer 使用 `await` 在 autoload 中
-**文件：** `scripts/autoload/audio_manager.gd:59`
+### #11 SceneTransition 切换场景只等一帧
+**文件：** `scripts/autoload/game/scene_transition.gd:30`
 ```gdscript
-if gap > 0.0:
-    await get_tree().create_timer(gap, false).timeout
+await _parent.get_tree().process_frame
 ```
-- 如果 `play_bgm` 被快速调用两次，第二个 await 还在等待时，第一个 timer 到期 → 播放 BGM1 → `bgm_player.stop()` → 第二个 await 到期 → 播放 BGM2。没问题。
-- 但如果有第三次调用，可能同时有多个异步流程在跑，导致状态错乱——虽然 `cancel_crossfade` / `stop` 被调了。
-
-### 19. Bullet.bind() 不重置 `fog` 状态
-- 复用子弹时，`bind()` 清除 `coroutine_movement`、重置 `extra`、重置 `_grazed`。但如果子弹上一轮有 fog 在播放，下一轮 `spawn_fog=false` → `fog.visible = false`。没问题。
-- 但如果 `spawn_fog=true` 时 `fog.fog_finished` 信号连接了 `_on_fog_ready`，`bind()` 里 disconnect 了旧连接——但连接是 `CONNECT_ONE_SHOT`，不 disconnect 也行。
-
-### 20. HitEffectPool._pools 从不清理
-**文件：** `scripts/autoload/hit_effect_pool.gd`
-- `_pools` 只增不减。如果 100 个不同的 `PackedScene` 各创建 8 个实例，就永远有 800 个节点。
-- **建议：** 用 LRU 或计数限制每种效果的最大实例数。
-
-### 21. SceneTransition._fade_out 和 _fade_in 使用 TWEEN_PAUSE_PROCESS
-- `set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)`：暂停时 tween 继续跑。但场景切换时树被 paused，这意味着过渡动画在暂停中继续——这是**预期行为**（保证动画不冻）。
-- 但如果 TWEEN_PAUSE_PROCESS 指的是"暂停时处理"，那它就会在 `get_tree().paused = true` 中继续跑。OK。
+- 新场景 `_ready()` 可能未全部执行完。应等 scene 就绪信号。
 
 ---
 
-## 🧹 代码质量/风格
+## 🟡 P2 — 性能/技术债 (12)
 
-### 22. 大量 `print()` 遗留
-- `MovePatrol` 中可能有遗留 debug print（不确认，但开发中常见）。
-- 没有任何统一的日志系统——`push_error()` / `push_warning()` 和 `print()` 混用。
+### #12 GameState._process 非游戏中也在跑
+- `memory_value` 每帧 +0.05，主菜单也跑。加 `if not PLAYING: return`。
 
-### 23. `@export` 变量缺文档注释
-- 几乎所有脚本的 `@export` 变量都没有注释，依赖变量名自描述。但像 `range`、`period` 这种在多次复用中含义不同，应该写注释。
+### #13 EnemyVisual 每帧 `get_parent() as Node2D`
+- 30 敌人 = 30 次 get_parent/帧。缓存到 `@onready var _parent`。
 
-### 24. static 函数不标 `static`
-- `BulletPool.is_offscreen`、`StageAPI._make_straight_curve` 等不使用 `self` 的方法未标 `static`。
+### #14 BulletPool 动态扩容无上限
+- POOL_SIZE=4000 不够时动态创建，没 cap。加 max 或用 LRU。
 
-### 25. 不一致的命名约定
-- 私有变量：`_pool`、`_physics`（下划线前缀） vs `active_bullets`（无前缀 public）
-- 类名：`MovePatrol` (PascalCase) vs `move_entrance` (snake_case 文件名)
-- 信号回调：`_on_player_death` vs `_on_game_state_changed` 混用
+### #15 BulletMultiMesh._sync 每帧 `is_instance_valid` 扫描全部子弹
+- 200 bullets = 200 次 is_instance_valid。回收时应从 active list 移除。
 
-### 26. CoroutineRunner._tasks 类型注解缺失
+### #16 HitEffectPool.spawn 每帧 `Engine.get_main_loop().current_scene`
+- 高频调用时缓存 World 引用。
+
+### #17 StageBackground._process_events O(n) 扫描
+- 用排序列表 + 摘到期事件，免每帧全扫。
+
+### #18 StageAPI 持 runner (Node) 强引用 → 语义混乱
+- RefCounted 持 Node。改 WeakRef。
+
+### #19 `return_bullet` disconnect fog 信号可能报错
+**文件：** `scripts/autoload/bullet/bullet_pool.gd:65`
+- CONNECT_ONE_SHOT 的 fog_finished 会自动断，`return_bullet` 再 disconnect 虽被 is_connected 保了，但代码脆弱。应抽成 `bullet.reset()`。
+
+### #20 BulletMultiMesh._groups 从不清理
+- 多种纹理 + faction 累积 MMI 节点。场景切换时 clean。
+
+### #21 CurvedLaser 池复用逻辑错误
+**文件：** `scripts/autoload/bullet/laser_system.gd:25`
 ```gdscript
-var _tasks: Array[Task] = []
+for l in _active_lasers:
+    if l.phase == CurvedLaserClass.DEAD:
+        l.init(data, origin, guide_curve, rot_speed)
+        return l   # ← 找到第一个 DEAD 就复用
 ```
-- Godot 4 不支持 `Array[Task]` 类型注解，实际是无类型 Array。可以改 `Array`。
+- 复用后激光处于 ALIVE 但可能残留旧 shader 参数、旧 fog_sprite。`init()` 重置了大部分状态，但 `_seg_lines` 的 `Line2D.width` / `width_curve` 未重置。
+
+### #22 BulletFog.play 相同 texture 直接 emit finished
+```gdscript
+if texture == p_texture:
+    fog_finished.emit()  # 跳过动画，但 fog 可能还在上次的 tween 中
+    return
+```
+- 如果上次 fog 的 tween 没完（create_tween 在 Sprite2D 上），新 play 跳过动画但旧 tween 继续跑，可能 interfere。
+
+### #23 CoroutineRunner._tasks 类型注解无效
+- `Array[Task]` → Godot 4 不识。改 `Array`。
 
 ---
 
-## 🎯 功能缺失
+## 🟢 P3 — 代码质量 (6)
 
-### 27. 没有关卡 BGM
-- 主菜单有 BGM，但 Stage 加载后不播放任何 BGM。StageData 中没有 `bgm` 字段，StageManager 不启动 BGM。
+### #24 子弹挂 BulletManager，敌人挂 World → 坐标系不一致
+- `BulletManager` 是 autoload Node2D，`World` 在 GameScene 下。如有摄像机偏移，坐标系不对。
 
-### 28. 残机碎片/Bomb 碎片无拾取逻辑
-- `GameState.collect_life_fragment()` 和 `collect_bomb_fragment()` 存在，但没有实际调用入口。没有 Item 系统。
+### #25 GameScene._blur_rect 语义混乱
+- `_blur_rect` 是当前 blur 的 ColorRect，但不是 @onready 也不常驻。
 
-### 29. 没有 Spell Card / Boss 系统
-- 只有 StageData 和 EnemyData，没有 Boss 相关数据结构或脚本。
+### #26 BackgroundScript._on_init 与 start_background 时序不文档化
+- `_on_init` 无协程能力，但 api 对象存在。易误用。
 
-### 30. 没有 Replay 系统
-- 对于一个 STG 项目，这是**架构级缺失**。所有输入/随机/时间都必须可录可回放。目前随机数直接调 `randf()`，没有用 RNG autoload。
+### #27 菜单/UI 输入不统一
+- BaseMenu / MenuScreen 用不同输入体系（action vs keycode）。
 
-### 31. 没有暂停菜单的"返回标题"功能
-- 暂停菜单只有"继续"和"重开"（推测），没有返回标题或退出。
+### #28 `@export` 变量全无注释
+- `range`, `period`, `entrance_y` 等含义依赖猜测。
 
-### 32. 关卡结束后没有结算/返回流程
-- `StageManager.stage_cleared` 信号发出后，没有对应的 UI 响应。
-
----
-
-## 📋 优先级建议
-
-| 优先级 | 编号 | 问题 |
-|--------|------|------|
-| 🔴 P0 | 1 | Player.miss await 泄露 |
-| 🔴 P0 | 4 | 场景切换时 bullet 碰撞不安全 |
-| 🔴 P0 | 2 | EnemyVisual 动画抖闪 |
-| 🟠 P1 | 15 | GameUI 碎片坐标错位 |
-| 🟠 P1 | 3 | StageManager 不清背景协程 |
-| 🟠 P1 | 27 | 没有关卡 BGM |
-| 🟡 P2 | 6 | GameState 非游戏状态跑 _process |
-| 🟡 P2 | 7 | EnemyVisual 每帧 get_parent |
-| 🟡 P2 | 8 | BulletPool 无限扩容 |
-| 🟡 P2 | 10 | StageAPI 持 runner 强引用 |
-| 🟡 P2 | 16 | `range` 变量名冲突 |
-| 🟢 P3 | 12 | 子弹/敌人挂载点不一致 |
-| 🟢 P3 | 14 | _blur_rect 语义混乱 |
-| 🟢 P3 | 20 | HitEffectPool 不清理 |
-| 🟢 P3 | 22-26 | 代码风格 |
-| 🔵 Feature | 28-32 | 缺失功能 |
+### #29 无统一日志系统
+- print / push_error / push_warning 混用。
 
 ---
 
-## 💡 推荐改进方向
+## 🔵 Feature — 缺失功能 (8)
 
-1. **引入统一的 Game Loop 状态机**：`LOADING → READY → PLAYING → PAUSED → ENDING`，每个状态明确哪些系统该跑/不该跑。
-2. **所有随机数走 RNG autoload**：为 replay 铺路。
-3. **StageData 加 bgm 字段**：`@export var bgm: AudioStream`，StageManager.load_stage 时播放。
-4. **EnemyVisual 加 hysteresis**：切 IDLE 前确认 speed<30 持续 0.2s，避免闪烁。
-5. **统一挂载策略**：所有动态生成的对象都挂到 `World` 下（或 `BulletManager` 下），通过 `StageManager` 查找。
-6. **引入 Item 系统**：自动回收 + 拾取判定 + 碎片/完整道具。
+### #30 无 Item/道具系统
+- `collect_life_fragment()` / `collect_bomb_fragment()` 存在但无调用入口。
+
+### #31 无 Boss / Spell Card 系统
+- 无对应数据结构。
+
+### #32 无 Replay 系统（基础条件不满足）
+- 随机数不走 RNG、输入不录制。
+
+### #33 关卡结束无结算流程
+- `stage_cleared` 信号发出后无 UI 响应。
+
+### #34 暂停菜单只有"继续"（正常模式）+ game_over 时有"返回标题/退出"
+- 正常暂停缺"重开"和"返回标题"。
+
+### #35 StageData 缺 bgm 字段
+- StageScript 手动调 AudioManager.play_bgm，不标准。
+
+### #36 无手柄支持
+- 菜单硬编码 keycode，不可扩展。
+
+### #37 Await 深度污染
+- `player.miss()` (await), `audio_manager.play_bgm` (await), `base_menu._accept_current` (await), `scene_transition.change_scene` (await). 多处非协程函数用 await，状态管理脆弱。
+
+---
+
+## 📊 统计
+
+| 类别 | 数量 |
+|------|------|
+| 🔴 P0 致命 | 5 |
+| 🟠 P1 高优 | 6 |
+| 🟡 P2 性能/债 | 12 |
+| 🟢 P3 风格 | 6 |
+| 🔵 缺失功能 | 8 |
+| **总计** | **37** |
+
+---
+
+## 💡 十大改进建议（排名不分先后）
+
+1. **`player.miss()` 去 await** — 影响所有碰撞逻辑
+2. **RNG 统一化** — 为 replay 打底
+3. **场景切换 safe guard** — BulletManager 暂停
+4. **EnemyVisual hysteresis** — 去动画闪烁
+5. **Bomb 系统** — 输入 + 功能
+6. **菜单统一走 InputMap** — 键位自定义/手柄
+7. **GameUI 坐标/时序 fix** — 碎片偏移 + entry_finished 时机
+8. **Item 系统** — 碎片/完整道具拾取
+9. **StageData + bgm** — 标准关卡初始化
+10. **BulletMultiMesh 优化** — active list 清理 + groups 回收
