@@ -36,14 +36,16 @@ var _t: int = 0   # 总步数 (≈ 帧数, 因为 stage API 按帧推进)
 # ═══════════════════════════════════════════
 
 func _on_init(api: StageAPI) -> void:
-	var env := bg.world_environment.environment
-	env.fog_light_color = Color.BLACK
-	env.fog_density = 0.5
-	bg.camera.fov = 55.0
+	if bg.world_environment:
+		var env := bg.world_environment.environment
+		env.fog_light_color = Color.BLACK
+		env.fog_density = 0.5
+	if bg.camera:
+		bg.camera.fov = 55.0
 
 	# 黑雾里预生成树和石头, 雾散时已经在场
-	for i in range(40):
-		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -20, 20, -120, 20)
+	for i in range(80):
+		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -50, 50, -180, 20)
 	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 0, -40, 120)
 	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, -300, -50, 80)
 	_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 250, -45, 100)
@@ -74,7 +76,7 @@ func _on_step(api: StageAPI) -> Variant:
 		return api.frames(1)
 		
 	if _t % 3 == 0:
-		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -50, 50, -220, -180)
+		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -70, 70, -220, -180)
 
 	# ── 地面装饰物阶段 (5s~30s) ──
 	if _t >= 150 and _t < 900:
@@ -114,7 +116,7 @@ func _on_step(api: StageAPI) -> Variant:
 		t_fov.tween_property(bg.camera, "fov", 55.0, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
 		t_fov.tween_property(bg.camera, "fov", 75.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 		var t_accel := bg.create_tween()
-		t_accel.tween_method(_camera_accel, 1.0, 4.0, 3.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		t_accel.tween_method(_camera_accel, 1.0, 6.0, 4).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 		return api.frames(1)
 
 	#if _t == 1050:

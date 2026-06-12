@@ -25,11 +25,17 @@ func _exit_tree():
 	_on_cleanup()
 
 func _find_camera() -> Camera3D:
-	var parent = get_parent()
+	var parent := get_parent()
 	if parent:
-		var cam_node = parent.get_node_or_null("Camera3D")
+		var cam_node := parent.get_node_or_null("Camera3D")
 		if cam_node is Camera3D:
 			return cam_node
+	# 后备：从场景根搜
+	var root := get_tree().current_scene
+	if root:
+		var cam := root.find_child("Camera3D", true, false) as Camera3D
+		if cam:
+			return cam
 	return null
 
 func _find_world_environment() -> WorldEnvironment:
