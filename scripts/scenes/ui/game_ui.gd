@@ -104,6 +104,7 @@ func _play_entry_animation() -> void:
 		var is_separator := node is UISeparator
 		var is_title := node.name == "Title"
 		var is_diff := node.name == "diffculty"
+		var is_fragment := node in _life_fragments or node in _bomb_fragments
 		if is_title:
 			# Title Logo：挂 Shader，初始隐藏
 			var logo_shader := preload("res://gdshader/logo_entrance.gdshader")
@@ -122,7 +123,7 @@ func _play_entry_animation() -> void:
 			node.position = Vector2(448, 480)
 			node.scale = Vector2(0.01, 0.01)
 			node.modulate.a = 0.0
-		elif not is_memory:
+		elif not is_memory and not is_fragment:
 			# 其他元素：偏右 + 透明
 			node.position.x += 30
 			node.modulate.a = 0.0
@@ -165,7 +166,7 @@ func _play_entry_animation() -> void:
 				t.set_ease(Tween.EASE_OUT)
 				t.tween_property(node, "progress", 1.0, ENTRY_DURATION)
 				t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
-			elif not is_memory:
+			elif not is_memory and not is_fragment:
 				t.set_trans(Tween.TRANS_CUBIC)
 				t.set_ease(Tween.EASE_OUT)
 				t.tween_property(node, "position:x", node.position.x - 30, ENTRY_DURATION)

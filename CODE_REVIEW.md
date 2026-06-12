@@ -18,9 +18,7 @@
 
 ## 🟠 P1 — 高优先级 (6)
 
-### #6 GameUI 碎片图标入场 X 坐标偏移 +30px
-**文件：** `scripts/scenes/ui/game_ui.gd:146`
-- 16 个 Sprite2D 碎片已有绝对坐标，入场动画对所有非特殊节点 `position.x += 30`。Bug！
+### #6 GameUI 碎片图标入场 X 坐标偏移 +30px ✅
 
 ### #7 GameUI `entry_finished` total 计算偏小 ✅
 
