@@ -61,18 +61,9 @@ func _build_data() -> void:
 		_stages.sort_custom(func(a, b): return a.num < b.num)
 	
 	if _stages.is_empty():
-		_stages = [
-			{name="Stage 1", num=1, phases=_get_test_phases()},
-			{name="Stage 2", num=2, phases=[]},
-		]
+		return
 	_stage_index = 0
 	_change_stage(0)
-
-func _get_test_phases() -> Array:
-	var p1 := PhaseData.new(); p1.spell_names = ["", "", "", "", ""]; p1.spell_id = 0
-	var p2 := PhaseData.new(); p2.spell_names = ["梦符「Easy」", "梦符「Normal」", "梦符「Hard」", "梦符「Lunatic」", "梦符「Extra」"]; p2.spell_id = 1
-	var p3 := PhaseData.new(); p3.spell_names = ["结界「Easy」", "结界「Normal」", "结界「Hard」", "结界「Lunatic」", "结界「Extra」"]; p3.spell_id = 2
-	return [p1, p2, p3]
 
 func _change_stage(idx: int) -> void:
 	_stage_index = idx
