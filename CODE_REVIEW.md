@@ -27,9 +27,7 @@
 
 ### #9 `range` 变量名遮蔽内置 `range()` ✅
 
-### #10 难度/角色选择界面硬编码 keycode，不走 InputMap
-**文件：** `scripts/scenes/main/difficulty_screen.gd` `character_screen.gd`
-- 用 `KEY_UP` `KEY_Z` 裸码。GameManager 注册的 `ui_accept` 等 input actions 无效。手柄不可用。
+### #10 难度/角色选择界面硬编码 keycode，不走 InputMap ✅
 
 ### #11 ~ SceneTransition 只等一帧 → 不成立（tree.paused 已上锁）
 

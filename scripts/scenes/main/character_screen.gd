@@ -54,23 +54,21 @@ func _refresh() -> void:
 func _input(event: InputEvent) -> void:
 	if not _ready_to_input:
 		return
-	if event is InputEventKey and event.pressed:
-		match event.keycode:
-			KEY_LEFT:
-				_index = wrapi(_index - 1, 0, _labels.size())
-				_refresh()
-				sfx_nav()
-				get_viewport().set_input_as_handled()
-			KEY_RIGHT:
-				_index = wrapi(_index + 1, 0, _labels.size())
-				_refresh()
-				sfx_nav()
-				get_viewport().set_input_as_handled()
-			KEY_Z, KEY_ENTER, KEY_SPACE:
-				sfx_confirm()
-				done({"character": _index})
-				get_viewport().set_input_as_handled()
-			KEY_X, KEY_ESCAPE:
-				sfx_back()
-				leave()
-				get_viewport().set_input_as_handled()
+	if event.is_action_pressed("ui_left"):
+		_index = wrapi(_index - 1, 0, _labels.size())
+		_refresh()
+		sfx_nav()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_right"):
+		_index = wrapi(_index + 1, 0, _labels.size())
+		_refresh()
+		sfx_nav()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_accept"):
+		sfx_confirm()
+		done({"character": _index})
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_cancel"):
+		sfx_back()
+		leave()
+		get_viewport().set_input_as_handled()
