@@ -178,7 +178,9 @@ func _play_entry_animation() -> void:
 		)
 	
 	# 所有入场动画完成后通知 GameScene
-	var total := _entry_queue.size() * ENTRY_INTERVAL + 0.35
+	# 总时长 = 串行 stagger + 最长动画缓冲
+	# Title logo 排第一, 入场 1.5s → 1.5 = 最长单元素时长
+	var total := _entry_queue.size() * ENTRY_INTERVAL + 1.5
 	var done := create_tween()
 	done.tween_interval(total + 0.1)
 	done.tween_callback(func():

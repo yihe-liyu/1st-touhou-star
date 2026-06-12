@@ -22,9 +22,7 @@
 **文件：** `scripts/scenes/ui/game_ui.gd:146`
 - 16 个 Sprite2D 碎片已有绝对坐标，入场动画对所有非特殊节点 `position.x += 30`。Bug！
 
-### #7 GameUI `entry_finished` total 计算偏小
-**文件：** `scripts/scenes/ui/game_ui.gd:143`
-- `total = queue.size * ENTRY_INTERVAL`，但 Title logo (1.5s) + diffculty (1s) 远超 ENTRY_INTERVAL。entry_finished 可能在其他元素未入场完时 emit。
+### #7 GameUI `entry_finished` total 计算偏小 ✅
 
 ### #8 Bomb 输入 action 未定义 + 无 bomb 功能
 - `project.godot` 无 `bomb` action。`Player` 无 `bomb()` 方法。`GameState` 有 `bomb_count` 但无法用。
