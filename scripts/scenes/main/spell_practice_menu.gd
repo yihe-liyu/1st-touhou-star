@@ -49,9 +49,9 @@ func _build_data() -> void:
 	_change_stage(0)
 
 func _get_test_phases() -> Array:
-	var p1 := PhaseData.new(); p1.spell_names = ["", "", "", ""]; p1.spell_id = 0
-	var p2 := PhaseData.new(); p2.spell_names = ["梦符「Easy」", "梦符「Normal」", "梦符「Hard」", "梦符「Lunatic」"]; p2.spell_id = 1
-	var p3 := PhaseData.new(); p3.spell_names = ["结界「Easy」", "结界「Normal」", "结界「Hard」", "结界「Lunatic」"]; p3.spell_id = 2
+	var p1 := PhaseData.new(); p1.spell_names = ["", "", "", "", ""]; p1.spell_id = 0
+	var p2 := PhaseData.new(); p2.spell_names = ["梦符「Easy」", "梦符「Normal」", "梦符「Hard」", "梦符「Lunatic」", "梦符「Extra」"]; p2.spell_id = 1
+	var p3 := PhaseData.new(); p3.spell_names = ["结界「Easy」", "结界「Normal」", "结界「Hard」", "结界「Lunatic」", "结界「Extra」"]; p3.spell_id = 2
 	return [p1, p2, p3]
 
 func _change_stage(idx: int) -> void:
@@ -92,7 +92,7 @@ func _build_phase_list() -> void:
 			non_c += 1
 			_phase_spell_nums.append(0)
 			_phase_non_nums.append(non_c)
-			for d in range(4):
+			for d in range(5):
 				var r = book.get_record(_char_index, st_num, SpellRecord.PhaseType.NONSPELL, non_c, d)
 				if r:
 					var a: int = r.get("attempts")
@@ -104,7 +104,7 @@ func _build_phase_list() -> void:
 			spell_c += 1
 			_phase_spell_nums.append(spell_c)
 			_phase_non_nums.append(0)
-			for d in range(4):
+			for d in range(5):
 				var r = book.get_record(_char_index, st_num, SpellRecord.PhaseType.SPELL, spell_c, d)
 				if r:
 					var a: int = r.get("attempts")
