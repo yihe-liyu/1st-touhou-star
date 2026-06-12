@@ -32,11 +32,20 @@ var _going_right: bool = true
 var _tween: Tween
 
 
+func _find_visual() -> EnemyVisual:
+	if not is_instance_valid(target):
+		return null
+	for child in target.get_children():
+		if child is EnemyVisual:
+			return child
+	return null
+
+
 func start_moving(api: StageAPI, p_target: Node2D):
 	target = p_target
 
 	# 通知动画：开始移动
-	var visual := target.get_node_or_null("EnemyVisual") as EnemyVisual
+	var visual := _find_visual()
 	if visual:
 		visual.set_moving(true)
 
@@ -64,13 +73,9 @@ func _on_step(api: StageAPI) -> Variant:
 			_going_right = not _going_right
 			var dest := patrol_x + range if _going_right else patrol_x - range
 
-			# 翻向
-			if target is AnimatedSprite2D or target.has_method("set_moving"):
-				var sprite := target.get_node_or_null("EnemyVisual") as AnimatedSprite2D
-				if not sprite:
-					sprite = target as AnimatedSprite2D
-				if sprite:
-					sprite.flip_h = not _going_right
+			var visual := _find_visual()
+			if visual:
+				visual.flip_h = not _going_right
 
 			_tween = target.create_tween()
 			_tween.tween_property(target, "global_position:x", dest, period) \
@@ -84,7 +89,7 @@ func _on_step(api: StageAPI) -> Variant:
 func stop():
 	if _tween and _tween.is_valid():
 		_tween.kill()
-	var visual := target.get_node_or_null("EnemyVisual") as EnemyVisual if is_instance_valid(target) else null
+	var visual := _find_visual()
 	if visual:
 		visual.set_moving(false)
 	super.stop()
