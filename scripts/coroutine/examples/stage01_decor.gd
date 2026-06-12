@@ -102,8 +102,8 @@ func _on_step(api: StageAPI) -> Variant:
 
 	# ── 雾压回 (30s~35s): Boss 逼近 ──
 	if _t == 900:
-		_fog_to(Color(0.12, 0.04, 0.20), 0.08, 55.0, 5.0)
-		bg.tween_post_processing(0.65, 1.1, 0.5, 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
+		_fog_to(Color(0.25, 0.10, 0.35), 0.06, 55.0, 5.0)
+		bg.tween_post_processing(0.80, 1.0, 0.7, 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-35), 0, deg_to_rad(-5)), 3.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
 		# 地面加速 + FOV 拉宽 → 冲刺感
 		var t := bg.create_tween().set_parallel(true)
