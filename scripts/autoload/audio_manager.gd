@@ -75,9 +75,16 @@ func play_bgm(stream: AudioStream, gap: float = 0.3) -> void:
 	_bgm_player_b.stop()
 	
 	if gap > 0.0:
-		# false = 暂停时 timer 不走，防止暂停期间 BGM 偷跑
-		await get_tree().create_timer(gap, false).timeout
-	
+		# 用 tween 替代 await，协程内调用不挂
+		var t := create_tween()
+		t.tween_interval(gap)
+		t.finished.connect(_play_bgm_now.bind(stream), CONNECT_ONE_SHOT)
+	else:
+		_play_bgm_now(stream)
+
+func _play_bgm_now(stream: AudioStream) -> void:
+	if not is_instance_valid(_bgm_player):
+		return
 	_bgm_player.stream = stream
 	_bgm_player.volume_db = _to_db(bgm_volume * master_volume)
 	_bgm_player.play()

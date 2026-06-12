@@ -81,4 +81,4 @@
 ### #34 暂停菜单缺"重开"和"返回标题"
 ### #35 StageData 缺 bgm 字段
 ### #36 无手柄支持
-### #37 Await 深度污染（多处非协程用 await）
+### #37 Await 深度污染 ✅（play_bgm await→tween, 协程不杀）
