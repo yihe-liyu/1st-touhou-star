@@ -33,6 +33,9 @@ func _ready():
 	load_save_data()
 	if not GameEvents.enemy_killed.is_connected(_on_enemy_killed):
 		GameEvents.enemy_killed.connect(_on_enemy_killed)
+	GameManager.game_state_changed.connect(_on_state_changed)
+	# 非游戏状态下不跑 _process
+	set_process(false)
 
 func load_save_data():
 	_config = ConfigFile.new()
@@ -100,6 +103,9 @@ func collect_bomb_fragment() -> void:
 		if bomb_count < 8:
 			bomb_count += 1
 
+
+func _on_state_changed(_old: int, new: int) -> void:
+	set_process(new == GameManager.AppState.PLAYING)
 
 func _process(delta: float) -> void:
 	memory_value = clampf(memory_value + MEMORY_REGEN * delta, 0.0, 100.0)

@@ -35,8 +35,7 @@
 
 ## 🟡 P2 — 性能/技术债 (12)
 
-### #12 GameState._process 非游戏中也在跑
-- `memory_value` 每帧 +0.05，主菜单也跑。加 `if not PLAYING: return`。
+### #12 GameState._process 非游戏中也在跑 ✅
 
 ### #13 EnemyVisual 每帧 `get_parent()` ✅
 
