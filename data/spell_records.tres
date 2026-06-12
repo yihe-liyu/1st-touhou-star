@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://spellbook001"]
+
+[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+
+[resource]
+script = ExtResource("1_book")
