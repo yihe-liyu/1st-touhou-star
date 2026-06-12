@@ -52,9 +52,7 @@
 ### #18 StageAPI 持 runner (Node) 强引用 → 语义混乱
 - RefCounted 持 Node。改 WeakRef。
 
-### #19 `return_bullet` disconnect fog 信号可能报错
-**文件：** `scripts/autoload/bullet/bullet_pool.gd:65`
-- CONNECT_ONE_SHOT 的 fog_finished 会自动断，`return_bullet` 再 disconnect 虽被 is_connected 保了，但代码脆弱。应抽成 `bullet.reset()`。
+### #19 ~ return_bullet disconnect fog → is_connected 保护, safe
 
 ### #20 BulletMultiMesh._groups 从不清理 ✅
 
