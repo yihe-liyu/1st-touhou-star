@@ -40,6 +40,14 @@ func _on_step(api: StageAPI) -> Variant:
 		env.fog_light_color = Color.BLACK
 		env.fog_density = 0.15
 		bg.camera.fov = 55.0
+
+		# 黑雾里先生成背景树和石头, 雾散时已经在那儿了
+		for i in range(20):
+			_spawn(api, tree_tex, Vector2(8, 8), 4.0, -400, 400, -260, -30)
+		_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 0, -40, 120)
+		_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, -300, -50, 80)
+		_spawn_cluster(api, rock_tex, Vector2(2.5, 2.5), 2.5, 250, -45, 100)
+
 		return api.frames(1)
 
 	# ── 渐渐化开 (1s~6s) ──
@@ -52,31 +60,28 @@ func _on_step(api: StageAPI) -> Variant:
 	if _t == 120:
 		_fog_to(Color(0.30, 0.30, 0.30), 0.01, 68.0, 1.5)
 		return api.frames(1)
-	if _t == 165:
-		_fog_to(Color(0.35, 0.35, 0.35), 0.0, 70.0, 1.0)
-		return api.frames(1)
 
 	# ── 地面装饰物阶段 (5s~30s) ──
 	if _t >= 150 and _t < 900:
 
-		# 树 (每 0.4s 一棵)
-		if _t % 12 == 0:
-			_spawn(api, tree_tex, Vector2(8, 8), 4.0, -400, 400, -60, -30)
+		# 树 (稀疏, 每 1s — 开头已有 20 棵)
+		if _t % 30 == 0:
+			_spawn(api, tree_tex, Vector2(8, 8), 4.0, -400, 400, -260, -30)
 
 		# 柱子 (稀疏, 每 1.5s)
 		if _t % 45 == 0:
-			_spawn(api, pillar_tex, Vector2(3, 10), 5.0, -350, 350, -50, -25)
+			_spawn(api, pillar_tex, Vector2(3, 10), 5.0, -350, 350, -250, -25)
 
 		# 石头 (每 0.6s)
 		if _t % 18 == 0:
-			_spawn(api, rock_tex, Vector2(2.5, 2.5), 2.5, -400, 400, -55, -25)
+			_spawn(api, rock_tex, Vector2(2.5, 2.5), 2.5, -400, 400, -255, -25)
 
 		# 草丛 (密集, 每 0.15s, 只在地面边缘)
 		if _t % 5 == 0:
 			var side = 1 if _t % 10 < 5 else -1   # 左右交替
 			api.spawn_decor(
 				_make(grass_tex, Vector2(1.5, 1.5)),
-				Vector3(side * randf_range(300, 400), 1.5, randf_range(-55, -35)),
+				Vector3(side * randf_range(300, 400), 1.5, randf_range(-255, -235)),
 				ground
 			)
 
@@ -104,6 +109,14 @@ func _spawn(api: StageAPI, tex: Texture2D, size: Vector2, y: float, x_min: float
 		Vector3(randf_range(x_min, x_max), y, randf_range(z_min, z_max)),
 		ground
 	)
+
+func _spawn_cluster(api: StageAPI, tex: Texture2D, size: Vector2, y: float, center_x: float, center_z: float, spread: float):
+	for i in range(6):
+		api.spawn_decor(
+			_make(tex, size),
+			Vector3(center_x + randf_range(-spread, spread), y, center_z + randf_range(-spread * 0.5, spread * 0.5)),
+			ground
+		)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
