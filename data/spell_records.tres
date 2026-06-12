@@ -1,15 +1,27 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://c2uaa7spviq6w"]
+[gd_resource type="Resource" script_class="SpellRecordBook" load_steps=4 format=3]
 
-[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
-[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]
+[ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+[ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="2_record"]
 
 [sub_resource type="Resource" id="rec_01"]
 script = ExtResource("2_record")
 spell_id = "test_01"
+attempts = 0
+captures = 0
+practice_attempts = 0
+practice_captures = 0
+best_score = 0
+best_time = 0.0
 
 [sub_resource type="Resource" id="rec_02"]
 script = ExtResource("2_record")
 spell_id = "test_02"
+attempts = 0
+captures = 0
+practice_attempts = 0
+practice_captures = 0
+best_score = 0
+best_time = 0.0
 
 [resource]
 script = ExtResource("1_book")

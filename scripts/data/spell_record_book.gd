@@ -26,6 +26,13 @@ func record_attempt(spell_id: String, captured: bool, score: int, elapsed: float
 			if bt == 0 or elapsed < bt:
 				r.set("best_time", elapsed)
 
+func record_practice(spell_id: String, captured: bool) -> void:
+	var r = get_record(spell_id)
+	if not r: return
+	r.set("practice_attempts", r.get("practice_attempts") + 1)
+	if captured:
+		r.set("practice_captures", r.get("practice_captures") + 1)
+
 func get_capture_rate(spell_id: String) -> float:
 	var r = get_record(spell_id)
 	if not r: return 0.0

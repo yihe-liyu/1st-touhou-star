@@ -26,6 +26,10 @@ func record_spell(spell_id: String, captured: bool, score: int, elapsed: float) 
 	spell_book.record_attempt(spell_id, captured, score, elapsed)
 	_save_spell_book()
 
+func record_practice(spell_id: String, captured: bool) -> void:
+	spell_book.record_practice(spell_id, captured)
+	_save_spell_book()
+
 var active_enemies: Array = []
 
 var high_scores: Dictionary = {}
