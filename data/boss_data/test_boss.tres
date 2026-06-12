@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BossData" format=3 uid="uid://d4biybdb0at8n"]
+
+[ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://70htyyc4o2hu" path="res://scripts/data/phase_data.gd" id="1_hyqh7"]
+[ext_resource type="Script" uid="uid://beqa1sf48dta3" path="res://scripts/coroutine/examples/boss_move_test.gd" id="2_qj75c"]
+[ext_resource type="Script" uid="uid://cihlvnetwrgev" path="res://scripts/coroutine/examples/boss_shoot_test.gd" id="3_lodrm"]
+[ext_resource type="PackedScene" uid="uid://bgp37sorjc6hv" path="res://scenes/enemy_visual_test.tscn" id="5_qj75c"]
+
+[sub_resource type="Resource" id="Resource_smj22"]
+script = ExtResource("1_hyqh7")
+bonus = 50000
+time_limit = 60.0
+move_script = ExtResource("2_qj75c")
+shoot_script = ExtResource("3_lodrm")
+metadata/_custom_type_script = "uid://70htyyc4o2hu"
+
+[resource]
+script = ExtResource("1")
+visual = ExtResource("5_qj75c")
+phases = Array[ExtResource("1_hyqh7")]([SubResource("Resource_smj22")])
