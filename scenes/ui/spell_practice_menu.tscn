@@ -20,103 +20,26 @@ color = Color(0, 0, 0, 0.6)
 
 [node name="Title" type="Label" parent="."]
 layout_mode = 0
-anchor_top = 0.08
+anchor_top = 0.12
 anchor_right = 1.0
-anchor_bottom = 0.16
+anchor_bottom = 0.22
 theme_override_font_sizes/font_size = 26
-text = "Spell Practice"
+text = "Select Stage"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StagePanel" type="Control" parent="."]
-layout_mode = 0
-anchor_left = 0.1
-anchor_top = 0.22
-anchor_right = 0.35
-anchor_bottom = 0.65
-
-[node name="StageLabel" type="Label" parent="StagePanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 8
 anchor_left = 0.5
+anchor_top = 0.28
 anchor_right = 0.5
-offset_left = -80.0
-offset_top = 0.0
-offset_right = 80.0
-offset_bottom = 30.0
-grow_horizontal = 2
-text = "Stage"
-horizontal_alignment = 1
-
-[node name="VBoxContainer" type="VBoxContainer" parent="StagePanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 40.0
+anchor_bottom = 0.65
+offset_left = -120.0
+offset_right = 120.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
-
-[node name="PhasePanel" type="Control" parent="."]
-layout_mode = 0
-anchor_left = 0.38
-anchor_top = 0.22
-anchor_right = 0.63
-anchor_bottom = 0.65
-
-[node name="PhaseLabel" type="Label" parent="PhasePanel"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -80.0
-offset_top = 0.0
-offset_right = 80.0
-offset_bottom = 30.0
-grow_horizontal = 2
-text = "Phase"
-horizontal_alignment = 1
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PhasePanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 40.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 8
-
-[node name="DiffPanel" type="Control" parent="."]
-layout_mode = 0
-anchor_left = 0.66
-anchor_top = 0.22
-anchor_right = 0.91
-anchor_bottom = 0.65
-
-[node name="DiffLabel" type="Label" parent="DiffPanel"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -80.0
-offset_top = 0.0
-offset_right = 80.0
-offset_bottom = 30.0
-grow_horizontal = 2
-text = "Difficulty"
-horizontal_alignment = 1
-
-[node name="VBoxContainer" type="VBoxContainer" parent="DiffPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 40.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="CharPanel" type="Control" parent="."]
 layout_mode = 0
