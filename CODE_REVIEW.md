@@ -43,8 +43,7 @@
 ### #14 BulletPool 动态扩容无上限
 - POOL_SIZE=4000 不够时动态创建，没 cap。加 max 或用 LRU。
 
-### #15 BulletMultiMesh._sync 每帧 `is_instance_valid` 扫描全部子弹
-- 200 bullets = 200 次 is_instance_valid。回收时应从 active list 移除。
+### #15 ~ BulletMultiMesh is_instance_valid → 不计开销, false alarm
 
 ### #16 HitEffectPool.spawn 每帧 `Engine.get_main_loop().current_scene`
 - 高频调用时缓存 World 引用。
