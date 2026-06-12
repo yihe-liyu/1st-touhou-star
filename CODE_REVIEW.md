@@ -63,7 +63,7 @@
 
 ## 🟢 P3 — 代码质量 (6)
 
-### #24 子弹挂 BulletManager，敌人挂 World → 坐标系不一致
+### #24 ~ 挂载点不一致 → global_position 下无影响, false alarm
 ### #25 ~ _blur_rect 名字无所谓, false alarm
 ### #26 BackgroundScript._on_init 与 start_background 时序不文档化
 ### #27 菜单/UI 输入不统一
