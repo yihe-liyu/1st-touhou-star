@@ -61,4 +61,7 @@ scroll_speed = 0.1
 
 [node name="Node" type="Node" parent="." unique_id=2059976144]
 script = ExtResource("7_g553e")
-tree_texture = ExtResource("8_0dhpc")
+tree_tex = ExtResource("8_0dhpc")
+rock_tex = ExtResource("8_0dhpc")
+pillar_tex = ExtResource("8_0dhpc")
+grass_tex = ExtResource("8_0dhpc")
