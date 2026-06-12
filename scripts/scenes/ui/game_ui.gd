@@ -104,7 +104,7 @@ func _play_entry_animation() -> void:
 		var is_separator := node is UISeparator
 		var is_title := node.name == "Title"
 		var is_diff := node.name == "diffculty"
-		var is_fragment := node in _life_fragments or node in _bomb_fragments
+		var is_fragment := node.has_meta("is_fragment")
 		if is_title:
 			# Title Logo：挂 Shader，初始隐藏
 			var logo_shader := preload("res://gdshader/logo_entrance.gdshader")
@@ -213,6 +213,7 @@ func _fragment_init() -> void:
 		s.position = Vector2(1018 + i * 32, 232)
 		s.z_index = 128
 		s.modulate.a = 0.0
+		s.set_meta("is_fragment", true)
 		add_child(s)
 		_life_fragments[i] = s
 		_entry_queue.append(s)
@@ -224,6 +225,7 @@ func _fragment_init() -> void:
 		s.position = Vector2(1018 + i * 32, 304)
 		s.z_index = 128
 		s.modulate.a = 0.0
+		s.set_meta("is_fragment", true)
 		add_child(s)
 		_bomb_fragments[i] = s
 		_entry_queue.append(s)
