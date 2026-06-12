@@ -66,8 +66,8 @@
 ### #24 ~ 挂载点不一致 → global_position 下无影响, false alarm
 ### #25 ~ _blur_rect 名字无所谓, false alarm
 ### #26 _on_init 时序说明 ✅
-### #27 菜单/UI 输入不统一
-### #28 `@export` 变量全无注释
+### #27 ~ 输入已随 #10 统一, ✅
+### #28 ~ @export 注释可渐进补, false alarm
 ### #29 ~ 无统一日志 → 项目规模小, 约定即可, false alarm
 
 ---
