@@ -22,10 +22,12 @@ var _phases: Array = []
 
 func _on_enter() -> void:
 	_build_data()
+	_build_lists()
+	_highlight()
 	modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 1.0, 0.3)
-	tw.tween_callback(func(): _ready = true; _build_lists(); _highlight())
+	tw.tween_callback(func(): _ready = true)
 
 func _on_leave() -> void:
 	_ready = false
