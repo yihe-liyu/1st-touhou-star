@@ -13,6 +13,7 @@ const RIGHTING = "righting"
 const RIGHT   = "right"
 
 var anim_state: String = IDLE
+var _parent: Node2D
 var _last_pos: Vector2
 var _speed: float = 0.0
 var _idle_timer: float = 0.0  # speed 连续低于阈值的时间
@@ -22,9 +23,9 @@ const IDLE_HOLD: float = 0.2         # 低于阈值持续多久才切idle (防�
 
 func _ready() -> void:
 	animation_finished.connect(_on_animation_finished)
-	var parent = get_parent()
-	if parent:
-		_last_pos = parent.global_position
+	_parent = get_parent()
+	if _parent:
+		_last_pos = _parent.global_position
 	# righting 只播一次，不循环
 	var frames := sprite_frames
 	if frames and frames.has_animation(RIGHTING):
@@ -32,12 +33,11 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var parent := get_parent() as Node2D
-	if not parent:
+	if not _parent:
 		return
-	var dx := parent.global_position.x - _last_pos.x
+	var dx := _parent.global_position.x - _last_pos.x
 	_speed = abs(dx) / max(delta, 0.001)
-	_last_pos = parent.global_position
+	_last_pos = _parent.global_position
 	
 	# 翻向
 	if dx > 0.1:

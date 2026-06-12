@@ -38,8 +38,7 @@
 ### #12 GameState._process 非游戏中也在跑
 - `memory_value` 每帧 +0.05，主菜单也跑。加 `if not PLAYING: return`。
 
-### #13 EnemyVisual 每帧 `get_parent() as Node2D`
-- 30 敌人 = 30 次 get_parent/帧。缓存到 `@onready var _parent`。
+### #13 EnemyVisual 每帧 `get_parent()` ✅
 
 ### #14 BulletPool 动态扩容无上限
 - POOL_SIZE=4000 不够时动态创建，没 cap。加 max 或用 LRU。
