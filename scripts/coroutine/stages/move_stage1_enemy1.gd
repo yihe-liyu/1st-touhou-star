@@ -35,6 +35,11 @@ var _tween: Tween
 func start_moving(api: StageAPI, p_target: Node2D):
 	target = p_target
 
+	# 通知动画：开始移动
+	var visual := target.get_node_or_null("EnemyVisual") as EnemyVisual
+	if visual:
+		visual.set_moving(true)
+
 	# ── 入场：滑到 (patrol_x, entrance_y) ──
 	var end_pos := Vector2(patrol_x, entrance_y)
 	_tween = target.create_tween()
@@ -59,6 +64,14 @@ func _on_step(api: StageAPI) -> Variant:
 			_going_right = not _going_right
 			var dest := patrol_x + range if _going_right else patrol_x - range
 
+			# 翻向
+			if target is AnimatedSprite2D or target.has_method("set_moving"):
+				var sprite := target.get_node_or_null("EnemyVisual") as AnimatedSprite2D
+				if not sprite:
+					sprite = target as AnimatedSprite2D
+				if sprite:
+					sprite.flip_h = not _going_right
+
 			_tween = target.create_tween()
 			_tween.tween_property(target, "global_position:x", dest, period) \
 				.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
@@ -71,4 +84,7 @@ func _on_step(api: StageAPI) -> Variant:
 func stop():
 	if _tween and _tween.is_valid():
 		_tween.kill()
+	var visual := target.get_node_or_null("EnemyVisual") as EnemyVisual if is_instance_valid(target) else null
+	if visual:
+		visual.set_moving(false)
 	super.stop()
