@@ -15,6 +15,8 @@ var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
 var _stage_id: int = 1
+var _spell_count: int = 0
+var _non_count: int = 0
 
 func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
@@ -50,6 +52,12 @@ func _next_phase() -> void:
 	_current_phase = boss_data.phases[_phase_index]
 	_elapsed = 0.0
 	_bonus = _current_phase.bonus
+	
+	# 计数
+	if _current_phase.name != "" or _current_phase.spell_id != 0:
+		_spell_count += 1
+	else:
+		_non_count += 1
 	
 	if _current_phase.is_timeout_only:
 		_invincible = true
@@ -101,9 +109,11 @@ func _on_phase_clear(captured: bool) -> void:
 	if _current_phase.spell_id != 0:
 		var ch: int = GameState.selected_character
 		var st: int = _stage_id
-		var ph: int = _phase_index + 1
+		var is_spell := _current_phase.name != "" or _current_phase.spell_id != 0
+		var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
+		var pn: int = _spell_count if is_spell else _non_count
 		var diff: int = GameState.selected_difficulty
-		GameState.record_spell(ch, st, ph, diff, captured, _bonus, _elapsed)
+		GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

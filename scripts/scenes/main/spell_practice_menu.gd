@@ -14,10 +14,12 @@ var _diff_index: int = 0
 var _char_index: int = 0
 var _ready: bool = false
 
-const DIFF_NAMES := SpellRecord.DIFF_NAMES
-const CHAR_NAMES := SpellRecord.CHAR_NAMES
+const DIFF_NAMES = SpellRecord.DIFF_NAMES
+const CHAR_NAMES = SpellRecord.CHAR_NAMES
 var _stages: Array = []
 var _phases: Array = []
+var _phase_spell_nums: Array[int] = []  # 每项是第几个 spell（非符=0）
+var _phase_non_nums: Array[int] = []    # 每项是第几个 non（符卡=0）
 
 
 func _on_enter() -> void:
@@ -39,7 +41,6 @@ func _on_leave() -> void:
 # ═══ 数据 ═══
 
 func _build_data() -> void:
-	# TODO: 从真实关卡数据读取
 	_stages = [
 		{name="Stage 1", num=1, phases=_get_test_phases()},
 		{name="Stage 2", num=2, phases=[]},
@@ -66,45 +67,50 @@ func _build_lists() -> void:
 	for s in _stages:
 		var lbl := _make_label(s.name)
 		var book: Resource = GameState.spell_book
-		var records: Array = book.get_by_stage(_char_index, s.num)
-		var cap := 0
-		var att := 0
-		for r in records:
+		var recs: Array = book.get_by_stage(_char_index, s.num)
+		var cap := 0; var att := 0
+		for r in recs:
 			cap += r.get("captures")
 			att += r.get("attempts")
-		var suffix := ""
 		if att > 0:
-			suffix = "  %d/%d" % [cap, att]
-		lbl.text += suffix
+			lbl.text += "  %d/%d" % [cap, att]
 		_stage_box.add_child(lbl)
 	_build_phase_list()
 
 func _build_phase_list() -> void:
 	_clear(_phase_box)
-	var spell_c := 0
-	var non_c := 0
-	var stage_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
+	_phase_spell_nums.clear()
+	_phase_non_nums.clear()
+	var spell_c := 0; var non_c := 0
+	var st_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
 	var book: Resource = GameState.spell_book
 	
-	for i in _phases.size():
-		var nm: String = _phases[i].get("name") if _phases[i].has_method("get") else ""
+	for p in _phases:
+		var nm: String = p.get("name") if p.has_method("get") else ""
 		var suffix := ""
-		# 显示该符卡所有难度合计
-		var cap := 0
-		var att := 0
-		for d in range(4):
-			var r = book.get_record(_char_index, stage_num, i + 1, d)
-			if r:
-				cap += r.get("captures")
-				att += r.get("attempts")
-		if att > 0:
-			suffix = "  %d/%d" % [cap, att]
-		
 		if nm == "":
 			non_c += 1
+			_phase_spell_nums.append(0)
+			_phase_non_nums.append(non_c)
+			for d in range(4):
+				var r = book.get_record(_char_index, st_num, SpellRecord.PhaseType.NONSPELL, non_c, d)
+				if r:
+					var a: int = r.get("attempts")
+					if a > 0:
+						suffix = "  %d/%d" % [r.get("captures"), a]
+					break
 			_phase_box.add_child(_make_label("非符%d%s" % [non_c, suffix]))
 		else:
 			spell_c += 1
+			_phase_spell_nums.append(spell_c)
+			_phase_non_nums.append(0)
+			for d in range(4):
+				var r = book.get_record(_char_index, st_num, SpellRecord.PhaseType.SPELL, spell_c, d)
+				if r:
+					var a: int = r.get("attempts")
+					if a > 0:
+						suffix = "  %d/%d" % [r.get("captures"), a]
+					break
 			_phase_box.add_child(_make_label("符卡%d%s" % [spell_c, suffix]))
 
 func _build_diff_list() -> void:
@@ -112,8 +118,10 @@ func _build_diff_list() -> void:
 	if _phase_index >= _phases.size(): return
 	var names = _phases[_phase_index].get("spell_names")
 	if not names is Array: return
-	var stage_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
+	var st_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
 	var book: Resource = GameState.spell_book
+	var pt: int = SpellRecord.PhaseType.NONSPELL if _phase_spell_nums[_phase_index] == 0 else SpellRecord.PhaseType.SPELL
+	var pn: int = _phase_spell_nums[_phase_index] if pt == SpellRecord.PhaseType.SPELL else _phase_non_nums[_phase_index]
 	
 	for i in names.size():
 		var vbox := VBoxContainer.new()
@@ -124,11 +132,11 @@ func _build_diff_list() -> void:
 		vbox.add_child(nl)
 		
 		var hl := Label.new()
-		var r = book.get_record(_char_index, stage_num, _phase_index + 1, i)
-		var capture_str := ""
+		var r = book.get_record(_char_index, st_num, pt, pn, i)
+		var cap_str := ""
 		if r:
-			capture_str = "%d/%d" % [r.get("captures"), r.get("attempts")]
-		hl.text = "%s  %s" % [DIFF_NAMES[i], capture_str]
+			cap_str = "  %d/%d" % [r.get("captures"), r.get("attempts")]
+		hl.text = DIFF_NAMES[i] + cap_str
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		hl.add_theme_font_size_override("font_size", 12)
 		hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -146,13 +154,6 @@ func _make_label(text: String) -> Label:
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.add_theme_font_size_override("font_size", 22)
 	return lbl
-
-func _refresh_char() -> void:
-	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
-	_build_lists()
-	_highlight()
-	_build_lists()
-	_highlight()
 
 # ═══ 高亮 ═══
 
@@ -188,8 +189,7 @@ func _dim_diff() -> void:
 func _highlight_diff(idx: int) -> void:
 	var items := _diff_box.get_children()
 	for i in items.size():
-		var vbox := items[i]
-		for child in vbox.get_children():
+		for child in items[i].get_children():
 			child.modulate = Color.WHITE if i == idx else Color(0.4, 0.4, 0.4)
 
 # ═══ 索引 ═══
@@ -214,8 +214,15 @@ func _get_idx() -> int:
 func _set_idx(v: int) -> void:
 	match _section:
 		Section.STAGE: _stage_index = v; _change_stage(v)
-		Section.PHASE: _phase_index = v; _build_diff_list(); _dim_diff()
+		Section.PHASE: _phase_index = v
 		Section.DIFF:  _diff_index = v
+
+# ═══ 刷新角色 ═══
+
+func _refresh_char() -> void:
+	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
+	_build_lists()
+	_highlight()
 
 # ═══ 输入 ═══
 
@@ -267,8 +274,7 @@ func _start_practice() -> void:
 	if _phases.is_empty(): return
 	var phase = _phases[_phase_index]
 	if not phase: return
-	var stage_num: int = _stages[_stage_index].get("num", 1)
 	var names = phase.get("spell_names")
 	var pname: String = names[_diff_index] if names is Array else ""
-	print("练习: ", pname, " 角色:", CHAR_NAMES[_char_index], " Stage:", stage_num, " Phase:", _phase_index + 1, " 难度:", DIFF_NAMES[_diff_index])
+	print("练习: ", pname, " 角色:", CHAR_NAMES[_char_index], " 难度:", DIFF_NAMES[_diff_index])
 	_on_leave()
