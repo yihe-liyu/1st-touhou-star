@@ -58,15 +58,7 @@
 
 ### #20 BulletMultiMesh._groups 从不清理 ✅
 
-### #21 CurvedLaser 池复用逻辑错误
-**文件：** `scripts/autoload/bullet/laser_system.gd:25`
-```gdscript
-for l in _active_lasers:
-    if l.phase == CurvedLaserClass.DEAD:
-        l.init(data, origin, guide_curve, rot_speed)
-        return l   # ← 找到第一个 DEAD 就复用
-```
-- 复用后激光处于 ALIVE 但可能残留旧 shader 参数、旧 fog_sprite。`init()` 重置了大部分状态，但 `_seg_lines` 的 `Line2D.width` / `width_curve` 未重置。
+### #21 CurvedLaser 池复用逻辑错误 ✅
 
 ### #22 BulletFog.play 相同 texture 直接 emit finished ✅
 

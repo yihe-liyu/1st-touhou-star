@@ -114,6 +114,13 @@ func _setup_line():
 	if not _shader_mat:
 		_shader_mat = ShaderMaterial.new()
 		_shader_mat.shader = preload("res://gdshader/laser_glow.gdshader")
+	
+	# 只在首次创建 Line2D 节点，复用时不重建
+	if line:
+		line.visible = false
+		for sl in _seg_lines:
+			sl.visible = false
+		return
 
 	# 主 Line2D（无孔时用）
 	line = _make_line_node()
