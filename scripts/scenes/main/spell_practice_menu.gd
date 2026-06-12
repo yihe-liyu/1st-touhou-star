@@ -16,10 +16,10 @@ var _ready: bool = false
 
 const DIFF_NAMES = SpellRecord.DIFF_NAMES
 const CHAR_NAMES = SpellRecord.CHAR_NAMES
-var _stages: Array = []
-var _phases: Array = []
-var _phase_spell_nums: Array[int] = []  # 每项是第几个 spell（非符=0）
-var _phase_non_nums: Array[int] = []    # 每项是第几个 non（符卡=0）
+var _stages: Array[int] = []       # 有记录的关卡号列表
+var _phases: Array = []             # [{type, num, names[]}]
+var _phase_spell_nums: Array[int] = []
+var _phase_non_nums: Array[int] = []
 
 
 func _on_enter() -> void:
@@ -38,41 +38,81 @@ func _on_leave() -> void:
 	tw.tween_property(self, "modulate:a", 0.0, 0.2)
 	tw.tween_callback(queue_free)
 
-# ═══ 数据 ═══
+# ═══ 从 RecordBook 生成菜单 ═══
 
 func _build_data() -> void:
+	var book: Resource = GameState.spell_book
+	var all_recs: Array = book.records
+	
+	# 收集该角色有记录的关卡
+	var stage_set: Dictionary = {}
+	for r in all_recs:
+		if r.get("character") != _char_index:
+			continue
+		var st: int = r.get("stage")
+		if not stage_set.has(st):
+			stage_set[st] = true
+	
 	_stages.clear()
-	var dir := DirAccess.open("res://data/stages/")
-	if dir:
-		dir.list_dir_begin()
-		var fn := dir.get_next()
-		while fn != "":
-			if fn.ends_with(".tres"):
-				var sd: StageData = ResourceLoader.load("res://data/stages/" + fn)
-				if sd and sd.boss_data:
-					_stages.append({
-						name = sd.stage_name,
-						num = sd.stage_id,
-						phases = sd.boss_data.phases,
-					})
-			fn = dir.get_next()
-		
-		# 按 stage_id 排序
-		_stages.sort_custom(func(a, b): return a.num < b.num)
+	for st in stage_set.keys():
+		_stages.append(st)
+	_stages.sort()
 	
 	if _stages.is_empty():
-		var lbl := Label.new()
-		lbl.text = "No stages found"
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 20)
-		_stage_box.add_child(lbl)
 		return
+	
 	_stage_index = 0
 	_change_stage(0)
 
+# ═══ 切换关卡 ═══
+
 func _change_stage(idx: int) -> void:
 	_stage_index = idx
-	_phases = _stages[idx].get("phases", [])
+	_phases.clear()
+	_phase_spell_nums.clear()
+	_phase_non_nums.clear()
+	
+	if _stages.is_empty(): return
+	var st_num: int = _stages[idx]
+	var book: Resource = GameState.spell_book
+	
+	# 收集该关卡有记录的 phase
+	# 结构: { (phase_type, phase_number): { diff → record } }
+	var phase_map: Dictionary = {}
+	for r in book.records:
+		if r.get("character") != _char_index or r.get("stage") != st_num:
+			continue
+		var pt: int = r.get("phase_type")
+		var pn: int = r.get("phase_number")
+		var key = "%d_%d" % [pt, pn]
+		if not phase_map.has(key):
+			phase_map[key] = {type=pt, num=pn, diffs={}}
+		phase_map[key]["diffs"][r.get("difficulty")] = r
+	
+	# 按类型和编号排序
+	var keys := phase_map.keys()
+	keys.sort_custom(func(a, b):
+		var pa = phase_map[a]; var pb = phase_map[b]
+		if pa.type != pb.type: return pa.type < pb.type
+		return pa.num < pb.num
+	)
+	
+	var spell_c := 0; var non_c := 0
+	for key in keys:
+		var info = phase_map[key]
+		var pt: int = info.type
+		var pn: int = info.num
+		if pt == SpellRecord.PhaseType.NONSPELL:
+			non_c += 1
+			_phase_spell_nums.append(0)
+			_phase_non_nums.append(non_c)
+			_phases.append({type=pt, num=pn, diffs=info.diffs})
+		else:
+			spell_c += 1
+			_phase_spell_nums.append(spell_c)
+			_phase_non_nums.append(0)
+			_phases.append({type=pt, num=pn, diffs=info.diffs})
+	
 	_phase_index = 0
 	_build_phase_list()
 
@@ -80,10 +120,18 @@ func _change_stage(idx: int) -> void:
 
 func _build_lists() -> void:
 	_clear(_stage_box)
-	for s in _stages:
-		var lbl := _make_label(s.name)
-		var book: Resource = GameState.spell_book
-		var recs: Array = book.get_by_stage(_char_index, s.num)
+	if _stages.is_empty():
+		var lbl := Label.new()
+		lbl.text = "No records"
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 20)
+		_stage_box.add_child(lbl)
+		return
+	
+	var book: Resource = GameState.spell_book
+	for st in _stages:
+		var lbl := _make_label("Stage %d" % st)
+		var recs: Array = book.get_by_stage(_char_index, st)
 		var cap := 0; var att := 0
 		for r in recs:
 			cap += r.get("captures")
@@ -95,64 +143,45 @@ func _build_lists() -> void:
 
 func _build_phase_list() -> void:
 	_clear(_phase_box)
-	_phase_spell_nums.clear()
-	_phase_non_nums.clear()
-	var spell_c := 0; var non_c := 0
-	var st_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
 	var book: Resource = GameState.spell_book
+	var st_num: int = _stages[_stage_index] if _stage_index < _stages.size() else 0
 	
-	for p in _phases:
-		var nm: String = p.get("name") if p.has_method("get") else ""
+	for i in _phases.size():
+		var info = _phases[i]
 		var suffix := ""
-		if nm == "":
-			non_c += 1
-			_phase_spell_nums.append(0)
-			_phase_non_nums.append(non_c)
-			for d in range(5):
-				var r = book.get_record(_char_index, st_num, SpellRecord.PhaseType.NONSPELL, non_c, d)
-				if r:
-					var a: int = r.get("attempts")
-					if a > 0:
-						suffix = "  %d/%d" % [r.get("captures"), a]
-					break
-			_phase_box.add_child(_make_label("非符%d%s" % [non_c, suffix]))
+		var cap := 0; var att := 0
+		for diff in info.diffs.keys():
+			var r = info.diffs[diff]
+			cap += r.get("captures")
+			att += r.get("attempts")
+		if att > 0:
+			suffix = "  %d/%d" % [cap, att]
+		
+		if info.type == SpellRecord.PhaseType.NONSPELL:
+			_phase_box.add_child(_make_label("非符%d%s" % [_phase_non_nums[i], suffix]))
 		else:
-			spell_c += 1
-			_phase_spell_nums.append(spell_c)
-			_phase_non_nums.append(0)
-			for d in range(5):
-				var r = book.get_record(_char_index, st_num, SpellRecord.PhaseType.SPELL, spell_c, d)
-				if r:
-					var a: int = r.get("attempts")
-					if a > 0:
-						suffix = "  %d/%d" % [r.get("captures"), a]
-					break
-			_phase_box.add_child(_make_label("符卡%d%s" % [spell_c, suffix]))
+			_phase_box.add_child(_make_label("符卡%d%s" % [_phase_spell_nums[i], suffix]))
 
 func _build_diff_list() -> void:
 	_clear(_diff_box)
 	if _phase_index >= _phases.size(): return
-	var names = _phases[_phase_index].get("spell_names")
-	if not names is Array: return
-	var st_num: int = _stages[_stage_index].get("num", 1) if _stage_index < _stages.size() else 1
-	var book: Resource = GameState.spell_book
-	var pt: int = SpellRecord.PhaseType.NONSPELL if _phase_spell_nums[_phase_index] == 0 else SpellRecord.PhaseType.SPELL
-	var pn: int = _phase_spell_nums[_phase_index] if pt == SpellRecord.PhaseType.SPELL else _phase_non_nums[_phase_index]
+	var info = _phases[_phase_index]
 	
-	for i in names.size():
+	for d in range(SpellRecord.DIFF_NAMES.size()):
+		if not info.diffs.has(d):
+			continue  # 没有这个难度的记录，跳过
+		
+		var r = info.diffs[d]
 		var vbox := VBoxContainer.new()
 		var nl := Label.new()
-		nl.text = names[i] if names[i] != "" else "-"
+		nl.text = r.get("spell_name") if r.get("spell_name") != "" else "-"
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.add_theme_font_size_override("font_size", 18)
 		vbox.add_child(nl)
 		
 		var hl := Label.new()
-		var r = book.get_record(_char_index, st_num, pt, pn, i)
-		var cap_str := ""
-		if r:
-			cap_str = "  %d/%d" % [r.get("captures"), r.get("attempts")]
-		hl.text = DIFF_NAMES[i] + cap_str
+		var cap_str := "  %d/%d" % [r.get("captures"), r.get("attempts")]
+		hl.text = DIFF_NAMES[d] + cap_str
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		hl.add_theme_font_size_override("font_size", 12)
 		hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -216,8 +245,8 @@ func _max_idx() -> int:
 		Section.PHASE: return _phases.size() - 1
 		Section.DIFF:
 			if _phase_index >= _phases.size(): return -1
-			var names = _phases[_phase_index].get("spell_names")
-			return names.size() - 1 if names is Array else -1
+			var info = _phases[_phase_index]
+			return info.diffs.keys().size() - 1
 	return 0
 
 func _get_idx() -> int:
@@ -237,6 +266,7 @@ func _set_idx(v: int) -> void:
 
 func _refresh_char() -> void:
 	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
+	_build_data()
 	_build_lists()
 	_highlight()
 
@@ -288,9 +318,12 @@ func _input(event: InputEvent) -> void:
 
 func _start_practice() -> void:
 	if _phases.is_empty(): return
-	var phase = _phases[_phase_index]
-	if not phase: return
-	var names = phase.get("spell_names")
-	var pname: String = names[_diff_index] if names is Array else ""
-	print("练习: ", pname, " 角色:", CHAR_NAMES[_char_index], " 难度:", DIFF_NAMES[_diff_index])
+	var info = _phases[_phase_index]
+	if info.diffs.is_empty(): return
+	var diff_keys: Array = info.diffs.keys()
+	diff_keys.sort()
+	var diff: int = diff_keys[_diff_index]
+	var r = info.diffs[diff]
+	var pname: String = r.get("spell_name")
+	print("练习: ", pname, " 角色:", CHAR_NAMES[_char_index], " 难度:", DIFF_NAMES[diff])
 	_on_leave()
