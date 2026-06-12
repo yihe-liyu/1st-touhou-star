@@ -3,6 +3,7 @@ extends Resource
 class_name PhaseData
 
 @export var name: String = ""
+@export var spell_id: String = ""    # 记录用唯一ID，空串不记录
 @export var bonus: int = 0
 @export var time_limit: float = 30.0
 @export var hp: int = 1000

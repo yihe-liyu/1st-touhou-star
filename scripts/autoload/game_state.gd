@@ -2,12 +2,29 @@
 extends Node
 
 const BossScript = preload("res://scripts/enemy/boss.gd")
+const SpellBookClass = preload("res://scripts/data/spell_record_book.gd")
+
+const SPELL_BOOK_PATH := "user://spell_records.tres"
 
 # 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1
 # 0=Reimu 1=Marisa
 var selected_character: int = 0
 var player: Player = null
+var spell_book
+
+func _load_spell_book() -> void:
+	if ResourceLoader.exists(SPELL_BOOK_PATH):
+		spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
+	else:
+		spell_book = SpellBookClass.new()
+
+func _save_spell_book() -> void:
+	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
+
+func record_spell(spell_id: String, captured: bool, score: int, elapsed: float) -> void:
+	spell_book.record_attempt(spell_id, captured, score, elapsed)
+	_save_spell_book()
 
 var active_enemies: Array = []
 
@@ -32,6 +49,7 @@ const MEMORY_REGEN: float = 0.05
 const SAVE_PATH: String = "user://save_data.cfg"
 
 func _ready():
+	_load_spell_book()
 	load_save_data()
 	if not GameEvents.enemy_killed.is_connected(_on_enemy_killed):
 		GameEvents.enemy_killed.connect(_on_enemy_killed)

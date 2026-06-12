@@ -96,6 +96,10 @@ func _on_phase_clear(captured: bool) -> void:
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
+	# 记录收取
+	if _current_phase.spell_id != "":
+		GameState.record_spell(_current_phase.spell_id, captured, _bonus, _elapsed)
+	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:
 		GameState.add_score(_bonus)
