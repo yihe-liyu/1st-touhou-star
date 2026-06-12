@@ -210,8 +210,7 @@ func _highlight() -> void:
 	match _section:
 		Section.STAGE:
 			_highlight_one(_stage_box, _stage_index)
-			_build_diff_list()
-			_dim_diff()
+			_clear(_diff_box)
 		Section.PHASE:
 			_highlight_one(_phase_box, _phase_index)
 			_build_diff_list()
