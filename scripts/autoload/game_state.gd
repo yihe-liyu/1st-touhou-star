@@ -1,6 +1,8 @@
 # GameState.gd
 extends Node
 
+const BossScript = preload("res://scripts/enemy/boss.gd")
+
 # 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1
 # 0=Reimu 1=Marisa
@@ -138,6 +140,12 @@ func reduce_memory(amount: float) -> void:
 
 func get_active_enemies() -> Array:
 	return active_enemies
+
+func get_boss():
+	for enemy in active_enemies:
+		if is_instance_valid(enemy) and enemy.get_script() == BossScript:
+			return enemy
+	return null
 
 func clear_enemies():
 	for enemy in active_enemies:

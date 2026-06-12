@@ -45,6 +45,11 @@ func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 		return null
 	return StageManager.spawn_enemy(data, position)
 
+func spawn_boss(data: BossData, position: Vector2):
+	if not active():
+		return
+	StageManager.spawn_boss(data, position, self)
+
 func get_player() -> Player:
 	return GameState.player
 

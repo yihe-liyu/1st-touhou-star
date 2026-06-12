@@ -10,6 +10,7 @@ class_name EnemyData
 @export var death_effect: PackedScene
 @export var create_script: Script
 @export var move_script: Script
+@export var boss_data: BossData
 
 @export_group("Item", "item_")
 @export var item_power: int = 0

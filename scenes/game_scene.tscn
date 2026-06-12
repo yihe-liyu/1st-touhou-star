@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://dtv267387tbw0" path="res://assets/Textures/front/front02.png" id="6_mw25s"]
 [ext_resource type="Texture2D" uid="uid://btj64lam67h1f" path="res://assets/Textures/front/FalseFront.png" id="6_tcjrq"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
+[ext_resource type="PackedScene" path="res://scenes/ui/boss_ui.tscn" id="8_boss_ui"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game/game_scene.gd" id="9_script"]
 [ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/ui/game_ui.gd" id="10_ui"]
 [ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/ui/rect_outline.gd" id="12_rect_outline"]
@@ -203,3 +204,5 @@ texture = ExtResource("6_kk2rg")
 [node name="debug" type="Node2D" parent="UI" unique_id=711685194]
 z_index = 127
 script = ExtResource("7_kk2rg")
+
+[node name="BossUI" parent="." unique_id=1480836394 instance=ExtResource("8_boss_ui")]

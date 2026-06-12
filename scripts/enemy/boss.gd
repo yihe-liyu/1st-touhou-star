@@ -1,0 +1,96 @@
+# Boss.gd
+class_name Boss
+extends Enemy
+
+var boss_data: BossData
+var _invincible: bool = false
+var _phase_index: int = -1
+var _current_phase: PhaseData
+var _bonus: int = 0
+var _elapsed: float = 0.0
+var _api: StageAPI
+var _move: CoroutineRunner
+var _shoot: CoroutineRunner
+
+func current_phase() -> PhaseData: return _current_phase
+func current_bonus() -> int: return _bonus
+
+
+func setup(bd: BossData, api: StageAPI) -> void:
+	boss_data = bd
+	score_value = bd.score_value
+	_api = api
+
+func start_boss() -> void:
+	set_process(true)
+	GameEvents.boss_spawned.emit(self)
+	_next_phase()
+
+func _next_phase() -> void:
+	_phase_index += 1
+	if _phase_index >= boss_data.phases.size():
+		_die_boss()
+		return
+	
+	_current_phase = boss_data.phases[_phase_index]
+	_elapsed = 0.0
+	_bonus = _current_phase.bonus
+	
+	if _current_phase.is_timeout_only:
+		_invincible = true
+		hp = 999999
+	else:
+		_invincible = false
+		hp = _current_phase.hp
+	
+	if _current_phase.name != "":
+		GameEvents.phase_start.emit(_current_phase)
+	
+	# 起移动/弹幕协程
+	if _current_phase.move_script:
+		_move = _current_phase.move_script.new()
+		add_child(_move)
+		_move.start_moving(_api, self)
+	if _current_phase.shoot_script:
+		_shoot = _current_phase.shoot_script.new()
+		add_child(_shoot)
+		_shoot.start_creating(_api)
+
+func _process(delta: float) -> void:
+	if not _current_phase:
+		return
+	
+	_elapsed += delta
+	
+	# 奖励分递减
+	if _bonus > 0:
+		var tick := maxi(1, int(float(_current_phase.bonus) / _current_phase.time_limit * delta))
+		_bonus = maxi(0, _bonus - tick)
+	
+	GameEvents.phase_bonus_tick.emit(_bonus)
+	
+	# 超时
+	if _elapsed >= _current_phase.time_limit:
+		var captured := _current_phase.is_timeout_only
+		_on_phase_clear(captured)
+		return
+
+func take_damage(damage: int) -> void:
+	if _invincible: return
+	hp -= damage
+	if hp <= 0 and not _current_phase.is_timeout_only:
+		_on_phase_clear(true)
+
+func _on_phase_clear(captured: bool) -> void:
+	if _move: _move.stop(); _move.queue_free(); _move = null
+	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
+	
+	GameEvents.phase_end.emit(captured, _bonus)
+	if captured and _bonus > 0:
+		GameState.add_score(_bonus)
+	_next_phase()
+
+func _die_boss() -> void:
+	set_process(false)
+	GameEvents.boss_defeated.emit(self)
+	die()

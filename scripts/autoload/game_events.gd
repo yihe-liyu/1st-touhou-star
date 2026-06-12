@@ -5,3 +5,13 @@ extends Node
 signal enemy_killed(score: int, position: Vector2)
 @warning_ignore("unused_signal")
 signal player_death()
+
+@warning_ignore("unused_signal")
+signal boss_spawned(boss: Enemy)
+@warning_ignore("unused_signal")
+signal boss_defeated(boss: Enemy)
+@warning_ignore("unused_signal")
+signal phase_start(phase: PhaseData)
+@warning_ignore("unused_signal")
+signal phase_end(captured: bool, bonus: int)
+signal phase_bonus_tick(bonus: int)

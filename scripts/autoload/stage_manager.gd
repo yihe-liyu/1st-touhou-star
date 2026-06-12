@@ -1,6 +1,7 @@
 extends Node
 
 const ENEMY_SCENE = preload("res://scenes/enemy.tscn")
+const BossClass = preload("res://scripts/enemy/boss.gd")
 
 signal stage_started()
 signal stage_cleared()
@@ -68,6 +69,20 @@ func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	enemy.global_position = position
 	_add_enemy_to_scene(enemy)
 	return enemy
+
+func spawn_boss(data: BossData, position: Vector2, api: StageAPI) -> Node:
+	var boss := BossClass.new()
+	boss.global_position = position
+	
+	# 挂视觉
+	if data.visual:
+		var vis := data.visual.instantiate()
+		boss.add_child(vis)
+	
+	_add_enemy_to_scene(boss)
+	boss.setup(data, api)
+	boss.start_boss()
+	return boss
 
 func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bullet:
 	return BulletManager.shoot_enemy_bullet(data, position, direction)

@@ -44,7 +44,7 @@
   └─ 只读 GameState ──┘
   
 实体 → 系统（碰撞/回收）→ GameState（改状态）
-                        → GameEvents（通知 UI）
+						→ GameEvents（通知 UI）
 ```
 
 ---
@@ -174,10 +174,10 @@
 ```
 Boot
   └→ MainMenu（MENU 状态，播标题 BGM）
-       ├→ [Start] → DifficultyScreen
-       │               └→ CharacterScreen
-       │                    └→ stop_bgm() → change_scene("game_scene")
-       └→ [Quit]
+	   ├→ [Start] → DifficultyScreen
+	   │               └→ CharacterScreen
+	   │                    └→ stop_bgm() → change_scene("game_scene")
+	   └→ [Quit]
 ```
 
 ### 3.2 关卡级（GameScene）
@@ -193,25 +193,25 @@ GameScene._ready()
   ├ 4. _setup_player()
   ├ 5. await UI.entry_finished
   └ 6. StageManager.load_stage(stage_data)
-       ├ StageScript.new() → add_child → start_stage(api)
-       ├ 遍历 current_background 子 BackgroundScript → start_background(api)
-       └ stage_started.emit()
+	   ├ StageScript.new() → add_child → start_stage(api)
+	   ├ 遍历 current_background 子 BackgroundScript → start_background(api)
+	   └ stage_started.emit()
 
 关卡运行中:
   StageScript._on_step(api) 协程循环
-    ├ spawn_enemy / shoot_spread / fire_laser
-    ├ return api.seconds(delay) / true / false
-    └ api.all_defeated() → return false
+	├ spawn_enemy / shoot_spread / fire_laser
+	├ return api.seconds(delay) / true / false
+	└ api.all_defeated() → return false
 
 暂停:
   Input.is_action_just_pressed("ui_pause")
   → GameManager.pause_game()
-    → _set_state(PAUSED)
-    → AudioManager._on_game_state_changed → stream_paused=true
-    → CoroutineRunner 冻结（_physics_process 不跑）
-    → Background._process 不跑
-    → Tween 默认暂停（除非 TWEEN_PAUSE_PROCESS）
-    → UI 加 blur layer
+	→ _set_state(PAUSED)
+	→ AudioManager._on_game_state_changed → stream_paused=true
+	→ CoroutineRunner 冻结（_physics_process 不跑）
+	→ Background._process 不跑
+	→ Tween 默认暂停（除非 TWEEN_PAUSE_PROCESS）
+	→ UI 加 blur layer
 
 恢复:
   → _set_state(PLAYING)
@@ -220,19 +220,19 @@ GameScene._ready()
 
 Miss:
   Player → BulletManager.start_death_clear(pos, 2048, 3.0)
-        → MissEffectManager 特效
-        → GameState.lives -= 1
-        → is_invincible = true（3 秒）
-        → lives == 0 → GameEvents.player_death → GameOverMenu
+		→ MissEffectManager 特效
+		→ GameState.lives -= 1
+		→ is_invincible = true（3 秒）
+		→ lives == 0 → GameEvents.player_death → GameOverMenu
 
 场景切换:
   GameManager.change_scene(path)
-    → _set_state(TRANSITIONING)
-    → 清 MenuStack + PauseControl
-    → SceneTransition:
-         pause tree → fade_out → clear_all → change_scene_to_file
-         → process_frame → fade_in → unpause
-    → _set_state(target_state)
+	→ _set_state(TRANSITIONING)
+	→ 清 MenuStack + PauseControl
+	→ SceneTransition:
+		 pause tree → fade_out → clear_all → change_scene_to_file
+		 → process_frame → fade_in → unpause
+	→ _set_state(target_state)
 
 GameScene._exit_tree():
   → _background_instance.queue_free()
@@ -262,11 +262,11 @@ CoroutineRunner
 StageScript → api.spawn_enemy(data, pos)
   → StageManager.spawn_enemy → ENEMY_SCENE.instantiate()
   → Enemy._ready()
-       ├ GameState.active_enemies.append(self)
-       └ _apply_enemy_data(data)
-            ├ visual_scene.instantiate() → add_child
-            ├ CreateScript.new() → add_child → start_creating(api)
-            └ MoveScript.new() → add_child → start_moving(api, self)
+	   ├ GameState.active_enemies.append(self)
+	   └ _apply_enemy_data(data)
+			├ visual_scene.instantiate() → add_child
+			├ CreateScript.new() → add_child → start_creating(api)
+			└ MoveScript.new() → add_child → start_moving(api, self)
 
 Enemy 运行:
   EnemyVisual._process 检测 speed → 切动画
@@ -287,9 +287,9 @@ Enemy.die():
 ItemPool.spawn(pos, type)
   → _pool.pop_back() 或 instantiate (capped)
   → Item.setup(type, pos)
-       ├ _dead=false, _auto_collect=false
-       ├ _velocity=(0,-180) 上抛
-       └ 设贴图
+	   ├ _dead=false, _auto_collect=false
+	   ├ _velocity=(0,-180) 上抛
+	   └ 设贴图
   → visible=true, physics_process=true
 
 Item._physics_process(delta):
@@ -311,16 +311,16 @@ ItemPool.recycle(item):
 ```
 发射:
   BulletPool.shoot(data, pos, dir)
-    ├ 池中有 → pop
-    ├ 池空 → instantiate (扩容, 有上限)
-    ├ bind(data, dir, override)
-    │   ├ 恢复 sprite 可见性
-    │   ├ 如果 spawn_fog → fog.play()
-    │   │    fog tween → fog_finished signal → _on_fog_ready → is_ready=true
-    │   ├ 否则 → is_ready = true
-    │   └ movement_script → 启动协程
-    ├ 加入 active_bullets
-    └ _physics_process: position += velocity / physics_ticks
+	├ 池中有 → pop
+	├ 池空 → instantiate (扩容, 有上限)
+	├ bind(data, dir, override)
+	│   ├ 恢复 sprite 可见性
+	│   ├ 如果 spawn_fog → fog.play()
+	│   │    fog tween → fog_finished signal → _on_fog_ready → is_ready=true
+	│   ├ 否则 → is_ready = true
+	│   └ movement_script → 启动协程
+	├ 加入 active_bullets
+	└ _physics_process: position += velocity / physics_ticks
 
 回收:
   ┌ 碰撞命中 → return_bullet
@@ -461,7 +461,7 @@ ItemPool:
 MENU ──→ PLAYING ──→ PAUSED
   ↑        │  ↑         │
   └────────┘  └─────────┘
-      (ESC/返回)  (ESC 暂停/恢复)
+	  (ESC/返回)  (ESC 暂停/恢复)
 
 TRANSITIONING = 短暂态, 场景切换时
 ```
@@ -470,7 +470,7 @@ TRANSITIONING = 短暂态, 场景切换时
 ```gdscript
 # 只在游戏中跑的代码
 if GameManager.current_state != GameManager.AppState.PLAYING:
-    return
+	return
 ```
 
 ### 6.3 EnemyVisual 动画状态

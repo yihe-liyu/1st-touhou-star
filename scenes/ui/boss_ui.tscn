@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/scenes/game/boss_ui.gd" id="1_script"]
+
+[node name="BossUI" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 0
+offset_right = 960.0
+offset_bottom = 640.0
+
+[node name="BossName" type="Label" parent="Control"]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 40.0
+offset_right = 660.0
+offset_bottom = 70.0
+horizontal_alignment = 1
+
+[node name="Bonus" type="Label" parent="Control"]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 70.0
+offset_right = 660.0
+offset_bottom = 100.0
+text = "0"
+
+[node name="HPBar" type="ColorRect" parent="Control"]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 100.0
+offset_right = 556.0
+offset_bottom = 112.0
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Fill" type="ColorRect" parent="Control/HPBar"]
+layout_mode = 0
+offset_right = 256.0
+offset_bottom = 12.0
+color = Color(0, 0.8, 0, 1)
+
+[node name="History" type="HBoxContainer" parent="Control"]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 130.0
+offset_right = 660.0
+offset_bottom = 142.0
