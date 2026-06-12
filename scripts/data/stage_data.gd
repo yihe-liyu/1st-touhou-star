@@ -5,4 +5,5 @@ class_name StageData
 @export var stage_name: String = "Stage 1"
 @export var create_script: Script
 @export var background_scene: PackedScene
-@export var next_stage: StageData           ## 通关后下一关
+@export var boss_data: BossData               ## Boss 数据（符卡练习用）
+@export var next_stage: StageData              ## 通关后下一关

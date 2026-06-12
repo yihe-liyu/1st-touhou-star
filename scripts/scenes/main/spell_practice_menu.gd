@@ -41,10 +41,30 @@ func _on_leave() -> void:
 # ═══ 数据 ═══
 
 func _build_data() -> void:
-	_stages = [
-		{name="Stage 1", num=1, phases=_get_test_phases()},
-		{name="Stage 2", num=2, phases=[]},
-	]
+	_stages.clear()
+	var dir := DirAccess.open("res://data/stages/")
+	if dir:
+		dir.list_dir_begin()
+		var fn := dir.get_next()
+		while fn != "":
+			if fn.ends_with(".tres"):
+				var sd: StageData = ResourceLoader.load("res://data/stages/" + fn)
+				if sd and sd.boss_data:
+					_stages.append({
+						name = sd.stage_name,
+						num = sd.stage_id,
+						phases = sd.boss_data.phases,
+					})
+			fn = dir.get_next()
+		
+		# 按 stage_id 排序
+		_stages.sort_custom(func(a, b): return a.num < b.num)
+	
+	if _stages.is_empty():
+		_stages = [
+			{name="Stage 1", num=1, phases=_get_test_phases()},
+			{name="Stage 2", num=2, phases=[]},
+		]
 	_stage_index = 0
 	_change_stage(0)
 
