@@ -108,7 +108,7 @@ func _on_step(api: StageAPI) -> Variant:
 		# 地面加速 + FOV 拉宽 → 冲刺感
 		var t := bg.create_tween().set_parallel(true)
 		t.tween_property(bg.camera, "fov", 70.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-		t.tween_method(_camera_accel.bind(ground), 1.0, 4.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		t.tween_method(_camera_accel, 1.0, 4.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 		return api.frames(1)
 
 	if _t == 1050:
@@ -136,8 +136,8 @@ func _spawn_cluster(api: StageAPI, tex: Texture2D, size: Vector2, y: float, cent
 			ground
 		)
 
-func _camera_accel(mult: float, plane: BackgroundPlane):
-	plane.set_scroll_mult(mult)
+func _camera_accel(mult: float):
+	bg.set_scroll_mult(mult)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
