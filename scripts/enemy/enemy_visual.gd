@@ -1,26 +1,59 @@
 extends AnimatedSprite2D
 class_name EnemyVisual
+## 根据父节点移动速度自动切换动画
+##
+## 速度阈值：
+##   speed < 2.0  → idle (loop)
+##   speed >= 2.0 → righting(过渡) → right (loop)
+##
+## flip_h 由移动方向自动控制
 
-const IDLE = "idle"
+const IDLE    = "idle"
 const RIGHTING = "righting"
-const RIGHT = "right"
+const RIGHT   = "right"
 
 var anim_state: String = IDLE
-var _moving: bool = false
+var _last_pos: Vector2
+var _speed: float = 0.0
 
 
 func _ready() -> void:
 	animation_finished.connect(_on_animation_finished)
+	var parent = get_parent()
+	if parent:
+		_last_pos = parent.global_position
+	# righting 只播一次，不循环
+	var frames := sprite_frames
+	if frames and frames.has_animation(RIGHTING):
+		frames.set_animation_loop(RIGHTING, false)
 
 
-func set_moving(moving: bool) -> void:
-	if moving == _moving:
+func _process(_delta: float) -> void:
+	var parent := get_parent() as Node2D
+	if not parent:
 		return
-	_moving = moving
-	if moving:
-		change_state(RIGHTING)
-	else:
-		change_state(IDLE)
+	var dx := parent.global_position.x - _last_pos.x
+	_speed = abs(dx)
+	_last_pos = parent.global_position
+	
+	# 翻向
+	if dx > 0.5:
+		flip_h = false
+	elif dx < -0.5:
+		flip_h = true
+	
+	var moving := _speed >= 2.0
+	
+	match anim_state:
+		IDLE:
+			if moving:
+				change_state(RIGHTING)
+		RIGHTING:
+			if not moving:
+				change_state(IDLE)
+		RIGHT:
+			if not moving:
+				change_state(IDLE)
 
 
 func change_state(new_state: String) -> void:

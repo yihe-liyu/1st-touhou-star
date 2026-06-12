@@ -30,25 +30,10 @@ enum Phase { ENTRANCE, PATROL }
 var _phase: Phase = Phase.ENTRANCE
 var _going_right: bool = true
 var _tween: Tween
-var _was_running: bool = false
-
-
-func _find_visual() -> EnemyVisual:
-	if not is_instance_valid(target):
-		return null
-	for child in target.get_children():
-		if child is EnemyVisual:
-			return child
-	return null
 
 
 func start_moving(api: StageAPI, p_target: Node2D):
 	target = p_target
-
-	# 通知动画：开始移动
-	var visual := _find_visual()
-	if visual:
-		visual.set_moving(true)
 
 	# ── 入场：滑到 (patrol_x, entrance_y) ──
 	var end_pos := Vector2(patrol_x, entrance_y)
@@ -63,7 +48,6 @@ func start_moving(api: StageAPI, p_target: Node2D):
 func _on_step(api: StageAPI) -> Variant:
 	if not api.active() or not is_instance_valid(target):
 		return false
-	_was_running = true
 
 	match _phase:
 		Phase.ENTRANCE:
@@ -74,10 +58,6 @@ func _on_step(api: StageAPI) -> Variant:
 		Phase.PATROL:
 			_going_right = not _going_right
 			var dest := patrol_x + range if _going_right else patrol_x - range
-
-			var visual := _find_visual()
-			if visual:
-				visual.flip_h = not _going_right
 
 			_tween = target.create_tween()
 			_tween.tween_property(target, "global_position:x", dest, period) \
@@ -91,8 +71,4 @@ func _on_step(api: StageAPI) -> Variant:
 func stop():
 	if _tween and _tween.is_valid():
 		_tween.kill()
-	if _was_running:
-		var visual := _find_visual()
-		if visual:
-			visual.set_moving(false)
 	super.stop()
