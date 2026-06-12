@@ -34,14 +34,26 @@ var _t: int = 0   # 总步数 (≈ 帧数, 因为 stage API 按帧推进)
 func _on_step(api: StageAPI) -> Variant:
 	_t += 1
 
-	# ── 序幕 (0~2s): 浓雾弥漫, 相机缓缓推 ──
+	# ── 开头: 黑雾弥漫, 什么都看不见 ──
 	if _t == 1:
-		_fog_to(Color(0.06, 0.05, 0.08), 0.04, 60.0, 3.0)
+		var env := bg.world_environment.environment
+		env.fog_light_color = Color.BLACK
+		env.fog_density = 0.15
+		bg.camera.fov = 55.0
 		return api.frames(1)
 
-	# ── 雾散, 景现 (2~5s) ──
-	if _t == 60:
-		_fog_to(Color(0.35, 0.35, 0.35), 0.0, 70.0, 2.0)
+	# ── 渐渐化开 (1s~6s) ──
+	if _t == 30:
+		_fog_to(Color(0.08, 0.06, 0.10), 0.10, 58.0, 1.5)
+		return api.frames(1)
+	if _t == 75:
+		_fog_to(Color(0.18, 0.15, 0.20), 0.05, 62.0, 1.5)
+		return api.frames(1)
+	if _t == 120:
+		_fog_to(Color(0.30, 0.30, 0.30), 0.01, 68.0, 1.5)
+		return api.frames(1)
+	if _t == 165:
+		_fog_to(Color(0.35, 0.35, 0.35), 0.0, 70.0, 1.0)
 		return api.frames(1)
 
 	# ── 地面装饰物阶段 (5s~30s) ──
