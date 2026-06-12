@@ -90,32 +90,35 @@ func get_camera_offset() -> Vector3:
 		return camera.transform.origin
 	return Vector3.ZERO
 
-func move_camera(target_pos: Vector3, duration: float):
-	if not camera:
-		return
-	var tween = create_tween()
-	tween.tween_property(camera, "transform", Transform3D(camera.transform.basis, target_pos), duration)
-
 ## 相机旋转 (Euler 角度, 度)
-func rotate_camera(target_rot: Vector3, duration: float):
+func rotate_camera(target_rot: Vector3, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
 	if not camera:
 		return
 	var tween = create_tween()
+	tween.set_ease(ease_type).set_trans(trans_type)
 	tween.tween_property(camera, "rotation", target_rot, duration)
 
 ## 推移相机 (相对移动)
-func pan_camera(offset: Vector3, duration: float):
+func pan_camera(offset: Vector3, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
 	if not camera:
 		return
-	move_camera(camera.transform.origin + offset, duration)
+	move_camera(camera.transform.origin + offset, duration, ease_type, trans_type)
 
-## 后处理 — 灰阶
-func tween_post_processing(brightness: float = 1.0, contrast: float = 1.0, saturation: float = 1.0, duration: float = 1.0):
+func move_camera(target_pos: Vector3, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
+	if not camera:
+		return
+	var tween = create_tween()
+	tween.set_ease(ease_type).set_trans(trans_type)
+	tween.tween_property(camera, "transform", Transform3D(camera.transform.basis, target_pos), duration)
+
+## 后处理 — 亮度/对比/饱和
+func tween_post_processing(brightness: float = 1.0, contrast: float = 1.0, saturation: float = 1.0, duration: float = 1.0, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
 	if not world_environment:
 		return
 	var env := world_environment.environment
 	env.adjustment_enabled = true
 	var tween = create_tween().set_parallel(true)
+	tween.set_ease(ease_type).set_trans(trans_type)
 	tween.tween_property(env, "adjustment_brightness", brightness, duration)
 	tween.tween_property(env, "adjustment_contrast", contrast, duration)
 	tween.tween_property(env, "adjustment_saturation", saturation, duration)

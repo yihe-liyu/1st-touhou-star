@@ -57,10 +57,10 @@ func _on_step(api: StageAPI) -> Variant:
 	_t += 1
 
 	# ── 开头：黑雾已由 _on_init 设好, 从这里开始渐渐化开 ──
-	# ── 雾开始化开: 相机缓缓右旋 + 微升 ──
+	# ── 雾开始化开: 相机缓缓加速右旋 + 微升 ──
 	if _t == 2:
-		bg.rotate_camera(Vector3(deg_to_rad(-20), 0, deg_to_rad(8)), 5.0)
-		bg.pan_camera(Vector3(0, 2, -5), 5.0)
+		bg.rotate_camera(Vector3(deg_to_rad(-20), 0, deg_to_rad(8)), 5.0, Tween.EASE_IN, Tween.TRANS_QUAD)
+		bg.pan_camera(Vector3(0, 2, -5), 5.0, Tween.EASE_IN, Tween.TRANS_QUAD)
 		return api.frames(1)
 
 	if _t == 30:
@@ -103,8 +103,8 @@ func _on_step(api: StageAPI) -> Variant:
 	# ── 雾压回 (30s~35s): Boss 逼近 ──
 	if _t == 900:
 		_fog_to(Color(0.12, 0.04, 0.20), 0.08, 55.0, 5.0)
-		bg.tween_post_processing(0.4, 1.5, 0.3, 5.0)  # 压暗+高对比+褪色
-		bg.rotate_camera(Vector3(deg_to_rad(-35), 0, deg_to_rad(-5)), 5.0)
+		bg.tween_post_processing(0.4, 1.5, 0.3, 5.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
+		bg.rotate_camera(Vector3(deg_to_rad(-35), 0, deg_to_rad(-5)), 5.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
 		return api.frames(1)
 
 	if _t == 1050:
