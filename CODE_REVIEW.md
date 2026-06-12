@@ -80,7 +80,7 @@ if texture == p_texture:
 ```
 - 如果上次 fog 的 tween 没完（create_tween 在 Sprite2D 上），新 play 跳过动画但旧 tween 继续跑，可能 interfere。
 
-### #23 CoroutineRunner._tasks 类型注解无效 ✅
+### #23 ~ Array[Task] → Godot 4.6 支持内类泛型, false alarm
 
 ---
 
