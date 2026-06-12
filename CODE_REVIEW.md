@@ -45,8 +45,7 @@
 
 ### #15 ~ BulletMultiMesh is_instance_valid → 不计开销, false alarm
 
-### #16 HitEffectPool.spawn 每帧 `Engine.get_main_loop().current_scene`
-- 高频调用时缓存 World 引用。
+### #16 ~ HitEffectPool current_scene → 不计开销, false alarm
 
 ### #17 StageBackground._process_events O(n) 扫描
 - 用排序列表 + 摘到期事件，免每帧全扫。
