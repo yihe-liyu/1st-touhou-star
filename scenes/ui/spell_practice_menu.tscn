@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/scenes/main/spell_practice_menu.gd" id="1_script"]
+
+[node name="SpellPracticeMenu" type="Control"]
+script = ExtResource("1_script")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 480.0
+offset_bottom = 576.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+
+[node name="Detail" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 512.0
+offset_top = 64.0
+offset_right = 896.0
+offset_bottom = 576.0
+color = Color(0.1, 0.1, 0.15, 0.9)
+
+[node name="Name" type="Label" parent="Detail"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 368.0
+offset_bottom = 48.0
+text = "选择符卡"
+
+[node name="Story" type="Label" parent="Detail"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 80.0
+offset_right = 368.0
+offset_bottom = 112.0
+text = "故事: -"
+
+[node name="Practice" type="Label" parent="Detail"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 120.0
+offset_right = 368.0
+offset_bottom = 152.0
+text = "练习: -"
+
+[node name="Best" type="Label" parent="Detail"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 160.0
+offset_right = 368.0
+offset_bottom = 192.0
+text = "最高分: -"

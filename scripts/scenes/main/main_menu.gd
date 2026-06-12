@@ -26,12 +26,18 @@ func _on_item_selected(index: int):
 	match index:
 		0:
 			_open_difficulty()
+		3:
+			_open_spell_practice()
 		9:
 			get_tree().quit()
 
 
-func _on_back():
-	get_tree().quit()
+func _open_spell_practice() -> void:
+	input_enabled = false
+	var menu := preload("res://scenes/ui/spell_practice_menu.tscn").instantiate()
+	menu.tree_exited.connect(func(): input_enabled = true)
+	add_child(menu)
+	menu.open()
 
 
 # ═══ 标题菜单 停用/恢复 ═══
