@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://hmlsc2uhgy8a" path="res://scripts/coroutine/stages/move_stage1_enemy1.gd" id="1_hxnam"]
 [ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_jjwni"]
-[ext_resource type="Script" uid="uid://dsqm303nf7hug" path="res://scripts/coroutine/examples/test_create.gd" id="4_test_shoot"]
 [ext_resource type="PackedScene" uid="uid://bgp37sorjc6hv" path="res://scenes/enemy_visual_test.tscn" id="6_vis"]
 
 [resource]
@@ -10,6 +9,5 @@ script = ExtResource("1_jjwni")
 visual_scene = ExtResource("6_vis")
 max_hp = 5000
 hitbox_radius = 28.0
-create_script = ExtResource("4_test_shoot")
 move_script = ExtResource("1_hxnam")
 metadata/_custom_type_script = "uid://bj36hhiuvhaqy"
