@@ -84,6 +84,7 @@ func _on_difficulty_finished(result: Dictionary) -> void:
 func _on_character_finished(result: Dictionary) -> void:
 	if result.has("character"):
 		GameState.selected_character = result.character
+		AudioManager.stop_bgm()
 		GameManager.change_scene("res://scenes/game_scene.tscn")
 	else:
 		# X 返回 → 重新打开难度选择
