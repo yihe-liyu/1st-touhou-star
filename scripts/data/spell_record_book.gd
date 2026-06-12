@@ -4,6 +4,7 @@ class_name SpellRecordBook
 
 const SpellRecordClass = preload("res://scripts/data/spell_record.gd")
 
+## 全符卡收取记录数组
 @export var records: Array[Resource] = []
 
 func get_record(spell_id: String):
