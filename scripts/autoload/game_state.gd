@@ -5,7 +5,6 @@ const BossScript = preload("res://scripts/enemy/boss.gd")
 const SpellBookClass = preload("res://scripts/data/spell_record_book.gd")
 
 const SPELL_BOOK_PATH := "user://spell_records.tres"
-const SPELL_BOOK_DEFAULT := preload("res://data/spell_records.tres")
 
 # 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1
@@ -18,8 +17,7 @@ func _load_spell_book() -> void:
 	if ResourceLoader.exists(SPELL_BOOK_PATH):
 		spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
 	else:
-		spell_book = SPELL_BOOK_DEFAULT.duplicate(true)
-		ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
+		spell_book = SpellBookClass.new()
 
 func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
