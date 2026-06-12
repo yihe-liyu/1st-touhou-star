@@ -9,10 +9,10 @@ class_name MovePatrol
 ##   每周期 Tween 到对侧极端, 协程等 period 秒后翻向。
 
 ## 左右摆动幅度（像素）
-@export var range: float = 100.0
+var range: float = 100.0
 
 ## 单程时间（秒）
-@export var period: float = 1.5
+var period: float = 1.5
 
 var _start_x: float
 var _going_right: bool = true
