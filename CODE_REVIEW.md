@@ -49,8 +49,7 @@
 ### #17 StageBackground._process_events O(n) 扫描
 - 用排序列表 + 摘到期事件，免每帧全扫。
 
-### #18 StageAPI 持 runner (Node) 强引用 → 语义混乱
-- RefCounted 持 Node。改 WeakRef。
+### #18 ~ StageAPI 持 runner 强引用 → GC-safe, false alarm
 
 ### #19 ~ return_bullet disconnect fog → is_connected 保护, safe
 
