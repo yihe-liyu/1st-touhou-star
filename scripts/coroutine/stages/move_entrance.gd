@@ -13,10 +13,10 @@ class_name MoveEntrance
 ##   动画在 idle frame 运行（丝滑），协程在 physics frame 等待（近似同步）。
 
 ## 目标 Y 坐标（屏幕坐标, 像素）
-@export var target_y: float = 200.0
+var target_y: float = 200.0
 
 ## 动画持续时间（秒）
-@export var duration: float = 2.0
+var duration: float = 2.0
 
 var _wait: float = 0.0
 
