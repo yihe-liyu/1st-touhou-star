@@ -62,7 +62,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		if mem < 50.0:
 			var red := remap(mem, 0.0, 50.0, 1.0, 0.0)
 			sprite.modulate = sprite.modulate.lerp(Color.RED, red * 0.5)
-	can_be_canceled = override.can_be_canceled if override and override._override_cancel else data.can_be_canceled
+	can_be_canceled = override.can_be_canceled if override and override.override_cancel else data.can_be_canceled
 	hit_effect = data.hit_effect
 
 	hitbox_shape = data.hitbox_shape
