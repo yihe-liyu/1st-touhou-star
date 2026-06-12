@@ -9,6 +9,14 @@ difficulty = 0
 spell_name = "www"
 metadata/_custom_type_script = "uid://bphbnlbdvkqg6"
 
+[sub_resource type="Resource" id="Resource_4fnre"]
+script = ExtResource("2_record")
+stage = 2
+phase_type = 0
+phase_number = 2
+spell_name = "mmm"
+metadata/_custom_type_script = "uid://bphbnlbdvkqg6"
+
 [resource]
 script = ExtResource("1_book")
-records = Array[Resource]([SubResource("Resource_lls5d")])
+records = Array[Resource]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre")])
