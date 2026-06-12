@@ -123,6 +123,24 @@ func tween_post_processing(brightness: float = 1.0, contrast: float = 1.0, satur
 	tween.tween_property(env, "adjustment_contrast", contrast, duration)
 	tween.tween_property(env, "adjustment_saturation", saturation, duration)
 
+## 真加速推镜 — 持续加速推进 direction 方向, 总时长 duration 秒, 加速度 accel (m/s²)
+func camera_rush(direction: Vector3, duration: float, accel: float = 2.0):
+	if not camera:
+		return
+	var vel := Vector3.ZERO
+	var elapsed := 0.0
+	var origin := camera.transform.origin
+	while elapsed < duration and camera:
+		var delta := get_process_delta_time()
+		vel += direction.normalized() * accel * delta
+		var step := vel * delta
+		camera.transform.origin += step
+		elapsed += delta
+		await get_tree().process_frame
+	# 可选: 回到原位
+	# var tween = create_tween()
+	# tween.tween_property(camera, "transform", Transform3D(camera.transform.basis, origin), 0.5)
+
 func _on_setup():
 	for child in get_children():
 		if child is BackgroundScript:

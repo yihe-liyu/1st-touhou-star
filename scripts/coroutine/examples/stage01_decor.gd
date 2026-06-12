@@ -104,8 +104,8 @@ func _on_step(api: StageAPI) -> Variant:
 	if _t == 900:
 		_fog_to(Color(0.12, 0.04, 0.20), 0.08, 55.0, 5.0)
 		bg.tween_post_processing(0.55, 1.3, 0.4, 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
-		bg.pan_camera(Vector3(0, -1, -10), 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-35), 0, deg_to_rad(-5)), 3.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
+		bg.camera_rush(Vector3(0, -0.5, -1), 3.0, 2.0)  # 真加速: 3秒, 加速度2m/s²
 		return api.frames(1)
 
 	if _t == 1050:
