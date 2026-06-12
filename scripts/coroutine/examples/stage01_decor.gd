@@ -103,9 +103,12 @@ func _on_step(api: StageAPI) -> Variant:
 	# ── 雾压回 (30s~35s): Boss 逼近 ──
 	if _t == 900:
 		_fog_to(Color(0.12, 0.04, 0.20), 0.08, 55.0, 5.0)
-		bg.tween_post_processing(0.55, 1.3, 0.4, 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
+		bg.tween_post_processing(0.65, 1.1, 0.5, 3.0, Tween.EASE_IN, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-35), 0, deg_to_rad(-5)), 3.0, Tween.EASE_IN_OUT, Tween.TRANS_CUBIC)
-		bg.camera_rush(Vector3(0, -0.5, -1), 3.0, 2.0)  # 真加速: 3秒, 加速度2m/s²
+		# 地面加速 + FOV 拉宽 → 冲刺感
+		var t := bg.create_tween().set_parallel(true)
+		t.tween_property(bg.camera, "fov", 70.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		t.tween_method(_camera_accel.bind(ground), 1.0, 4.0, 3.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 		return api.frames(1)
 
 	if _t == 1050:
@@ -132,6 +135,9 @@ func _spawn_cluster(api: StageAPI, tex: Texture2D, size: Vector2, y: float, cent
 			Vector3(center_x + randf_range(-spread, spread), y, center_z + randf_range(-spread * 0.5, spread * 0.5)),
 			ground
 		)
+
+func _camera_accel(mult: float, plane: BackgroundPlane):
+	plane.set_scroll_mult(mult)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
