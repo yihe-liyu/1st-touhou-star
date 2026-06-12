@@ -15,6 +15,9 @@ const RIGHT   = "right"
 var anim_state: String = IDLE
 var _last_pos: Vector2
 var _speed: float = 0.0
+var _idle_timer: float = 0.0  # speed 连续低于阈值的时间
+const MOVE_THRESHOLD: float = 30.0   # 像素/秒，超过算移动
+const IDLE_HOLD: float = 0.2         # 低于阈值持续多久才切idle (防抖闪)
 
 
 func _ready() -> void:
@@ -33,7 +36,7 @@ func _process(delta: float) -> void:
 	if not parent:
 		return
 	var dx := parent.global_position.x - _last_pos.x
-	_speed = abs(dx) / max(delta, 0.001)  # 像素/秒
+	_speed = abs(dx) / max(delta, 0.001)
 	_last_pos = parent.global_position
 	
 	# 翻向
@@ -42,17 +45,25 @@ func _process(delta: float) -> void:
 	elif dx < -0.1:
 		flip_h = true
 	
-	var moving := _speed >= 30.0
+	var moving := _speed >= MOVE_THRESHOLD
+	
+	# ── 延迟退出：低于阈值才累加 timer，超过阈值立刻清零 ──
+	if not moving:
+		_idle_timer += delta
+	else:
+		_idle_timer = 0.0
+		if anim_state == IDLE:
+			change_state(RIGHTING)
 	
 	match anim_state:
 		IDLE:
 			if moving:
 				change_state(RIGHTING)
 		RIGHTING:
-			if not moving:
+			if _idle_timer >= IDLE_HOLD:
 				change_state(IDLE)
 		RIGHT:
-			if not moving:
+			if _idle_timer >= IDLE_HOLD:
 				change_state(IDLE)
 
 
