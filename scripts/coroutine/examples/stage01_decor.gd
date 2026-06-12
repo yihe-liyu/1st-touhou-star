@@ -70,10 +70,10 @@ func _on_step(api: StageAPI) -> Variant:
 		_fog_to(Color(0.18, 0.15, 0.20), 0.05, 62.0, 1.5)
 		return api.frames(1)
 	if _t == 120:
-		_fog_to(Color(0.30, 0.30, 0.30), 0.01, 68.0, 1.5)
+		_fog_to(Color(0.28, 0.28, 0.32), 0.025, 68.0, 1.5)
 		return api.frames(1)
 		
-	if _t % 4 == 0:
+	if _t % 3 == 0:
 		_spawn(api, tree_tex, Vector2(8, 8), 4.0, -50, 50, -220, -120)
 
 	# ── 地面装饰物阶段 (5s~30s) ──
