@@ -3,8 +3,6 @@ class_name TestLevel
 
 const ENEMY_DATA = preload("res://data/enemy_data/test_enemy_data.tres")
 const LASER_ENEMY_DATA = preload("res://data/enemy_data/test_enemy_laser.tres")
-const BOSS_VISUAL = preload("res://scenes/enemy_visual_test.tscn")
-const BOSS = preload("res://data/boss_data/test_boss.tres")
 
 var _phase: int = 0
 
@@ -15,9 +13,9 @@ func _on_step(api: StageAPI) -> Variant:
 			_phase = 1
 			return api.seconds(2.0)
 		1:
-			api.spawn_boss(BOSS, Vector2(448, 160))
-			_phase = 99
-			return api.seconds(999)
+			api.spawn_enemy(ENEMY_DATA, Vector2(448, 100))
+			_phase = 2
+			return api.seconds(3.0)
 		2:
 			if api.all_defeated():
 				return false
