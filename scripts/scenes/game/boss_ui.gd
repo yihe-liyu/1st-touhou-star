@@ -98,16 +98,16 @@ func _play_spell_announce(spell_name: String) -> void:
 	lbl.position = center
 	lbl.scale = Vector2(3.0, 3.0)
 	
-	_announce_tween = create_tween()
-	_announce_tween.set_parallel(true)
-	_announce_tween.tween_property(lbl, "modulate:a", 1.0, 0.15)
-	_announce_tween.tween_property(lbl, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_CUBIC)
-	_announce_tween.tween_property(lbl, "position", below - Vector2(200, 30), 0.5)
-	_announce_tween.set_parallel(false)
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.15)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_property(lbl, "position", below - Vector2(200, 30), 0.5)
+	tw.set_parallel(false)
 	
 	# 留在右上，缩小字号
-	_announce_tween.tween_property(lbl, "position", top_right - Vector2(200, 30), 0.7)\
+	tw.tween_property(lbl, "position", top_right - Vector2(200, 30), 0.7)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	_announce_tween.tween_callback(func():
+	tw.tween_callback(func():
 		lbl.add_theme_font_size_override("font_size", 18)
 	)
