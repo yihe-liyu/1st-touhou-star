@@ -59,6 +59,9 @@ func _build_data() -> void:
 	_stages.sort()
 	
 	if _stages.is_empty():
+		_phases.clear()
+		_phase_spell_nums.clear()
+		_phase_non_nums.clear()
 		return
 	
 	_stage_index = 0
