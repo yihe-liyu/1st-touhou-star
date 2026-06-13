@@ -106,14 +106,13 @@ func _on_phase_clear(captured: bool) -> void:
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
-	if _current_phase.uid != 0:
-		var ch: int = GameState.selected_character
-		var st: int = _stage_id
-		var is_spell := _current_phase.name != "" or _current_phase.uid != 0
-		var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
-		var pn: int = _spell_count if is_spell else _non_count
-		var diff: int = GameState.selected_difficulty
-		GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed, _phase_index + 1, _current_phase.uid, _current_phase.name)
+	var ch: int = GameState.selected_character
+	var st: int = _stage_id
+	var is_spell := _current_phase.uid != 0
+	var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
+	var pn: int = _spell_count if is_spell else _non_count
+	var diff: int = GameState.selected_difficulty
+	GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed, _phase_index + 1, _current_phase.uid, _current_phase.name)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:
