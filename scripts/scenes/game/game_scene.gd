@@ -32,6 +32,9 @@ func _ready():
 	if not StageManager.stage_cleared.is_connected(_on_stage_cleared):
 		StageManager.stage_cleared.connect(_on_stage_cleared)
 	
+	if GameState.is_practice_mode:
+		GameState.reset_practice()
+	
 	_setup_player()
 	
 	# 等 UI 入场动画播完再开始关卡
@@ -127,8 +130,6 @@ func _on_stage_cleared():
 # ═══ 练习模式 ═══
 
 func _start_practice_game() -> void:
-	GameState.reset_practice()
-	
 	# 加载背景
 	if GameState.practice_background:
 		_background_instance = GameState.practice_background.instantiate()
