@@ -32,8 +32,11 @@ func _ready():
 	if not StageManager.stage_cleared.is_connected(_on_stage_cleared):
 		StageManager.stage_cleared.connect(_on_stage_cleared)
 	
+	# 先重置数据再配自机
 	if GameState.is_practice_mode:
 		GameState.reset_practice()
+	else:
+		GameState.reset_all()
 	
 	_setup_player()
 	
@@ -153,7 +156,7 @@ func _start_practice_game() -> void:
 	single.phases = [full_data.phases[GameState.practice_phase_index]]
 	
 	# 生成 Boss
-	var pos := Vector2(224, 160)
+	var pos := Vector2(448, 240)
 	StageManager.spawn_boss(single, pos, api)
 	
 	if not GameEvents.boss_defeated.is_connected(_on_practice_cleared):
