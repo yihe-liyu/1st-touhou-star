@@ -1,11 +1,11 @@
 extends Node2D
 ## Boss 环形血条，跟随 Boss 位置
 
-@export var radius: float = 48.0
+@export var radius: float = 128.0
 @export var thickness: float = 5.0
-@export var fill_color: Color = Color(1.0, 1.0, 1.0, 0.85)
-@export var edge_color: Color = Color(1.0, 0.0, 0.0, 0.7)
-@export var bg_color: Color = Color(0.3, 0.3, 0.3, 0.5)
+@export var fill_color: Color = Color(1.0, 1.0, 1.0, 1.0)
+@export var edge_color: Color = Color(1.0, 0.0, 0.0, 1.0)
+@export var bg_color: Color = Color(0.5, 0.0, 0.0, 1.0)
 
 var _boss: Boss
 var _max_hp: int = 1
@@ -37,7 +37,7 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	# 红边圈 (在最外层)
-	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, edge_color, thickness + 2.0, true)
+	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, edge_color, thickness + 3.0, true)
 	
 	if _max_hp <= 0: return
 	var ratio := clampf(float(_hp) / float(_max_hp), 0.0, 1.0)
