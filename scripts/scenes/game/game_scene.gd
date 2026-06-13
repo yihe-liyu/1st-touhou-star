@@ -127,6 +127,12 @@ func _on_stage_cleared():
 # ═══ 练习模式 ═══
 
 func _start_practice_game() -> void:
+	# 加载背景
+	if GameState.practice_background:
+		_background_instance = GameState.practice_background.instantiate()
+		StageManager.current_background = _background_instance
+		_sub_viewport.add_child(_background_instance)
+	
 	# 创建 Runner + API
 	_practice_runner = CoroutineRunner.new()
 	_practice_runner.name = "PracticeRunner"

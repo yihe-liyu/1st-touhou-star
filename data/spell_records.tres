@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://btq8tqqmd3jeo"]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://b2u7ddqtrt2kl"]
 
 [ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
 [ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]

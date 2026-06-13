@@ -18,15 +18,31 @@ var is_practice_mode: bool = false
 var practice_boss_data: BossData
 var practice_phase_index: int = 0
 var practice_stage_id: int = 1
+var practice_background: PackedScene
 
 func start_practice(boss: BossData, phase_idx: int, stage_id: int) -> void:
 	is_practice_mode = true
 	practice_boss_data = boss
 	practice_phase_index = phase_idx
 	practice_stage_id = stage_id
+	# 找对应关卡的背景
+	practice_background = _find_stage_background(stage_id)
 
 func end_practice() -> void:
 	is_practice_mode = false
+
+func _find_stage_background(stage_id: int) -> PackedScene:
+	var dir := DirAccess.open("res://data/stages/")
+	if not dir: return null
+	dir.list_dir_begin()
+	var fn := dir.get_next()
+	while fn != "":
+		if fn.ends_with(".tres"):
+			var sd: StageData = ResourceLoader.load("res://data/stages/" + fn)
+			if sd and sd.stage_id == stage_id and sd.background_scene:
+				return sd.background_scene
+		fn = dir.get_next()
+	return null
 
 func _load_spell_book() -> void:
 	if ResourceLoader.exists(SPELL_BOOK_PATH):
