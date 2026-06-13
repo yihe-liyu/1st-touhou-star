@@ -69,14 +69,20 @@ func _next_phase() -> void:
 	if _current_phase.name != "":
 		GameEvents.phase_start.emit(_current_phase)
 	
-	if _current_phase.move_script:
-		_move = _current_phase.move_script.new()
-		add_child(_move)
-		_move.start_moving(_api, self)
-	if _current_phase.shoot_script:
-		_shoot = _current_phase.shoot_script.new()
-		add_child(_shoot)
-		_shoot.start_creating(_api)
+	if _current_phase.move_scripts.size() > 0:
+		var diff := GameState.selected_difficulty
+		var ms: Script = _current_phase.move_scripts[diff] if diff < _current_phase.move_scripts.size() else _current_phase.move_scripts[0]
+		if ms:
+			_move = ms.new()
+			add_child(_move)
+			_move.start_moving(_api, self)
+	if _current_phase.shoot_scripts.size() > 0:
+		var diff := GameState.selected_difficulty
+		var ss: Script = _current_phase.shoot_scripts[diff] if diff < _current_phase.shoot_scripts.size() else _current_phase.shoot_scripts[0]
+		if ss:
+			_shoot = ss.new()
+			add_child(_shoot)
+			_shoot.start_creating(_api)
 
 func _process(delta: float) -> void:
 	if not _current_phase: return
