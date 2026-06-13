@@ -144,6 +144,7 @@ func _start_practice_game() -> void:
 	# 拼单-phase BossData
 	var full_data: BossData = GameState.practice_boss_data
 	var single := BossData.new()
+	single.boss_name = full_data.boss_name
 	single.visual = full_data.visual
 	single.score_value = full_data.score_value
 	single.phases = [full_data.phases[GameState.practice_phase_index]]

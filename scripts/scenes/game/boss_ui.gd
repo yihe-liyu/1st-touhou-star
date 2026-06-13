@@ -21,7 +21,7 @@ func _ready() -> void:
 
 func _on_boss_spawned(boss: Node) -> void:
 	var bd: BossData = boss.boss_data
-	_name_label.text = bd.boss_name if bd.boss_name != "" else "Boss"
+	_name_label.text = bd.boss_name if bd.boss_name != "" else "???"
 	_spell_label.visible = false
 	_hp_fill.size.x = _hp_bg.size.x
 	visible = true

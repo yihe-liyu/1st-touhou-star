@@ -17,7 +17,6 @@ offset_left = 64.0
 offset_top = 32.0
 offset_right = 424.0
 offset_bottom = 55.0
-text = "Boss"
 
 [node name="SpellName" type="Label" parent="Control" unique_id=454199832]
 layout_mode = 0
