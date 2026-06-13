@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/boss_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/phase_data/ex_non_01.tres" id="2"]
+[ext_resource type="Resource" path="res://data/phase_data/ex_spell_01.tres" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_visual_test.tscn" id="4"]
+
+[resource]
+script = ExtResource("1")
+visual = ExtResource("4")
+phases = Array[Resource]([ExtResource("2"), ExtResource("3")])

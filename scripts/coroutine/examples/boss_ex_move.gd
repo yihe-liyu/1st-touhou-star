@@ -1,12 +1,11 @@
-# boss_move_test.gd
+# boss_ex_move.gd
 extends MoveScript
+## 示例：boss 左右慢速摇摆
 
-const AMPLITUDE := 150.0
-const FREQ := 0.02
+const AMPLITUDE := 120.0
 
 var _center_x: float
 var _t: float = 0.0
-
 
 func start_moving(api: StageAPI, p_target: Node2D) -> void:
 	target = p_target
@@ -14,6 +13,6 @@ func start_moving(api: StageAPI, p_target: Node2D) -> void:
 	run(_on_step.bind(api))
 
 func _on_step(_api: StageAPI) -> Variant:
-	_t += FREQ
+	_t += 0.015
 	target.global_position.x = _center_x + sin(_t) * AMPLITUDE
 	return true
