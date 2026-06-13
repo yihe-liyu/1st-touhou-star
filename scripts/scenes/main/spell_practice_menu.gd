@@ -272,6 +272,10 @@ func _set_idx(v: int) -> void:
 
 func _refresh_char() -> void:
 	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
+	_section = Section.STAGE
+	_stage_index = 0
+	_phase_index = 0
+	_diff_index = 0
 	_build_data()
 	_build_lists()
 	_highlight()
