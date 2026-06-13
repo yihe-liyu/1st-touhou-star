@@ -14,7 +14,6 @@ script = ExtResource("2_record")
 phase_type = 0
 difficulty = 0
 spell_name = "mmm"
-phase_order = 1
 metadata/_custom_type_script = "uid://bphbnlbdvkqg6"
 
 [resource]

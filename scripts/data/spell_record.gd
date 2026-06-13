@@ -11,6 +11,7 @@ const DIFF_NAMES := ["Easy", "Normal", "Hard", "Lunatic", "Extra"]
 enum PhaseType { NONSPELL, SPELL }
 
 @export_group("Key")
+@export var spell_uid: int = 0                          ## 全局唯一符卡编号
 @export var character: Character = Character.REIMU     ## 角色
 @export var stage: int = 1                             ## 关卡号
 @export var phase_type: PhaseType = PhaseType.SPELL    ## 非符/符卡
