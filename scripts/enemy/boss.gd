@@ -54,10 +54,19 @@ func _next_phase() -> void:
 	_bonus = _current_phase.bonus
 	
 	# 计数
-	if _current_phase.name != "" or _current_phase.uid != 0:
+	if _current_phase.uid != 0:
 		_spell_count += 1
 	else:
 		_non_count += 1
+	
+	# 见到就记（练习解锁，不计 attempt）
+	var ch: int = GameState.selected_character
+	var st: int = _stage_id
+	var is_spell := _current_phase.uid != 0
+	var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
+	var pn: int = _spell_count if is_spell else _non_count
+	var diff: int = GameState.selected_difficulty
+	GameState.unlock_spell(ch, st, pt, pn, diff, _phase_index + 1, _current_phase.uid, _current_phase.name)
 	
 	if _current_phase.is_timeout_only:
 		_invincible = true
@@ -106,6 +115,7 @@ func _on_phase_clear(captured: bool) -> void:
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
+	# 更新收取统计
 	var ch: int = GameState.selected_character
 	var st: int = _stage_id
 	var is_spell := _current_phase.uid != 0

@@ -26,6 +26,10 @@ func record_spell(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool,
 	spell_book.record_attempt(ch, st, pt, pn, diff, captured, score, elapsed, order, uid, sname)
 	_save_spell_book()
 
+func unlock_spell(ch: int, st: int, pt: int, pn: int, diff: int, order: int = 1, uid: int = 0, sname: String = "") -> void:
+	spell_book.get_or_create(ch, st, pt, pn, diff, order, uid, sname)
+	_save_spell_book()
+
 func record_practice(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool) -> void:
 	spell_book.record_practice(ch, st, pt, pn, diff, captured)
 	_save_spell_book()
