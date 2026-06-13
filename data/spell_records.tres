@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://dxtlpmykpx6ty"]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://beiuy5ri7sxtl"]
 
 [ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
 [ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]
@@ -6,11 +6,9 @@
 [sub_resource type="Resource" id="Resource_lls5d"]
 script = ExtResource("2_record")
 spell_name = "非符1"
-attempts = 21
-captures = 21
-practice_attempts = 5
-practice_captures = 4
-best_time = 3.921835555555599
+attempts = 1
+captures = 1
+best_time = 4.3333327272726665
 
 [sub_resource type="Resource" id="Resource_4fnre"]
 script = ExtResource("2_record")
@@ -18,13 +16,43 @@ spell_uid = 1
 phase_type = 1
 spell_name = "星符「Twinkle」"
 phase_order = 2
-attempts = 10
-captures = 10
-practice_attempts = 7
-practice_captures = 7
-best_score = 45689
-best_time = 5.250712393939306
+attempts = 1
+captures = 1
+practice_attempts = 3
+practice_captures = 3
+best_score = 41030
+best_time = 10.881463030302768
+
+[sub_resource type="Resource" id="Resource_8qneb"]
+script = ExtResource("2_record")
+difficulty = 3
+spell_name = "非符1"
+attempts = 1
+captures = 1
+best_time = 3.3511800000000287
+
+[sub_resource type="Resource" id="Resource_8upsx"]
+script = ExtResource("2_record")
+spell_uid = 1
+phase_type = 1
+difficulty = 3
+spell_name = "星符「Twinkle」"
+phase_order = 2
+attempts = 1
+captures = 1
+practice_attempts = 1
+practice_captures = 1
+best_score = 45595
+best_time = 5.342725454545348
+
+[sub_resource type="Resource" id="Resource_ndrql"]
+script = ExtResource("2_record")
+character = 1
+difficulty = 2
+spell_name = "非符1"
+practice_attempts = 1
+practice_captures = 1
 
 [resource]
 script = ExtResource("1_book")
-records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre")])
+records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre"), SubResource("Resource_8qneb"), SubResource("Resource_8upsx"), SubResource("Resource_ndrql")])

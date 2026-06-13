@@ -100,12 +100,14 @@ func _play_spell_announce(spell_name: String) -> void:
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(lbl, "modulate:a", 1.0, 0.5)
-	tw.tween_property(lbl, "scale", Vector2(0.6, 0.6), 0.5).set_trans(Tween.TRANS_CUBIC)
-	tw.tween_property(lbl, "position", center - label_size * 0.6 / 2.0, 0.5).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_property(lbl, "scale", Vector2(0.6, 0.6), 0.5).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(lbl, "position", center - label_size * 0.6 / 2.0, 0.5).set_trans(Tween.TRANS_QUAD)
 	tw.set_parallel(false)
 	
+	tw.tween_interval(0.2)
+	
 	# 2. 下移(scale→1)
-	tw.tween_property(lbl, "position", vs - label_size * 0.6, 0.5).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(lbl, "position", vs - label_size * 0.6, 1.0).set_trans(Tween.TRANS_QUAD)
 	
 	# 3. 加速/减速飞向右上
 	var top_right := Vector2(vs.x - (label_size * 0.6).x, 0)
