@@ -64,6 +64,8 @@ func _next_phase() -> void:
 	_current_phase = boss_data.phases[_phase_index]
 	_elapsed = 0.0
 	_bonus = _current_phase.bonus
+	_invincible = true
+	hp = 0
 	
 	# 计数
 	if _current_phase.uid != 0:
@@ -80,15 +82,20 @@ func _next_phase() -> void:
 	var diff: int = GameState.selected_difficulty
 	GameState.unlock_spell(ch, st, pt, pn, diff, _phase_index + 1, _current_phase.uid, _current_phase.name)
 	
+	if _current_phase.name != "":
+		GameEvents.phase_start.emit(_current_phase)
+	
+	# HP 从 0 涨到满 → 然后开始
+	var twn := create_tween()
+	twn.tween_property(self, "hp", _current_phase.hp, 1.0)
+	twn.tween_callback(_begin_phase)
+
+func _begin_phase() -> void:
 	if _current_phase.is_timeout_only:
 		_invincible = true
 		hp = 999999
 	else:
 		_invincible = false
-		hp = _current_phase.hp
-	
-	if _current_phase.name != "":
-		GameEvents.phase_start.emit(_current_phase)
 	
 	if _current_phase.move_script:
 		_move = _current_phase.move_script.new()
