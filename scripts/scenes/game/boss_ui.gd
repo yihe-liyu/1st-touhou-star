@@ -4,6 +4,8 @@ extends CanvasLayer
 @onready var _name_label: Label = $Control/BossName
 @onready var _spell_label: Label = $Control/SpellName
 @onready var _bonus_label: Label = $Control/Bonus
+@onready var _hp_fill: ColorRect = $Control/HPBar/Fill
+@onready var _hp_bg: ColorRect = $Control/HPBar
 @onready var _history: HBoxContainer = $Control/History
 
 var _history_colors: Array[Color] = []
@@ -21,6 +23,7 @@ func _on_boss_spawned(boss: Node) -> void:
 	var bd: BossData = boss.boss_data
 	_name_label.text = bd.boss_name if bd.boss_name != "" else "???"
 	_spell_label.visible = false
+	_hp_fill.size.x = _hp_bg.size.x
 	visible = true
 
 func _on_boss_defeated(_boss: Node) -> void:
@@ -33,6 +36,7 @@ func _on_phase_start(phase: PhaseData) -> void:
 	else:
 		_spell_label.visible = false
 	_bonus_label.text = str(phase.bonus)
+	_hp_fill.size.x = _hp_bg.size.x
 
 func _on_tick(bonus: int) -> void:
 	_bonus_label.text = str(bonus)
