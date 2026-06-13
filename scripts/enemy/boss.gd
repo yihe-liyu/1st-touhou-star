@@ -26,6 +26,9 @@ func setup(bd: BossData, api: StageAPI) -> void:
 	boss_data = bd
 	_api = api
 	
+	if GameState.is_practice_mode:
+		_stage_id = GameState.practice_stage_id
+	
 	var shape := CircleShape2D.new()
 	shape.radius = hitbox_radius
 	var col := CollisionShape2D.new()
@@ -122,7 +125,11 @@ func _on_phase_clear(captured: bool) -> void:
 	var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
 	var pn: int = _spell_count if is_spell else _non_count
 	var diff: int = GameState.selected_difficulty
-	GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed, _phase_index + 1, _current_phase.uid, _current_phase.name)
+	
+	if GameState.is_practice_mode:
+		GameState.record_practice(ch, st, pt, pn, diff, captured)
+	else:
+		GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed, _phase_index + 1, _current_phase.uid, _current_phase.name)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

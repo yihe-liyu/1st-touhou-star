@@ -10,6 +10,7 @@ const GAME_OVER_MENU = preload("res://scenes/ui/game_over_menu.tscn")
 
 var _blur_rect: ColorRect
 var _background_instance: StageBackground
+var _practice_runner: CoroutineRunner
 
 func _ready():
 	# 尽早进入 PLAYING，入场动画期间也允许暂停
@@ -33,12 +34,14 @@ func _ready():
 	
 	_setup_player()
 	
-	# 等 UI 入场动画播完再开始关卡（暂停时动画冻住，恢复后继续）
+	# 等 UI 入场动画播完再开始关卡
 	var ui := $"UI"
 	if ui and ui.has_signal("entry_finished"):
 		await ui.entry_finished
 	
-	if stage_data:
+	if GameState.is_practice_mode:
+		_start_practice_game()
+	elif stage_data:
 		StageManager.load_stage(stage_data)
 
 func _load_background():
@@ -52,6 +55,10 @@ func _exit_tree():
 	if _background_instance and is_instance_valid(_background_instance):
 		_background_instance.queue_free()
 		_background_instance = null
+	if _practice_runner and is_instance_valid(_practice_runner):
+		_practice_runner.stop()
+		_practice_runner.queue_free()
+		_practice_runner = null
 	StageManager.stop_stage()
 
 func _on_player_death():
@@ -112,18 +119,46 @@ func _setup_player() -> void:
 		player._reinit_shoot()
 
 func _on_stage_cleared():
-	return  # TODO: 暂关闭, 调试完再启
-	if stage_data and stage_data.next_stage:
-		# 有下一关 → 重加载
-		stage_data = stage_data.next_stage
-		StageManager.stop_stage()
-		if _background_instance:
-			_background_instance.queue_free()
-			_background_instance = null
-		_load_background()
-		StageManager.load_stage(stage_data)
-	else:
-		# 最后一关 → 结算
-		var menu = END_MENU.instantiate()
-		menu.title_text = "Stage Clear!"
-		GameManager.push_overlay_menu(menu)
+	# TODO: 暂关闭, 调试完再启
+	# if stage_data and stage_data.next_stage: ...
+	pass
+
+
+# ═══ 练习模式 ═══
+
+func _start_practice_game() -> void:
+	# 创建 Runner + API
+	_practice_runner = CoroutineRunner.new()
+	_practice_runner.name = "PracticeRunner"
+	add_child(_practice_runner)
+	_practice_runner.run(func(): return true)  # 保持 running
+	
+	var api := StageAPI.new(_practice_runner)
+	
+	# 拼单-phase BossData
+	var full_data: BossData = GameState.practice_boss_data
+	var single := BossData.new()
+	single.visual = full_data.visual
+	single.score_value = full_data.score_value
+	single.phases = [full_data.phases[GameState.practice_phase_index]]
+	
+	# 生成 Boss
+	var pos := Vector2(224, 160)
+	StageManager.spawn_boss(single, pos, api)
+	
+	if not GameEvents.boss_defeated.is_connected(_on_practice_cleared):
+		GameEvents.boss_defeated.connect(_on_practice_cleared)
+
+func _on_practice_cleared(_boss: Node) -> void:
+	if _practice_runner:
+		_practice_runner.stop()
+		_practice_runner.queue_free()
+		_practice_runner = null
+	
+	if GameEvents.boss_defeated.is_connected(_on_practice_cleared):
+		GameEvents.boss_defeated.disconnect(_on_practice_cleared)
+	
+	GameState.end_practice()
+	
+	# 回 menu
+	GameManager.change_scene("res://scenes/ui/main_menu.tscn", GameManager.AppState.MENU)

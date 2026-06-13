@@ -336,31 +336,61 @@ func _start_practice() -> void:
 	var diff: int = diff_keys[_diff_index]
 	var r = info.diffs[diff]
 	var st_num := _stages[_stage_index] if _stage_index < _stages.size() else 0
-	var phase := _find_phase_data(st_num, info.type, info.num)
-	if phase:
-		print("练习: ", r.spell_name, " 难度:", DIFF_NAMES[diff])
-	else:
-		print("找不到 PhaseData")
+	
+	var result := _find_practice_target(st_num, info.type, info.num)
+	if result.is_empty():
+		print("找不到 BossData/PhaseData")
+		_on_leave()
+		return
+	
+	# 设置练习模式
+	GameState.selected_difficulty = diff
+	GameState.selected_character = _char_index
+	
+	# 找到目标 phase 在 BossData 中的索引
+	var boss_data: BossData = result["boss_data"]
+	var phase_idx: int = 0
+	var spell_c := 0; var non_c := 0
+	for i in boss_data.phases.size():
+		var ph = boss_data.phases[i]
+		if ph.uid != 0:
+			spell_c += 1
+			if info.type == SpellRecord.PhaseType.SPELL and spell_c == info.num:
+				phase_idx = i
+				break
+		else:
+			non_c += 1
+			if info.type == SpellRecord.PhaseType.NONSPELL and non_c == info.num:
+				phase_idx = i
+				break
+	
+	print("练习: ", r.spell_name, " 难度: ", DIFF_NAMES[diff])
+	GameState.start_practice(boss_data, phase_idx, st_num)
 	_on_leave()
+	GameManager.change_scene("res://scenes/game_scene.tscn")
 
-func _find_phase_data(stage: int, pt: int, pn: int) -> PhaseData:
+func _find_practice_target(stage: int, pt: int, pn: int) -> Dictionary:
 	var dir := DirAccess.open("res://data/stages/")
-	if not dir: return null
+	if not dir: return {}
 	dir.list_dir_begin()
 	var fn := dir.get_next()
 	while fn != "":
 		if fn.ends_with(".tres"):
 			var sd: StageData = ResourceLoader.load("res://data/stages/" + fn)
 			if sd and sd.stage_id == stage and sd.boss_data:
-				var spell_c := 0; var non_c := 0
-				for ph in sd.boss_data.phases:
-					if ph.uid != 0:
-						spell_c += 1
-						if pt == SpellRecord.PhaseType.SPELL and spell_c == pn:
-							return ph
-					else:
-						non_c += 1
-						if pt == SpellRecord.PhaseType.NONSPELL and non_c == pn:
-							return ph
+				return {"boss_data": sd.boss_data, "phase_data": _match_phase(sd.boss_data, pt, pn)}
 		fn = dir.get_next()
+	return {}
+
+func _match_phase(bd: BossData, pt: int, pn: int) -> PhaseData:
+	var spell_c := 0; var non_c := 0
+	for ph in bd.phases:
+		if ph.uid != 0:
+			spell_c += 1
+			if pt == SpellRecord.PhaseType.SPELL and spell_c == pn:
+				return ph
+		else:
+			non_c += 1
+			if pt == SpellRecord.PhaseType.NONSPELL and non_c == pn:
+				return ph
 	return null

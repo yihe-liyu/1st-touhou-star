@@ -13,6 +13,21 @@ var selected_character: int = 0
 var player: Player = null
 var spell_book
 
+# 练习模式
+var is_practice_mode: bool = false
+var practice_boss_data: BossData
+var practice_phase_index: int = 0
+var practice_stage_id: int = 1
+
+func start_practice(boss: BossData, phase_idx: int, stage_id: int) -> void:
+	is_practice_mode = true
+	practice_boss_data = boss
+	practice_phase_index = phase_idx
+	practice_stage_id = stage_id
+
+func end_practice() -> void:
+	is_practice_mode = false
+
 func _load_spell_book() -> void:
 	if ResourceLoader.exists(SPELL_BOOK_PATH):
 		spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
