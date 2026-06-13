@@ -108,7 +108,5 @@ func _play_spell_announce(spell_name: String) -> void:
 	tw.tween_property(lbl, "position", vs - label_size * 0.6, 0.5).set_trans(Tween.TRANS_QUAD)
 	
 	# 3. 加速/减速飞向右上
-	var final_size: Vector2 = lbl.get_minimum_size() * 0.4
-	var top_right := Vector2(vs.x - final_size.x, 0)
-	tw.tween_property(lbl, "position", top_right, 0.7)\
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	var top_right := Vector2(vs.x - (label_size * 0.6).x, 0)
+	tw.tween_property(lbl, "position", top_right, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
