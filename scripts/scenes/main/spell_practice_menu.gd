@@ -317,6 +317,7 @@ func _input(event: InputEvent) -> void:
 			_start_practice()
 		elif _section == Section.PHASE:
 			_section = Section.DIFF
+			_diff_index = 0
 			_build_diff_list()
 			_highlight()
 		else:
