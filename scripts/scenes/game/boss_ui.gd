@@ -15,6 +15,7 @@ const DOT_SIZE := 16.0
 
 var _dots: Array[ColorRect] = []  # [0]=最后阶段(左), [n-1]=第一阶段(右)
 var _phase_idx: int = 0           # 战斗顺序: 0=第一阶段, 1=第二阶段...
+var _announce_tween: Tween
 
 func _ready() -> void:
 	visible = false
@@ -34,7 +35,6 @@ func _on_boss_spawned(boss: Node) -> void:
 	_dots.clear()
 	_phase_idx = 0
 	
-	# 倒序加入 → HBox 左起: 最后阶段...第一阶段
 	for i in range(bd.phases.size() - 1, -1, -1):
 		var ph := bd.phases[i]
 		var dot := ColorRect.new()
@@ -50,15 +50,13 @@ func _on_boss_defeated(_boss: Node) -> void:
 
 func _on_phase_start(phase: PhaseData) -> void:
 	if phase.uid != 0:
-		_spell_label.text = phase.name
-		_spell_label.visible = true
+		_play_spell_announce(phase.name)
 		_bonus_label.text = str(phase.bonus)
 		_bonus_label.visible = true
 	else:
 		_spell_label.visible = false
 		_bonus_label.visible = false
 	
-	# 第一阶段 → 最右边的方块
 	var vis_idx := _dots.size() - 1 - _phase_idx
 	if vis_idx >= 0 and vis_idx < _dots.size():
 		_dots[vis_idx].color = PURPLE
@@ -70,7 +68,46 @@ func _on_tick(bonus: int) -> void:
 func _on_phase_end(captured: bool, _bonus: int) -> void:
 	_spell_label.visible = false
 	_bonus_label.visible = false
+	if _announce_tween and _announce_tween.is_valid():
+		_announce_tween.kill()
 	var vis_idx := _dots.size() - 1 - _phase_idx
 	if vis_idx >= 0 and vis_idx < _dots.size():
 		_dots[vis_idx].color = GOLD if captured else RED
 	_phase_idx += 1
+
+func _play_spell_announce(spell_name: String) -> void:
+	var lbl := Label.new()
+	lbl.text = spell_name
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 48)
+	lbl.modulate.a = 0.0
+	$Control.add_child(lbl)
+	
+	var vs := get_viewport().get_visible_rect().size
+	var center := Vector2(vs.x * 0.5, vs.y * 0.3)
+	var below := Vector2(center.x, center.y + 100.0)
+	var top_right := Vector2(vs.x - 80.0, 50.0)
+	
+	# 大字在中央, scale=3
+	lbl.position = center - Vector2(200, 30)
+	lbl.scale = Vector2(3.0, 3.0)
+	
+	_announce_tween = create_tween()
+	_announce_tween.set_parallel(true)
+	_announce_tween.tween_property(lbl, "modulate:a", 1.0, 0.15)
+	_announce_tween.tween_property(lbl, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_CUBIC)
+	_announce_tween.tween_property(lbl, "position", below - Vector2(200, 30), 0.5)
+	_announce_tween.set_parallel(false)
+	
+	# 加速→减速飞向右上
+	_announce_tween.tween_property(lbl, "position", top_right - Vector2(200, 30), 0.7)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	
+	# 淡出 → 显示常态名
+	_announce_tween.tween_property(lbl, "modulate:a", 0.0, 0.25)
+	_announce_tween.tween_callback(func():
+		lbl.queue_free()
+		_spell_label.text = spell_name
+		_spell_label.visible = true
+	)
