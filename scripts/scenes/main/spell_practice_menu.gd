@@ -134,8 +134,8 @@ func _build_lists() -> void:
 		var recs: Array = book.get_by_stage(_char_index, st)
 		var cap := 0; var att := 0
 		for r in recs:
-			cap += r.captures
-			att += r.attempts
+			cap += r.practice_captures
+			att += r.practice_attempts
 		if att > 0:
 			lbl.text += "  %d/%d" % [cap, att]
 		_stage_box.add_child(lbl)
@@ -150,8 +150,8 @@ func _build_phase_list() -> void:
 		var cap := 0; var att := 0
 		for diff in info.diffs.keys():
 			var r = info.diffs[diff]
-			cap += r.captures
-			att += r.attempts
+			cap += r.practice_captures
+			att += r.practice_attempts
 		if att > 0:
 			suffix = "  %d/%d" % [cap, att]
 		
@@ -183,7 +183,7 @@ func _build_diff_list() -> void:
 		var uid_str := ""
 		if uid > 0:
 			uid_str = "No.%03d  " % uid
-		var cap_str := "  %d/%d" % [r.captures, r.attempts]
+		var cap_str := "  %d/%d" % [r.practice_captures, r.practice_attempts]
 		hl.text = uid_str + DIFF_NAMES[d] + cap_str
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		hl.add_theme_font_size_override("font_size", 24)
