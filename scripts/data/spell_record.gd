@@ -17,7 +17,7 @@ enum PhaseType { NONSPELL, SPELL }
 @export var phase_number: int = 1                      ## 第几个非符/符卡
 @export var difficulty: Difficulty = Difficulty.NORMAL ## 难度
 @export var spell_name: String = ""                    ## 符卡名
-@export var phase_order: int = 0                        ## 出场顺序（0=第一个出的）
+@export var phase_order: int = 1                       ## 出场顺序（1=第一个出的）
 
 @export_group("Story")
 @export var attempts: int = 0                          ## 挑战次数
