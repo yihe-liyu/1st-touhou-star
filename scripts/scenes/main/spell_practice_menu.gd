@@ -124,7 +124,7 @@ func _build_lists() -> void:
 		var lbl := Label.new()
 		lbl.text = "No records"
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 20)
+		lbl.add_theme_font_size_override("font_size", 32)
 		_stage_box.add_child(lbl)
 		return
 	
@@ -143,8 +143,6 @@ func _build_lists() -> void:
 
 func _build_phase_list() -> void:
 	_clear(_phase_box)
-	var book: SpellRecordBook = GameState.spell_book
-	var st_num: int = _stages[_stage_index] if _stage_index < _stages.size() else 0
 	
 	for i in _phases.size():
 		var info = _phases[i]
@@ -177,7 +175,7 @@ func _build_diff_list() -> void:
 		var name_str: String = r.spell_name if r.spell_name != "" else "-"
 		nl.text = name_str
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		nl.add_theme_font_size_override("font_size", 26)
+		nl.add_theme_font_size_override("font_size", 32)
 		vbox.add_child(nl)
 		
 		var hl := Label.new()
@@ -188,7 +186,7 @@ func _build_diff_list() -> void:
 		var cap_str := "  %d/%d" % [r.captures, r.attempts]
 		hl.text = uid_str + DIFF_NAMES[d] + cap_str
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		hl.add_theme_font_size_override("font_size", 18)
+		hl.add_theme_font_size_override("font_size", 24)
 		hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 		vbox.add_child(hl)
 		_diff_box.add_child(vbox)
@@ -202,7 +200,7 @@ func _make_label(text: String) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 28)
+	lbl.add_theme_font_size_override("font_size", 32)
 	return lbl
 
 # ═══ 高亮 ═══
@@ -303,15 +301,15 @@ func _input(event: InputEvent) -> void:
 		_refresh_char()
 		get_viewport().set_input_as_handled()
 	
-	var maxi := _max_idx()
-	if maxi < 0: return
+	var mx := _max_idx()
+	if mx < 0: return
 	
 	if event.is_action_pressed("ui_up"):
-		_set_idx(wrapi(_get_idx() - 1, 0, maxi + 1))
+		_set_idx(wrapi(_get_idx() - 1, 0, mx + 1))
 		_highlight()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_down"):
-		_set_idx(wrapi(_get_idx() + 1, 0, maxi + 1))
+		_set_idx(wrapi(_get_idx() + 1, 0, mx + 1))
 		_highlight()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_accept"):

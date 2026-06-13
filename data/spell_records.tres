@@ -1,7 +1,15 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://d3b1hrhbbrusf"]
 
-[ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]
+
+[sub_resource type="Resource" id="Resource_lls5d"]
+script = ExtResource("2_record")
+phase_type = 0
+difficulty = 0
+spell_name = "卡摩瑞的非符其一"
+metadata/_custom_type_script = "uid://bphbnlbdvkqg6"
 
 [resource]
 script = ExtResource("1_book")
-records = Array[ExtResource("res://scripts/data/spell_record.gd")]([])
+records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d")])
