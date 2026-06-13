@@ -4,7 +4,7 @@ class_name PhaseData
 
 @export var name: String = ""            ## 符卡名（空串=非符，练习菜单忽略此项）
 @export var spell_names: Array[String] = [] ## 各难度符卡名 [Easy, Normal, Hard, Lunatic]
-@export var spell_id: int = 0             ## 记录用唯一ID，0=不记
+@export var uid: int = 0                  ## 全局唯一符卡编号，0=非符不记
 @export var bonus: int = 0               ## 初始奖励分
 @export var time_limit: float = 30.0     ## 时限（秒）
 @export var hp: int = 1000               ## 血量（时符自动忽略）

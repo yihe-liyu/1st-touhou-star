@@ -356,7 +356,7 @@ func _find_phase_data(stage: int, pt: int, pn: int) -> PhaseData:
 				# 遍历 phases 找到对应的
 				var spell_c := 0; var non_c := 0
 				for ph in sd.boss_data.phases:
-					if ph.spell_id != 0:
+					if ph.uid != 0:
 						spell_c += 1
 						if pt == SpellRecord.PhaseType.SPELL and spell_c == pn:
 							return ph
