@@ -333,5 +333,36 @@ func _start_practice() -> void:
 	var diff: int = diff_keys[_diff_index]
 	var r = info.diffs[diff]
 	var pname: String = r.spell_name
+	
+	# 找 PhaseData
+	var st_num := _stages[_stage_index] if _stage_index < _stages.size() else 0
+	var phase := _find_phase_data(st_num, info.type, info.num)
+	if not phase:
+		print("找不到 PhaseData: stage=%d type=%d num=%d" % [st_num, info.type, info.num])
+		return
+	
 	print("练习: ", pname, " 角色:", CHAR_NAMES[_char_index], " 难度:", DIFF_NAMES[diff])
 	_on_leave()
+
+func _find_phase_data(stage: int, pt: int, pn: int) -> PhaseData:
+	var dir := DirAccess.open("res://data/stages/")
+	if not dir: return null
+	dir.list_dir_begin()
+	var fn := dir.get_next()
+	while fn != "":
+		if fn.ends_with(".tres"):
+			var sd: StageData = ResourceLoader.load("res://data/stages/" + fn)
+			if sd and sd.stage_id == stage and sd.boss_data:
+				# 遍历 phases 找到对应的
+				var spell_c := 0; var non_c := 0
+				for ph in sd.boss_data.phases:
+					if ph.spell_id != 0:
+						spell_c += 1
+						if pt == SpellRecord.PhaseType.SPELL and spell_c == pn:
+							return ph
+					else:
+						non_c += 1
+						if pt == SpellRecord.PhaseType.NONSPELL and non_c == pn:
+							return ph
+		fn = dir.get_next()
+	return null
