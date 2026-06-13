@@ -92,9 +92,9 @@ func _change_stage(idx: int) -> void:
 	# 按类型和编号排序
 	var keys := phase_map.keys()
 	keys.sort_custom(func(a, b):
-		var pa = phase_map[a]; var pb = phase_map[b]
-		if pa.type != pb.type: return pa.type < pb.type
-		return pa.num < pb.num
+		var ra = phase_map[a]["diffs"].values()[0]
+		var rb = phase_map[b]["diffs"].values()[0]
+		return ra.get("phase_order") < rb.get("phase_order")
 	)
 	
 	var spell_c := 0; var non_c := 0

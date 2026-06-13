@@ -113,7 +113,7 @@ func _on_phase_clear(captured: bool) -> void:
 		var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
 		var pn: int = _spell_count if is_spell else _non_count
 		var diff: int = GameState.selected_difficulty
-		GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed)
+		GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed, _phase_index + 1)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

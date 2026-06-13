@@ -15,8 +15,8 @@ func get_record(ch: int, st: int, pt: int, pn: int, diff: int):
 			return r
 	return null
 
-func record_attempt(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, score: int, elapsed: float) -> void:
-	var r = get_or_create(ch, st, pt, pn, diff)
+func record_attempt(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, score: int, elapsed: float, order: int = -1) -> void:
+	var r = get_or_create(ch, st, pt, pn, diff, order)
 	if not r: return
 	r.set("attempts", r.get("attempts") + 1)
 	if captured:
@@ -28,14 +28,14 @@ func record_attempt(ch: int, st: int, pt: int, pn: int, diff: int, captured: boo
 			if bt == 0 or elapsed < bt:
 				r.set("best_time", elapsed)
 
-func record_practice(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool) -> void:
-	var r = get_or_create(ch, st, pt, pn, diff)
+func record_practice(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, order: int = -1) -> void:
+	var r = get_or_create(ch, st, pt, pn, diff, order)
 	if not r: return
 	r.set("practice_attempts", r.get("practice_attempts") + 1)
 	if captured:
 		r.set("practice_captures", r.get("practice_captures") + 1)
 
-func get_or_create(ch: int, st: int, pt: int, pn: int, diff: int):
+func get_or_create(ch: int, st: int, pt: int, pn: int, diff: int, order: int = -1):
 	var r = get_record(ch, st, pt, pn, diff)
 	if r: return r
 	r = SpellRecordClass.new()
@@ -44,6 +44,8 @@ func get_or_create(ch: int, st: int, pt: int, pn: int, diff: int):
 	r.set("phase_type", pt)
 	r.set("phase_number", pn)
 	r.set("difficulty", diff)
+	if order >= 0:
+		r.set("phase_order", order)
 	records.append(r)
 	return r
 
