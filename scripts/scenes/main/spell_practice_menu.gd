@@ -179,7 +179,7 @@ func _build_diff_list() -> void:
 		hl.size_flags_stretch_ratio = 1.0
 		hrow.add_child(hl)
 		
-		var stat_str := "%d/%d" % [r.practice_captures, r.practice_attempts]
+		var stat_str := "%02d/%02d" % [r.practice_captures, r.practice_attempts]
 		var sl := Label.new()
 		sl.layout_mode = 2
 		sl.text = stat_str
