@@ -113,6 +113,7 @@ func _process(_delta):
 	if Input.is_action_just_pressed("ui_cancel"):
 		if now - _last_accept_time >= ACCEPT_COOLDOWN:
 			_last_accept_time = now
+			AudioManager.play_sfx(preload("res://assets/Sound/cancel.wav"))
 			_on_cancel()
 		return
 

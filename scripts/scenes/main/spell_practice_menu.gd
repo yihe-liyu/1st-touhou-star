@@ -275,7 +275,7 @@ func _input(event: InputEvent) -> void:
 	if not _ready: return
 	
 	if event.is_action_pressed("ui_cancel"):
-		AudioManager.play_sfx(preload("res://assets/Sound/ok.wav"))
+		AudioManager.play_sfx(preload("res://assets/Sound/cancel.wav"))
 		if _section == Section.STAGE: _on_leave()
 		else: _section -= 1; _highlight()
 		get_viewport().set_input_as_handled()
