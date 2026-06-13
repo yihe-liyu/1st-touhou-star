@@ -133,6 +133,16 @@ func reset_all():
 	bomb_fragments = 0
 	memory_value = 50.0
 
+func reset_practice():
+	current_score = 0
+	graze_count = 0
+	power_raw = 300  # 满 P
+	lives = 8       # 满残
+	life_fragments = 0
+	bomb_count = 8  # 满 B
+	bomb_fragments = 0
+	memory_value = 50.0
+
 
 
 func _on_enemy_killed(score: int, _position: Vector2):

@@ -127,6 +127,8 @@ func _on_stage_cleared():
 # ═══ 练习模式 ═══
 
 func _start_practice_game() -> void:
+	GameState.reset_practice()
+	
 	# 加载背景
 	if GameState.practice_background:
 		_background_instance = GameState.practice_background.instantiate()
