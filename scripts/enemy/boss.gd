@@ -2,6 +2,8 @@
 class_name Boss
 extends Area2D
 
+const HPRingClass = preload("res://scripts/scenes/game/boss_hp_ring.gd")
+
 var boss_data: BossData
 var hp: int = 0
 var hitbox_radius: float = 24.0
@@ -28,6 +30,11 @@ func setup(bd: BossData, api: StageAPI) -> void:
 	
 	if GameState.is_practice_mode:
 		_stage_id = GameState.practice_stage_id
+	
+	# 环形血条
+	var ring := HPRingClass.new()
+	ring.setup(self)
+	add_child(ring)
 	
 	var shape := CircleShape2D.new()
 	shape.radius = hitbox_radius
