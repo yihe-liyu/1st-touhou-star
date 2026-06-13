@@ -113,17 +113,8 @@ func _build_lists() -> void:
 		_clear(_phase_box)
 		return
 	
-	var book: SpellRecordBook = GameState.spell_book
 	for st in _stages:
-		var lbl := _make_label("Stage %d" % st)
-		var recs: Array = book.get_by_stage(_char_index, st)
-		var cap := 0; var att := 0
-		for r in recs:
-			cap += r.practice_captures
-			att += r.practice_attempts
-		if att > 0:
-			lbl.text += "  %02d/%02d" % [cap, att]
-		_stage_box.add_child(lbl)
+		_stage_box.add_child(_make_label("Stage %d" % st))
 	_build_phase_list()
 
 func _build_phase_list() -> void:
