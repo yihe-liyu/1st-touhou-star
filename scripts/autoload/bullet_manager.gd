@@ -24,6 +24,7 @@ const BulletMultiMeshClass = preload("res://scripts/bullet/bullet_multi_mesh.gd"
 
 func _ready():
 	z_index = 50
+	z_as_relative = false
 	
 	_pool = PoolClass.new()
 	_pool.setup(self)
