@@ -8,15 +8,15 @@ script = ExtResource("1_script")
 [node name="Control" type="Control" parent="." unique_id=824842050]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 960.0
-offset_bottom = 640.0
+offset_left = 64.0
+offset_top = 32.0
+offset_right = 832.0
+offset_bottom = 928.0
 
 [node name="BossName" type="Label" parent="Control" unique_id=1919758271]
 layout_mode = 0
-offset_left = 64.0
-offset_top = 32.0
-offset_right = 448.0
-offset_bottom = 64.0
+offset_right = 384.0
+offset_bottom = 32.0
 theme_override_font_sizes/font_size = 22
 
 [node name="SpellName" type="Label" parent="Control" unique_id=454199832]
@@ -38,7 +38,6 @@ text = "0"
 
 [node name="History" type="HBoxContainer" parent="Control" unique_id=815668446]
 layout_mode = 0
-offset_left = 64.0
-offset_top = 64.0
-offset_right = 448.0
-offset_bottom = 80.0
+offset_top = 32.0
+offset_right = 384.0
+offset_bottom = 48.0
