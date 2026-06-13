@@ -5,60 +5,59 @@ class_name SpellRecordBook
 const SpellRecordClass = preload("res://scripts/data/spell_record.gd")
 
 ## 全符卡收取记录
-@export var records: Array[Resource] = []
+@export var records: Array[SpellRecord] = []
 
 func get_record(ch: int, st: int, pt: int, pn: int, diff: int):
 	for r in records:
-		if r.get("character") == ch and r.get("stage") == st \
-		   and r.get("phase_type") == pt and r.get("phase_number") == pn \
-		   and r.get("difficulty") == diff:
+		if r.character == ch and r.stage == st \
+		   and r.phase_type == pt and r.phase_number == pn \
+		   and r.difficulty == diff:
 			return r
 	return null
 
-func record_attempt(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, score: int, elapsed: float, order: int = -1) -> void:
-	var r = get_or_create(ch, st, pt, pn, diff, order)
+func record_attempt(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, score: int, elapsed: float, order: int = 0, uid: int = 0) -> void:
+	var r = get_or_create(ch, st, pt, pn, diff, order, uid)
 	if not r: return
-	r.set("attempts", r.get("attempts") + 1)
+	r.attempts += 1
 	if captured:
-		r.set("captures", r.get("captures") + 1)
-		if score > r.get("best_score"):
-			r.set("best_score", score)
+		r.captures += 1
+		if score > r.best_score:
+			r.best_score = score
 		if elapsed > 0:
-			var bt = r.get("best_time")
-			if bt == 0 or elapsed < bt:
-				r.set("best_time", elapsed)
+			if r.best_time == 0 or elapsed < r.best_time:
+				r.best_time = elapsed
 
-func record_practice(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, order: int = -1) -> void:
+func record_practice(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, order: int = 0) -> void:
 	var r = get_or_create(ch, st, pt, pn, diff, order)
 	if not r: return
-	r.set("practice_attempts", r.get("practice_attempts") + 1)
+	r.practice_attempts += 1
 	if captured:
-		r.set("practice_captures", r.get("practice_captures") + 1)
+		r.practice_captures += 1
 
 func get_or_create(ch: int, st: int, pt: int, pn: int, diff: int, order: int = 0, uid: int = 0):
 	var r = get_record(ch, st, pt, pn, diff)
 	if r: return r
 	r = SpellRecordClass.new()
-	r.set("character", ch)
-	r.set("stage", st)
-	r.set("phase_type", pt)
-	r.set("phase_number", pn)
-	r.set("difficulty", diff)
+	r.character = ch
+	r.stage = st
+	r.phase_type = pt
+	r.phase_number = pn
+	r.difficulty = diff
 	if order > 0:
-		r.set("phase_order", order)
+		r.phase_order = order
 	if uid > 0:
-		r.set("spell_uid", uid)
+		r.spell_uid = uid
 	records.append(r)
 	return r
 
-func get_by_stage(ch: int, st: int) -> Array:
-	var result: Array = []
+func get_by_stage(ch: int, st: int) -> Array[SpellRecord]:
+	var result: Array[SpellRecord] = []
 	for r in records:
-		if r.get("character") == ch and r.get("stage") == st:
+		if r.character == ch and r.stage == st:
 			result.append(r)
 	return result
 
 func get_history(ch: int, st: int, pt: int, pn: int, diff: int) -> String:
 	var r = get_record(ch, st, pt, pn, diff)
 	if not r: return "0/0"
-	return "%d/%d" % [r.get("captures"), r.get("attempts")]
+	return "%d/%d" % [r.captures, r.attempts]

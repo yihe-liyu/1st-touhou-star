@@ -41,15 +41,15 @@ func _on_leave() -> void:
 # ═══ 从 RecordBook 生成菜单 ═══
 
 func _build_data() -> void:
-	var book: Resource = GameState.spell_book
+	var book: SpellRecordBook = GameState.spell_book
 	var all_recs: Array = book.records
 	
 	# 收集该角色有记录的关卡
 	var stage_set: Dictionary = {}
 	for r in all_recs:
-		if r.get("character") != _char_index:
+		if r.character != _char_index:
 			continue
-		var st: int = r.get("stage")
+		var st: int = r.stage
 		if not stage_set.has(st):
 			stage_set[st] = true
 	
@@ -74,20 +74,20 @@ func _change_stage(idx: int) -> void:
 	
 	if _stages.is_empty(): return
 	var st_num: int = _stages[idx]
-	var book: Resource = GameState.spell_book
+	var book: SpellRecordBook = GameState.spell_book
 	
 	# 收集该关卡有记录的 phase
 	# 结构: { (phase_type, phase_number): { diff → record } }
 	var phase_map: Dictionary = {}
 	for r in book.records:
-		if r.get("character") != _char_index or r.get("stage") != st_num:
+		if r.character != _char_index or r.stage != st_num:
 			continue
-		var pt: int = r.get("phase_type")
-		var pn: int = r.get("phase_number")
+		var pt: int = r.phase_type
+		var pn: int = r.phase_number
 		var key = "%d_%d" % [pt, pn]
 		if not phase_map.has(key):
 			phase_map[key] = {type=pt, num=pn, diffs={}}
-		phase_map[key]["diffs"][r.get("difficulty")] = r
+		phase_map[key]["diffs"][r.difficulty] = r
 	
 	# 按类型和编号排序
 	var keys := phase_map.keys()
@@ -128,14 +128,14 @@ func _build_lists() -> void:
 		_stage_box.add_child(lbl)
 		return
 	
-	var book: Resource = GameState.spell_book
+	var book: SpellRecordBook = GameState.spell_book
 	for st in _stages:
 		var lbl := _make_label("Stage %d" % st)
 		var recs: Array = book.get_by_stage(_char_index, st)
 		var cap := 0; var att := 0
 		for r in recs:
-			cap += r.get("captures")
-			att += r.get("attempts")
+			cap += r.captures
+			att += r.attempts
 		if att > 0:
 			lbl.text += "  %d/%d" % [cap, att]
 		_stage_box.add_child(lbl)
@@ -143,7 +143,7 @@ func _build_lists() -> void:
 
 func _build_phase_list() -> void:
 	_clear(_phase_box)
-	var book: Resource = GameState.spell_book
+	var book: SpellRecordBook = GameState.spell_book
 	var st_num: int = _stages[_stage_index] if _stage_index < _stages.size() else 0
 	
 	for i in _phases.size():
@@ -152,8 +152,8 @@ func _build_phase_list() -> void:
 		var cap := 0; var att := 0
 		for diff in info.diffs.keys():
 			var r = info.diffs[diff]
-			cap += r.get("captures")
-			att += r.get("attempts")
+			cap += r.captures
+			att += r.attempts
 		if att > 0:
 			suffix = "  %d/%d" % [cap, att]
 		
@@ -174,18 +174,18 @@ func _build_diff_list() -> void:
 		var r = info.diffs[d]
 		var vbox := VBoxContainer.new()
 		var nl := Label.new()
-		var name_str: String = r.get("spell_name") if r.get("spell_name") != "" else "-"
+		var name_str: String = r.spell_name if r.spell_name != "" else "-"
 		nl.text = name_str
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.add_theme_font_size_override("font_size", 26)
 		vbox.add_child(nl)
 		
 		var hl := Label.new()
-		var uid: int = r.get("spell_uid")
+		var uid: int = r.spell_uid
 		var uid_str := ""
 		if uid > 0:
 			uid_str = "No.%03d  " % uid
-		var cap_str := "  %d/%d" % [r.get("captures"), r.get("attempts")]
+		var cap_str := "  %d/%d" % [r.captures, r.attempts]
 		hl.text = uid_str + DIFF_NAMES[d] + cap_str
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		hl.add_theme_font_size_override("font_size", 18)
@@ -334,6 +334,6 @@ func _start_practice() -> void:
 	diff_keys.sort()
 	var diff: int = diff_keys[_diff_index]
 	var r = info.diffs[diff]
-	var pname: String = r.get("spell_name")
+	var pname: String = r.spell_name
 	print("练习: ", pname, " 角色:", CHAR_NAMES[_char_index], " 难度:", DIFF_NAMES[diff])
 	_on_leave()
