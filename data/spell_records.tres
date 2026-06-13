@@ -1,7 +1,6 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://cbjems85h8s57"]
 
-[ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="1_book"]
-[ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="2_record"]
+[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
 
 [resource]
 script = ExtResource("1_book")
