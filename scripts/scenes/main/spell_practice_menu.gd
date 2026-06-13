@@ -137,15 +137,7 @@ func _build_phase_list() -> void:
 		else:
 			name_str = "符卡%d" % _phase_spell_nums[i]
 		
-		var lbl := _make_label(name_str)
-		var cap := 0; var att := 0
-		for diff in info.diffs.keys():
-			var r = info.diffs[diff]
-			cap += r.practice_captures
-			att += r.practice_attempts
-		if att > 0:
-			lbl.text += "  %02d/%02d" % [cap, att]
-		_phase_box.add_child(lbl)
+		_phase_box.add_child(_make_label(name_str))
 
 func _build_diff_list() -> void:
 	_clear(_diff_box)
