@@ -36,8 +36,9 @@ func _on_boss_spawned(boss: Node) -> void:
 		d.queue_free()
 	_dots.clear()
 	_current_idx = -1
+	_history.alignment = BoxContainer.ALIGNMENT_END
 	
-	for i in range(bd.phases.size() - 1, -1, -1):  # 右到左
+	for i in range(bd.phases.size()):  # 左=先出, 右=后出; HBox 右对齐
 		var ph := bd.phases[i]
 		var dot := ColorRect.new()
 		dot.custom_minimum_size = Vector2(DOT_SIZE, DOT_SIZE)
