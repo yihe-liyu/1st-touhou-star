@@ -17,6 +17,7 @@ var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
 var _stage_id: int = 1
+var _in_gap: bool = false
 var _spell_count: int = 0
 var _non_count: int = 0
 
@@ -54,6 +55,7 @@ func start_boss() -> void:
 	_next_phase()
 
 func _next_phase() -> void:
+	_in_gap = false
 	_phase_index += 1
 	if _phase_index >= boss_data.phases.size():
 		_die_boss()
@@ -141,7 +143,10 @@ func _on_phase_clear(captured: bool) -> void:
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:
 		GameState.add_score(_bonus)
-	_next_phase()
+	
+	# 阶段间隔
+	_in_gap = true
+	get_tree().create_timer(2.0).timeout.connect(_next_phase, CONNECT_ONE_SHOT)
 
 func _die_boss() -> void:
 	set_process(false)

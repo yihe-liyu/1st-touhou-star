@@ -25,7 +25,11 @@ func _on_phase_start(phase: PhaseData) -> void:
 
 func _process(_delta: float) -> void:
 	if not _boss or not is_instance_valid(_boss):
-		return
+		queue_redraw(); return
+	if _boss._in_gap:
+		visible = false; return
+	visible = true
+	
 	var ph := _boss.current_phase()
 	if not ph or ph.hp <= 0:
 		return
