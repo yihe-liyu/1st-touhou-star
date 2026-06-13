@@ -108,6 +108,4 @@ func _play_spell_announce(spell_name: String) -> void:
 	# 留在右上，缩小字号
 	tw.tween_property(lbl, "position", top_right - Vector2(200, 30), 0.7)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_callback(func():
-		lbl.add_theme_font_size_override("font_size", 18)
-	)
+	tw.tween_property(lbl, "scale", Vector2(0.4, 0.4), 0.3)
