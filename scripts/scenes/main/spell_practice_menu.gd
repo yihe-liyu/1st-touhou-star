@@ -114,16 +114,15 @@ func _build_lists() -> void:
 	
 	var book: SpellRecordBook = GameState.spell_book
 	for st in _stages:
-		var name_str := "Stage %d" % st
-		var stat_str := ""
+		var lbl := _make_label("Stage %d" % st)
 		var recs: Array = book.get_by_stage(_char_index, st)
 		var cap := 0; var att := 0
 		for r in recs:
 			cap += r.practice_captures
 			att += r.practice_attempts
 		if att > 0:
-			stat_str = "%d/%d" % [cap, att]
-		_stage_box.add_child(_make_row(name_str, stat_str))
+			lbl.text += "  %d/%d" % [cap, att]
+		_stage_box.add_child(lbl)
 	_build_phase_list()
 
 func _build_phase_list() -> void:
@@ -137,15 +136,15 @@ func _build_phase_list() -> void:
 		else:
 			name_str = "符卡%d" % _phase_spell_nums[i]
 		
-		var stat_str := ""
+		var lbl := _make_label(name_str)
 		var cap := 0; var att := 0
 		for diff in info.diffs.keys():
 			var r = info.diffs[diff]
 			cap += r.practice_captures
 			att += r.practice_attempts
 		if att > 0:
-			stat_str = "%d/%d" % [cap, att]
-		_phase_box.add_child(_make_row(name_str, stat_str))
+			lbl.text += "  %d/%d" % [cap, att]
+		_phase_box.add_child(lbl)
 
 func _build_diff_list() -> void:
 	_clear(_diff_box)
@@ -197,60 +196,39 @@ func _clear(vbox: VBoxContainer) -> void:
 		vbox.remove_child(child)
 		child.free()
 
-func _make_row(name_text: String, stat_text: String = "") -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var nl := Label.new()
-	nl.layout_mode = 2  # container-based
-	nl.text = name_text
-	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	nl.add_theme_font_size_override("font_size", 28)
-	nl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	nl.size_flags_stretch_ratio = 1.0
-	row.add_child(nl)
-	if stat_text != "":
-		var sl := Label.new()
-		sl.layout_mode = 2
-		sl.text = stat_text
-		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		sl.add_theme_font_size_override("font_size", 20)
-		sl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		row.add_child(sl)
-	return row
+func _make_label(text: String) -> Label:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 28)
+	return lbl
 
 # ═══ 高亮 ═══
 
 func _highlight() -> void:
-	_dim_all_r(_stage_box)
-	_dim_all_r(_phase_box)
+	_dim_all_vbox(_stage_box)
+	_dim_all_vbox(_phase_box)
 	_dim_diff()
 	
 	match _section:
 		Section.STAGE:
-			_highlight_one_r(_stage_box, _stage_index)
+			_highlight_one_vbox(_stage_box, _stage_index)
 			_clear(_diff_box)
 		Section.PHASE:
-			_highlight_one_r(_phase_box, _phase_index)
+			_highlight_one_vbox(_phase_box, _phase_index)
 			_build_diff_list()
 			_dim_diff()
 		Section.DIFF:
 			_highlight_diff(_diff_index)
 
-func _dim_all_r(vbox: VBoxContainer) -> void:
+func _dim_all_vbox(vbox: VBoxContainer) -> void:
 	for child in vbox.get_children():
-		if child is HBoxContainer:
-			for sub in child.get_children():
-				sub.modulate = Color(0.3, 0.3, 0.3)
+		child.modulate = Color(0.3, 0.3, 0.3)
 
-func _highlight_one_r(vbox: VBoxContainer, idx: int) -> void:
+func _highlight_one_vbox(vbox: VBoxContainer, idx: int) -> void:
 	var children := vbox.get_children()
 	for i in children.size():
-		var dim := Color(0.4, 0.4, 0.4)
-		var bright := Color.WHITE
-		var row := children[i] as HBoxContainer
-		if not row: continue
-		for sub in row.get_children():
-			sub.modulate = bright if i == idx else dim
+		children[i].modulate = Color.WHITE if i == idx else Color(0.4, 0.4, 0.4)
 
 func _dim_diff() -> void:
 	for vbox in _diff_box.get_children():
