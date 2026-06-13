@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://cksrggbbvcuvg"]
 
-[ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="1_book"]
-[ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="2_record"]
+[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
+[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]
 
 [sub_resource type="Resource" id="Resource_lls5d"]
 script = ExtResource("2_record")
@@ -20,8 +20,8 @@ spell_name = "星符「Twinkle」"
 phase_order = 2
 attempts = 2
 captures = 2
-practice_attempts = 4
-practice_captures = 4
+practice_attempts = 5
+practice_captures = 5
 best_score = 25849
 best_time = 29.301003151517953
 
