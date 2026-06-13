@@ -5,7 +5,7 @@ extends Node2D
 @export var thickness: float = 5.0
 @export var fill_color: Color = Color(1.0, 1.0, 1.0, 0.85)
 @export var edge_color: Color = Color(1.0, 0.0, 0.0, 0.7)
-@export var bg_color: Color = Color(0.15, 0.15, 0.15, 0.3)
+@export var bg_color: Color = Color(0.3, 0.3, 0.3, 0.5)
 
 var _boss: Boss
 var _max_hp: int = 1
