@@ -355,6 +355,7 @@ func _start_practice() -> void:
 	
 	print("练习: ", r.spell_name, " 难度: ", DIFF_NAMES[diff])
 	GameState.start_practice(boss_data, phase_idx, st_num)
+	AudioManager.stop_bgm()
 	_on_leave()
 	GameManager.change_scene("res://scenes/game_scene.tscn")
 
