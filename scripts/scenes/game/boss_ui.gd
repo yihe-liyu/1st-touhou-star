@@ -1,11 +1,11 @@
 # BossUI.gd
 extends CanvasLayer
 
-const GRAY := Color(0.4, 0.4, 0.4, 0.8)
-const GREEN := Color(0.1, 0.7, 0.2, 0.8)
-const GOLD := Color(0.95, 0.75, 0.1, 0.9)
-const RED := Color(0.9, 0.1, 0.1, 0.9)
-const PURPLE := Color(0.7, 0.2, 0.9, 0.9)
+const GRAY := Color(0.4, 0.4, 0.4, 1.0)
+const GREEN := Color(0.098, 0.7, 0.198, 1.0)
+const GOLD := Color(0.95, 0.839, 0.475, 1.0)
+const RED := Color(1.0, 0.0, 0.0, 1.0)
+const PURPLE := Color(0.858, 0.5, 1.0, 1.0)
 const DOT_SIZE := 16.0
 
 @onready var _name_label: Label = $Control/BossName
@@ -52,9 +52,11 @@ func _on_phase_start(phase: PhaseData) -> void:
 	if phase.uid != 0:
 		_spell_label.text = phase.name
 		_spell_label.visible = true
+		_bonus_label.text = str(phase.bonus)
+		_bonus_label.visible = true
 	else:
 		_spell_label.visible = false
-	_bonus_label.text = str(phase.bonus)
+		_bonus_label.visible = false
 	
 	# 第一阶段 → 最右边的方块
 	var vis_idx := _dots.size() - 1 - _phase_idx
@@ -62,10 +64,12 @@ func _on_phase_start(phase: PhaseData) -> void:
 		_dots[vis_idx].color = PURPLE
 
 func _on_tick(bonus: int) -> void:
-	_bonus_label.text = str(bonus)
+	if _bonus_label.visible:
+		_bonus_label.text = str(bonus)
 
 func _on_phase_end(captured: bool, _bonus: int) -> void:
 	_spell_label.visible = false
+	_bonus_label.visible = false
 	var vis_idx := _dots.size() - 1 - _phase_idx
 	if vis_idx >= 0 and vis_idx < _dots.size():
 		_dots[vis_idx].color = GOLD if captured else RED

@@ -15,8 +15,8 @@ offset_bottom = 640.0
 layout_mode = 0
 offset_left = 64.0
 offset_top = 32.0
-offset_right = 424.0
-offset_bottom = 58.0
+offset_right = 448.0
+offset_bottom = 64.0
 theme_override_font_sizes/font_size = 22
 
 [node name="SpellName" type="Label" parent="Control" unique_id=454199832]
@@ -38,7 +38,7 @@ text = "0"
 
 [node name="History" type="HBoxContainer" parent="Control" unique_id=815668446]
 layout_mode = 0
-offset_left = 300.0
-offset_top = 115.0
-offset_right = 660.0
-offset_bottom = 127.0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 448.0
+offset_bottom = 80.0
