@@ -181,6 +181,7 @@ func _clear(vbox: VBoxContainer) -> void:
 
 func _make_row(name_text: String, stat_text: String = "") -> HBoxContainer:
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var nl := Label.new()
 	nl.text = name_text
 	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
