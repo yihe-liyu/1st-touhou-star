@@ -121,7 +121,7 @@ func _build_lists() -> void:
 			cap += r.practice_captures
 			att += r.practice_attempts
 		if att > 0:
-			lbl.text += "  %d/%d" % [cap, att]
+			lbl.text += "  %02d/%02d" % [cap, att]
 		_stage_box.add_child(lbl)
 	_build_phase_list()
 
@@ -143,7 +143,7 @@ func _build_phase_list() -> void:
 			cap += r.practice_captures
 			att += r.practice_attempts
 		if att > 0:
-			lbl.text += "  %d/%d" % [cap, att]
+			lbl.text += "  %02d/%02d" % [cap, att]
 		_phase_box.add_child(lbl)
 
 func _build_diff_list() -> void:
