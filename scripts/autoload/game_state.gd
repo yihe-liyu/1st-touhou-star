@@ -137,9 +137,9 @@ func reset_practice():
 	current_score = 0
 	graze_count = 0
 	power_raw = 300  # 满 P
-	lives = 8       # 满残
+	lives = 0
 	life_fragments = 0
-	bomb_count = 8  # 满 B
+	bomb_count = 0
 	bomb_fragments = 0
 	memory_value = 50.0
 
