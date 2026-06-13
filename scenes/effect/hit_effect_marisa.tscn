@@ -36,6 +36,5 @@ animations = [{
 script = ExtResource("1_xfe72")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=119258572]
-scale = Vector2(2, 2)
 sprite_frames = SubResource("SpriteFrames_5lrjm")
 animation = &"explode"

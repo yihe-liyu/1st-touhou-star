@@ -12,9 +12,9 @@ func _get_speed() -> float:
 
 func _setup() -> void:
 	animation.play("explode")
+	animation.animation_finished.connect(_finish, CONNECT_ONE_SHOT)
 	var tw := create_tween()
-	tw.parallel().tween_property(animation, "modulate", Color(_tint.r, _tint.g, _tint.b, 0), 0.4)
-	tw.tween_callback(_finish)
+	tw.tween_property(animation, "modulate", Color(_tint.r, _tint.g, _tint.b, 0), 0.3)
 
 
 func set_tint(color: Color) -> void:
@@ -24,7 +24,3 @@ func set_tint(color: Color) -> void:
 
 func _on_velocity_set() -> void:
 	rotation = velocity.angle()
-
-
-func _process_extra(delta: float) -> void:
-	scale += Vector2(10, 10) * delta
