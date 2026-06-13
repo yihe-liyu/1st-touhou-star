@@ -76,12 +76,8 @@ func _on_phase_end(captured: bool, _bonus: int) -> void:
 		_dots[vis_idx].color = GOLD if captured else RED
 	_phase_idx += 1
 
+# 符卡名入场动画
 func _play_spell_announce(spell_name: String) -> void:
-## 符卡名入场动画
-## 1. 屏幕中央大字(scale=3)淡入
-## 2. 同步缩小+下移(scale→1)
-## 3. 加速/减速飞向右上
-## 4. 平滑缩为小字(scale→0.4)停住
 	if _announce_label and is_instance_valid(_announce_label):
 		_announce_label.queue_free()
 	
@@ -95,22 +91,26 @@ func _play_spell_announce(spell_name: String) -> void:
 	$Control.add_child(lbl)
 	
 	var vs: Vector2 = $Control.size
-	var center := Vector2(vs.x * 0.5, vs.y * 0.3)
-	var below := Vector2(center.x, center.y + 100.0)
+	var center := Vector2(vs.x * 0.5, vs.y * 0.5)
+	var below := Vector2(vs.x, vs.y)
 	var top_right := Vector2(vs.x - 80.0, 50.0)
 	
-	# 大字在中央, scale=3
-	lbl.position = center
+	# 1. 屏幕中央大字(scale=3)淡入
 	lbl.scale = Vector2(3.0, 3.0)
-	
+	var label_size: Vector2 = lbl.get_minimum_size() * lbl.scale
+	lbl.position = center - label_size / 2.0
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(lbl, "modulate:a", 1.0, 0.15)
-	tw.tween_property(lbl, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_CUBIC)
-	tw.tween_property(lbl, "position", below - Vector2(200, 30), 0.5)
-	tw.set_parallel(false)
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.5)
 	
-	# 留在右上，缩小字号
-	tw.tween_property(lbl, "position", top_right - Vector2(200, 30), 0.7)\
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property(lbl, "scale", Vector2(0.4, 0.4), 0.3)
+	# 2. 缩小+下移(scale→1)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_CUBIC)
+	tw.set_parallel(false)
+	#tw.tween_property(lbl, "position", vs - Vector2(128, 64), 0.5)
+	
+	# 3. 加速/减速飞向右上
+	#tw.tween_property(lbl, "position", top_right, 0.7)\
+		#.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	#
+	## 4. 平滑缩为小字(scale→0.4)停住
+	#tw.tween_property(lbl, "scale", Vector2(0.4, 0.4), 0.3)
