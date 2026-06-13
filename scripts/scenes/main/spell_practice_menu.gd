@@ -275,16 +275,19 @@ func _input(event: InputEvent) -> void:
 	if not _ready: return
 	
 	if event.is_action_pressed("ui_cancel"):
+		AudioManager.play_sfx(preload("res://assets/Sound/ok.wav"))
 		if _section == Section.STAGE: _on_leave()
 		else: _section -= 1; _highlight()
 		get_viewport().set_input_as_handled()
 		return
 	
 	if event.is_action_pressed("ui_left"):
+		AudioManager.play_sfx(preload("res://assets/Sound/select.wav"))
 		_char_index = wrapi(_char_index - 1, 0, CHAR_NAMES.size())
 		_refresh_char()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_right"):
+		AudioManager.play_sfx(preload("res://assets/Sound/select.wav"))
 		_char_index = wrapi(_char_index + 1, 0, CHAR_NAMES.size())
 		_refresh_char()
 		get_viewport().set_input_as_handled()
@@ -293,14 +296,17 @@ func _input(event: InputEvent) -> void:
 	if mx < 0: return
 	
 	if event.is_action_pressed("ui_up"):
+		AudioManager.play_sfx(preload("res://assets/Sound/select.wav"))
 		_set_idx(wrapi(_get_idx() - 1, 0, mx + 1))
 		_highlight()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_down"):
+		AudioManager.play_sfx(preload("res://assets/Sound/select.wav"))
 		_set_idx(wrapi(_get_idx() + 1, 0, mx + 1))
 		_highlight()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_accept"):
+		AudioManager.play_sfx(preload("res://assets/Sound/ok.wav"))
 		if _section == Section.DIFF: _start_practice()
 		elif _section == Section.PHASE:
 			_section = Section.DIFF
