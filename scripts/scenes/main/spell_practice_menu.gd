@@ -183,13 +183,16 @@ func _make_row(name_text: String, stat_text: String = "") -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var nl := Label.new()
+	nl.layout_mode = 2  # container-based
 	nl.text = name_text
 	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	nl.add_theme_font_size_override("font_size", 28)
 	nl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nl.size_flags_stretch_ratio = 1.0
 	row.add_child(nl)
 	if stat_text != "":
 		var sl := Label.new()
+		sl.layout_mode = 2
 		sl.text = stat_text
 		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		sl.add_theme_font_size_override("font_size", 20)
