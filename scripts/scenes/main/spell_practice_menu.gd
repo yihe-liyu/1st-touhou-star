@@ -110,6 +110,7 @@ func _build_lists() -> void:
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.add_theme_font_size_override("font_size", 28)
 		_stage_box.add_child(lbl)
+		_clear(_phase_box)
 		return
 	
 	var book: SpellRecordBook = GameState.spell_book
