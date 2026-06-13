@@ -11,6 +11,10 @@ func _on_ready():
 
 	$Container/Label1.set_meta("locked", true)
 	
+	# 没有符卡记录时锁住 Spell Practice
+	if GameState.spell_book.records.is_empty():
+		$Container/Label3.set_meta("locked", true)
+	
 	AudioManager.play_bgm(preload("res://assets/Music/THq01_01.无缘故之回.mp3"), 1.0)
 
 	# Logo 入场动画
