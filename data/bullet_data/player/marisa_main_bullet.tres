@@ -8,6 +8,7 @@
 [sub_resource type="AtlasTexture" id="AtlasTexture_marisa"]
 atlas = ExtResource("4_tex")
 region = Rect2(0, 144, 32, 16)
+filter_clip = true
 
 [resource]
 script = ExtResource("3_sc")

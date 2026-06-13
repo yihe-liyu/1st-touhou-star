@@ -40,6 +40,8 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 			z_index = 10
 		FACTION_BOMB:
 			z_index = 100
+		FACTION_PLAYER:
+			z_index = -1
 		_:
 			z_index = 5
 
