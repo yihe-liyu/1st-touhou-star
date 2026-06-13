@@ -174,7 +174,12 @@ func _build_diff_list() -> void:
 		var r = info.diffs[d]
 		var vbox := VBoxContainer.new()
 		var nl := Label.new()
-		nl.text = r.get("spell_name") if r.get("spell_name") != "" else "-"
+		var name_str: String = r.get("spell_name") if r.get("spell_name") != "" else "-"
+		var uid: int = r.get("spell_uid")
+		if uid > 0:
+			nl.text = "No.%d  %s" % [uid, name_str]
+		else:
+			nl.text = name_str
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.add_theme_font_size_override("font_size", 18)
 		vbox.add_child(nl)
