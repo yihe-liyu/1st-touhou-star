@@ -22,8 +22,8 @@ func _load_spell_book() -> void:
 func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
 
-func record_spell(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, score: int, elapsed: float, order: int = 1, uid: int = 0) -> void:
-	spell_book.record_attempt(ch, st, pt, pn, diff, captured, score, elapsed, order, uid)
+func record_spell(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, score: int, elapsed: float, order: int = 1, uid: int = 0, name: String = "") -> void:
+	spell_book.record_attempt(ch, st, pt, pn, diff, captured, score, elapsed, order, uid, name)
 	_save_spell_book()
 
 func record_practice(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool) -> void:
