@@ -76,6 +76,7 @@ func _on_phase_end(captured: bool, _bonus: int) -> void:
 		_dots[vis_idx].color = GOLD if captured else RED
 	_phase_idx += 1
 
+func _play_spell_announce(spell_name: String) -> void:
 ## 符卡名入场动画
 ## 1. 屏幕中央大字(scale=3)淡入
 ## 2. 同步缩小+下移(scale→1)
