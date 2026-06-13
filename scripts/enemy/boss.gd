@@ -124,6 +124,7 @@ func take_damage(damage: int) -> void:
 		_on_phase_clear(true)
 
 func _on_phase_clear(captured: bool) -> void:
+	_invincible = true  # 防重入
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
