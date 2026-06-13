@@ -97,7 +97,7 @@ func _play_spell_announce(spell_name: String) -> void:
 	
 	# 1. 屏幕中央大字(scale=3)淡入
 	lbl.scale = Vector2(3.0, 3.0)
-	var label_size: Vector2 = lbl.get_minimum_size() * lbl.scale
+	var label_size: Vector2 = lbl.get_minimum_size()
 	lbl.position = center - label_size / 2.0
 	var tw := create_tween()
 	tw.set_parallel(true)
@@ -105,8 +105,8 @@ func _play_spell_announce(spell_name: String) -> void:
 	
 	# 2. 缩小+下移(scale→1)
 	tw.tween_property(lbl, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_property(lbl, "position", vs - lbl.get_minimum_size(), 0.5)
 	tw.set_parallel(false)
-	#tw.tween_property(lbl, "position", vs - Vector2(128, 64), 0.5)
 	
 	# 3. 加速/减速飞向右上
 	#tw.tween_property(lbl, "position", top_right, 0.7)\
