@@ -30,9 +30,11 @@ func _on_boss_defeated(_boss: Node) -> void:
 	visible = false
 
 func _on_phase_start(phase: PhaseData) -> void:
-	if phase.name != "":
+	if phase.uid != 0:
 		_spell_label.text = phase.name
 		_spell_label.visible = true
+	else:
+		_spell_label.visible = false
 	_bonus_label.text = str(phase.bonus)
 	_hp_fill.size.x = _hp_bg.size.x
 

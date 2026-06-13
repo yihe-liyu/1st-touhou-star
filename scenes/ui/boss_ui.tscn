@@ -25,8 +25,8 @@ offset_left = 300.0
 offset_top = 62.0
 offset_right = 660.0
 offset_bottom = 82.0
-horizontal_alignment = 1
 theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
 
 [node name="Bonus" type="Label" parent="Control" unique_id=821965384]
 layout_mode = 0
