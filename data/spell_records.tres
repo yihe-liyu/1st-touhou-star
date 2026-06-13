@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://beiw1xct41oi2"]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://mg44s1xpn4t7"]
 
 [ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1_book"]
 [ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="2_record"]
@@ -8,7 +8,7 @@ script = ExtResource("2_record")
 spell_name = "非符1"
 attempts = 1
 captures = 1
-best_time = 7.433346666666567
+best_time = 4.38423581818175
 
 [sub_resource type="Resource" id="Resource_4fnre"]
 script = ExtResource("2_record")
@@ -18,71 +18,9 @@ spell_name = "星符「Twinkle」"
 phase_order = 2
 attempts = 1
 captures = 1
-best_score = 42734
-best_time = 8.81351333333317
-
-[sub_resource type="Resource" id="Resource_8qneb"]
-script = ExtResource("2_record")
-difficulty = 3
-spell_name = "非符1"
-attempts = 1
-captures = 1
-best_time = 2.83636363636362
-
-[sub_resource type="Resource" id="Resource_8upsx"]
-script = ExtResource("2_record")
-spell_uid = 1
-phase_type = 1
-difficulty = 3
-spell_name = "星符「Twinkle」"
-phase_order = 2
-attempts = 1
-captures = 1
-best_score = 46488
-best_time = 4.277929090909127
-
-[sub_resource type="Resource" id="Resource_ndrql"]
-script = ExtResource("2_record")
-character = 1
-difficulty = 0
-spell_name = "非符1"
-attempts = 1
-captures = 1
-best_time = 6.048484848484735
-
-[sub_resource type="Resource" id="Resource_xyc1f"]
-script = ExtResource("2_record")
-spell_uid = 1
-character = 1
-phase_type = 1
-difficulty = 0
-spell_name = "星符「Twinkle」"
-phase_order = 2
-attempts = 1
-captures = 1
-best_score = 44445
-best_time = 6.733333333333199
-
-[sub_resource type="Resource" id="Resource_dlbke"]
-script = ExtResource("2_record")
-difficulty = 0
-spell_name = "非符1"
-attempts = 1
-captures = 1
-best_time = 2.7151515151515024
-
-[sub_resource type="Resource" id="Resource_2rp80"]
-script = ExtResource("2_record")
-spell_uid = 1
-phase_type = 1
-difficulty = 0
-spell_name = "星符「Twinkle」"
-phase_order = 2
-attempts = 1
-captures = 1
-best_score = 47557
-best_time = 2.9691030303030477
+best_score = 46915
+best_time = 3.7478288484848887
 
 [resource]
 script = ExtResource("1_book")
-records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre"), SubResource("Resource_8qneb"), SubResource("Resource_8upsx"), SubResource("Resource_ndrql"), SubResource("Resource_xyc1f"), SubResource("Resource_dlbke"), SubResource("Resource_2rp80")])
+records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre")])

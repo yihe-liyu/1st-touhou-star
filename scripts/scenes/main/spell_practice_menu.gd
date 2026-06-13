@@ -167,7 +167,6 @@ func _build_diff_list() -> void:
 		hrow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		var hl := Label.new()
-		hl.layout_mode = 2
 		var uid_str := ""
 		if r.spell_uid > 0:
 			uid_str = "No.%03d  " % r.spell_uid
@@ -181,7 +180,6 @@ func _build_diff_list() -> void:
 		
 		var stat_str := "%02d/%02d" % [r.practice_captures, r.practice_attempts]
 		var sl := Label.new()
-		sl.layout_mode = 2
 		sl.text = stat_str
 		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		sl.add_theme_font_size_override("font_size", 22)
