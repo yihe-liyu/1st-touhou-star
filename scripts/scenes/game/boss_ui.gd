@@ -7,15 +7,14 @@ const GOLD := Color(0.95, 0.75, 0.1, 0.9)
 const RED := Color(0.9, 0.1, 0.1, 0.9)
 const PURPLE := Color(0.7, 0.2, 0.9, 0.9)
 const DOT_SIZE := 16.0
-const DOT_GAP := 4.0
 
 @onready var _name_label: Label = $Control/BossName
 @onready var _spell_label: Label = $Control/SpellName
 @onready var _bonus_label: Label = $Control/Bonus
 @onready var _history: HBoxContainer = $Control/History
 
-var _dots: Array[ColorRect] = []
-var _current_idx: int = -1
+var _dots: Array[ColorRect] = []  # [0]=最后阶段(左), [n-1]=第一阶段(右)
+var _phase_idx: int = 0           # 战斗顺序: 0=第一阶段, 1=第二阶段...
 
 func _ready() -> void:
 	visible = false
@@ -31,14 +30,12 @@ func _on_boss_spawned(boss: Node) -> void:
 	_name_label.text = bd.boss_name if bd.boss_name != "" else "???"
 	_spell_label.visible = false
 	
-	# 清旧 → 建全部阶段指示块
-	for d in _dots:
-		d.queue_free()
+	for d in _dots: d.queue_free()
 	_dots.clear()
-	_current_idx = -1
-	_history.alignment = BoxContainer.ALIGNMENT_END
+	_phase_idx = 0
 	
-	for i in range(bd.phases.size()):  # 左=先出, 右=后出; HBox 右对齐
+	# 倒序加入 → HBox 左起: 最后阶段...第一阶段
+	for i in range(bd.phases.size() - 1, -1, -1):
 		var ph := bd.phases[i]
 		var dot := ColorRect.new()
 		dot.custom_minimum_size = Vector2(DOT_SIZE, DOT_SIZE)
@@ -59,16 +56,17 @@ func _on_phase_start(phase: PhaseData) -> void:
 		_spell_label.visible = false
 	_bonus_label.text = str(phase.bonus)
 	
-	# 前一个 → 前一个状态已在 _on_phase_end 设置
-	# 当前 → 紫色
-	_current_idx += 1
-	if _current_idx < _dots.size():
-		_dots[_current_idx].color = PURPLE
+	# 第一阶段 → 最右边的方块
+	var vis_idx := _dots.size() - 1 - _phase_idx
+	if vis_idx >= 0 and vis_idx < _dots.size():
+		_dots[vis_idx].color = PURPLE
 
 func _on_tick(bonus: int) -> void:
 	_bonus_label.text = str(bonus)
 
 func _on_phase_end(captured: bool, _bonus: int) -> void:
 	_spell_label.visible = false
-	if _current_idx >= 0 and _current_idx < _dots.size():
-		_dots[_current_idx].color = GOLD if captured else RED
+	var vis_idx := _dots.size() - 1 - _phase_idx
+	if vis_idx >= 0 and vis_idx < _dots.size():
+		_dots[vis_idx].color = GOLD if captured else RED
+	_phase_idx += 1
