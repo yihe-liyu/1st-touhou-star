@@ -2,16 +2,15 @@
 extends Node2D
 ## Boss 环形血条，跟随 Boss 位置
 
-@export var radius: float = 32.0
-@export var thickness: float = 4.0
-@export var ring_color_spell: Color = Color(0.2, 0.8, 1.0, 0.9)
-@export var ring_color_non: Color = Color(0.0, 0.6, 0.0, 0.8)
-@export var bg_color: Color = Color(0.3, 0.3, 0.3, 0.4)
+@export var radius: float = 48.0
+@export var thickness: float = 5.0
+@export var fill_color: Color = Color(1.0, 1.0, 1.0, 0.85)
+@export var edge_color: Color = Color(1.0, 0.0, 0.0, 0.6)
+@export var bg_color: Color = Color(0.2, 0.2, 0.2, 0.3)
 
 var _boss: Boss
 var _max_hp: int = 1
 var _hp: int = 1
-var _is_spell: bool = false
 
 func setup(p_boss: Boss) -> void:
 	_boss = p_boss
@@ -21,7 +20,6 @@ func setup(p_boss: Boss) -> void:
 	queue_redraw()
 
 func _on_phase_start(phase: PhaseData) -> void:
-	_is_spell = phase.uid != 0
 	_max_hp = phase.hp
 	_hp = phase.hp
 	queue_redraw()
@@ -44,11 +42,12 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if _max_hp <= 0: return
 	var ratio := clampf(float(_hp) / float(_max_hp), 0.0, 1.0)
-	var angle_from := -PI / 2.0
-	var angle_to := angle_from + TAU * ratio
+	var start_angle := -PI / 2.0
+	var end_angle := start_angle - TAU * ratio  # 逆时针减少
 	
 	# 背景环
 	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, bg_color, thickness)
-	# 血量弧
-	var col := ring_color_spell if _is_spell else ring_color_non
-	draw_arc(Vector2.ZERO, radius, angle_from, angle_to, 64, col, thickness)
+	# 红边
+	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, edge_color, thickness + 1.0, true)
+	# 白色填充弧
+	draw_arc(Vector2.ZERO, radius, start_angle, end_angle, 64, fill_color, thickness)
