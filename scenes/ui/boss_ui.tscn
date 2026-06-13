@@ -16,6 +16,15 @@ offset_left = 300.0
 offset_top = 40.0
 offset_right = 660.0
 offset_bottom = 70.0
+text = "Boss"
+horizontal_alignment = 1
+
+[node name="SpellName" type="Label" parent="Control"]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 75.0
+offset_right = 660.0
+offset_bottom = 100.0
 horizontal_alignment = 1
 
 [node name="Bonus" type="Label" parent="Control"]

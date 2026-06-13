@@ -8,5 +8,6 @@
 
 [resource]
 script = ExtResource("1")
+boss_name = "试作型实验Boss"
 visual = ExtResource("4")
 phases = Array[ExtResource("1_cd7ie")]([ExtResource("2"), ExtResource("3")])
