@@ -163,15 +163,33 @@ func _build_diff_list() -> void:
 		nl.add_theme_font_size_override("font_size", 30)
 		vbox.add_child(nl)
 		
+		# 小字行: No.001  Normal  ──右靠──  0/0
+		var hrow := HBoxContainer.new()
+		hrow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
 		var hl := Label.new()
+		hl.layout_mode = 2
 		var uid_str := ""
 		if r.spell_uid > 0:
 			uid_str = "No.%03d  " % r.spell_uid
-		hl.text = uid_str + DIFF_NAMES[d] + "  %d/%d" % [r.practice_captures, r.practice_attempts]
+		hl.text = uid_str + DIFF_NAMES[d]
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		hl.add_theme_font_size_override("font_size", 22)
 		hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		vbox.add_child(hl)
+		hl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hl.size_flags_stretch_ratio = 1.0
+		hrow.add_child(hl)
+		
+		var stat_str := "%d/%d" % [r.practice_captures, r.practice_attempts]
+		var sl := Label.new()
+		sl.layout_mode = 2
+		sl.text = stat_str
+		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		sl.add_theme_font_size_override("font_size", 22)
+		sl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		hrow.add_child(sl)
+		
+		vbox.add_child(hrow)
 		_diff_box.add_child(vbox)
 
 func _clear(vbox: VBoxContainer) -> void:
@@ -235,15 +253,26 @@ func _highlight_one_r(vbox: VBoxContainer, idx: int) -> void:
 			sub.modulate = bright if i == idx else dim
 
 func _dim_diff() -> void:
-	for item in _diff_box.get_children():
-		for child in item.get_children():
-			child.modulate = Color(0.3, 0.3, 0.3)
+	for vbox in _diff_box.get_children():
+		for child in vbox.get_children():
+			if child is HBoxContainer:
+				for sub in child.get_children():
+					sub.modulate = Color(0.3, 0.3, 0.3)
+			else:
+				child.modulate = Color(0.3, 0.3, 0.3)
 
 func _highlight_diff(idx: int) -> void:
 	var items := _diff_box.get_children()
 	for i in items.size():
-		for child in items[i].get_children():
-			child.modulate = Color.WHITE if i == idx else Color(0.4, 0.4, 0.4)
+		var vbox := items[i]
+		var dim := Color(0.3, 0.3, 0.3) if i != idx else Color(0.4, 0.4, 0.4)
+		var bright := Color.WHITE
+		for child in vbox.get_children():
+			if child is HBoxContainer:
+				for sub in child.get_children():
+					sub.modulate = bright if i == idx else dim
+			else:
+				child.modulate = bright if i == idx else dim
 
 # ═══ 索引 ═══
 
