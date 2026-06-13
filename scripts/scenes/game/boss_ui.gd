@@ -15,7 +15,7 @@ const DOT_SIZE := 16.0
 
 var _dots: Array[ColorRect] = []  # [0]=最后阶段(左), [n-1]=第一阶段(右)
 var _phase_idx: int = 0           # 战斗顺序: 0=第一阶段, 1=第二阶段...
-var _announce_tween: Tween
+var _announce_label: Label
 
 func _ready() -> void:
 	visible = false
@@ -68,15 +68,20 @@ func _on_tick(bonus: int) -> void:
 func _on_phase_end(captured: bool, _bonus: int) -> void:
 	_spell_label.visible = false
 	_bonus_label.visible = false
-	if _announce_tween and _announce_tween.is_valid():
-		_announce_tween.kill()
+	if _announce_label and is_instance_valid(_announce_label):
+		_announce_label.queue_free()
+		_announce_label = null
 	var vis_idx := _dots.size() - 1 - _phase_idx
 	if vis_idx >= 0 and vis_idx < _dots.size():
 		_dots[vis_idx].color = GOLD if captured else RED
 	_phase_idx += 1
 
 func _play_spell_announce(spell_name: String) -> void:
+	if _announce_label and is_instance_valid(_announce_label):
+		_announce_label.queue_free()
+	
 	var lbl := Label.new()
+	_announce_label = lbl
 	lbl.text = spell_name
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -90,7 +95,7 @@ func _play_spell_announce(spell_name: String) -> void:
 	var top_right := Vector2(vs.x - 80.0, 50.0)
 	
 	# 大字在中央, scale=3
-	lbl.position = center - Vector2(200, 30)
+	lbl.position = center
 	lbl.scale = Vector2(3.0, 3.0)
 	
 	_announce_tween = create_tween()
@@ -100,14 +105,9 @@ func _play_spell_announce(spell_name: String) -> void:
 	_announce_tween.tween_property(lbl, "position", below - Vector2(200, 30), 0.5)
 	_announce_tween.set_parallel(false)
 	
-	# 加速→减速飞向右上
+	# 留在右上，缩小字号
 	_announce_tween.tween_property(lbl, "position", top_right - Vector2(200, 30), 0.7)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	
-	# 淡出 → 显示常态名
-	_announce_tween.tween_property(lbl, "modulate:a", 0.0, 0.25)
 	_announce_tween.tween_callback(func():
-		lbl.queue_free()
-		_spell_label.text = spell_name
-		_spell_label.visible = true
+		lbl.add_theme_font_size_override("font_size", 18)
 	)
