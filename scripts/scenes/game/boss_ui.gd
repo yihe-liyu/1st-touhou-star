@@ -92,25 +92,23 @@ func _play_spell_announce(spell_name: String) -> void:
 	
 	var vs: Vector2 = $Control.size
 	var center := Vector2(vs.x * 0.5, vs.y * 0.5)
-	var below := Vector2(vs.x, vs.y)
-	var top_right := Vector2(vs.x - 80.0, 50.0)
-	
-	# 1. 屏幕中央大字(scale=3)淡入
-	lbl.scale = Vector2(3.0, 3.0)
 	var label_size: Vector2 = lbl.get_minimum_size()
-	lbl.position = center - label_size / 2.0
+	
+	# 1. 屏幕中央大字(scale=3)淡入+缩小
+	lbl.scale = Vector2(3.0, 3.0)
+	lbl.position = center - label_size * 3.0 / 2.0
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(lbl, "modulate:a", 1.0, 0.5)
-	
-	# 2. 缩小+下移(scale→1)
-	tw.tween_property(lbl, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_CUBIC)
-	tw.tween_property(lbl, "position", vs - lbl.get_minimum_size(), 0.5)
+	tw.tween_property(lbl, "scale", Vector2(0.6, 0.6), 0.5).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_property(lbl, "position", center - label_size * 0.6 / 2.0, 0.5).set_trans(Tween.TRANS_CUBIC)
 	tw.set_parallel(false)
 	
+	# 2. 下移(scale→1)
+	tw.tween_property(lbl, "position", vs - label_size * 0.6, 0.5).set_trans(Tween.TRANS_QUAD)
+	
 	# 3. 加速/减速飞向右上
-	#tw.tween_property(lbl, "position", top_right, 0.7)\
-		#.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	#
-	## 4. 平滑缩为小字(scale→0.4)停住
-	#tw.tween_property(lbl, "scale", Vector2(0.4, 0.4), 0.3)
+	var final_size: Vector2 = lbl.get_minimum_size() * 0.4
+	var top_right := Vector2(vs.x - final_size.x, 0)
+	tw.tween_property(lbl, "position", top_right, 0.7)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
