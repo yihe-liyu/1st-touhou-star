@@ -10,8 +10,7 @@ func _get_speed() -> float:
 
 func _setup() -> void:
 	animation.play("explode")
-	var tw := create_tween()
-	tw.tween_callback(_finish).set_delay(0.5)
+	animation.animation_finished.connect(_finish, CONNECT_ONE_SHOT)
 
 
 func set_tint(color: Color) -> void:

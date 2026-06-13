@@ -1,9 +1,8 @@
-[gd_resource type="Resource" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="PhaseData" format=3 uid="uid://sjh3nswq8tlv"]
 
-[ext_resource type="Script" path="res://scripts/data/phase_data.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/coroutine/examples/boss_ex_move.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/coroutine/examples/boss_ex_shoot.gd" id="3"]
+[ext_resource type="Script" uid="uid://70htyyc4o2hu" path="res://scripts/data/phase_data.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 name = "非符1"
+hp = 5000
