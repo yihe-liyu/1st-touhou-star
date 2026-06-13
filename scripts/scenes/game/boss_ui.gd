@@ -84,7 +84,7 @@ func _play_spell_announce(spell_name: String) -> void:
 	lbl.modulate.a = 0.0
 	$Control.add_child(lbl)
 	
-	var vs := $Control.size
+	var vs: Vector2 = $Control.size
 	var center := Vector2(vs.x * 0.5, vs.y * 0.3)
 	var below := Vector2(center.x, center.y + 100.0)
 	var top_right := Vector2(vs.x - 80.0, 50.0)
