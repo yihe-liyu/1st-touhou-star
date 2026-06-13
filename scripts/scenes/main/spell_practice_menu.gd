@@ -177,7 +177,7 @@ func _build_diff_list() -> void:
 		var name_str: String = r.get("spell_name") if r.get("spell_name") != "" else "-"
 		nl.text = name_str
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		nl.add_theme_font_size_override("font_size", 22)
+		nl.add_theme_font_size_override("font_size", 26)
 		vbox.add_child(nl)
 		
 		var hl := Label.new()
@@ -188,7 +188,7 @@ func _build_diff_list() -> void:
 		var cap_str := "  %d/%d" % [r.get("captures"), r.get("attempts")]
 		hl.text = uid_str + DIFF_NAMES[d] + cap_str
 		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		hl.add_theme_font_size_override("font_size", 15)
+		hl.add_theme_font_size_override("font_size", 18)
 		hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 		vbox.add_child(hl)
 		_diff_box.add_child(vbox)
@@ -202,7 +202,7 @@ func _make_label(text: String) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", 28)
 	return lbl
 
 # ═══ 高亮 ═══
