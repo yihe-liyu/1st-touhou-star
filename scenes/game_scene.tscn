@@ -112,7 +112,6 @@ fov = 55.0
 [node name="World" type="Node2D" parent="." unique_id=1228399696]
 
 [node name="Player" parent="World" unique_id=1148497527 instance=ExtResource("1_w5aja")]
-z_index = 0
 position = Vector2(448, 840)
 player_data = ExtResource("6_b5spy")
 

@@ -16,6 +16,8 @@ const DOT_SIZE := 16.0
 var _dots: Array[ColorRect] = []  # [0]=最后阶段(左), [n-1]=第一阶段(右)
 var _phase_idx: int = 0           # 战斗顺序: 0=第一阶段, 1=第二阶段...
 var _announce_label: Label
+var _boss_ref: Boss
+var _timer_label: Label
 
 func _ready() -> void:
 	visible = false
@@ -27,9 +29,19 @@ func _ready() -> void:
 	GameEvents.phase_bonus_tick.connect(_on_tick)
 
 func _on_boss_spawned(boss: Node) -> void:
+	_boss_ref = boss as Boss
 	var bd: BossData = boss.boss_data
 	_name_label.text = bd.boss_name if bd.boss_name != "" else "???"
 	_spell_label.visible = false
+	
+	# 倒计时标签
+	if not _timer_label:
+		_timer_label = Label.new()
+		_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_timer_label.add_theme_font_size_override("font_size", 24)
+		$Control.add_child(_timer_label)
+	_timer_label.position = Vector2($Control.size.x - 80, 90)
+	_timer_label.visible = false
 	
 	for d in _dots: d.queue_free()
 	_dots.clear()
@@ -45,6 +57,16 @@ func _on_boss_spawned(boss: Node) -> void:
 	
 	visible = true
 
+func _process(_delta: float) -> void:
+	if not _boss_ref or not is_instance_valid(_boss_ref) or not visible:
+		return
+	var ph := _boss_ref.current_phase()
+	if not ph or ph.time_limit <= 0:
+		_timer_label.visible = false
+		return
+	_timer_label.visible = true
+	var rem := maxf(ph.time_limit - _boss_ref._elapsed, 0.0)
+	_timer_label.text = "%02d" % int(ceil(rem))
 func _on_boss_defeated(_boss: Node) -> void:
 	visible = false
 
