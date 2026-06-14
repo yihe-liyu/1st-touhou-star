@@ -54,8 +54,8 @@ func _show_line() -> void:
 	
 	# 决定谁在场
 	var active: Dictionary = {}
-	for pos in line.positions:
-		active[pos.character] = pos.side
+	for ch in line.characters:
+		active[ch] = ch.side
 	
 	# 去掉不在场的 → 淡出
 	for profile in _portrait_map.keys():
@@ -64,14 +64,14 @@ func _show_line() -> void:
 			_fade_out(node)
 	
 	# 添加/恢复在场的
-	for pos in line.positions:
-		var profile: Resource = pos.character  # CharacterProfile
+	for ch in line.characters:
+		var profile: Resource = ch  # CharacterProfile
 		if _portrait_map.has(profile):
 			var node: Control = _portrait_map[profile].node
 			node.modulate = Color.WHITE
 			_update_portrait_texture(profile, node)
 		else:
-			_add_portrait(profile, pos.side)
+			_add_portrait(profile, ch.side)
 	
 	# 说话者高亮, 其余暗
 	var speakers: Dictionary = {}

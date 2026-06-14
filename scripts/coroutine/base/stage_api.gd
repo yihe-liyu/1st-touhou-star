@@ -188,23 +188,19 @@ func play_dialogue(data: DialogueData) -> float:
 	box.play(data)
 	return 0.0  # 立即返回，由 finished 信号恢复
 
-## 快捷单句对话 (v2)
+## 快捷单句对话
 func dialogue_show(char_name: String, text: String, portrait: Texture2D = null) -> void:
 	var profile := CharacterProfile.new()
 	profile.char_name = char_name
 	if portrait:
 		profile.portraits["通常"] = portrait
 	
-	var pos := DialoguePosition.new()
-	pos.character = profile
-	pos.side = 0
-	
 	var bubble := DialogueBubble.new()
 	bubble.speaker = profile
 	bubble.text = text
 	
 	var line := DialogueLine.new()
-	line.positions = [pos]
+	line.characters = [profile]
 	line.bubbles = [bubble]
 	
 	var data := DialogueData.new()
