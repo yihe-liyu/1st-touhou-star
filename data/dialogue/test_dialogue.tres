@@ -18,6 +18,7 @@ portraits = {
 script = ExtResource("2_db")
 speaker = SubResource("reimu")
 text = "前面前面！"
+emotion = "通常"
 
 [sub_resource type="Resource" id="line1"]
 script = ExtResource("3_dl")
@@ -33,7 +34,6 @@ portraits = {
 [sub_resource type="Resource" id="b2"]
 script = ExtResource("2_db")
 speaker = SubResource("marisa")
-side = 1
 text = "看到了看到了"
 
 [sub_resource type="Resource" id="line2"]
@@ -48,7 +48,6 @@ text = "上——！！"
 [sub_resource type="Resource" id="b4"]
 script = ExtResource("2_db")
 speaker = SubResource("marisa")
-side = 1
 text = "来——！！"
 
 [sub_resource type="Resource" id="line3"]

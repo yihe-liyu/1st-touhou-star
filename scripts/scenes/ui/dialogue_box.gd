@@ -54,7 +54,7 @@ func _show_line() -> void:
 	# 本帧在场人物 (从 bubbles 收集)
 	var active: Dictionary = {}
 	for b in line.bubbles:
-		active[b.speaker] = b.side
+		active[b.speaker] = int(b.side)
 	
 	# 淡出不在场的
 	for profile in _portrait_map.keys():
@@ -64,11 +64,16 @@ func _show_line() -> void:
 	# 加入在场的
 	for b in line.bubbles:
 		var profile: Resource = b.speaker
+		var s := int(b.side)
 		if not _portrait_map.has(profile):
-			_add_portrait(profile, b.side)
+			_add_portrait(profile, s)
 		else:
-			var node: Control = _portrait_map[profile].node
+			var info: Dictionary = _portrait_map[profile]
+			var node: Control = info.node
 			node.modulate = Color.WHITE
+			if int(info.side) != s:
+				node.reparent(_left_col if s == 0 else _right_col)
+				info.side = s
 	
 	# 说话者高亮
 	for profile in _portrait_map.keys():
