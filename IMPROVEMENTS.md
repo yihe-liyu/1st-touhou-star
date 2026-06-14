@@ -172,14 +172,14 @@ class OptionInfo:
 - `_finish` 回调 (`_on_finish`) 把实例标记为不可见 → 回池
 - 池大小不设硬上限，按需扩容
 
-### 18. 道具掉落系统 ⬜
+### 18. 道具掉落系统 ✅
 
 **建议**：
 - 消灭敌人掉落 Power Item / Point Item / 残机碎片 / Bomb 碎片
 - 自动回收线（屏幕底部吸附）、POC（道具回收线）
 - 满火力后 Power Item 变 Point Item
 
-### 19. Spell Card 框架 ⬜
+### 19. Spell Card 框架 ✅
 
 **建议**：
 - Boss 多阶段 + 血量条 HUD
@@ -197,3 +197,6 @@ class OptionInfo:
 ### 22. 单元测试 ⬜
 
 **建议**：GDScript `assert` 协程调度和碰撞检测回归测试
+
+### 21. 对话系统 ⬜
+详见 `docs/dialogue_plan.md`
