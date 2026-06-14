@@ -25,8 +25,8 @@ func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
 
 
-func setup(bd: BossData, api: StageAPI) -> void:
-	boss_data = bd
+func setup(data: BossData, api: StageAPI) -> void:
+	boss_data = data
 	_api = api
 	z_index = LayerConfig.BOSS
 	

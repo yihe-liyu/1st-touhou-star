@@ -29,8 +29,8 @@ func _ready() -> void:
 
 func _on_boss_spawned(boss: Node) -> void:
 	_boss_ref = boss as Boss
-	var bd: BossData = boss.boss_data
-	_name_label.text = bd.boss_name if bd.boss_name != "" else "???"
+	var boss_data: BossData = boss.boss_data
+	_name_label.text = boss_data.boss_name if boss_data.boss_name != "" else "???"
 	
 	if not _timer_label:
 		_timer_label = Label.new()
@@ -44,11 +44,11 @@ func _on_boss_spawned(boss: Node) -> void:
 	_dots.clear()
 	_phase_idx = 0
 	
-	for i in range(bd.phases.size() - 1, -1, -1):
-		var ph := bd.phases[i]
+	for i in range(boss_data.phases.size() - 1, -1, -1):
+		var phase := boss_data.phases[i]
 		var dot := ColorRect.new()
 		dot.custom_minimum_size = Vector2(DOT_SIZE, DOT_SIZE)
-		dot.color = GRAY if ph.uid == 0 else GREEN
+		dot.color = GRAY if phase.uid == 0 else GREEN
 		_history.add_child(dot)
 		_dots.append(dot)
 	
@@ -57,12 +57,12 @@ func _on_boss_spawned(boss: Node) -> void:
 func _process(_delta: float) -> void:
 	if not _boss_ref or not is_instance_valid(_boss_ref) or not visible:
 		return
-	var ph := _boss_ref.current_phase()
-	if not ph or ph.time_limit <= 0:
+	var phase := _boss_ref.current_phase()
+	if not phase or phase.time_limit <= 0:
 		_timer_label.visible = false
 		return
 	_timer_label.visible = true
-	var rem := maxf(ph.time_limit - _boss_ref._elapsed, 0.0)
+	var rem := maxf(phase.time_limit - _boss_ref._elapsed, 0.0)
 	_timer_label.text = "%02d" % int(ceil(rem))
 
 func _on_boss_defeated(_boss: Node) -> void:
@@ -101,45 +101,45 @@ func _clear_announce() -> void:
 func _play_spell_announce(spell_name: String) -> void:
 	_clear_announce()
 	
-	var lbl := Label.new()
-	_announce_label = lbl
-	lbl.text = spell_name
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 48)
-	lbl.modulate.a = 0.0
-	$Control.add_child(lbl)
+	var label := Label.new()
+	_announce_label = label
+	label.text = spell_name
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 48)
+	label.modulate.a = 0.0
+	$Control.add_child(label)
 	
-	var vs: Vector2 = $Control.size
-	var center := Vector2(vs.x * 0.5, vs.y * 0.5)
-	var label_size: Vector2 = lbl.get_minimum_size()
+	var size: Vector2 = $Control.size
+	var center := Vector2(size.x * 0.5, size.y * 0.5)
+	var label_size: Vector2 = label.get_minimum_size()
 	
 	# 1. 屏幕中央大字(scale=3)淡入+缩小
-	lbl.scale = Vector2(3.0, 3.0)
-	lbl.position = center - label_size * 3.0 / 2.0
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(lbl, "modulate:a", 1.0, 0.5)
-	tw.tween_property(lbl, "scale", Vector2(0.6, 0.6), 0.5).set_trans(Tween.TRANS_QUAD)
-	tw.tween_property(lbl, "position", center - label_size * 0.6 / 2.0, 0.5).set_trans(Tween.TRANS_QUAD)
-	tw.set_parallel(false)
+	label.scale = Vector2(3.0, 3.0)
+	label.position = center - label_size * 3.0 / 2.0
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "modulate:a", 1.0, 0.5)
+	tween.tween_property(label, "scale", Vector2(0.6, 0.6), 0.5).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(label, "position", center - label_size * 0.6 / 2.0, 0.5).set_trans(Tween.TRANS_QUAD)
+	tween.set_parallel(false)
 	
-	tw.tween_interval(0.2)
+	tween.tween_interval(0.2)
 	
 	# 2. 下移(scale→1)
-	tw.tween_property(lbl, "position", vs - label_size * 0.6, 1.0).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(label, "position", size - label_size * 0.6, 1.0).set_trans(Tween.TRANS_QUAD)
 	
 	# 3. 加速/减速飞向右上
-	var top_right := Vector2(vs.x - (label_size * 0.6).x, 0)
-	tw.tween_property(lbl, "position", top_right, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	var top_right := Vector2(size.x - (label_size * 0.6).x, 0)
+	tween.tween_property(label, "position", top_right, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	
 	# 4. Bonus(左下) / 收取率(右下)
-	tw.tween_callback(_add_info_labels)
+	tween.tween_callback(_add_info_labels)
 
 func _add_info_labels() -> void:
 	if not _announce_label: return
 	var parent := _announce_label
-	var lbl_h := parent.get_minimum_size().y * 0.6  # 当前 scale
+	var label_h := parent.get_minimum_size().y * 0.6  # 当前 scale
 	
 	# Bonus — 左下
 	_bonus_label = Label.new()
@@ -147,7 +147,7 @@ func _add_info_labels() -> void:
 	_bonus_label.add_theme_font_size_override("font_size", 14)
 	_bonus_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
 	parent.add_child(_bonus_label)
-	_bonus_label.position = Vector2(0, lbl_h)
+	_bonus_label.position = Vector2(0, label_h)
 	
 	# 收取率 — 右下 (仅 Story)
 	if not GameState.is_practice_mode:
@@ -156,7 +156,7 @@ func _add_info_labels() -> void:
 		_capture_label.add_theme_font_size_override("font_size", 14)
 		_capture_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
 		parent.add_child(_capture_label)
-		_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6 - 40, lbl_h)
+		_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6 - 40, label_h)
 		_update_capture_text()
 
 func _update_capture_text() -> void:

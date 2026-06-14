@@ -341,8 +341,8 @@ func _start_practice() -> void:
 	var phase_idx: int = 0
 	var spell_c := 0; var non_c := 0
 	for i in boss_data.phases.size():
-		var ph = boss_data.phases[i]
-		if ph.uid != 0:
+		var phase = boss_data.phases[i]
+		if phase.uid != 0:
 			spell_c += 1
 			if info.type == SpellRecord.PhaseType.SPELL and spell_c == info.num:
 				phase_idx = i
@@ -374,13 +374,13 @@ func _find_practice_target(stage: int, pt: int, pn: int) -> Dictionary:
 
 func _match_phase(bd: BossData, pt: int, pn: int) -> PhaseData:
 	var spell_c := 0; var non_c := 0
-	for ph in bd.phases:
-		if ph.uid != 0:
+	for phase in bd.phases:
+		if phase.uid != 0:
 			spell_c += 1
 			if pt == SpellRecord.PhaseType.SPELL and spell_c == pn:
-				return ph
+				return phase
 		else:
 			non_c += 1
 			if pt == SpellRecord.PhaseType.NONSPELL and non_c == pn:
-				return ph
+				return phase
 	return null

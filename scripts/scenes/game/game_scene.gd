@@ -84,7 +84,7 @@ func _on_game_state_changed(_old: int, new: int) -> void:
 func _add_blur() -> void:
 	if _blur_rect:
 		return
-	var svc := $Background/SubViewportContainer
+	var container := $Background/SubViewportContainer
 	var vs := get_viewport().get_visible_rect().size
 	
 	_blur_rect = ColorRect.new()
@@ -93,8 +93,8 @@ func _add_blur() -> void:
 	
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/pause_blur.gdshader")
-	mat.set_shader_parameter("rect_min", Vector2(svc.position) / vs)
-	mat.set_shader_parameter("rect_max", Vector2(svc.position + svc.size) / vs)
+	mat.set_shader_parameter("rect_min", Vector2(container.position) / vs)
+	mat.set_shader_parameter("rect_max", Vector2(container.position + container.size) / vs)
 	_blur_rect.material = mat
 	
 	var blur_layer := CanvasLayer.new()

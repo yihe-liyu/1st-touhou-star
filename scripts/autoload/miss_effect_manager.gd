@@ -18,7 +18,7 @@ func _ready() -> void:
 	_view_size = get_viewport().get_visible_rect().size
 	_mat = ShaderMaterial.new()
 	_mat.shader = preload("res://gdshader/miss_circle.gdshader")
-	_mat.set_shader_parameter("vs", _view_size)
+	_mat.set_shader_parameter("view_size", _view_size)
 	_mat.set_shader_parameter("edge_soft", 0.005)
 	for pf: String in _prefixes:
 		_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
@@ -49,7 +49,7 @@ func _process(delta: float) -> void:
 
 
 func _update_shader() -> void:
-	var vs := _view_size
+	var view_size := _view_size
 	var canvas := get_viewport().get_canvas_transform()
 	
 	for i in MAX_CIRCLES:
@@ -64,7 +64,7 @@ func _update_shader() -> void:
 			var t := clampf(c.age / c.duration, 0.0, 1.0)
 			var radius_px := lerpf(c.start_r, c.max_r, t)
 			var screen_pos: Vector2 = canvas * c.world_pos
-			var uv_pos := screen_pos / vs
+			var uv_pos := screen_pos / view_size
 			
 			_mat.set_shader_parameter("%s_pos" % pf, uv_pos)
 			_mat.set_shader_parameter("%s_radpx" % pf, radius_px)
