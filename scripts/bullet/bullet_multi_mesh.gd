@@ -114,11 +114,11 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: 
 	mmi.material = mat
 	match faction:
 		Bullet.FACTION_ENEMY:
-			mmi.z_index = 10
+			mmi.z_index = LayerConfig.ENEMY_BULLET
 		Bullet.FACTION_PLAYER:
-			mmi.z_index = 5
+			mmi.z_index = LayerConfig.PLAYER_BULLET
 		Bullet.FACTION_BOMB:
-			mmi.z_index = 100
+			mmi.z_index = LayerConfig.BOMB
 	add_child(mmi)
 
 	var entry = {mmi = mmi, mm = mm, mesh = mesh}

@@ -28,6 +28,7 @@ func current_bonus() -> int: return _bonus
 func setup(bd: BossData, api: StageAPI) -> void:
 	boss_data = bd
 	_api = api
+	z_index = LayerConfig.BOSS
 	
 	if GameState.is_practice_mode:
 		_stage_id = GameState.practice_stage_id

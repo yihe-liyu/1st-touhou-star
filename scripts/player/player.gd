@@ -38,6 +38,7 @@ var current_speed: int
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
+	z_index = LayerConfig.PLAYER
 	# 连接 animation_finished 信号，用于检测一次性动画播完
 	sprite.animation_finished.connect(_on_animation_finished)
 

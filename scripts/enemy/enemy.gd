@@ -18,6 +18,8 @@ var _last_pos: Vector2
 
 
 func _ready():
+	z_index = LayerConfig.ENEMY
+	z_as_relative = false
 	if enemy_data: _apply_enemy_data(enemy_data)
 	_last_pos = global_position
 	

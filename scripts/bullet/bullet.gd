@@ -37,13 +37,13 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 	_grazed = false
 	match data.faction:
 		FACTION_ENEMY:
-			z_index = 10
+			z_index = LayerConfig.ENEMY_BULLET
 		FACTION_BOMB:
-			z_index = 100
+			z_index = LayerConfig.BOMB
 		FACTION_PLAYER:
-			z_index = -1
+			z_index = LayerConfig.PLAYER_BULLET
 		_:
-			z_index = 5
+			z_index = LayerConfig.ENEMY_BULLET
 
 	var effective_dir = direction
 	if override and override.angle_offset != 0.0:

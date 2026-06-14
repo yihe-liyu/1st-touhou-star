@@ -10,6 +10,6 @@ name = "星符「Twinkle」"
 uid = 1
 bonus = 50000
 time_limit = 60.0
-hp = 7500
+hp = 6500
 move_script = ExtResource("2")
 shoot_script = ExtResource("3")

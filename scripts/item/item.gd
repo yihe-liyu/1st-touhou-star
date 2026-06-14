@@ -22,6 +22,7 @@ var collect_radius: float = 32.0
 
 
 func _ready() -> void:
+	z_index = LayerConfig.ITEM
 	area_entered.connect(_on_area_entered)
 	if _collision and _collision.shape is CircleShape2D:
 		(_collision.shape as CircleShape2D).radius = collect_radius
