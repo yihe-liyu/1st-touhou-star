@@ -6,88 +6,23 @@
 [sub_resource type="Resource" id="Resource_lls5d"]
 script = ExtResource("2_record")
 spell_name = "非符1"
-attempts = 5
-captures = 5
-best_time = 4.3333327272726665
+attempts = 1
+captures = 1
+best_time = 19.34767636363687
 
 [sub_resource type="Resource" id="Resource_4fnre"]
 script = ExtResource("2_record")
 spell_uid = 1
 phase_type = 1
-spell_name = "星符「Twinkle」"
-phase_order = 2
-attempts = 5
-captures = 5
-practice_attempts = 3
-practice_captures = 3
-best_score = 41030
-best_time = 10.881463030302768
-
-[sub_resource type="Resource" id="Resource_8qneb"]
-script = ExtResource("2_record")
-difficulty = 3
-spell_name = "非符1"
-attempts = 1
-captures = 1
-best_time = 3.3511800000000287
-
-[sub_resource type="Resource" id="Resource_8upsx"]
-script = ExtResource("2_record")
-spell_uid = 1
-phase_type = 1
-difficulty = 3
-spell_name = "星符「Twinkle」"
+spell_name = "声符「停顿波」"
 phase_order = 2
 attempts = 1
 captures = 1
-practice_attempts = 3
-practice_captures = 3
-best_score = 45595
-best_time = 5.342725454545348
-
-[sub_resource type="Resource" id="Resource_ndrql"]
-script = ExtResource("2_record")
-character = 1
-difficulty = 2
-spell_name = "非符1"
-practice_attempts = 2
-practice_captures = 2
-
-[sub_resource type="Resource" id="Resource_xyc1f"]
-script = ExtResource("2_record")
-difficulty = 0
-spell_name = "非符1"
-attempts = 333
-captures = 3
-practice_attempts = 333
-practice_captures = 3
-best_time = 7.996955757575633
-
-[sub_resource type="Resource" id="Resource_dlbke"]
-script = ExtResource("2_record")
-spell_uid = 1
-phase_type = 1
-difficulty = 0
-spell_name = "星符「Twinkle」"
-phase_order = 2
-attempts = 2
-captures = 2
-practice_attempts = 5
-practice_captures = 5
-best_score = 28544
-best_time = 26.09954542424457
-
-[sub_resource type="Resource" id="Resource_2rp80"]
-script = ExtResource("2_record")
-character = 1
-difficulty = 0
-spell_name = "非符1"
-
-[sub_resource type="Resource" id="Resource_qrqyf"]
-script = ExtResource("2_record")
-character = 1
-spell_name = "非符1"
+practice_attempts = 1
+practice_captures = 1
+best_score = 29585
+best_time = 24.752961212123132
 
 [resource]
 script = ExtResource("1_book")
-records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre"), SubResource("Resource_8qneb"), SubResource("Resource_8upsx"), SubResource("Resource_ndrql"), SubResource("Resource_xyc1f"), SubResource("Resource_dlbke"), SubResource("Resource_2rp80"), SubResource("Resource_qrqyf")])
+records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre")])

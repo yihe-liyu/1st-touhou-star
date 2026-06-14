@@ -153,6 +153,9 @@ func _on_phase_clear(captured: bool) -> void:
 	if captured and _bonus > 0:
 		GameState.add_score(_bonus)
 	
+	# 掉落 Item
+	_drop_items()
+	
 	# 阶段间隔
 	_in_gap = true
 	get_tree().create_timer(2.0).timeout.connect(_next_phase, CONNECT_ONE_SHOT)
@@ -162,3 +165,20 @@ func _die_boss() -> void:
 	GameState.active_enemies.erase(self)
 	GameEvents.boss_defeated.emit(self)
 	queue_free()
+
+func _drop_items() -> void:
+	if not _current_phase: return
+	if GameState.is_practice_mode: return  # 练习不掉落
+	var pos := global_position
+	var phase := _current_phase
+	var scatter := 50.0
+	
+	var drops: Array[int] = []
+	for _i in range(phase.item_power): drops.append(Item.Type.POWER)
+	for _i in range(phase.item_point): drops.append(Item.Type.POINT)
+	for _i in range(phase.item_life): drops.append(Item.Type.LIFE_FRAGMENT)
+	for _i in range(phase.item_bomb): drops.append(Item.Type.BOMB_FRAGMENT)
+	
+	for t in drops:
+		var offset := Vector2(RNG.randf_range(-scatter, scatter), RNG.randf_range(-scatter, scatter))
+		_api.spawn_item(t, pos + offset)

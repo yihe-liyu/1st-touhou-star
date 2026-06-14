@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("1")
-name = "星符「Twinkle」"
+name = "声符「停顿波」"
 uid = 1
 bonus = 50000
 time_limit = 60.0

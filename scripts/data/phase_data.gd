@@ -11,3 +11,7 @@ class_name PhaseData
 @export var move_script: Script          ## 移动脚本
 @export var shoot_script: Script         ## 弹幕脚本
 @export var background: PackedScene      ## 可选换背景
+@export var item_power: int = 0         ## 击破掉落 P 点
+@export var item_point: int = 0         ## 击破掉落蓝点
+@export var item_life: int = 0          ## 击破掉落残机碎片
+@export var item_bomb: int = 0          ## 击破掉落 Bomb 碎片

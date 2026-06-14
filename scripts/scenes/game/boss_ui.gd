@@ -38,9 +38,9 @@ func _on_boss_spawned(boss: Node) -> void:
 	if not _timer_label:
 		_timer_label = Label.new()
 		_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_timer_label.add_theme_font_size_override("font_size", 24)
+		_timer_label.add_theme_font_size_override("font_size", 32)
 		$Control.add_child(_timer_label)
-	_timer_label.position = Vector2($Control.size.x / 2.0 - 20, 90)
+	_timer_label.position = Vector2($Control.size.x / 2.0, 16)
 	_timer_label.visible = false
 	
 	for d in _dots: d.queue_free()
