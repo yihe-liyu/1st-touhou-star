@@ -7,3 +7,5 @@ class_name StageData
 @export var background_scene: PackedScene
 @export var boss_data: BossData               ## Boss 数据（符卡练习用）
 @export var next_stage: StageData              ## 通关后下一关
+@export var dialogue_opening: DialogueData     ## 关卡开场对话
+@export var dialogue_boss: DialogueData        ## Boss出场对话
