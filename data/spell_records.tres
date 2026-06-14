@@ -59,7 +59,7 @@ difficulty = 0
 spell_name = "非符1"
 attempts = 333
 captures = 3
-practice_attempts = 3
+practice_attempts = 333
 practice_captures = 3
 best_time = 7.996955757575633
 
