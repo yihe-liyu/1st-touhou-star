@@ -13,8 +13,7 @@ var _data: Resource
 var _line_idx: int = 0
 var _input_ready: bool = false
 var _typing_tween: Tween
-# char_name -> {node, profile}
-var _portrait_map: Dictionary = {}
+var _portrait_map: Dictionary = {}  # char_name -> {node, profile}
 
 func _ready() -> void:
 	visible = false
@@ -46,50 +45,45 @@ func _show_line() -> void:
 	_clear_bubbles()
 	var line: Resource = _data.lines[_line_idx]
 	
-	# 用 char_name 做键 (sub_resource 实例不同)
-	var active: Dictionary = {}
-	var positions: Dictionary = {}
+	# 收集在场
+	var present: Dictionary = {}   # char_name -> CharacterProfile
+	var pos_map: Dictionary = {}   # char_name -> Vector2
+	var speakers: Dictionary = {}  # char_name -> true
 	
 	for ch in line.characters:
-		active[ch.char_name] = ch
-	
+		present[ch.char_name] = ch
 	for b in line.bubbles:
-		active[b.speaker.char_name] = b.speaker
-		positions[b.speaker.char_name] = b.position
+		present[b.speaker.char_name] = b.speaker
+		pos_map[b.speaker.char_name] = b.position
+		speakers[b.speaker.char_name] = true
 	
-	# 去不在场的
+	# 不在场的 → 隐藏 (直接 visible=false, 不用 tween)
 	for name_key in _portrait_map.keys():
-		if not active.has(name_key):
-			_fade_out(_portrait_map[name_key].node)
+		if not present.has(name_key):
+			_portrait_map[name_key].node.visible = false
 	
-	# 有位置的: 加/更新位置
-	for name_key in positions.keys():
-		var pos: Vector2 = positions[name_key]
-		var profile: Resource = active[name_key]
+	# 在场的 → 显示 + 更新位置
+	for name_key in present.keys():
+		var profile: Resource = present[name_key]
+		var pos: Vector2 = pos_map.get(name_key, Vector2.ZERO)
+		
 		if not _portrait_map.has(name_key):
 			_add_portrait(profile, pos, name_key)
 		else:
 			var info: Dictionary = _portrait_map[name_key]
-			info.node.position = pos
-	
-	# 说话者高亮 + 图层置顶, 其余暗
-	var speaker_names: Dictionary = {}
-	for b in line.bubbles:
-		speaker_names[b.speaker.char_name] = true
-	
-	for name_key in _portrait_map.keys():
+			info.node.visible = true
+			if pos_map.has(name_key):
+				info.node.position = pos
+		
+		# highlight / dim
 		var info: Dictionary = _portrait_map[name_key]
-		if speaker_names.has(name_key):
-			info.node.modulate = Color.WHITE
-			info.node.z_index = 10
-		else:
-			info.node.modulate = Color(0.35, 0.35, 0.35)
-			info.node.z_index = 0
+		info.node.z_index = 10 if speakers.has(name_key) else 0
+		info.node.modulate = Color.WHITE if speakers.has(name_key) else Color(0.35, 0.35, 0.35)
 	
 	# 气泡
 	for b in line.bubbles:
 		var info: Dictionary = _portrait_map[b.speaker.char_name]
-		_create_bubble(info.node, b.position, b.text)
+		_create_bubble(info.node)
 	
 	_input_ready = false
 	_arrow.visible = false
@@ -148,7 +142,7 @@ func _update_portrait_texture(profile: Resource, vbox: VBoxContainer) -> void:
 
 # ═══ 气泡 ═══
 
-func _create_bubble(node: Control, _pos: Vector2, _text: String) -> void:
+func _create_bubble(node: Control) -> void:
 	_clear_child_bubbles(node)
 	
 	var bubble := Label.new()
@@ -156,7 +150,6 @@ func _create_bubble(node: Control, _pos: Vector2, _text: String) -> void:
 	bubble.add_theme_font_size_override("font_size", 20)
 	bubble.custom_minimum_size = Vector2(280, 0)
 	node.add_child(bubble)
-	
 	bubble.position = Vector2(node.size.x + 12, 0)
 	
 	node.set_meta("_bubble_label", bubble)
@@ -170,10 +163,6 @@ func _clear_child_bubbles(parent: Control) -> void:
 func _clear_bubbles() -> void:
 	for info in _portrait_map.values():
 		_clear_child_bubbles(info.node)
-
-func _fade_out(node: Control) -> void:
-	var tw := create_tween()
-	tw.tween_property(node, "modulate:a", 0.0, 0.3)
 
 func _close() -> void:
 	_input_ready = false
