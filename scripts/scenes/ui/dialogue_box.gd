@@ -24,7 +24,6 @@ var _line_index: int = 0
 var _input_ready: bool = false
 var _skipping: bool = false
 var _typing_tween: Tween
-var _speaker_pulse: Tween
 
 func _ready() -> void:
 	visible = false
@@ -112,17 +111,6 @@ func _add_portrait(column: VBoxContainer, ch: DialogueCharacter, speakers: Array
 		global_idx = base_idx + i
 	var is_speaker := speakers.has(global_idx)
 	vbox.modulate = Color.WHITE if is_speaker else Color(0.35, 0.35, 0.35)
-	
-	if is_speaker:
-		_pulse_speaker(vbox)
-
-func _pulse_speaker(node: Control) -> void:
-	if _speaker_pulse and _speaker_pulse.is_valid():
-		_speaker_pulse.kill()
-	_speaker_pulse = create_tween().set_loops()
-	_speaker_pulse.set_trans(Tween.TRANS_SINE)
-	_speaker_pulse.tween_property(node, "scale", Vector2(1.05, 1.05), 0.4)
-	_speaker_pulse.tween_property(node, "scale", Vector2.ONE, 0.4)
 
 func _skip_all() -> void:
 	_skipping = true
