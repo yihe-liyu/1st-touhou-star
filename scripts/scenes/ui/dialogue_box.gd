@@ -62,20 +62,21 @@ func _show_line() -> void:
 		if not present.has(name_key):
 			_portrait_map[name_key].node.visible = false
 	
-	# 在场的 → 显示 + 更新位置
+	# 在场的 → 显示, 有位置才更新
 	for name_key in present.keys():
 		var profile: Resource = present[name_key]
-		var pos: Vector2 = pos_map.get(name_key, Vector2.ZERO)
 		
 		if not _portrait_map.has(name_key):
-			_add_portrait(profile, pos, name_key)
+			# 第一次出现, 没有 bubble 给位置 → 默认中央
+			var def_pos: Vector2 = pos_map.get(name_key, Vector2(400, 200))
+			_add_portrait(profile, def_pos, name_key)
 		else:
 			var info: Dictionary = _portrait_map[name_key]
 			info.node.visible = true
+			# 只在有位置时才更新
 			if pos_map.has(name_key):
-				info.node.position = pos
+				info.node.position = pos_map[name_key]
 		
-		# highlight / dim
 		var info: Dictionary = _portrait_map[name_key]
 		info.node.z_index = 10 if speakers.has(name_key) else 0
 		info.node.modulate = Color.WHITE if speakers.has(name_key) else Color(0.35, 0.35, 0.35)
