@@ -164,3 +164,39 @@ func spawn_decor(scene: PackedScene, pos3d: Vector3, follow_plane: BackgroundPla
 		wrapper.add_child(obj)
 	bg.add_child(wrapper)
 	return wrapper
+
+
+# ═══ 对话 ═══
+
+const DialogueBoxClass = preload("res://scripts/scenes/ui/dialogue_box.gd")
+const DialogueBoxScene = preload("res://scenes/ui/dialogue_box.tscn")
+
+## 播放对话序列，阻塞协程直到对话结束
+func play_dialogue(data: DialogueData) -> float:
+	if not active() or not is_instance_valid(runner):
+		return 0.0
+	
+	var box := DialogueBoxScene.instantiate()
+	runner.get_tree().current_scene.add_child(box)
+	
+	# 暂停协程，对话结束后恢复
+	runner.is_running = false
+	box.finished.connect(func():
+		runner.is_running = true
+	, CONNECT_ONE_SHOT)
+	
+	box.play(data)
+	return 0.0  # 立即返回，由 finished 信号恢复
+
+## 快捷单句对话
+func dialogue_show(char_name: String, text: String, portrait: Texture2D = null) -> void:
+	var ch := DialogueCharacter.new()
+	ch.char_name = char_name
+	ch.portrait = portrait
+	var line := DialogueLine.new()
+	line.left_chars = [ch]
+	line.text = text
+	line.speakers = [0]
+	var data := DialogueData.new()
+	data.lines = [line]
+	play_dialogue(data)
