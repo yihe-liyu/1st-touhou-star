@@ -200,7 +200,6 @@ func dialogue_show(char_name: String, text: String, portrait: Texture2D = null) 
 	bubble.text = text
 	
 	var line := DialogueLine.new()
-	line.characters = [profile]
 	line.bubbles = [bubble]
 	
 	var data := DialogueData.new()

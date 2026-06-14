@@ -1,6 +1,6 @@
 # DialogueBox.gd
 extends CanvasLayer
-## 气泡对话 v2 — 立绘旁出气泡
+## 气泡对话 — 立绘旁出气泡
 
 signal finished()
 
@@ -11,13 +11,11 @@ signal finished()
 @onready var _right_col: VBoxContainer = $Control/RightColumn
 @onready var _arrow: Label = $Control/Arrow
 
-var _data: Resource  # DialogueData
+var _data: Resource
 var _line_idx: int = 0
 var _input_ready: bool = false
 var _typing_tween: Tween
-
-# profile -> {node: VBoxContainer, side: int}
-var _portrait_map: Dictionary = {}
+var _portrait_map: Dictionary = {}  # profile -> {node, side}
 
 func _ready() -> void:
 	visible = false
@@ -26,11 +24,10 @@ func _ready() -> void:
 	_left_col.position = Vector2(40, 80)
 	_right_col.position = Vector2(700, 80)
 
-func play(data: Resource) -> void:  # data: DialogueData
+func play(data: Resource) -> void:
 	_data = data
 	_line_idx = 0
 	visible = true
-	
 	var tw := create_tween()
 	tw.tween_property(_root, "modulate:a", 1.0, 0.3)
 	tw.tween_callback(_show_line)
@@ -50,81 +47,67 @@ func _input(event: InputEvent) -> void:
 
 func _show_line() -> void:
 	_clear_bubbles()
-	var line: Resource = _data.lines[_line_idx]  # DialogueLine
+	var line: Resource = _data.lines[_line_idx]
 	
-	# 决定谁在场
+	# 本帧在场人物 (从 bubbles 收集)
 	var active: Dictionary = {}
-	for ch in line.characters:
-		active[ch] = ch.side
+	for b in line.bubbles:
+		active[b.speaker] = b.side
 	
-	# 去掉不在场的 → 淡出
+	# 淡出不在场的
 	for profile in _portrait_map.keys():
 		if not active.has(profile):
-			var node: Control = _portrait_map[profile].node
-			_fade_out(node)
+			_fade_out(_portrait_map[profile].node)
 	
-	# 添加/恢复在场的
-	for ch in line.characters:
-		var profile: Resource = ch  # CharacterProfile
-		if _portrait_map.has(profile):
+	# 加入在场的
+	for b in line.bubbles:
+		var profile: Resource = b.speaker
+		if not _portrait_map.has(profile):
+			_add_portrait(profile, b.side)
+		else:
 			var node: Control = _portrait_map[profile].node
 			node.modulate = Color.WHITE
-			_update_portrait_texture(profile, node)
-		else:
-			_add_portrait(profile, ch.side)
 	
-	# 说话者高亮, 其余暗
-	var speakers: Dictionary = {}
-	for b in line.bubbles:
-		speakers[b.speaker] = true
+	# 说话者高亮
 	for profile in _portrait_map.keys():
 		var node: Control = _portrait_map[profile].node
-		node.modulate = Color.WHITE if speakers.has(profile) else Color(0.4, 0.4, 0.4)
+		node.modulate = Color.WHITE if active.has(profile) else Color(0.4, 0.4, 0.4)
 	
-	# 创建气泡
+	# 气泡
 	for b in line.bubbles:
 		_create_bubble(b.speaker, b.text, b.emotion)
 	
-	# 打字机
 	_input_ready = false
 	_arrow.visible = false
 	if line.bubbles.size() > 0:
 		_animate_text(line.bubbles)
 
 func _animate_text(bubbles: Array) -> void:
-	# 取最长文本
 	var full_text := ""
 	for b in bubbles:
 		if b.text.length() > full_text.length():
 			full_text = b.text
-	
 	_typing_tween = create_tween()
 	var total := float(full_text.length()) * text_speed
-	
-	_typing_tween.tween_method(
-		_update_text_progress.bind(bubbles, full_text.length()),
-		0.0, 1.0, total
-	)
+	_typing_tween.tween_method(_type_chars.bind(bubbles, full_text.length()), 0.0, 1.0, total)
 	_typing_tween.tween_callback(func():
 		_input_ready = true
 		_arrow.visible = true
 	)
 
-func _update_text_progress(progress: float, bubbles: Array, max_len: int) -> void:
+func _type_chars(progress: float, bubbles: Array, max_len: int) -> void:
 	var global_char := int(lerpf(0.0, float(max_len), progress))
 	for b in bubbles:
-		var node: Dictionary = _portrait_map.get(b.speaker, {})
-		if node.is_empty(): continue
-		var lbl: Label = node.node.get_meta("_bubble_label", null)
+		var info: Dictionary = _portrait_map.get(b.speaker, {})
+		if info.is_empty(): continue
+		var lbl: Label = info.node.get_meta("_bubble_label", null)
 		if not lbl: continue
-		var local_char := clampi(global_char, 0, b.text.length())
-		lbl.text = b.text.substr(0, local_char)
+		lbl.text = b.text.substr(0, clampi(global_char, 0, b.text.length()))
 
 # ═══ 立绘 ═══
 
 func _add_portrait(profile: Resource, side: int) -> void:
 	var vbox := VBoxContainer.new()
-	
 	var tex := TextureRect.new()
 	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -165,9 +148,8 @@ func _create_bubble(speaker: Resource, text: String, _emotion: String) -> void:
 	bubble.custom_minimum_size = Vector2(280, 0)
 	node.add_child(bubble)
 	
-	var node_size := node.size
 	if side == 0:
-		bubble.position = Vector2(node_size.x + 12, 0)
+		bubble.position = Vector2(node.size.x + 12, 0)
 	else:
 		bubble.position = Vector2(-292, 0)
 	
@@ -176,8 +158,7 @@ func _create_bubble(speaker: Resource, text: String, _emotion: String) -> void:
 func _clear_child_bubbles(parent: Control) -> void:
 	if parent.has_meta("_bubble_label"):
 		var lbl: Label = parent.get_meta("_bubble_label")
-		if is_instance_valid(lbl):
-			lbl.queue_free()
+		if is_instance_valid(lbl): lbl.queue_free()
 		parent.remove_meta("_bubble_label")
 
 func _clear_bubbles() -> void:
@@ -188,14 +169,11 @@ func _fade_out(node: Control) -> void:
 	var tw := create_tween()
 	tw.tween_property(node, "modulate:a", 0.0, 0.3)
 
-# ═══ 关闭 ═══
-
 func _close() -> void:
 	_input_ready = false
 	_arrow.visible = false
 	if _typing_tween and _typing_tween.is_valid():
 		_typing_tween.kill()
-	
 	var tw := create_tween()
 	tw.tween_property(_root, "modulate:a", 0.0, 0.2)
 	tw.tween_callback(func():
