@@ -13,11 +13,11 @@ signal finished()
 @export var text_speed: float = 0.04  # 每字间隔秒
 @export var show_arrow: bool = true
 
-@onready var _left_column: VBoxContainer = $LeftColumn
-@onready var _right_column: VBoxContainer = $RightColumn
-@onready var _text_label: Label = $TextBox/TextLabel
-@onready var _arrow: Label = $Arrow
 @onready var _root: Control = $Control
+@onready var _left_column: VBoxContainer = $Control/LeftColumn
+@onready var _right_column: VBoxContainer = $Control/RightColumn
+@onready var _text_label: Label = $Control/TextBox/TextLabel
+@onready var _arrow: Label = $Control/Arrow
 
 var _data: DialogueData
 var _line_index: int = 0
