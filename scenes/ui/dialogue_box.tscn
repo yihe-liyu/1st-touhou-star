@@ -25,17 +25,17 @@ color = Color(0, 0, 0, 0.5)
 
 [node name="LeftColumn" type="VBoxContainer" parent="Control" unique_id=1036404196]
 layout_mode = 0
-offset_left = 40.0
-offset_top = 80.0
-offset_right = 200.0
-offset_bottom = 560.0
+offset_left = 64.0
+offset_top = 256.0
+offset_right = 384.0
+offset_bottom = 904.0
 
 [node name="RightColumn" type="VBoxContainer" parent="Control" unique_id=188147720]
 layout_mode = 0
-offset_left = 760.0
-offset_top = 80.0
-offset_right = 920.0
-offset_bottom = 560.0
+offset_left = 576.0
+offset_top = 264.0
+offset_right = 896.0
+offset_bottom = 896.0
 
 [node name="TextBox" type="NinePatchRect" parent="Control" unique_id=1148919917]
 layout_mode = 1

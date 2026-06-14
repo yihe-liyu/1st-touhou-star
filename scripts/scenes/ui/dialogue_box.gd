@@ -29,10 +29,6 @@ func _ready() -> void:
 	visible = false
 	_arrow.visible = false
 	_root.modulate.a = 0.0
-	
-	# 左右列定位
-	_left_column.position = Vector2(40, 60)
-	_right_column.position = Vector2(760, 60)
 
 func play(data: DialogueData) -> void:
 	_data = data
@@ -97,6 +93,7 @@ func _add_portrait(column: VBoxContainer, ch: DialogueCharacter, speakers: Array
 		tex.texture = ch.portrait
 		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex.custom_minimum_size = ch.portrait.get_size()
 		vbox.add_child(tex)
 	
 	if ch.char_name != "":
