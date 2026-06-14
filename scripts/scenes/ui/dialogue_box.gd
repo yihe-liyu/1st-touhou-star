@@ -1,30 +1,24 @@
 # DialogueBox.gd
 extends CanvasLayer
-## 气泡对话 — 立绘旁出气泡
+## 气泡对话 — 自由位置立绘 + 气泡
 
 signal finished()
 
 @export var text_speed: float = 0.04
 
 @onready var _root: Control = $Control
-@onready var _left_col: VBoxContainer = $Control/LeftColumn
-@onready var _right_col: VBoxContainer = $Control/RightColumn
 @onready var _arrow: Label = $Control/Arrow
 
 var _data: Resource
 var _line_idx: int = 0
 var _input_ready: bool = false
 var _typing_tween: Tween
-var _portrait_map: Dictionary = {}  # profile -> {node, side}
+var _portrait_map: Dictionary = {}  # profile -> {node, pos}
 
 func _ready() -> void:
 	visible = false
 	_arrow.visible = false
 	_root.modulate.a = 0.0
-	_left_col.position = Vector2(40, 80)
-	_left_col.size = Vector2(200, 480)
-	_right_col.position = Vector2(700, 80)
-	_right_col.size = Vector2(200, 480)
 
 func play(data: Resource) -> void:
 	_data = data
@@ -51,38 +45,49 @@ func _show_line() -> void:
 	_clear_bubbles()
 	var line: Resource = _data.lines[_line_idx]
 	
-	# 本帧在场人物 (从 bubbles 收集)
+	# 谁在场
 	var active: Dictionary = {}
 	for b in line.bubbles:
-		active[b.speaker] = int(b.side)
+		active[b.speaker] = b.position
 	
-	# 淡出不在场的
+	# 去不在场的
 	for profile in _portrait_map.keys():
 		if not active.has(profile):
 			_fade_out(_portrait_map[profile].node)
 	
-	# 加入在场的
+	# 在场的: 加/更新位置
 	for b in line.bubbles:
 		var profile: Resource = b.speaker
-		var s := int(b.side)
+		var pos: Vector2 = b.position
 		if not _portrait_map.has(profile):
-			_add_portrait(profile, s)
+			_add_portrait(profile, pos)
 		else:
 			var info: Dictionary = _portrait_map[profile]
 			var node: Control = info.node
+			node.position = pos
 			node.modulate = Color.WHITE
-			if int(info.side) != s:
-				node.reparent(_left_col if s == 0 else _right_col)
-				info.side = s
+			info.pos = pos
 	
-	# 说话者高亮
+	# 说话者高亮 + 图层置顶, 其余暗
+	var speaker_set: Dictionary = {}
+	for b in line.bubbles:
+		speaker_set[b.speaker] = true
+	
+	var z_top := 10
 	for profile in _portrait_map.keys():
-		var node: Control = _portrait_map[profile].node
-		node.modulate = Color.WHITE if active.has(profile) else Color(0.4, 0.4, 0.4)
+		var info: Dictionary = _portrait_map[profile]
+		var node: Control = info.node
+		if speaker_set.has(profile):
+			node.modulate = Color.WHITE
+			node.z_index = z_top
+		else:
+			node.modulate = Color(0.35, 0.35, 0.35)
+			node.z_index = 0
 	
 	# 气泡
 	for b in line.bubbles:
-		_create_bubble(b.speaker, b.text, b.emotion)
+		var info: Dictionary = _portrait_map[b.speaker]
+		_create_bubble(info.node, b.position, b.text)
 	
 	_input_ready = false
 	_arrow.visible = false
@@ -113,8 +118,10 @@ func _type_chars(progress: float, bubbles: Array, max_len: int) -> void:
 
 # ═══ 立绘 ═══
 
-func _add_portrait(profile: Resource, side: int) -> void:
+func _add_portrait(profile: Resource, pos: Vector2) -> void:
 	var vbox := VBoxContainer.new()
+	vbox.position = pos
+	
 	var tex := TextureRect.new()
 	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -127,10 +134,8 @@ func _add_portrait(profile: Resource, side: int) -> void:
 	lbl.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(lbl)
 	
-	var col := _left_col if side == 0 else _right_col
-	col.add_child(vbox)
-	vbox.modulate = Color(0.4, 0.4, 0.4)
-	_portrait_map[profile] = {node = vbox, side = side}
+	_root.add_child(vbox)
+	_portrait_map[profile] = {node = vbox, pos = pos}
 
 func _update_portrait_texture(profile: Resource, vbox: VBoxContainer) -> void:
 	if vbox.get_child_count() > 0 and vbox.get_child(0) is TextureRect:
@@ -141,12 +146,7 @@ func _update_portrait_texture(profile: Resource, vbox: VBoxContainer) -> void:
 
 # ═══ 气泡 ═══
 
-func _create_bubble(speaker: Resource, _text: String, _emotion: String) -> void:
-	var info: Dictionary = _portrait_map.get(speaker, {})
-	if info.is_empty(): return
-	var node: Control = info.node
-	var side: int = info.side
-	
+func _create_bubble(node: Control, pos: Vector2, _text: String) -> void:
 	_clear_child_bubbles(node)
 	
 	var bubble := Label.new()
@@ -155,10 +155,8 @@ func _create_bubble(speaker: Resource, _text: String, _emotion: String) -> void:
 	bubble.custom_minimum_size = Vector2(280, 0)
 	node.add_child(bubble)
 	
-	if side == 0:
-		bubble.position = Vector2(node.size.x + 12, 0)
-	else:
-		bubble.position = Vector2(-292, 0)
+	# 气泡在立绘右边
+	bubble.position = Vector2(node.size.x + 12, -pos.y * 0 + 0)  # 设在立绘顶部
 	
 	node.set_meta("_bubble_label", bubble)
 

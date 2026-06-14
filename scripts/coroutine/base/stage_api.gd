@@ -189,7 +189,7 @@ func play_dialogue(data: DialogueData) -> float:
 	return 0.0  # 立即返回，由 finished 信号恢复
 
 ## 快捷单句对话
-func dialogue_show(char_name: String, text: String, portrait: Texture2D = null) -> void:
+func dialogue_show(char_name: String, text: String, pos: Vector2 = Vector2(100, 200), portrait: Texture2D = null) -> void:
 	var profile := CharacterProfile.new()
 	profile.char_name = char_name
 	if portrait:
@@ -198,6 +198,7 @@ func dialogue_show(char_name: String, text: String, portrait: Texture2D = null) 
 	var bubble := DialogueBubble.new()
 	bubble.speaker = profile
 	bubble.text = text
+	bubble.position = pos
 	
 	var line := DialogueLine.new()
 	line.bubbles = [bubble]
