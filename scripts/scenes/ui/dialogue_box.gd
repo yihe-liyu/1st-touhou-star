@@ -13,7 +13,8 @@ var _data: Resource
 var _line_idx: int = 0
 var _input_ready: bool = false
 var _typing_tween: Tween
-var _portrait_map: Dictionary = {}  # profile -> {node, pos}
+# char_name -> {node, profile}
+var _portrait_map: Dictionary = {}
 
 func _ready() -> void:
 	visible = false
@@ -41,56 +42,53 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_close()
 
-
 func _show_line() -> void:
 	_clear_bubbles()
 	var line: Resource = _data.lines[_line_idx]
 	
-	# 谁在场 (characters + bubbles 的 speaker 取并集)
+	# 用 char_name 做键 (sub_resource 实例不同)
 	var active: Dictionary = {}
 	var positions: Dictionary = {}
 	
 	for ch in line.characters:
-		active[ch] = true
+		active[ch.char_name] = ch
 	
 	for b in line.bubbles:
-		active[b.speaker] = true
-		positions[b.speaker] = b.position
+		active[b.speaker.char_name] = b.speaker
+		positions[b.speaker.char_name] = b.position
 	
 	# 去不在场的
-	for profile in _portrait_map.keys():
-		if not active.has(profile):
-			_fade_out(_portrait_map[profile].node)
+	for name_key in _portrait_map.keys():
+		if not active.has(name_key):
+			_fade_out(_portrait_map[name_key].node)
 	
 	# 有位置的: 加/更新位置
-	for profile in positions.keys():
-		var pos: Vector2 = positions[profile]
-		if not _portrait_map.has(profile):
-			_add_portrait(profile, pos)
+	for name_key in positions.keys():
+		var pos: Vector2 = positions[name_key]
+		var profile: Resource = active[name_key]
+		if not _portrait_map.has(name_key):
+			_add_portrait(profile, pos, name_key)
 		else:
-			var info: Dictionary = _portrait_map[profile]
+			var info: Dictionary = _portrait_map[name_key]
 			info.node.position = pos
-			info.pos = pos
 	
 	# 说话者高亮 + 图层置顶, 其余暗
-	var speaker_set: Dictionary = {}
+	var speaker_names: Dictionary = {}
 	for b in line.bubbles:
-		speaker_set[b.speaker] = true
+		speaker_names[b.speaker.char_name] = true
 	
-	var z_top := 10
-	for profile in _portrait_map.keys():
-		var info: Dictionary = _portrait_map[profile]
-		var node: Control = info.node
-		if speaker_set.has(profile):
-			node.modulate = Color.WHITE
-			node.z_index = z_top
+	for name_key in _portrait_map.keys():
+		var info: Dictionary = _portrait_map[name_key]
+		if speaker_names.has(name_key):
+			info.node.modulate = Color.WHITE
+			info.node.z_index = 10
 		else:
-			node.modulate = Color(0.35, 0.35, 0.35)
-			node.z_index = 0
+			info.node.modulate = Color(0.35, 0.35, 0.35)
+			info.node.z_index = 0
 	
 	# 气泡
 	for b in line.bubbles:
-		var info: Dictionary = _portrait_map[b.speaker]
+		var info: Dictionary = _portrait_map[b.speaker.char_name]
 		_create_bubble(info.node, b.position, b.text)
 	
 	_input_ready = false
@@ -114,7 +112,7 @@ func _animate_text(bubbles: Array) -> void:
 func _type_chars(progress: float, bubbles: Array, max_len: int) -> void:
 	var global_char := int(lerpf(0.0, float(max_len), progress))
 	for b in bubbles:
-		var info: Dictionary = _portrait_map.get(b.speaker, {})
+		var info: Dictionary = _portrait_map.get(b.speaker.char_name, {})
 		if info.is_empty(): continue
 		var lbl: Label = info.node.get_meta("_bubble_label", null)
 		if not lbl: continue
@@ -122,7 +120,7 @@ func _type_chars(progress: float, bubbles: Array, max_len: int) -> void:
 
 # ═══ 立绘 ═══
 
-func _add_portrait(profile: Resource, pos: Vector2) -> void:
+func _add_portrait(profile: Resource, pos: Vector2, name_key: String) -> void:
 	var vbox := VBoxContainer.new()
 	vbox.position = pos
 	
@@ -139,7 +137,7 @@ func _add_portrait(profile: Resource, pos: Vector2) -> void:
 	vbox.add_child(lbl)
 	
 	_root.add_child(vbox)
-	_portrait_map[profile] = {node = vbox, pos = pos}
+	_portrait_map[name_key] = {node = vbox, profile = profile}
 
 func _update_portrait_texture(profile: Resource, vbox: VBoxContainer) -> void:
 	if vbox.get_child_count() > 0 and vbox.get_child(0) is TextureRect:
@@ -150,7 +148,7 @@ func _update_portrait_texture(profile: Resource, vbox: VBoxContainer) -> void:
 
 # ═══ 气泡 ═══
 
-func _create_bubble(node: Control, pos: Vector2, _text: String) -> void:
+func _create_bubble(node: Control, _pos: Vector2, _text: String) -> void:
 	_clear_child_bubbles(node)
 	
 	var bubble := Label.new()
@@ -159,8 +157,7 @@ func _create_bubble(node: Control, pos: Vector2, _text: String) -> void:
 	bubble.custom_minimum_size = Vector2(280, 0)
 	node.add_child(bubble)
 	
-	# 气泡在立绘右边
-	bubble.position = Vector2(node.size.x + 12, -pos.y * 0 + 0)  # 设在立绘顶部
+	bubble.position = Vector2(node.size.x + 12, 0)
 	
 	node.set_meta("_bubble_label", bubble)
 
