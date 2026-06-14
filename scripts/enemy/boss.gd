@@ -75,13 +75,13 @@ func _next_phase() -> void:
 		_non_count += 1
 	
 	# 见到就记（练习解锁，不计 attempt）
-	var ch: int = GameState.selected_character
-	var st: int = _stage_id
+	var character: int = GameState.selected_character
+	var stage_id: int = _stage_id
 	var is_spell := _current_phase.uid != 0
-	var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
-	var pn: int = _spell_count if is_spell else _non_count
-	var diff: int = GameState.selected_difficulty
-	GameState.unlock_spell(ch, st, pt, pn, diff, _phase_index + 1, _current_phase.uid, _current_phase.name)
+	var phase_type: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
+	var phase_num: int = _spell_count if is_spell else _non_count
+	var difficulty: int = GameState.selected_difficulty
+	GameState.unlock_spell(character, stage_id, phase_type, phase_num, difficulty, _phase_index + 1, _current_phase.uid, _current_phase.name)
 	
 	if _current_phase.name != "":
 		GameEvents.phase_start.emit(_current_phase)
@@ -137,17 +137,17 @@ func _on_phase_clear(captured: bool) -> void:
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
 	# 更新收取统计
-	var ch: int = GameState.selected_character
-	var st: int = _stage_id
+	var character: int = GameState.selected_character
+	var stage_id: int = _stage_id
 	var is_spell := _current_phase.uid != 0
-	var pt: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
-	var pn: int = _spell_count if is_spell else _non_count
-	var diff: int = GameState.selected_difficulty
+	var phase_type: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
+	var phase_num: int = _spell_count if is_spell else _non_count
+	var difficulty: int = GameState.selected_difficulty
 	
 	if GameState.is_practice_mode:
-		GameState.record_practice(ch, st, pt, pn, diff, captured)
+		GameState.record_practice(character, stage_id, phase_type, phase_num, difficulty, captured)
 	else:
-		GameState.record_spell(ch, st, pt, pn, diff, captured, _bonus, _elapsed, _phase_index + 1, _current_phase.uid, _current_phase.name)
+		GameState.record_spell(character, stage_id, phase_type, phase_num, difficulty, captured, _bonus, _elapsed, _phase_index + 1, _current_phase.uid, _current_phase.name)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

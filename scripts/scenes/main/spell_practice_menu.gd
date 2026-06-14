@@ -359,7 +359,7 @@ func _start_practice() -> void:
 	_on_leave()
 	GameManager.change_scene("res://scenes/game_scene.tscn")
 
-func _find_practice_target(stage: int, pt: int, pn: int) -> Dictionary:
+func _find_practice_target(stage: int, phase_type: int, phase_num: int) -> Dictionary:
 	var dir := DirAccess.open("res://data/stages/")
 	if not dir: return {}
 	dir.list_dir_begin()
@@ -368,19 +368,19 @@ func _find_practice_target(stage: int, pt: int, pn: int) -> Dictionary:
 		if fn.ends_with(".tres"):
 			var sd: StageData = ResourceLoader.load("res://data/stages/" + fn)
 			if sd and sd.stage_id == stage and sd.boss_data:
-				return {"boss_data": sd.boss_data, "phase_data": _match_phase(sd.boss_data, pt, pn)}
+				return {"boss_data": sd.boss_data, "phase_data": _match_phase(sd.boss_data, phase_type, phase_num)}
 		fn = dir.get_next()
 	return {}
 
-func _match_phase(bd: BossData, pt: int, pn: int) -> PhaseData:
+func _match_phase(boss_data: BossData, phase_type: int, phase_num: int) -> PhaseData:
 	var spell_c := 0; var non_c := 0
-	for phase in bd.phases:
+	for phase in boss_data.phases:
 		if phase.uid != 0:
 			spell_c += 1
-			if pt == SpellRecord.PhaseType.SPELL and spell_c == pn:
+			if phase_type == SpellRecord.PhaseType.SPELL and spell_c == phase_num:
 				return phase
 		else:
 			non_c += 1
-			if pt == SpellRecord.PhaseType.NONSPELL and non_c == pn:
+			if phase_type == SpellRecord.PhaseType.NONSPELL and non_c == phase_num:
 				return phase
 	return null

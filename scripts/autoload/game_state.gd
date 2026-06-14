@@ -53,16 +53,16 @@ func _load_spell_book() -> void:
 func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
 
-func record_spell(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool, score: int, elapsed: float, order: int = 1, uid: int = 0, sname: String = "") -> void:
-	spell_book.record_attempt(ch, st, pt, pn, diff, captured, score, elapsed, order, uid, sname)
+func record_spell(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, captured: bool, score: int, elapsed: float, order: int = 1, uid: int = 0, sname: String = "") -> void:
+	spell_book.record_attempt(character, stage_id, phase_type, phase_num, difficulty, captured, score, elapsed, order, uid, sname)
 	_save_spell_book()
 
-func unlock_spell(ch: int, st: int, pt: int, pn: int, diff: int, order: int = 1, uid: int = 0, sname: String = "") -> void:
-	spell_book.get_or_create(ch, st, pt, pn, diff, order, uid, sname)
+func unlock_spell(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, order: int = 1, uid: int = 0, sname: String = "") -> void:
+	spell_book.get_or_create(character, stage_id, phase_type, phase_num, difficulty, order, uid, sname)
 	_save_spell_book()
 
-func record_practice(ch: int, st: int, pt: int, pn: int, diff: int, captured: bool) -> void:
-	spell_book.record_practice(ch, st, pt, pn, diff, captured)
+func record_practice(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, captured: bool) -> void:
+	spell_book.record_practice(character, stage_id, phase_type, phase_num, difficulty, captured)
 	_save_spell_book()
 
 var active_enemies: Array = []
