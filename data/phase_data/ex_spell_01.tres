@@ -13,3 +13,6 @@ time_limit = 60.0
 hp = 6500
 move_script = ExtResource("2")
 shoot_script = ExtResource("3")
+item_power = 30
+item_point = 30
+item_life = 1

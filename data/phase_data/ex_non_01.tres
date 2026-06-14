@@ -6,3 +6,6 @@
 script = ExtResource("1")
 name = "非符1"
 hp = 5000
+item_power = 30
+item_point = 30
+item_life = 1

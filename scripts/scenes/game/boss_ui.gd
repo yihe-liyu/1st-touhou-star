@@ -9,19 +9,18 @@ const PURPLE := Color(0.858, 0.5, 1.0, 1.0)
 const DOT_SIZE := 16.0
 
 @onready var _name_label: Label = $Control/BossName
-@onready var _spell_label: Label = $Control/SpellName
-@onready var _bonus_label: Label = $Control/Bonus
 @onready var _history: HBoxContainer = $Control/History
 
-var _dots: Array[ColorRect] = []  # [0]=最后阶段(左), [n-1]=第一阶段(右)
-var _phase_idx: int = 0           # 战斗顺序: 0=第一阶段, 1=第二阶段...
+var _dots: Array[ColorRect] = []
+var _phase_idx: int = 0
 var _announce_label: Label
+var _bonus_label: Label
+var _capture_label: Label
 var _boss_ref: Boss
 var _timer_label: Label
 
 func _ready() -> void:
 	visible = false
-	_spell_label.visible = false
 	GameEvents.boss_spawned.connect(_on_boss_spawned)
 	GameEvents.boss_defeated.connect(_on_boss_defeated)
 	GameEvents.phase_start.connect(_on_phase_start)
@@ -32,9 +31,7 @@ func _on_boss_spawned(boss: Node) -> void:
 	_boss_ref = boss as Boss
 	var bd: BossData = boss.boss_data
 	_name_label.text = bd.boss_name if bd.boss_name != "" else "???"
-	_spell_label.visible = false
 	
-	# 倒计时标签
 	if not _timer_label:
 		_timer_label = Label.new()
 		_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -67,41 +64,42 @@ func _process(_delta: float) -> void:
 	_timer_label.visible = true
 	var rem := maxf(ph.time_limit - _boss_ref._elapsed, 0.0)
 	_timer_label.text = "%02d" % int(ceil(rem))
+
 func _on_boss_defeated(_boss: Node) -> void:
 	visible = false
 
 func _on_phase_start(phase: PhaseData) -> void:
 	if phase.uid != 0:
 		_play_spell_announce(phase.name)
-		_bonus_label.text = str(phase.bonus)
-		_bonus_label.visible = true
 	else:
-		_spell_label.visible = false
-		_bonus_label.visible = false
+		_clear_announce()
 	
 	var vis_idx := _dots.size() - 1 - _phase_idx
 	if vis_idx >= 0 and vis_idx < _dots.size():
 		_dots[vis_idx].color = PURPLE
 
 func _on_tick(bonus: int) -> void:
-	if _bonus_label.visible:
+	if _bonus_label and is_instance_valid(_bonus_label):
 		_bonus_label.text = str(bonus)
 
 func _on_phase_end(captured: bool, _bonus: int) -> void:
-	_spell_label.visible = false
-	_bonus_label.visible = false
-	if _announce_label and is_instance_valid(_announce_label):
-		_announce_label.queue_free()
-		_announce_label = null
+	_clear_announce()
 	var vis_idx := _dots.size() - 1 - _phase_idx
 	if vis_idx >= 0 and vis_idx < _dots.size():
 		_dots[vis_idx].color = GOLD if captured else RED
 	_phase_idx += 1
 
-# 符卡名入场动画
-func _play_spell_announce(spell_name: String) -> void:
+func _clear_announce() -> void:
 	if _announce_label and is_instance_valid(_announce_label):
 		_announce_label.queue_free()
+		_announce_label = null
+	_bonus_label = null
+	_capture_label = null
+
+# ═══ 符卡名入场动画 ═══
+
+func _play_spell_announce(spell_name: String) -> void:
+	_clear_announce()
 	
 	var lbl := Label.new()
 	_announce_label = lbl
@@ -134,3 +132,42 @@ func _play_spell_announce(spell_name: String) -> void:
 	# 3. 加速/减速飞向右上
 	var top_right := Vector2(vs.x - (label_size * 0.6).x, 0)
 	tw.tween_property(lbl, "position", top_right, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	
+	# 4. Bonus(左下) / 收取率(右下)
+	tw.tween_callback(_add_info_labels)
+
+func _add_info_labels() -> void:
+	if not _announce_label: return
+	var parent := _announce_label
+	var lbl_h := parent.get_minimum_size().y * 0.6  # 当前 scale
+	
+	# Bonus — 左下
+	_bonus_label = Label.new()
+	_bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_bonus_label.add_theme_font_size_override("font_size", 14)
+	_bonus_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+	parent.add_child(_bonus_label)
+	_bonus_label.position = Vector2(0, lbl_h)
+	
+	# 收取率 — 右下 (仅 Story)
+	if not GameState.is_practice_mode:
+		_capture_label = Label.new()
+		_capture_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_capture_label.add_theme_font_size_override("font_size", 14)
+		_capture_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
+		parent.add_child(_capture_label)
+		_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6 - 40, lbl_h)
+		_update_capture_text()
+
+func _update_capture_text() -> void:
+	if not _capture_label or not _boss_ref: return
+	var book := GameState.spell_book
+	var rec := book.get_record(
+		GameState.selected_character,
+		GameState.practice_stage_id,
+		SpellRecord.PhaseType.SPELL,
+		1,  # TODO: 多符卡阶段号
+		GameState.selected_difficulty
+	)
+	if rec:
+		_capture_label.text = "%02d/%02d" % [rec.captures, rec.attempts]
