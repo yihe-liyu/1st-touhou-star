@@ -15,3 +15,5 @@ class_name PhaseData
 @export var item_point: int = 0         ## 击破掉落蓝点
 @export var item_life: int = 0          ## 击破掉落残机碎片
 @export var item_bomb: int = 0          ## 击破掉落 Bomb 碎片
+@export var item_life_full: int = 0     ## 击破掉落整残
+@export var item_bomb_full: int = 0     ## 击破掉落整 B

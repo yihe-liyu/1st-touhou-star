@@ -178,6 +178,8 @@ func _drop_items() -> void:
 	for _i in range(phase.item_point): drops.append(Item.Type.POINT)
 	for _i in range(phase.item_life): drops.append(Item.Type.LIFE_FRAGMENT)
 	for _i in range(phase.item_bomb): drops.append(Item.Type.BOMB_FRAGMENT)
+	for _i in range(phase.item_life_full): drops.append(Item.Type.LIFE_FULL)
+	for _i in range(phase.item_bomb_full): drops.append(Item.Type.BOMB_FULL)
 	
 	for t in drops:
 		var offset := Vector2(RNG.randf_range(-scatter, scatter), RNG.randf_range(-scatter, scatter))
