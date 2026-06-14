@@ -122,8 +122,6 @@ func _skip_all() -> void:
 func _close() -> void:
 	_input_ready = false
 	_arrow.visible = false
-	if _speaker_pulse and _speaker_pulse.is_valid():
-		_speaker_pulse.kill()
 	
 	var tw := create_tween()
 	tw.tween_property(_root, "modulate:a", 0.0, 0.2)
