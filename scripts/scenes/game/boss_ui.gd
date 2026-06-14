@@ -161,8 +161,8 @@ func _add_info_labels() -> void:
 
 func _update_capture_text() -> void:
 	if not _capture_label or not _boss_ref: return
-	var book := GameState.spell_book
-	var rec := book.get_record(
+	var book: SpellRecordBook = GameState.spell_book
+	var rec: SpellRecord = book.get_record(
 		GameState.selected_character,
 		GameState.practice_stage_id,
 		SpellRecord.PhaseType.SPELL,
