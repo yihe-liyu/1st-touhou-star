@@ -29,6 +29,10 @@ func _ready() -> void:
 	visible = false
 	_arrow.visible = false
 	_root.modulate.a = 0.0
+	
+	# 左右列定位
+	_left_column.position = Vector2(40, 60)
+	_right_column.position = Vector2(760, 60)
 
 func play(data: DialogueData) -> void:
 	_data = data
