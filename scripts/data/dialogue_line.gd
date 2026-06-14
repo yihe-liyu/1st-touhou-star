@@ -2,6 +2,8 @@
 extends Resource
 class_name DialogueLine
 
+## 本帧在场人物 (含不说话的路人)
+@export var characters: Array[CharacterProfile] = []
 ## 本帧气泡（可多个 → 多人齐声）
-## 在场人物从 bubbles[].speaker 自动收集, 站位由 bubbles[].side 决定
+## 说话者自动从 bubbles[].speaker 收集, 其他人渲染但暗
 @export var bubbles: Array[DialogueBubble] = []

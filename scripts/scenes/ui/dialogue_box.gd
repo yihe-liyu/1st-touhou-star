@@ -41,31 +41,35 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_close()
 
+
 func _show_line() -> void:
 	_clear_bubbles()
 	var line: Resource = _data.lines[_line_idx]
 	
-	# 谁在场
+	# 谁在场 (characters + bubbles 的 speaker 取并集)
 	var active: Dictionary = {}
+	var positions: Dictionary = {}
+	
+	for ch in line.characters:
+		active[ch] = true
+	
 	for b in line.bubbles:
-		active[b.speaker] = b.position
+		active[b.speaker] = true
+		positions[b.speaker] = b.position
 	
 	# 去不在场的
 	for profile in _portrait_map.keys():
 		if not active.has(profile):
 			_fade_out(_portrait_map[profile].node)
 	
-	# 在场的: 加/更新位置
-	for b in line.bubbles:
-		var profile: Resource = b.speaker
-		var pos: Vector2 = b.position
+	# 有位置的: 加/更新位置
+	for profile in positions.keys():
+		var pos: Vector2 = positions[profile]
 		if not _portrait_map.has(profile):
 			_add_portrait(profile, pos)
 		else:
 			var info: Dictionary = _portrait_map[profile]
-			var node: Control = info.node
-			node.position = pos
-			node.modulate = Color.WHITE
+			info.node.position = pos
 			info.pos = pos
 	
 	# 说话者高亮 + 图层置顶, 其余暗

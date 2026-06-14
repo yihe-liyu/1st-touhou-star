@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="DialogueData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="DialogueData" format=3 uid="uid://ciwsrlm4ccewv"]
 
-[ext_resource type="Script" path="res://scripts/data/character_profile.gd" id="1_ch"]
-[ext_resource type="Script" path="res://scripts/data/dialogue_bubble.gd" id="2_db"]
-[ext_resource type="Script" path="res://scripts/data/dialogue_line.gd" id="3_dl"]
-[ext_resource type="Script" path="res://scripts/data/dialogue_data.gd" id="4_dd"]
-[ext_resource type="Texture2D" path="res://assets/Textures/character/reimu/reimu1.png" id="5_reimu"]
-[ext_resource type="Texture2D" path="res://assets/Textures/character/marisa/marisa1.png" id="6_marisa"]
+[ext_resource type="Script" uid="uid://bx50hqvly0v0c" path="res://scripts/data/character_profile.gd" id="1_ch"]
+[ext_resource type="Script" uid="uid://ca60bikjhkwi1" path="res://scripts/data/dialogue_bubble.gd" id="2_db"]
+[ext_resource type="Script" uid="uid://1k1h10sh5obn" path="res://scripts/data/dialogue_line.gd" id="3_dl"]
+[ext_resource type="Script" uid="uid://d0cnu3wfkgqwn" path="res://scripts/data/dialogue_data.gd" id="4_dd"]
+[ext_resource type="Texture2D" uid="uid://dgsvrcl0dt1ti" path="res://assets/Textures/character/reimu/reimu1.png" id="5_reimu"]
+[ext_resource type="Texture2D" uid="uid://dvoyd8ncl38ww" path="res://assets/Textures/character/marisa/marisa1.png" id="6_marisa"]
 
 [sub_resource type="Resource" id="reimu"]
 script = ExtResource("1_ch")
@@ -14,6 +14,16 @@ portraits = {
 "通常": ExtResource("5_reimu")
 }
 
+[sub_resource type="Resource" id="b1"]
+script = ExtResource("2_db")
+speaker = SubResource("reimu")
+text = "前面前面！"
+emotion = "通常"
+
+[sub_resource type="Resource" id="line1"]
+script = ExtResource("3_dl")
+bubbles = Array[ExtResource("2_db")]([SubResource("b1")])
+
 [sub_resource type="Resource" id="marisa"]
 script = ExtResource("1_ch")
 char_name = "魔理沙"
@@ -21,41 +31,28 @@ portraits = {
 "通常": ExtResource("6_marisa")
 }
 
-[sub_resource type="Resource" id="b1"]
-script = ExtResource("2_db")
-speaker = SubResource("reimu")
-position = Vector2(100, 200)
-text = "前面前面！"
-
 [sub_resource type="Resource" id="b2"]
 script = ExtResource("2_db")
 speaker = SubResource("marisa")
-position = Vector2(700, 200)
 text = "看到了看到了"
-
-[sub_resource type="Resource" id="b3"]
-script = ExtResource("2_db")
-speaker = SubResource("reimu")
-position = Vector2(100, 200)
-text = "上——！！"
-
-[sub_resource type="Resource" id="b4"]
-script = ExtResource("2_db")
-speaker = SubResource("marisa")
-position = Vector2(700, 200)
-text = "来——！！"
-
-[sub_resource type="Resource" id="line1"]
-script = ExtResource("3_dl")
-bubbles = Array[ExtResource("2_db")]([SubResource("b1")])
 
 [sub_resource type="Resource" id="line2"]
 script = ExtResource("3_dl")
 bubbles = Array[ExtResource("2_db")]([SubResource("b2")])
 
+[sub_resource type="Resource" id="b3"]
+script = ExtResource("2_db")
+speaker = SubResource("reimu")
+text = "上——！！"
+
+[sub_resource type="Resource" id="b4"]
+script = ExtResource("2_db")
+speaker = SubResource("marisa")
+text = "来——！！"
+
 [sub_resource type="Resource" id="line3"]
 script = ExtResource("3_dl")
-bubbles = Array[ExtResource("3_db")]([SubResource("b3"), SubResource("b4")])
+bubbles = Array[ExtResource("2_db")]([SubResource("b3"), SubResource("b4")])
 
 [resource]
 script = ExtResource("4_dd")
