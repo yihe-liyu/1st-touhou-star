@@ -1,77 +1,91 @@
-# 对话系统开发计划
+# 对话系统设计 v2 — 气泡式
 
-> 2026-06-14 定稿
+> 2026-06-14 修订
 
-## 总览
+## 数据结构
 
 ```
-数据层:  DialogueCharacter → DialogueLine → DialogueData
-         Resource, Inspector 可配
-
-控制层:  StageAPI.play_dialogue(data)  ← 协程阻塞
-         api.dialogue_show(name, text)  ← 逐句自由
-
-表现层:  DialogueBox CanvasLayer
-         打字机 + 立绘 + 多人同屏 + 跳过
+CharacterProfile  — 名字 + 表情集
+DialoguePosition  — 人物 + 站位(左/右)
+DialogueBubble    — 谁说 + 说什么 + 什么表情
+DialogueLine      — 一帧: positions[] + bubbles[]
+DialogueData      — 序列: lines[]
 ```
 
-## 拆分
-
-### Phase 1: 数据 (2 文件)
-
-| 文件 | 内容 |
-|---|---|
-| `scripts/data/dialogue_character.gd` | `@export var char_name, portrait` |
-| `scripts/data/dialogue_line.gd` | `@export var left_chars, right_chars, text, speakers` |
-| `scripts/data/dialogue_data.gd` | `@export var lines: Array[DialogueLine]` |
-
-### Phase 2: 表现 (2 文件)
-
-| 文件 | 内容 |
-|---|---|
-| `scenes/ui/dialogue_box.tscn` | CanvasLayer + 左右列 + 文本框 + 箭头 |
-| `scripts/scenes/ui/dialogue_box.gd` | 打字机、立绘显隐、高亮/暗化、Z/X 输入 |
-
-功能：
-- 左右列纵向栈叠立绘 + 名字
-- `speakers[]` 对应角色高亮（scale 微弹 + 亮色），其余暗半透明
-- 文字逐字出现，Z 加速到完整
-- 最后一句 Z → 关闭动画 → `signal finished`
-- X → 跳过全部 → `signal finished`
-- 遮罩半透明黑底
-
-### Phase 3: 接入协程 (1 文件)
+### CharacterProfile
 
 ```gdscript
-# StageAPI
-func play_dialogue(data: DialogueData) -> float:
-    # 弹出 DialogueBox, 等 finished 信号 → 返回
+@export var name: String
+@export var portraits: Dictionary = {"通常":..., "笑":..., "怒":...}
 ```
 
-协程阻塞直到对话结束。
+纯角色数据，不绑站位。
 
-### Phase 4: 触发 (1 文件)
+### DialoguePosition
 
 ```gdscript
-# StageData 加字段
-@export var dialogue_opening: DialogueData
-@export var dialogue_mid_boss: DialogueData
-@export var dialogue_end_boss: DialogueData
+@export var character: CharacterProfile
+@export var side: int = 0  # 0=左列, 1=右列
 ```
 
-StageManager 在对应时机自动 `play_dialogue()`，协程自然阻塞。
+站位由对话定义，同一角色可在不同场景站不同位置。
 
-## 预计工时
+### DialogueBubble
 
-| Phase | 文件数 | 量 |
-|---|---|---|
-| 数据 | 3 | 小 (纯 Resource) |
-| 表现 | 2 | 中 (UI + 动画) |
-| 接入 | 1 | 小 |
-| 触发 | 1 | 小 |
-| **合计** | **7** | ~400 行 |
+```gdscript
+@export var speaker: CharacterProfile
+@export var text: String
+@export var emotion: String = "通常"
+```
 
-## 复用
+### DialogueLine
 
-- 打字机逻辑 → 以后书本/教程/剧情都能用
-- `DialogueBox` 是独立 CanvasLayer，菜单/关卡都能弹
+```gdscript
+@export var positions: Array[DialoguePosition]
+@export var bubbles: Array[DialogueBubble]
+```
+
+一条 = 屏幕同一帧。`positions` 决定谁在场、站哪。
+`bubbles` 可多个 → 多人同时说。
+
+### DialogueData
+
+```gdscript
+@export var lines: Array[DialogueLine]
+```
+
+## 表现
+
+```
+┌──────────────────────────────────┐
+│ [灵梦]                          │
+│   ▎「前面前面！」               │
+│       ← 左人气泡在右边          │
+│                                  │
+│          「看到了！」▕ [魔理沙]  │
+│                ← 右人气泡在左边  │
+│                                  │
+│ [灵梦]          「上——！」       │
+│   ▎               ▕ [魔理沙]    │
+│ ← 双人气泡同时出现              │
+└──────────────────────────────────┘
+```
+
+- 左列角色 → 气泡在人物右侧
+- 右列角色 → 气泡在人物左侧
+- 气泡带三角尾巴指向说话者
+- 同 line 多个 bubble → 同时显示
+- Z → 下一 line  /  X → 全跳
+- 新 line 不在 `positions` 里的角色 → 立绘暗/消失
+
+## 用法示例
+
+```
+line 0: positions=[灵梦(左), 魔理沙(右)], bubbles=[灵梦:"前面前面！"]
+line 1: positions=[灵梦(左), 魔理沙(右)], bubbles=[魔理沙:"看到了！"]
+line 2: positions=[灵梦(左), 魔理沙(右)], bubbles=[灵梦:"上！", 魔理沙:"来！"]
+```
+
+## 预计
+
+7 文件 ~350 行

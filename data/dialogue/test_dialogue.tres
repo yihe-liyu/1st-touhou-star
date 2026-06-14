@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://1k1h10sh5obn" path="res://scripts/data/dialogue_line.gd" id="2_ln"]
 [ext_resource type="Script" uid="uid://d0cnu3wfkgqwn" path="res://scripts/data/dialogue_data.gd" id="3_dt"]
 [ext_resource type="Texture2D" uid="uid://dgsvrcl0dt1ti" path="res://assets/Textures/character/reimu/reimu1.png" id="3_hl8w0"]
-[ext_resource type="Texture2D" uid="uid://vchs1wb2kqhu" path="res://assets/Textures/character/marisa/marisa1.svg" id="4_bl8sa"]
+[ext_resource type="Texture2D" uid="uid://dvoyd8ncl38ww" path="res://assets/Textures/character/marisa/marisa1.png" id="4_hl8w0"]
 
 [sub_resource type="Resource" id="ch_reimu"]
 script = ExtResource("1_ch")
@@ -14,26 +14,23 @@ portrait = ExtResource("3_hl8w0")
 [sub_resource type="Resource" id="ch_marisa"]
 script = ExtResource("1_ch")
 char_name = "魔理沙"
-portrait = ExtResource("4_bl8sa")
+portrait = ExtResource("4_hl8w0")
 
 [sub_resource type="Resource" id="line1"]
 script = ExtResource("2_ln")
-left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu")])
-right_chars = Array[ExtResource("1_ch")]([SubResource("ch_marisa")])
+left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu"), SubResource("ch_marisa")])
 text = "前面前面！"
 speakers = Array[int]([0])
 
 [sub_resource type="Resource" id="line2"]
 script = ExtResource("2_ln")
-left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu")])
-right_chars = Array[ExtResource("1_ch")]([SubResource("ch_marisa")])
+left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu"), SubResource("ch_marisa")])
 text = "看到了看到了"
 speakers = Array[int]([1])
 
 [sub_resource type="Resource" id="line3"]
 script = ExtResource("2_ln")
-left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu")])
-right_chars = Array[ExtResource("1_ch")]([SubResource("ch_marisa")])
+left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu"), SubResource("ch_marisa")])
 text = "「异变解决——！！」"
 speakers = Array[int]([0, 1])
 
