@@ -129,10 +129,10 @@ func spawn_item(type: int, position: Vector2) -> void:
 	pool.spawn(position, type)
 
 func _find_item_pool() -> Node:
-	if not is_instance_valid(runner):
-		return null
-	# ItemPool 是 World 的直接子节点
-	var world := runner.get_parent()
+	# ItemPool 在 World 下
+	var scene := runner.get_tree().current_scene
+	if not scene: return null
+	var world := scene.get_node_or_null("World")
 	if world:
 		return world.get_node_or_null("ItemPool")
 	return null
