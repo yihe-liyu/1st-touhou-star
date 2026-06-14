@@ -92,7 +92,8 @@ func _add_portrait(column: VBoxContainer, ch: DialogueCharacter, speakers: Array
 	if ch.portrait:
 		var tex := TextureRect.new()
 		tex.texture = ch.portrait
-		tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex.custom_minimum_size = Vector2(120, 120)
 		vbox.add_child(tex)
 	
