@@ -22,7 +22,9 @@ func _ready() -> void:
 	_arrow.visible = false
 	_root.modulate.a = 0.0
 	_left_col.position = Vector2(40, 80)
+	_left_col.size = Vector2(200, 480)
 	_right_col.position = Vector2(700, 80)
+	_right_col.size = Vector2(200, 480)
 
 func play(data: Resource) -> void:
 	_data = data
