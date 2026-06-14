@@ -37,7 +37,7 @@ func _on_boss_spawned(boss: Node) -> void:
 		_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_timer_label.add_theme_font_size_override("font_size", 32)
 		$Control.add_child(_timer_label)
-	_timer_label.position = Vector2($Control.size.x / 2.0, 16)
+	_timer_label.position = Vector2($Control.size.x / 2.0 - 16, 16)
 	_timer_label.visible = false
 	
 	for d in _dots: d.queue_free()
@@ -139,12 +139,12 @@ func _play_spell_announce(spell_name: String) -> void:
 func _add_info_labels() -> void:
 	if not _announce_label: return
 	var parent := _announce_label
-	var label_h := parent.get_minimum_size().y * 0.6  # 当前 scale
+	var label_h := parent.get_minimum_size().y
 	
 	# Bonus — 左下
 	_bonus_label = Label.new()
 	_bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_bonus_label.add_theme_font_size_override("font_size", 14)
+	_bonus_label.add_theme_font_size_override("font_size", 32)
 	_bonus_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
 	parent.add_child(_bonus_label)
 	_bonus_label.position = Vector2(0, label_h)
@@ -153,10 +153,10 @@ func _add_info_labels() -> void:
 	if not GameState.is_practice_mode:
 		_capture_label = Label.new()
 		_capture_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		_capture_label.add_theme_font_size_override("font_size", 14)
+		_capture_label.add_theme_font_size_override("font_size", 32)
 		_capture_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
 		parent.add_child(_capture_label)
-		_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6 - 40, label_h)
+		_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6, label_h)
 		_update_capture_text()
 
 func _update_capture_text() -> void:

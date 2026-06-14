@@ -50,6 +50,8 @@ func stop():
 	cancelled.emit()
 
 func _physics_process(delta: float) -> void:
+	if not is_running:
+		return
 	_clock += delta
 	
 	for i in range(_tasks.size() - 1, -1, -1):

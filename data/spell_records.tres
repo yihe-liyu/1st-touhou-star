@@ -6,9 +6,9 @@
 [sub_resource type="Resource" id="Resource_lls5d"]
 script = ExtResource("2_record")
 spell_name = "非符1"
-attempts = 1
-captures = 1
-best_time = 19.34767636363687
+attempts = 5
+captures = 5
+best_time = 12.947315424242028
 
 [sub_resource type="Resource" id="Resource_4fnre"]
 script = ExtResource("2_record")
@@ -16,8 +16,8 @@ spell_uid = 1
 phase_type = 1
 spell_name = "声符「停顿波」"
 phase_order = 2
-attempts = 1
-captures = 1
+attempts = 2
+captures = 2
 practice_attempts = 1
 practice_captures = 1
 best_score = 29585

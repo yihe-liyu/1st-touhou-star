@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/dialogue_character.gd" id="1_ch"]
+[ext_resource type="Script" path="res://scripts/data/dialogue_line.gd" id="2_ln"]
+[ext_resource type="Script" path="res://scripts/data/dialogue_data.gd" id="3_dt"]
+
+[sub_resource type="Resource" id="ch_reimu"]
+script = ExtResource("1_ch")
+char_name = "灵梦"
+
+[sub_resource type="Resource" id="ch_marisa"]
+script = ExtResource("1_ch")
+char_name = "魔理沙"
+
+[sub_resource type="Resource" id="line1"]
+script = ExtResource("2_ln")
+left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu")])
+right_chars = Array[ExtResource("1_ch")]([SubResource("ch_marisa")])
+text = "前面前面！"
+speakers = Array[int]([0])
+
+[sub_resource type="Resource" id="line2"]
+script = ExtResource("2_ln")
+left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu")])
+right_chars = Array[ExtResource("1_ch")]([SubResource("ch_marisa")])
+text = "看到了看到了"
+speakers = Array[int]([1])
+
+[sub_resource type="Resource" id="line3"]
+script = ExtResource("2_ln")
+left_chars = Array[ExtResource("1_ch")]([SubResource("ch_reimu")])
+right_chars = Array[ExtResource("1_ch")]([SubResource("ch_marisa")])
+text = "「异变解决——！！」"
+speakers = Array[int]([0, 1])
+
+[resource]
+script = ExtResource("3_dt")
+lines = Array[ExtResource("2_ln")]([SubResource("line1"), SubResource("line2"), SubResource("line3")])
