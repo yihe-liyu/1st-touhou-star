@@ -134,7 +134,7 @@ func _update_portrait_texture(profile: Resource, vbox: VBoxContainer) -> void:
 
 # ═══ 气泡 ═══
 
-func _create_bubble(speaker: Resource, text: String, _emotion: String) -> void:
+func _create_bubble(speaker: Resource, _text: String, _emotion: String) -> void:
 	var info: Dictionary = _portrait_map.get(speaker, {})
 	if info.is_empty(): return
 	var node: Control = info.node
