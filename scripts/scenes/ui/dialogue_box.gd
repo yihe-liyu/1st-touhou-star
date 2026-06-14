@@ -13,12 +13,11 @@ signal finished()
 @export var text_speed: float = 0.04  # 每字间隔秒
 @export var show_arrow: bool = true
 
-@onready var _overlay: ColorRect = $Overlay
 @onready var _left_column: VBoxContainer = $LeftColumn
 @onready var _right_column: VBoxContainer = $RightColumn
-@onready var _text_box: NinePatchRect = $TextBox
 @onready var _text_label: Label = $TextBox/TextLabel
 @onready var _arrow: Label = $Arrow
+@onready var _root: Control = $Control
 
 var _data: DialogueData
 var _line_index: int = 0
@@ -30,7 +29,7 @@ var _speaker_pulse: Tween
 func _ready() -> void:
 	visible = false
 	_arrow.visible = false
-	modulate.a = 0.0
+	_root.modulate.a = 0.0
 
 func play(data: DialogueData) -> void:
 	_data = data
@@ -39,7 +38,7 @@ func play(data: DialogueData) -> void:
 	
 	# 淡入
 	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.3)
+	tw.tween_property(_root, "modulate:a", 1.0, 0.3)
 	tw.tween_callback(_show_line)
 
 func _input(event: InputEvent) -> void:
@@ -87,7 +86,7 @@ func _update_text(progress: float, full_text: String) -> void:
 	var char_count := int(lerpf(0.0, float(full_text.length()), progress))
 	_text_label.text = full_text.substr(0, char_count)
 
-func _add_portrait(column: VBoxContainer, ch: DialogueCharacter, speakers: Array, left_count: int, base_idx: int) -> void:
+func _add_portrait(column: VBoxContainer, ch: DialogueCharacter, speakers: Array, _left_count: int, base_idx: int) -> void:
 	var vbox := VBoxContainer.new()
 	
 	if ch.portrait:
@@ -138,7 +137,7 @@ func _close() -> void:
 		_speaker_pulse.kill()
 	
 	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 0.0, 0.2)
+	tw.tween_property(_root, "modulate:a", 0.0, 0.2)
 	tw.tween_callback(func():
 		finished.emit()
 		queue_free()

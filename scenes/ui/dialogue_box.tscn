@@ -5,28 +5,34 @@
 [node name="DialogueBox" type="CanvasLayer"]
 script = ExtResource("1")
 
-[node name="Overlay" type="ColorRect" parent="."]
+[node name="Control" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Overlay" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0, 0, 0, 0.5)
 
-[node name="LeftColumn" type="VBoxContainer" parent="."]
+[node name="LeftColumn" type="VBoxContainer" parent="Control"]
 layout_mode = 0
 offset_left = 40.0
 offset_top = 80.0
 offset_right = 200.0
 offset_bottom = 560.0
 
-[node name="RightColumn" type="VBoxContainer" parent="."]
+[node name="RightColumn" type="VBoxContainer" parent="Control"]
 layout_mode = 0
 offset_left = 760.0
 offset_top = 80.0
 offset_right = 920.0
 offset_bottom = 560.0
 
-[node name="TextBox" type="NinePatchRect" parent="."]
+[node name="TextBox" type="NinePatchRect" parent="Control"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 1.0
@@ -38,7 +44,7 @@ offset_top = -140.0
 offset_right = 400.0
 offset_bottom = -20.0
 
-[node name="TextLabel" type="Label" parent="TextBox"]
+[node name="TextLabel" type="Label" parent="Control/TextBox"]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 10.0
@@ -47,7 +53,7 @@ offset_bottom = 110.0
 autowrap_mode = 3
 theme_override_font_sizes/font_size = 22
 
-[node name="Arrow" type="Label" parent="."]
+[node name="Arrow" type="Label" parent="Control"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
