@@ -18,10 +18,10 @@ func _on_enter() -> void:
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
 	
-	# 渐显
-	modulate.a = 0.0
+	# 内容渐显，遮罩保持当前暗度
+	$Container.modulate.a = 0.0
 	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.2)
+	tw.tween_property($Container, "modulate:a", 1.0, 0.2)
 	
 	_ready_to_input = true
 
@@ -36,7 +36,7 @@ func leave() -> void:
 	_ready_to_input = false
 	_stop_pulse()
 	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 0.0, 0.15)
+	tw.tween_property($Container, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(func ():
 		finished.emit({})
 		queue_free()

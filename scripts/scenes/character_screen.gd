@@ -21,10 +21,15 @@ func _on_enter() -> void:
 	var diff_names := ["Easy", "Normal", "Hard", "Lunatic"]
 	$DifficultyBadge.text = diff_names[GameState.selected_difficulty] + " 难度"
 	
-	# 渐显
-	modulate.a = 0.0
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.2)
+	# 内容渐显，遮罩保持当前暗度
+	var content := $HBoxContainer
+	content.modulate.a = 0.0
+	if has_node("TitleLabel"): $TitleLabel.modulate.a = 0.0
+	if has_node("DifficultyBadge"): $DifficultyBadge.modulate.a = 0.0
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(content, "modulate:a", 1.0, 0.2)
+	if has_node("TitleLabel"): tw.tween_property($TitleLabel, "modulate:a", 1.0, 0.2)
+	if has_node("DifficultyBadge"): tw.tween_property($DifficultyBadge, "modulate:a", 1.0, 0.2)
 	
 	_ready_to_input = true
 
@@ -38,8 +43,10 @@ func _on_leave() -> void:
 func leave() -> void:
 	_ready_to_input = false
 	_stop_pulse()
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 0.0, 0.15)
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property($HBoxContainer, "modulate:a", 0.0, 0.15)
+	if has_node("TitleLabel"): tw.tween_property($TitleLabel, "modulate:a", 0.0, 0.15)
+	if has_node("DifficultyBadge"): tw.tween_property($DifficultyBadge, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(func ():
 		finished.emit({})
 		queue_free()
