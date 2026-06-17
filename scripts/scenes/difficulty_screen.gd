@@ -16,9 +16,12 @@ func _on_enter() -> void:
 		if child is Label:
 			_labels.append(child)
 	_index = clampi(GameState.selected_difficulty, 0, _labels.size() - 1)
-	_play_entrance(_labels)
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
+	# 渐显
+	modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 1.0, 0.2)
 	modulate.a = 1.0
 	_ready_to_input = true
 
