@@ -1,7 +1,8 @@
 # SubPageStack — 子页面栈
 #
-# 每个子页面包一层 CanvasLayer(layer=80)，加到 current_scene 下。
-# 这样 Control 子节点有正常的渲染上下文，不会出现布局问题。
+# ★ 全新架构：单 CanvasLayer 渲染
+#   子页面直接挂到当前场景的 PageHost 下（不包 CanvasLayer），
+#   和主菜单背景/粒子在同一层渲染，没有层叠合成问题。
 #
 # 用法:
 #   GameManager.push_page("res://scenes/ui/difficulty_screen.tscn")
@@ -12,10 +13,9 @@ extends RefCounted
 
 signal page_result(data: Dictionary)
 
-## 子页面的 CanvasLayer 层号（高于主场景 layer=0，低于覆层）
-const PAGE_LAYER: int = 80
+const FADE_DURATION: float = 0.12
 
-var _stack: Array[Node] = []  # 栈里存的是 wrapper CanvasLayer
+var _stack: Array[Node] = []
 
 
 func is_open() -> bool:
@@ -23,90 +23,127 @@ func is_open() -> bool:
 
 
 func push(path: String) -> void:
-	# 隐藏当前顶层
-	if _stack.size() > 0:
-		_set_page_active(_stack[-1], false)
+	# 先黑幕淡入
+	await _fade(1.0)
 
-	var wrapper: Node = _instantiate_page(path)
-	_stack.append(wrapper)
+	# 隐藏主菜单内容（如果有 MainContent）
+	var scene := _get_scene_root()
+	var main_content := _find_main_content(scene)
+	if main_content:
+		main_content.visible = false
+
+	# 隐藏旧页面
+	if _stack.size() > 0:
+		var old: Node = _stack[-1]
+		if is_instance_valid(old):
+			old.visible = false
+
+	# 添加新页面
+	var page: Node = _instantiate_page(path)
+	_stack.append(page)
+
+	# 黑幕淡出
+	await _fade(0.0)
 
 
 func clear() -> void:
 	while _stack.size() > 0:
-		var wrapper: Node = _stack.pop_back()
-		if is_instance_valid(wrapper):
-			wrapper.queue_free()
+		var page: Node = _stack.pop_back()
+		if is_instance_valid(page):
+			page.queue_free()
+	# 恢复主菜单内容
+	var scene := _get_scene_root()
+	var main_content := _find_main_content(scene)
+	if main_content:
+		main_content.visible = true
 
 
 func _instantiate_page(path: String) -> Node:
-	var raw: Node = load(path).instantiate()
+	var page: Node = load(path).instantiate()
 
-	# ★ 关键：Control 包一层 CanvasLayer，添加为 current_scene 的子节点
-	var wrapper: Node = raw
-	if raw is Control and not raw is CanvasLayer:
-		var cl := CanvasLayer.new()
-		cl.layer = PAGE_LAYER
-		cl.add_child(raw)
-		wrapper = cl
+	# ★ 不加 CanvasLayer！直接挂到 PageHost 下
+	var host := _find_or_create_host(_get_scene_root())
+	host.add_child(page)
+	page.visible = true
 
-	var scene := _get_scene_root()
-	if not scene:
-		push_error("[SubPageStack] No current scene!")
-		raw.queue_free()
-		return wrapper
+	if page.has_signal("finished"):
+		page.finished.connect(_on_page_finished.bind(page), CONNECT_ONE_SHOT)
+	if page.has_method(&"_on_enter"):
+		page._on_enter()
 
-	scene.add_child(wrapper)
-	wrapper.visible = true
-
-	# 连接 finished 信号（从内容节点）
-	var content: Node = raw
-	if content.has_signal("finished"):
-		content.finished.connect(_on_page_finished.bind(content), CONNECT_ONE_SHOT)
-
-	# 生命周期
-	if content.has_method(&"_on_enter"):
-		content._on_enter()
-
-	return wrapper
+	return page
 
 
-func _on_page_finished(data: Dictionary, content_node: Node) -> void:
-	# 找到 content_node 对应的 wrapper
+func _on_page_finished(data: Dictionary, page_node: Node) -> void:
+	if _stack.size() <= 1:
+		# 恢复主菜单内容
+		var scene := _get_scene_root()
+		var main_content := _find_main_content(scene)
+		if main_content:
+			main_content.visible = true
+
 	for i in range(_stack.size() - 1, -1, -1):
-		var wrapper := _stack[i]
-		var content: Node = wrapper
-		if wrapper is CanvasLayer and wrapper.get_child_count() > 0:
-			content = wrapper.get_child(0)
-		if content == content_node:
+		if _stack[i] == page_node:
 			_stack.remove_at(i)
-			# wrapper 会在场景切换或 clear 时清理
-			# 但页面已经自己 queue_free 了，所以 wrapper 可以一并清理
-			if is_instance_valid(wrapper):
-				wrapper.queue_free()
 			break
-
+	if is_instance_valid(page_node):
+		page_node.queue_free()
 	page_result.emit(data)
 
 
-func _set_page_active(wrapper: Node, active: bool) -> void:
-	if not is_instance_valid(wrapper):
-		return
-	wrapper.visible = active
-	var content: Node = wrapper
-	if wrapper is CanvasLayer and wrapper.get_child_count() > 0:
-		content = wrapper.get_child(0)
-	if not is_instance_valid(content):
-		return
-	if active:
-		if content.has_method(&"_on_activate"):
-			content._on_activate()
-	else:
-		if content.has_method(&"_on_deactivate"):
-			content._on_deactivate()
+# ═══ 黑幕过渡（使用场景自身的 FadeRect） ═══
 
+func _fade(target: float) -> void:
+	var rect := _get_fade_rect()
+	if not rect:
+		return
+	rect.visible = true
+	var tw: Tween = rect.create_tween()
+	tw.tween_property(rect, "modulate:a", target, FADE_DURATION)
+	await tw.finished
+	if target == 0.0:
+		rect.visible = false
+
+
+# ═══ 场景工具 ═══
 
 func _get_scene_root() -> Node:
 	var tree: SceneTree = Engine.get_main_loop()
 	if tree and tree.current_scene:
 		return tree.current_scene
+	return null
+
+## 找 PageHost：当前场景下的 Control 容器，子页面挂这里
+func _find_or_create_host(scene: Node) -> Node:
+	if not scene:
+		return null
+	# 优先用场景预设的 PageHost
+	for child in scene.get_children():
+		if child.name == "PageHost":
+			return child
+	# 没有就创建一个
+	var host := Control.new()
+	host.name = "PageHost"
+	host.set_anchors_preset(Control.PRESET_FULL_RECT)
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scene.add_child(host)
+	return host
+
+## 找 MainContent：当前场景下的主界面内容容器
+func _find_main_content(scene: Node) -> Node:
+	if not scene:
+		return null
+	for child in scene.get_children():
+		if child.name == "MainContent":
+			return child
+	return null
+
+## 找 FadeRect：当前场景下的过渡黑幕
+func _get_fade_rect() -> ColorRect:
+	var scene := _get_scene_root()
+	if not scene:
+		return null
+	for child in scene.get_children():
+		if child.name == "FadeRect" and child is ColorRect:
+			return child
 	return null

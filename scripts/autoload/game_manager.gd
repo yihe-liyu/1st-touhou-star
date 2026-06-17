@@ -120,7 +120,7 @@ signal page_result(data: Dictionary)
 ## 推入一个子页面（如难度选择、角色选择）
 func push_page(path: String) -> void:
 	_sub_pages.page_result.connect(_on_sub_page_result, CONNECT_ONE_SHOT)
-	_sub_pages.push(path)
+	await _sub_pages.push(path)
 
 ## 弹出当前子页面
 func pop_page() -> void:

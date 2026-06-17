@@ -19,21 +19,14 @@ func _on_enter() -> void:
 	_index = clampi(GameState.selected_character, 0, _labels.size() - 1)
 	_refresh()
 	
-	# 入场动画
-	$Overlay.modulate.a = 0.0
-	container.position.y += 40.0
-	container.modulate.a = 0.0
+	# 全不透明，无入口动画
+	$Overlay.modulate.a = 1.0
+	container.modulate.a = 1.0
 	
-	# 显示难度信息
 	var diff_names := ["Easy", "Normal", "Hard", "Lunatic"]
 	$DifficultyBadge.text = diff_names[GameState.selected_difficulty] + " 难度"
 	
-	var tw := create_tween().set_parallel(true)
-	tw.tween_property($Overlay, "modulate:a", 1.0, 0.3)
-	tw.tween_property(container, "position:y", container.position.y - 40.0, 0.35)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(container, "modulate:a", 1.0, 0.3)
-	tw.tween_callback(func(): _ready_to_input = true).set_delay(0.3)
+	_ready_to_input = true
 
 
 func _on_leave() -> void:

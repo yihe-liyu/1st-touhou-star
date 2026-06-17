@@ -10,7 +10,6 @@ var _ready_to_input: bool = false
 func _on_enter() -> void:
 	var oc := $Container as VBoxContainer
 	if not oc:
-		print("[Difficulty] ERROR: no Container node!")
 		return
 	_labels.clear()
 	for child in oc.get_children():
@@ -18,8 +17,7 @@ func _on_enter() -> void:
 			_labels.append(child)
 	_index = clampi(GameState.selected_difficulty, 0, _labels.size() - 1)
 	_refresh()
-	
-	# ☆ 调试：直接可见，跳过入口动画
+	# 全不透明，无入口动画（黑幕淡出过渡已提供视觉平滑）
 	modulate.a = 1.0
 	_ready_to_input = true
 

@@ -1,9 +1,7 @@
 extends MenuScreen
 
 func _on_enter() -> void:
-	modulate.a = 0.0
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.3)
+	modulate.a = 1.0
 
 func _on_leave() -> void:
 	var tw := create_tween()

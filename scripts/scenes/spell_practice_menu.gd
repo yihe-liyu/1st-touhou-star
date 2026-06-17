@@ -27,10 +27,9 @@ func _on_enter() -> void:
 	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
 	_build_lists()
 	_highlight()
-	modulate.a = 0.0
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.3)
-	tw.tween_callback(func(): _ready = true)
+	# 全不透明，无入口动画
+	modulate.a = 1.0
+	_ready = true
 
 func _on_leave() -> void:
 	_ready = false
