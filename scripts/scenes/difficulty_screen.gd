@@ -9,8 +9,7 @@ var _ready_to_input: bool = false
 
 func _on_enter() -> void:
 	var oc := $Container as VBoxContainer
-	if not oc:
-		return
+	if not oc: return
 	_labels.clear()
 	for child in oc.get_children():
 		if child is Label:
@@ -18,10 +17,13 @@ func _on_enter() -> void:
 	_index = clampi(GameState.selected_difficulty, 0, _labels.size() - 1)
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
-	# 渐显
+	
+	$Overlay.modulate.a = 1.0
 	modulate.a = 0.0
-	var tw := create_tween()
+	var tw := create_tween().set_parallel(true)
 	tw.tween_property(self, "modulate:a", 1.0, 0.2)
+	tw.tween_property($Overlay, "modulate:a", 0.5, 0.2)
+	
 	_ready_to_input = true
 
 
@@ -30,7 +32,7 @@ func _on_leave() -> void:
 	_stop_pulse()
 	queue_free()
 
-# 退场时渐隐后发信号
+
 func leave() -> void:
 	_ready_to_input = false
 	_stop_pulse()
@@ -43,8 +45,7 @@ func leave() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not _ready_to_input:
-		return
+	if not _ready_to_input: return
 	if event.is_action_pressed("ui_up"):
 		_index = wrapi(_index - 1, 0, _labels.size())
 		_highlight_items(_labels, _index)

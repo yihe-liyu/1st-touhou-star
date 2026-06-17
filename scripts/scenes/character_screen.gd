@@ -1,6 +1,5 @@
 extends MenuScreen
 class_name CharacterScreen
-## 角色选择界面 —— ←→ 选角色，Z 确认，X 返回
 
 @export var characters: Array[String] = ["Reimu", "Marisa"]
 var _labels: Array[Label] = []
@@ -15,20 +14,19 @@ func _on_enter() -> void:
 		if child is Label:
 			_labels.append(child)
 	
-	# 恢复上次选择的角色
 	_index = clampi(GameState.selected_character, 0, _labels.size() - 1)
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
-	# 渐显
-	modulate.a = 0.0
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.2)
-	
-	$Overlay.modulate.a = 1.0
-	container.modulate.a = 1.0
 	
 	var diff_names := ["Easy", "Normal", "Hard", "Lunatic"]
 	$DifficultyBadge.text = diff_names[GameState.selected_difficulty] + " 难度"
+	
+	# 遮罩先满黑 → 渐退到50%
+	$Overlay.modulate.a = 1.0
+	modulate.a = 0.0
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(self, "modulate:a", 1.0, 0.2)
+	tw.tween_property($Overlay, "modulate:a", 0.5, 0.2)
 	
 	_ready_to_input = true
 
@@ -37,6 +35,7 @@ func _on_leave() -> void:
 	_ready_to_input = false
 	_stop_pulse()
 	queue_free()
+
 
 func leave() -> void:
 	_ready_to_input = false
@@ -50,8 +49,7 @@ func leave() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not _ready_to_input:
-		return
+	if not _ready_to_input: return
 	if event.is_action_pressed("ui_left"):
 		_index = wrapi(_index - 1, 0, _labels.size())
 		_highlight_items(_labels, _index)
