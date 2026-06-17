@@ -16,20 +16,16 @@ func _on_enter() -> void:
 		if child is Label:
 			_labels.append(child)
 	_index = clampi(GameState.selected_difficulty, 0, _labels.size() - 1)
-	_refresh()
-	# 全不透明，无入口动画（黑幕淡出过渡已提供视觉平滑）
+	_highlight_items(_labels, _index)
+	_start_pulse(_labels[_index])
 	modulate.a = 1.0
 	_ready_to_input = true
 
 
 func _on_leave() -> void:
 	_ready_to_input = false
+	_stop_pulse()
 	queue_free()
-
-
-func _refresh() -> void:
-	for i in _labels.size():
-		_labels[i].modulate = Color.WHITE if i == _index else Color(0.4, 0.4, 0.4, 1.0)
 
 
 func _input(event: InputEvent) -> void:
@@ -37,12 +33,14 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_up"):
 		_index = wrapi(_index - 1, 0, _labels.size())
-		_refresh()
+		_highlight_items(_labels, _index)
+		_start_pulse(_labels[_index])
 		sfx_nav()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_down"):
 		_index = wrapi(_index + 1, 0, _labels.size())
-		_refresh()
+		_highlight_items(_labels, _index)
+		_start_pulse(_labels[_index])
 		sfx_nav()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_accept"):

@@ -40,6 +40,8 @@ spell_name = "声符「停顿波」"
 phase_order = 2
 attempts = 2
 captures = 2
+practice_attempts = 1
+practice_captures = 1
 best_score = 29271
 best_time = 25.243842424244185
 

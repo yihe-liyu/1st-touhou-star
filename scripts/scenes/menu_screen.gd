@@ -48,3 +48,28 @@ func sfx_confirm() -> void:
 
 func sfx_back() -> void:
 	AudioManager.play_sfx(preload("res://assets/Sound/cancel.wav"))
+
+
+# ═══ 视觉：脉冲高亮 ═══
+
+var _pulse_tween: Tween
+
+func _highlight_items(items: Array, index: int) -> void:
+	for i in items.size():
+		var target := Color.WHITE if i == index else Color(0.4, 0.4, 0.4)
+		var tw: Tween = items[i].create_tween()
+		tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(items[i], "modulate", target, 0.12)
+
+func _start_pulse(item: Control) -> void:
+	_stop_pulse()
+	if item.modulate.a < 0.01: return
+	_pulse_tween = create_tween().set_loops()
+	_pulse_tween.set_trans(Tween.TRANS_SINE)
+	_pulse_tween.tween_property(item, "modulate", Color.WHITE, 0.3)
+	_pulse_tween.tween_property(item, "modulate", Color(0.5, 0.5, 0.5), 0.3)
+
+func _stop_pulse() -> void:
+	if _pulse_tween and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+	_pulse_tween = null

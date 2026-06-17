@@ -17,9 +17,9 @@ func _on_enter() -> void:
 	
 	# 恢复上次选择的角色
 	_index = clampi(GameState.selected_character, 0, _labels.size() - 1)
-	_refresh()
+	_highlight_items(_labels, _index)
+	_start_pulse(_labels[_index])
 	
-	# 全不透明，无入口动画
 	$Overlay.modulate.a = 1.0
 	container.modulate.a = 1.0
 	
@@ -31,12 +31,8 @@ func _on_enter() -> void:
 
 func _on_leave() -> void:
 	_ready_to_input = false
+	_stop_pulse()
 	queue_free()
-
-
-func _refresh() -> void:
-	for i in _labels.size():
-		_labels[i].modulate = Color.WHITE if i == _index else Color(0.4, 0.4, 0.4, 1.0)
 
 
 func _input(event: InputEvent) -> void:
@@ -44,12 +40,14 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_left"):
 		_index = wrapi(_index - 1, 0, _labels.size())
-		_refresh()
+		_highlight_items(_labels, _index)
+		_start_pulse(_labels[_index])
 		sfx_nav()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_right"):
 		_index = wrapi(_index + 1, 0, _labels.size())
-		_refresh()
+		_highlight_items(_labels, _index)
+		_start_pulse(_labels[_index])
 		sfx_nav()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_accept"):
