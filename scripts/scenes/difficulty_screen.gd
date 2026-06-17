@@ -18,11 +18,10 @@ func _on_enter() -> void:
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
 	
-	$Overlay.modulate.a = 1.0
+	# 渐显
 	modulate.a = 0.0
-	var tw := create_tween().set_parallel(true)
+	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 1.0, 0.2)
-	tw.tween_property($Overlay, "modulate:a", 0.5, 0.2)
 	
 	_ready_to_input = true
 

@@ -21,12 +21,10 @@ func _on_enter() -> void:
 	var diff_names := ["Easy", "Normal", "Hard", "Lunatic"]
 	$DifficultyBadge.text = diff_names[GameState.selected_difficulty] + " 难度"
 	
-	# 遮罩先满黑 → 渐退到50%
-	$Overlay.modulate.a = 1.0
+	# 渐显
 	modulate.a = 0.0
-	var tw := create_tween().set_parallel(true)
+	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 1.0, 0.2)
-	tw.tween_property($Overlay, "modulate:a", 0.5, 0.2)
 	
 	_ready_to_input = true
 
