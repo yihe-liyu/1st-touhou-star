@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="1"]
 [ext_resource type="Script" uid="uid://70htyyc4o2hu" path="res://scripts/data/phase_data.gd" id="1_cd7ie"]
-[ext_resource type="Resource" path="res://data/phase_data/ex_non_01.tres" id="2"]
-[ext_resource type="Resource" path="res://data/phase_data/ex_spell_01.tres" id="3"]
+[ext_resource type="Resource" uid="uid://sjh3nswq8tlv" path="res://data/phase_data/ex_non_01.tres" id="2"]
+[ext_resource type="Resource" uid="uid://eglllrgngahv" path="res://data/phase_data/ex_spell_01.tres" id="3"]
 [ext_resource type="PackedScene" uid="uid://bgp37sorjc6hv" path="res://scenes/enemy_visual_test.tscn" id="4"]
 
 [resource]

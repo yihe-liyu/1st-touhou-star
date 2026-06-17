@@ -26,8 +26,8 @@ var is_ready: bool = false
 
 # 额外变量
 var extra: Dictionary = {}
-var _grazed: bool = false  # 擦过弹了
-var tint_mode: int = 0  # TintMode: 0=MULTIPLY, 1=BLEND
+var _grazed: bool = false
+var tint_mode: int = 0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var fog: BulletFog = $Fog

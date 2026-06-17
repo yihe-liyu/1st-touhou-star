@@ -19,8 +19,8 @@ func _process(delta: float) -> void:
 	else:
 		offset = scroll_speed * delta * _scroll_mult
 	position += offset
-	# 超出视野自动回收
-	if position.z > 50:
+	# 超出视野自动回收（前后各留余量）
+	if position.z > 100 or position.z < -400:
 		queue_free()
 
 

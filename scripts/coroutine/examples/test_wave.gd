@@ -2,14 +2,14 @@ extends StageScript
 class_name TestLevel
 
 const EX_BOSS = preload("res://data/boss_data/ex_boss.tres")
-const TEST_DIALOGUE = preload("res://data/dialogue/test_dialogue.tres")
+const TEST_DIALOGUE = preload("res://data/dialogue/reimu/stage1.tres")
 
 var _phase: int = 0
 
 func _on_step(api: StageAPI) -> Variant:
 	match _phase:
 		0:
-			api.play_dialogue(TEST_DIALOGUE)
+			api.play_dialogue(TEST_DIALOGUE.lines)
 			AudioManager.play_bgm(preload("res://assets/Music/THq01_02.夜间漫步.mp3"), 0.0)
 			_phase = 1
 			return api.seconds(2.0)

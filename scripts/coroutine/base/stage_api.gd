@@ -7,6 +7,7 @@ class_name StageAPI
 ##   frames(n)  → 返回等价秒数
 
 const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
+const DecorBatcherClass = preload("res://scripts/background/decor_batcher.gd")
 
 var runner: CoroutineRunner
 
@@ -139,40 +140,26 @@ func _find_item_pool() -> Node:
 
 # ---------- 背景装饰物 ----------
 
-## 生成背景装饰物（3D 物体，挂在背景场景里）
-## 
-## @param scene  装饰物 PackedScene
-## @param pos3d  3D 世界坐标
-## @param follow_plane  可选：跟随某个 BackgroundPlane 的速度
-## @return 生成的 BackgroundObject 或 null
-func spawn_decor(scene: PackedScene, pos3d: Vector3, follow_plane: BackgroundPlane = null) -> BackgroundObject:
+## 生成背景装饰物（MultiMesh 批渲染）
+func spawn_decor_batched(tex: Texture2D, pos3d: Vector3, scale: Vector2 = Vector2(1, 1), follow_plane: BackgroundPlane = null) -> void:
 	var bg := StageManager.current_background
 	if not bg:
-		return null
-	var obj := scene.instantiate()
-	var wrapper: BackgroundObject
-	if obj is BackgroundObject:
-		wrapper = obj
-	else:
-		# 包一层 Node3D，挂 BackgroundObject 脚本
-		wrapper = BackgroundObject.new()
-		wrapper.name = obj.name + "_decor"
-		obj.name = "Mesh"
-	wrapper.position = pos3d
-	wrapper.follow = follow_plane
-	if obj != wrapper:
-		wrapper.add_child(obj)
-	bg.add_child(wrapper)
-	return wrapper
+		return
+	var batcher = bg.get_node_or_null("DecorBatcher")
+	if not batcher:
+		batcher = DecorBatcherClass.new()
+		batcher.name = "DecorBatcher"
+		bg.add_child(batcher)
+	batcher.spawn(tex, pos3d, scale, follow_plane)
 
 
 # ═══ 对话 ═══
 
-const DialogueBoxClass = preload("res://scripts/scenes/ui/dialogue_box.gd")
+const DialogueBoxClass = preload("res://scripts/scenes/dialogue_box.gd")
 const DialogueBoxScene = preload("res://scenes/ui/dialogue_box.tscn")
 
 ## 播放对话序列，阻塞协程直到对话结束
-func play_dialogue(data: DialogueData) -> float:
+func play_dialogue(lines: Array) -> float:
 	if not active() or not is_instance_valid(runner):
 		return 0.0
 	
@@ -185,7 +172,7 @@ func play_dialogue(data: DialogueData) -> float:
 		runner.is_running = true
 	, CONNECT_ONE_SHOT)
 	
-	box.play(data)
+	box.play(lines)
 	return 0.0  # 立即返回，由 finished 信号恢复
 
 ## 快捷单句对话
@@ -198,11 +185,8 @@ func dialogue_show(char_name: String, text: String, pos: Vector2 = Vector2(100, 
 	var bubble := DialogueBubble.new()
 	bubble.speaker = profile
 	bubble.text = text
-	bubble.position = pos
+	bubble.portrait_pos = pos
 	
 	var line := DialogueLine.new()
 	line.bubbles = [bubble]
-	
-	var data := DialogueData.new()
-	data.lines = [line]
-	play_dialogue(data)
+	play_dialogue([line])

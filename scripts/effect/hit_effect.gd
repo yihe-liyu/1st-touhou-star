@@ -32,6 +32,8 @@ func _finish() -> void:
 	visible = false
 	if _on_finish.is_valid():
 		_on_finish.call(self)
+	else:
+		queue_free()
 
 
 # ── 公共接口 ──

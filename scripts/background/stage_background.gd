@@ -160,3 +160,30 @@ func _on_update(_delta: float, _t: float):
 
 func _on_cleanup():
 	pass
+
+# ═══ 光照 ═══
+
+var sun_light: DirectionalLight3D
+
+func setup_sun() -> void:
+	sun_light = DirectionalLight3D.new()
+	sun_light.name = "Sun"
+	sun_light.light_energy = 0.0
+	sun_light.light_color = Color.BLACK
+	sun_light.shadow_enabled = false
+	add_child(sun_light)
+
+func set_sun_color(color: Color, duration: float = 2.0) -> void:
+	if not sun_light: return
+	var tw := create_tween()
+	tw.tween_property(sun_light, "light_color", color, duration)
+
+func set_sun_energy(energy: float, duration: float = 2.0) -> void:
+	if not sun_light: return
+	var tw := create_tween()
+	tw.tween_property(sun_light, "light_energy", energy, duration)
+
+func set_sun_rotation(rot: Vector3, duration: float = 2.0) -> void:
+	if not sun_light: return
+	var tw := create_tween()
+	tw.tween_property(sun_light, "rotation", rot, duration)

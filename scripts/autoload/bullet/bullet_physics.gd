@@ -43,6 +43,11 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 	for enemy in GameState.get_active_enemies():
 		if not is_instance_valid(enemy):
 			continue
+		# 时符阶段：Boss 不可被击中，子弹穿过
+		if enemy is Boss:
+			var phase = (enemy as Boss).current_phase()
+			if phase and phase.is_timeout_only:
+				continue
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(ceilf(bullet.damage * bonus))
 			GameState.reduce_memory(0.03)
@@ -73,6 +78,10 @@ func _bomb_vs_enemies(bullet: Bullet) -> void:
 	for enemy in GameState.get_active_enemies():
 		if not is_instance_valid(enemy):
 			continue
+		if enemy is Boss:
+			var phase = (enemy as Boss).current_phase()
+			if phase and phase.is_timeout_only:
+				continue
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(bullet.damage)
 			_spawn_effect(bullet.hit_effect, bullet.global_position)

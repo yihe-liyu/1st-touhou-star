@@ -6,8 +6,8 @@
 [sub_resource type="Resource" id="Resource_lls5d"]
 script = ExtResource("2_record")
 spell_name = "非符1"
-attempts = 5
-captures = 5
+attempts = 26
+captures = 25
 best_time = 12.947315424242028
 
 [sub_resource type="Resource" id="Resource_4fnre"]
@@ -16,13 +16,49 @@ spell_uid = 1
 phase_type = 1
 spell_name = "声符「停顿波」"
 phase_order = 2
+attempts = 15
+captures = 15
+practice_attempts = 3
+practice_captures = 3
+best_score = 34591
+best_time = 19.07951011111117
+
+[sub_resource type="Resource" id="Resource_8qneb"]
+script = ExtResource("2_record")
+difficulty = 2
+spell_name = "非符1"
 attempts = 2
 captures = 2
-practice_attempts = 1
-practice_captures = 1
-best_score = 29585
-best_time = 24.752961212123132
+best_time = 14.62043827272706
+
+[sub_resource type="Resource" id="Resource_8upsx"]
+script = ExtResource("2_record")
+spell_uid = 1
+phase_type = 1
+difficulty = 2
+spell_name = "声符「停顿波」"
+phase_order = 2
+attempts = 2
+captures = 2
+best_score = 29271
+best_time = 25.243842424244185
+
+[sub_resource type="Resource" id="Resource_ndrql"]
+script = ExtResource("2_record")
+difficulty = 3
+spell_name = "非符1"
+attempts = 37
+captures = 37
+best_time = 30.00118342424548
+
+[sub_resource type="Resource" id="Resource_xyc1f"]
+script = ExtResource("2_record")
+spell_uid = 1
+phase_type = 1
+difficulty = 3
+spell_name = "声符「停顿波」"
+phase_order = 2
 
 [resource]
 script = ExtResource("1_book")
-records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre")])
+records = Array[ExtResource("2_record")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre"), SubResource("Resource_8qneb"), SubResource("Resource_8upsx"), SubResource("Resource_ndrql"), SubResource("Resource_xyc1f")])

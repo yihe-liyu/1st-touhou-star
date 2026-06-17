@@ -8,9 +8,9 @@
 [ext_resource type="Texture2D" uid="uid://btj64lam67h1f" path="res://assets/Textures/front/FalseFront.png" id="6_tcjrq"]
 [ext_resource type="Script" uid="uid://dhu7jsdutwmto" path="res://scripts/debug/debug_drawer.gd" id="7_kk2rg"]
 [ext_resource type="PackedScene" uid="uid://bumtdee0t8gel" path="res://scenes/ui/boss_ui.tscn" id="8_boss_ui"]
-[ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game/game_scene.gd" id="9_script"]
-[ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/ui/game_ui.gd" id="10_ui"]
-[ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/ui/rect_outline.gd" id="12_rect_outline"]
+[ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game_scene.gd" id="9_script"]
+[ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/game_ui.gd" id="10_ui"]
+[ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/components/rect_outline.gd" id="12_rect_outline"]
 [ext_resource type="Shader" uid="uid://dbi40qjrrq0q4" path="res://gdshader/water_flow.gdshader" id="13_water"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mwyo0"]

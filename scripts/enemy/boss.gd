@@ -2,7 +2,7 @@
 class_name Boss
 extends Area2D
 
-const HPRingClass = preload("res://scripts/scenes/game/boss_hp_ring.gd")
+const HPRingClass = preload("res://scripts/scenes/boss_hp_ring.gd")
 
 var boss_data: BossData
 var hp: int = 0
@@ -120,6 +120,7 @@ func _process(delta: float) -> void:
 	
 	if _elapsed >= _current_phase.time_limit:
 		_on_phase_clear(_current_phase.is_timeout_only)
+		_current_phase = null  # 防止重复触发
 
 func _on_area_entered(_area: Area2D) -> void:
 	# 子弹碰撞由 BulletPhysics 处理

@@ -11,10 +11,12 @@ signal scene_left(scene_path: String)
 const TransClass = preload("res://scripts/autoload/game/scene_transition.gd")
 const MenuClass = preload("res://scripts/autoload/game/menu_stack.gd")
 const PauseClass = preload("res://scripts/autoload/game/pause_control.gd")
+const SubPageClass = preload("res://scripts/autoload/game/sub_page_stack.gd")
 
 var _transition
 var _menus
 var _pause_control
+var _sub_pages: SubPageStack
 
 # ═══ 状态 ═══
 var current_scene_path: String = ""
@@ -35,6 +37,8 @@ func _ready():
 	_pause_control = PauseClass.new()
 	_pause_control.setup(self, _set_state)
 
+	_sub_pages = SubPageClass.new()
+
 
 func _process(_delta):
 	if current_state == AppState.TRANSITIONING:
@@ -46,9 +50,11 @@ func _process(_delta):
 			_pause_control.pause()
 
 
-func _input(_event: InputEvent):
-	if _pause_control.has_instance() or _menus.is_menu_open() or _menus.is_overlay_open():
-		get_viewport().set_input_as_handled()
+# ═══ 输入路由 ═══
+# 不再无脑吃掉输入！
+# CanvasLayer 层级天然决定优先顺序：
+#   覆层 (64) > 子页面 (32) > 主场景 (0)
+# 每个页面在自己的 _input 中自行 set_input_as_handled()
 
 
 # ═══ 状态 ═══
@@ -73,6 +79,7 @@ func change_scene(path: String, target_state: AppState = AppState.PLAYING):
 	_set_state(AppState.TRANSITIONING)
 
 	_menus.clear()
+	_sub_pages.clear()
 	_pause_control.cleanup()
 
 	var new_path = await _transition.change_scene(path, current_scene_path, scene_left.emit, scene_entered.emit)
@@ -104,6 +111,28 @@ func push_overlay_menu(menu: CanvasLayer):
 
 func pop_overlay_menu(menu: CanvasLayer):
 	_menus.pop_overlay(menu)
+
+
+# ═══ 子页面栈 (SubPageStack) — 替代 ScreenManager ═══
+
+signal page_result(data: Dictionary)
+
+## 推入一个子页面（如难度选择、角色选择）
+func push_page(path: String) -> void:
+	_sub_pages.page_result.connect(_on_sub_page_result, CONNECT_ONE_SHOT)
+	_sub_pages.push(path)
+
+## 弹出当前子页面
+func pop_page() -> void:
+	await _sub_pages.pop()
+
+## 清空所有子页面
+func clear_pages() -> void:
+	_sub_pages.clear()
+
+
+func _on_sub_page_result(data: Dictionary) -> void:
+	page_result.emit(data)
 
 
 # ═══ 暂停 / 恢复 ═══

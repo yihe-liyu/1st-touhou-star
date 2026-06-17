@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CharacterProfile" format=3 uid="uid://cb288be12u388"]
+
+[ext_resource type="Texture2D" uid="uid://br8vr3n284kcl" path="res://assets/Textures/character/kamorui/kamouri1.png" id="1_axvx3"]
+[ext_resource type="Script" uid="uid://bx50hqvly0v0c" path="res://scripts/data/character_profile.gd" id="1_m3fj5"]
+
+[resource]
+script = ExtResource("1_m3fj5")
+char_name = "卡摩瑞"
+portraits = {
+"通常": ExtResource("1_axvx3")
+}
+metadata/_custom_type_script = "uid://bx50hqvly0v0c"

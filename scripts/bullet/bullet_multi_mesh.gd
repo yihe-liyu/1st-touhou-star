@@ -17,9 +17,15 @@ func _process(_delta):
 	_sync()
 
 func _sync():
-	# 收集活跃子弹，按 texture + faction 分组
+	var bulbs := BulletManager.active_bullets
+	if bulbs.is_empty():
+		for key in _groups:
+			_groups[key].mmi.visible = false
+			_groups[key].mm.instance_count = 0
+		return
+	
 	var active_groups: Dictionary = {}
-	for bullet in BulletManager.active_bullets:
+	for bullet in bulbs:
 		if not is_instance_valid(bullet) or not bullet.visible or not bullet.is_ready:
 			continue
 		var tex = bullet.batch_texture()

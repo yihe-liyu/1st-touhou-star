@@ -63,6 +63,11 @@ func _find_nearest_enemy() -> Node2D:
 	for enemy in GameState.active_enemies:
 		if not is_instance_valid(enemy):
 			continue
+		# 时符阶段跳过 Boss，不诱导
+		if enemy is Boss:
+			var phase = (enemy as Boss).current_phase()
+			if phase and phase.is_timeout_only:
+				continue
 		var dist := target.global_position.distance_squared_to(enemy.global_position)
 		if dist < nearest_dist:
 			nearest_dist = dist

@@ -98,19 +98,11 @@ func _on_step(api: StageAPI) -> Variant:
 # ═══════════════════════════════════════════
 
 func _spawn(api: StageAPI, tex: Texture2D, size: Vector2, y: float, x: float, z: float):
-	api.spawn_decor(
-		_make(tex, size),
-		Vector3(x, y, z),
-		ground
-	)
+	api.spawn_decor_batched(tex, Vector3(x, y, z), size, ground)
 
 func _spawn_cluster(api: StageAPI, tex: Texture2D, size: Vector2, y: float, center_x: float, center_z: float, spread: float):
 	for i in range(6):
-		api.spawn_decor(
-			_make(tex, size),
-			Vector3(center_x + RNG.randf_range(-spread, spread), y, center_z + RNG.randf_range(-spread * 0.5, spread * 0.5)),
-			ground
-		)
+		api.spawn_decor_batched(tex, Vector3(center_x + RNG.randf_range(-spread, spread), y, center_z + RNG.randf_range(-spread * 0.5, spread * 0.5)), size, ground)
 
 func _camera_accel(mult: float):
 	ground.scroll_speed = Vector2(0, -0.1 * mult)
@@ -121,18 +113,3 @@ func _fog_to(color: Color, density: float, fov: float, sec: float):
 	t.tween_property(env, "fog_light_color", color, sec)
 	t.tween_property(env, "fog_density", density, sec)
 	t.tween_property(bg.camera, "fov", fov, sec)
-
-func _make(tex: Texture2D, size: Vector2) -> PackedScene:
-	var mi := MeshInstance3D.new()
-	var pm := PlaneMesh.new()
-	pm.size = size
-	pm.orientation = PlaneMesh.FACE_Z
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = tex
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	pm.material = mat
-	mi.mesh = pm
-	var ps := PackedScene.new()
-	ps.pack(mi)
-	return ps
