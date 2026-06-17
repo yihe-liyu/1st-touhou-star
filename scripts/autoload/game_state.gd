@@ -5,16 +5,21 @@ const BossScript = preload("res://scripts/enemy/boss.gd")
 const SpellBookClass = preload("res://scripts/data/spell_record_book.gd")
 
 const SPELL_BOOK_PATH := "res://data/spell_records.tres"
+const REGISTRY_PATH := "res://data/stage_registry.tres"
+
+var stage_registry: StageRegistry
 
 # 0=Easy 1=Normal 2=Hard 3=Lunatic
 var selected_difficulty: int = 1
 # 0=Reimu 1=Marisa
 var selected_character: int = 0
+var current_stage_id: int = 1  ## 当前打到第几面
 var player: Player = null
 var spell_book
 
 # 练习模式
 var is_practice_mode: bool = false
+var is_stage_practice: bool = false  ## 关卡练习模式（完整一面，不打下一关）
 var practice_boss_data: BossData
 var practice_phase_index: int = 0
 var practice_stage_id: int = 1
@@ -35,13 +40,13 @@ func _find_stage_background(stage_id: int) -> PackedScene:
 	var dir := DirAccess.open("res://data/stages/")
 	if not dir: return null
 	dir.list_dir_begin()
-	var fn := dir.get_next()
-	while fn != "":
-		if fn.ends_with(".tres"):
-			var sd: StageData = ResourceLoader.load("res://data/stages/" + fn)
+	var file_name := dir.get_next()
+	while file_name != "":
+		if file_name.ends_with(".tres"):
+			var sd: StageData = ResourceLoader.load("res://data/stages/" + file_name)
 			if sd and sd.stage_id == stage_id and sd.background_scene:
 				return sd.background_scene
-		fn = dir.get_next()
+		file_name = dir.get_next()
 	return null
 
 func _load_spell_book() -> void:
@@ -49,21 +54,62 @@ func _load_spell_book() -> void:
 		spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
 	else:
 		spell_book = SpellBookClass.new()
+	if ResourceLoader.exists(REGISTRY_PATH):
+		stage_registry = ResourceLoader.load(REGISTRY_PATH)
+
+
+func _get_all_stages() -> Array[StageData]:
+	if stage_registry and not stage_registry.stages.is_empty():
+		return stage_registry.stages
+	# 回退：扫目录
+	var result: Array[StageData] = []
+	var dir := DirAccess.open("res://data/stages/")
+	if dir:
+		dir.list_dir_begin()
+		var file_name := dir.get_next()
+		while file_name != "":
+			if file_name.ends_with(".tres"):
+				var sd: StageData = ResourceLoader.load("res://data/stages/" + file_name)
+				if sd: result.append(sd)
+			file_name = dir.get_next()
+	return result
+
+func debug_fill_spells() -> void:
+	for sd in _get_all_stages():
+		for boss in sd.bosses:
+			_fill_from_boss(boss, sd.stage_id, sd.difficulty)
+	_save_spell_book()
+	print("Debug: filled spell records from stage data")
+
+
+func _fill_from_boss(boss: BossData, stage_id: int, diff: int) -> void:
+	for i in boss.phases.size():
+		var phase := boss.phases[i]
+		var sp_uid: int = SpellRecord.get_phase_uid(boss, i, stage_id)
+		for char_idx in 2:
+			spell_book.get_or_create(sp_uid, char_idx, diff,
+				stage_id,
+				SpellRecord.PhaseType.SPELL if phase.uid != 0 else SpellRecord.PhaseType.NONSPELL,
+				0, i + 1, phase.name)
 
 func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
 
 func record_spell(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, captured: bool, score: int, elapsed: float, order: int = 1, uid: int = 0, sname: String = "") -> void:
-	spell_book.record_attempt(character, stage_id, phase_type, phase_num, difficulty, captured, score, elapsed, order, uid, sname)
+	if uid == 0: return  # 非符不记录
+	spell_book.record_attempt(uid, character, difficulty, captured, score, elapsed,
+		{"stage": stage_id, "phase_type": phase_type, "phase_num": phase_num,
+		 "order": order, "name": sname})
 	_save_spell_book()
 
 func unlock_spell(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, order: int = 1, uid: int = 0, sname: String = "") -> void:
-	spell_book.get_or_create(character, stage_id, phase_type, phase_num, difficulty, order, uid, sname)
+	if uid == 0: return  # 非符不记录
+	spell_book.get_or_create(uid, character, difficulty,
+		stage_id, phase_type, phase_num, order, sname)
 	_save_spell_book()
 
 func record_practice(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, captured: bool) -> void:
-	spell_book.record_practice(character, stage_id, phase_type, phase_num, difficulty, captured)
-	_save_spell_book()
+	return  # TODO: uid 架构迁移 — 调用处需传入 uid
 
 var active_enemies: Array = []
 
@@ -132,6 +178,9 @@ func reset_all():
 	bomb_count = 3
 	bomb_fragments = 0
 	memory_value = 50.0
+	if not is_stage_practice:
+		current_stage_id = 1
+	is_practice_mode = false
 
 func reset_practice():
 	current_score = 0

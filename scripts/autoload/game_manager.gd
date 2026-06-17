@@ -9,14 +9,10 @@ signal scene_left(scene_path: String)
 
 # ═══ 模块 ───
 const TransClass = preload("res://scripts/autoload/game/scene_transition.gd")
-const MenuClass = preload("res://scripts/autoload/game/menu_stack.gd")
-const PauseClass = preload("res://scripts/autoload/game/pause_control.gd")
-const SubPageClass = preload("res://scripts/autoload/game/sub_page_stack.gd")
+const NavClass = preload("res://scripts/autoload/game/menu_nav.gd")
 
-var _transition
-var _menus
-var _pause_control
-var _sub_pages: SubPageStack
+var _transition: SceneTransition
+var _nav: MenuNav
 
 # ═══ 状态 ═══
 var current_scene_path: String = ""
@@ -31,30 +27,18 @@ func _ready():
 	_transition = TransClass.new()
 	_transition.setup(self)
 
-	_menus = MenuClass.new()
-	_menus.setup(self, _set_state)
-
-	_pause_control = PauseClass.new()
-	_pause_control.setup(self, _set_state)
-
-	_sub_pages = SubPageClass.new()
+	_nav = NavClass.new()
+	_nav.setup(self)
 
 
 func _process(_delta):
 	if current_state == AppState.TRANSITIONING:
 		return
-	if _pause_control.has_instance() or _menus.is_overlay_open():
+	if _nav.is_overlay_open():
 		return
 	if current_state == AppState.PLAYING:
 		if Input.is_action_just_pressed("ui_pause"):
-			_pause_control.pause()
-
-
-# ═══ 输入路由 ═══
-# 不再无脑吃掉输入！
-# CanvasLayer 层级天然决定优先顺序：
-#   覆层 (64) > 子页面 (32) > 主场景 (0)
-# 每个页面在自己的 _input 中自行 set_input_as_handled()
+			_nav.push_overlay("res://scenes/ui/pause_menu.tscn")
 
 
 # ═══ 状态 ═══
@@ -78,9 +62,8 @@ func change_scene(path: String, target_state: AppState = AppState.PLAYING):
 
 	_set_state(AppState.TRANSITIONING)
 
-	_menus.clear()
-	_sub_pages.clear()
-	_pause_control.cleanup()
+	_nav.clear_pages()
+	_nav.clear_overlays()
 
 	var new_path = await _transition.change_scene(path, current_scene_path, scene_left.emit, scene_entered.emit)
 	previous_scene_path = current_scene_path
@@ -95,44 +78,30 @@ func reload_current_scene():
 		change_scene(current_scene_path)
 
 
-# ═══ 菜单栈 ═══
+# ═══ 子页面（MainMenu 内 push/pop） ═══
 
-func push_menu(menu):
-	_menus.push(menu)
-
-func pop_menu():
-	return _menus.pop()
-
-func clear_menus():
-	_menus.clear()
-
-func push_overlay_menu(menu: CanvasLayer):
-	_menus.push_overlay(menu)
-
-func pop_overlay_menu(menu: CanvasLayer):
-	_menus.pop_overlay(menu)
-
-
-# ═══ 子页面栈 (SubPageStack) — 替代 ScreenManager ═══
-
-signal page_result(data: Dictionary)
-
-## 推入一个子页面（如难度选择、角色选择）
-func push_page(path: String) -> void:
-	_sub_pages.page_result.connect(_on_sub_page_result, CONNECT_ONE_SHOT)
-	await _sub_pages.push(path)
+## 推入子页面（难度选择、角色选择等），返回页面节点
+func push_page(path: String) -> Node:
+	return _nav.push(path)
 
 ## 弹出当前子页面
 func pop_page() -> void:
-	await _sub_pages.pop()
+	_nav.pop()
 
 ## 清空所有子页面
 func clear_pages() -> void:
-	_sub_pages.clear()
+	_nav.clear_pages()
 
 
-func _on_sub_page_result(data: Dictionary) -> void:
-	page_result.emit(data)
+# ═══ 覆盖层（暂停 / Game Over / 通关） ═══
+
+## 推入覆盖层（暂停游戏）— 接受已实例化的节点（兼容旧 API）
+func push_overlay_menu(menu: CanvasLayer) -> void:
+	_nav.add_overlay_instance(menu)
+
+## 弹出指定覆盖层（兼容旧 API）
+func pop_overlay_menu(menu: CanvasLayer) -> void:
+	_nav.pop_specific_overlay(menu)
 
 
 # ═══ 暂停 / 恢复 ═══
@@ -140,12 +109,12 @@ func _on_sub_page_result(data: Dictionary) -> void:
 func pause_game():
 	if current_state != AppState.PLAYING:
 		return
-	_pause_control.pause()
+	_nav.push_overlay("res://scenes/ui/pause_menu.tscn")
 
 func resume_game():
 	if current_state != AppState.PAUSED:
 		return
-	_pause_control.resume()
+	_nav.pop_overlay()
 
 func toggle_pause():
 	if current_state == AppState.PAUSED:

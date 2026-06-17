@@ -1,73 +1,37 @@
-extends MenuScreen
-class_name DifficultyScreen
-
-@export var options: Array[String] = ["Easy", "Normal", "Hard", "Lunatic"]
-var _labels: Array[Label] = []
-var _index: int = 1
-var _ready_to_input: bool = false
+# DifficultyScreen.gd — 难度选择子页面
+extends NavPage
 
 
 func _on_enter() -> void:
-	var oc := $Container as VBoxContainer
-	if not oc: return
-	_labels.clear()
-	for child in oc.get_children():
-		if child is Label:
-			_labels.append(child)
-	_index = clampi(GameState.selected_difficulty, 0, _labels.size() - 1)
-	_highlight_items(_labels, _index)
-	_start_pulse(_labels[_index])
-	
-	# 遮罩先出来挡住背景
-	$Overlay.visible = true
-	$Overlay.modulate.a = 0.5
-	
-	# 内容渐显
-	$Container.modulate.a = 0.0
-	var tw := create_tween()
-	tw.tween_property($Container, "modulate:a", 1.0, 0.2)
-	
-	_ready_to_input = true
+	_setup_nav()
+	if GameState.selected_difficulty < _nav_items.size():
+		_nav_index = GameState.selected_difficulty
+
+	# 黑底直接 50%
+	$"Overlay".modulate.a = 1.0
+
+	# 标题 + 选项同时开始
+	var tex: TextureRect = $"TitleTexture"
+	tex.modulate.a = 0.0
+	var tw := tex.create_tween()
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(tex, "modulate:a", 1.0, 0.5)
+	_play_entrance()
 
 
 func _on_leave() -> void:
-	_ready_to_input = false
+	_nav_enabled = false
 	_stop_pulse()
 	queue_free()
 
 
-func leave() -> void:
-	# X→返回: 遮罩+内容一起渐隐
-	_ready_to_input = false
+func _on_item_selected(index: int) -> void:
+	_nav_enabled = false
 	_stop_pulse()
-	var tw := create_tween().set_parallel(true)
-	tw.tween_property($Overlay, "modulate:a", 0.0, 0.15)
-	tw.tween_property($Container, "modulate:a", 0.0, 0.15)
-	tw.tween_callback(func ():
-		finished.emit({})
-		queue_free()
-	)
+	finished.emit({"difficulty": index})
 
 
-func _input(event: InputEvent) -> void:
-	if not _ready_to_input: return
-	if event.is_action_pressed("ui_up"):
-		_index = wrapi(_index - 1, 0, _labels.size())
-		_highlight_items(_labels, _index)
-		_start_pulse(_labels[_index])
-		sfx_nav()
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_down"):
-		_index = wrapi(_index + 1, 0, _labels.size())
-		_highlight_items(_labels, _index)
-		_start_pulse(_labels[_index])
-		sfx_nav()
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_accept"):
-		sfx_confirm()
-		done({"difficulty": _index})
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_cancel"):
-		sfx_back()
-		leave()
-		get_viewport().set_input_as_handled()
+func _on_cancel() -> void:
+	_nav_enabled = false
+	_stop_pulse()
+	finished.emit({})

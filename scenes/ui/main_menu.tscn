@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://c3fv40qpgoim8" path="res://assets/Textures/title/title_bk.png" id="2_fe2o3"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="3_1g8jr"]
 [ext_resource type="Shader" uid="uid://b2ydwl5kwlb2m" path="res://gdshader/logo_entrance.gdshader" id="4"]
-[ext_resource type="Script" uid="uid://e73gjgug86o3" path="res://scripts/scenes/menu_host.gd" id="5_menu_host"]
 [ext_resource type="Texture2D" uid="uid://dln6jdeygtsnl" path="res://assets/Textures/ascii/loading.png" id="6_uhagc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_btxxm"]
@@ -29,16 +28,18 @@ shader = ExtResource("4")
 shader_parameter/progress = 0.0
 shader_parameter/alpha_mult = 1.0
 
-[node name="MainMenu" type="CanvasLayer" unique_id=2093015590]
-layer = 0
+[node name="MainMenu" type="Control" unique_id=2093015590]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_script")
 container_path = NodePath("Container")
-entrance_stagger = 0.03
-entrance_duration = 0.2
-auto_entrance = false
 
 [node name="Background" type="TextureRect" parent="." unique_id=627389897]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -55,7 +56,7 @@ lifetime = 0.5
 process_material = SubResource("ParticleProcessMaterial_wb0q5")
 
 [node name="Container" type="VBoxContainer" parent="." unique_id=343449348]
-anchors_preset = -1
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.65
 anchor_right = 0.5
@@ -120,7 +121,7 @@ text = "Quit"
 
 [node name="logo" type="TextureRect" parent="." unique_id=1922387977]
 material = SubResource("ShaderMaterial_vs4v7")
-anchors_preset = 5
+layout_mode = 0
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -300.0
@@ -130,12 +131,11 @@ offset_bottom = 392.0
 grow_horizontal = 2
 texture = ExtResource("3_1g8jr")
 
-[node name="MenuHost" type="Control" parent="." unique_id=622629193]
-layout_mode = 3
+[node name="PageHost" type="Control" parent="." unique_id=622629193]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("5_menu_host")

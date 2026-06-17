@@ -39,9 +39,16 @@ func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: C
 func _acquire(scene: PackedScene) -> HitEffect:
 	var arr: Array = _pools.get(scene, [])
 	
-	for eff in arr:
+	# 清理失效引用，找可复用实例
+	var i := 0
+	while i < arr.size():
+		var eff = arr[i]
+		if not is_instance_valid(eff):
+			arr.remove_at(i)
+			continue
 		if not eff.visible:
 			return eff
+		i += 1
 	
 	var instance := scene.instantiate()
 	instance.visible = false

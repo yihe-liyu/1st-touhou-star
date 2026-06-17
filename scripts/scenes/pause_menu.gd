@@ -1,37 +1,39 @@
-extends BaseMenu
-class_name PauseMenu
+# PauseMenu.gd — 暂停菜单覆盖层
+extends NavPage
 
-## 如果为 true，禁用「返回游戏」选项，只能返回标题或退出
+## true 表示 GameOver 模式（禁用「继续」）
 var game_over_mode: bool = false
 
 
-func _on_ready():
-	# 入场：暗色遮罩淡入
-	$Overlay.modulate.a = 0.0
-	
+func _on_enter() -> void:
+	super._on_enter()  # NavPage 入场动画
+
+	# 暗色遮罩淡入
+	_fade_overlay_in(0.3)
+
 	if game_over_mode:
-		var resume := $"Container/ResumeLabel"
+		var resume := _container.get_node_or_null("ResumeLabel")
 		if resume:
 			resume.set_meta("locked", true)
-			# 重新刷新颜色，让 locked 立即生效
-			refresh_colors(true)
-	
+			refresh_colors()
+
 	AudioManager.play_sfx(preload("res://assets/Sound/pause.wav"))
 
-	var tw = create_tween()
-	tw.tween_property($Overlay, "modulate:a", 1.0, 0.3)\
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
+func _on_leave() -> void:
+	_nav_enabled = false
+	_stop_pulse()
 
-func _on_leave():
-	var tw = create_tween().set_parallel(true)
-	tw.tween_property($Overlay, "modulate:a", 0.0, 0.15)
-	tw.tween_property($Container, "modulate", Color(1, 1, 1, 0), 0.12)
-	tw.tween_property($Container, "scale", Vector2(0.95, 0.95), 0.12)
+	# 遮罩淡出 + 内容消隐 + 缩放
+	var tw := create_tween().set_parallel(true)
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_fade_overlay_out(0.15)
+	tw.tween_property(_container, "modulate", Color(1, 1, 1, 0), 0.12)
+	tw.tween_property(_container, "scale", Vector2(0.95, 0.95), 0.12)
 	tw.tween_callback(queue_free)
 
 
-func _on_item_selected(index: int):
+func _on_item_selected(index: int) -> void:
 	match index:
 		0:
 			if not game_over_mode:
@@ -42,6 +44,6 @@ func _on_item_selected(index: int):
 			get_tree().quit.call_deferred()
 
 
-func _on_back():
+func _on_cancel() -> void:
 	if not game_over_mode:
 		GameManager.resume_game()

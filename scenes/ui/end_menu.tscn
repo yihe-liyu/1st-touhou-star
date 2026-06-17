@@ -2,9 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bhol8u6hom5xl" path="res://scripts/scenes/end_menu.gd" id="1_script"]
 
-[node name="EndMenu" type="CanvasLayer" unique_id=792017084]
+[node name="EndMenu" type="Control" unique_id=792017084]
 process_mode = 1
-layer = 128
 script = ExtResource("1_script")
 title_label = NodePath("Panel/TitleLabel")
 title_text = ""

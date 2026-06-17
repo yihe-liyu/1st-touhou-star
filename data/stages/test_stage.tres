@@ -1,13 +1,14 @@
 [gd_resource type="Resource" script_class="StageData" format=3 uid="uid://teststage001"]
 
 [ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="1_level"]
+[ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="2_7h0hk"]
 [ext_resource type="Script" uid="uid://bsg7bc25qr4o6" path="res://scripts/coroutine/examples/test_wave.gd" id="3_script"]
 [ext_resource type="PackedScene" uid="uid://14hmn1qoll6l" path="res://scenes/background/stage01_background.tscn" id="4_bg"]
-[ext_resource type="Resource" path="res://data/boss_data/ex_boss.tres" id="5_boss"]
+[ext_resource type="Resource" uid="uid://t5j6ojru1hpk" path="res://data/boss_data/ex_boss.tres" id="5_boss"]
 
 [resource]
 script = ExtResource("1_level")
-stage_name = "E Stage 1"
+difficulty = 0
 create_script = ExtResource("3_script")
 background_scene = ExtResource("4_bg")
-boss_data = ExtResource("5_boss")
+bosses = Array[ExtResource("2_7h0hk")]([ExtResource("5_boss")])

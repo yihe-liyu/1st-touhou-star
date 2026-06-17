@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dyx5ftik8rdw2"]
 
 [ext_resource type="Script" uid="uid://bc2004avmc2ec" path="res://scripts/scenes/difficulty_screen.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://27ddm7ctg1ir" path="res://assets/Textures/title/rank.png" id="2"]
 
 [node name="DifficultyScreen" type="Control" unique_id=1370806118]
 layout_mode = 3
@@ -9,8 +10,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 script = ExtResource("1")
+container_path = NodePath("Container")
+auto_overlay = false
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=401757239]
 layout_mode = 0
@@ -19,15 +21,18 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="TitleLabel" type="Label" parent="." unique_id=2100488660]
-layout_mode = 0
-anchor_top = 0.12
-anchor_right = 1.0
-anchor_bottom = 0.22
-theme_override_font_sizes/font_size = 26
-text = "Select Difficulty"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="TitleTexture" type="TextureRect" parent="." unique_id=850403446]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -129.0
+offset_top = 100.0
+offset_right = 129.0
+offset_bottom = 202.0
+grow_horizontal = 2
+texture = ExtResource("2")
+stretch_mode = 5
 
 [node name="Container" type="VBoxContainer" parent="." unique_id=1410330871]
 layout_mode = 0

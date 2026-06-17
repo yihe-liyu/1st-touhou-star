@@ -11,23 +11,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
+auto_overlay = false
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=1621601733]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0, 0, 0, 0.15)
+color = Color(0, 0, 0, 0.5)
 
 [node name="TitleTexture" type="TextureRect" parent="." unique_id=1928062111]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -200.0
-offset_top = 75.0
-offset_right = 200.0
-offset_bottom = 185.0
+offset_left = -155.5
+offset_top = 100.0
+offset_right = 155.5
+offset_bottom = 210.0
 grow_horizontal = 2
 texture = ExtResource("2")
 stretch_mode = 5

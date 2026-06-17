@@ -60,7 +60,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 	# 自机子弹：记忆值越低越红
 	sprite.modulate = data.tint
 	if faction == FACTION_PLAYER:
-		var mem := GameState.memory_value
+		var mem: float = GameState.memory_value
 		if mem < 50.0:
 			var red := remap(mem, 0.0, 50.0, 1.0, 0.0)
 			sprite.modulate = sprite.modulate.lerp(Color.RED, red * 0.5)

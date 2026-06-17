@@ -1,9 +1,10 @@
 extends Resource
 class_name StageData
 
+enum Difficulty { EASY, NORMAL, HARD, LUNATIC, EXTRA }
+
 @export var stage_id: int = 1
-@export var stage_name: String = "Stage 1"
+@export var difficulty: Difficulty = Difficulty.NORMAL
 @export var create_script: Script
 @export var background_scene: PackedScene
-@export var boss_data: BossData               ## Boss 数据（符卡练习用）
-@export var next_stage: StageData              ## 通关后下一关
+@export var bosses: Array[BossData] = []   ## 本关卡所有 Boss（中 boss + 关底等）

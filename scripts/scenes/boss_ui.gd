@@ -162,13 +162,8 @@ func _add_info_labels() -> void:
 
 func _update_capture_text() -> void:
 	if not _capture_label or not _boss_ref: return
+	# TODO: uid 架构迁移 — 从 boss 数据获取当前 phase 的 uid
 	var book: SpellRecordBook = GameState.spell_book
-	var rec: SpellRecord = book.get_record(
-		GameState.selected_character,
-		GameState.practice_stage_id,
-		SpellRecord.PhaseType.SPELL,
-		1,  # TODO: 多符卡阶段号
-		GameState.selected_difficulty
-	)
+	var rec: SpellRecord = book.get_record(0, GameState.selected_character, GameState.selected_difficulty)
 	if rec:
 		_capture_label.text = "%02d/%02d" % [rec.captures, rec.attempts]

@@ -12,7 +12,7 @@ region = Rect2(0, 160, 16, 16)
 [resource]
 script = ExtResource("2_3l13m")
 texture = SubResource("AtlasTexture_uc4ci")
-damage = 7
+damage = 5
 velocity = Vector2(0, -500)
 hit_effect = ExtResource("1_3l13m")
 hitbox_shape = 1

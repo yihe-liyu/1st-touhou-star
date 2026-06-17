@@ -6,7 +6,7 @@ const GAME_OVER_MENU = preload("res://scenes/ui/game_over_menu.tscn")
 
 @onready var _sub_viewport: SubViewport = $Background/SubViewportContainer/SubViewport
 
-@export var stage_data: StageData
+@export var stage_data: StageData  ## 调试用硬编码，正式流程会从注册表覆盖
 
 var _blur_rect: ColorRect
 var _background_instance: StageBackground
@@ -47,8 +47,37 @@ func _ready():
 	
 	if GameState.is_practice_mode:
 		_start_practice_game()
-	elif stage_data:
-		StageManager.load_stage(stage_data)
+	else:
+		_start_normal_game()
+
+
+func _start_normal_game() -> void:
+	# 优先从注册表按 (stage_id, difficulty) 查找
+	var data := stage_data
+	if GameState.stage_registry:
+		var from_registry := GameState.stage_registry.find(
+			GameState.current_stage_id, GameState.selected_difficulty)
+		if from_registry:
+			data = from_registry
+	
+	if data:
+		# 重新加载背景（可能是注册表里的不同 StageData）
+		if _background_instance:
+			_background_instance.queue_free()
+			_background_instance = null
+		_load_background_for(data)
+		StageManager.load_stage(data)
+	else:
+		push_error("GameScene: 找不到关卡 stage_id=%d difficulty=%d" % [GameState.current_stage_id, GameState.selected_difficulty])
+
+
+func _load_background_for(data: StageData) -> void:
+	stage_data = data
+	if not data.background_scene:
+		return
+	_background_instance = data.background_scene.instantiate()
+	StageManager.current_background = _background_instance
+	_sub_viewport.add_child(_background_instance)
 
 func _load_background():
 	if not stage_data or not stage_data.background_scene:
@@ -125,9 +154,12 @@ func _setup_player() -> void:
 		player._reinit_shoot()
 
 func _on_stage_cleared():
-	# TODO: 暂关闭, 调试完再启
-	# if stage_data and stage_data.next_stage: ...
-	pass
+	if GameState.is_stage_practice:
+		GameState.is_stage_practice = false
+		GameManager.change_scene("res://scenes/ui/main_menu.tscn", GameManager.AppState.MENU)
+	elif not GameState.is_practice_mode:
+		GameState.current_stage_id += 1
+		GameManager.reload_current_scene()
 
 
 # ═══ 练习模式 ═══

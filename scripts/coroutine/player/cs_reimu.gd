@@ -16,9 +16,9 @@ func _option_setup() -> Dictionary:
 		counts = [1, 2, 3, 4],
 		offsets_focus = [
 			[Vector2(0, 60)],
-			[Vector2(-15, 60), Vector2(15, 60)],
-			[Vector2(-30, 60), Vector2(0, 60), Vector2(30, 60)],
-			[Vector2(-45, 60), Vector2(-15, 60), Vector2(15, 60), Vector2(45, 60)],
+			[Vector2(-10, 60), Vector2(10, 60)],
+			[Vector2(-20, 60), Vector2(0, 60), Vector2(20, 60)],
+			[Vector2(-30, 60), Vector2(-10, 60), Vector2(10, 60), Vector2(30, 60)],
 		],
 		offsets_spread = [
 			[Vector2(0, -80)],

@@ -1,33 +1,40 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://dcfsxdvi4otm8"]
 
-[ext_resource type="Script" path="res://scripts/scenes/character_screen.gd" id="1"]
+[ext_resource type="Script" uid="uid://e0xec8baxqs4" path="res://scripts/scenes/character_screen.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c65w75wc7yh40" path="res://assets/Textures/title/player.png" id="2"]
 
-[node name="CharacterScreen" type="Control"]
-layout_mode = 1
+[node name="CharacterScreen" type="Control" unique_id=561833360]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-mouse_filter = 2
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1")
+container_path = NodePath("HBoxContainer")
+auto_overlay = false
 
-[node name="Overlay" type="ColorRect" parent="."]
-anchors_preset = 15
+[node name="Overlay" type="ColorRect" parent="." unique_id=1686853740]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.5)
 mouse_filter = 2
+color = Color(0, 0, 0, 0.5)
 
-[node name="TitleLabel" type="Label" parent="."]
-layout_mode = 0
-anchor_top = 0.12
-anchor_right = 1.0
-anchor_bottom = 0.22
-theme_override_font_sizes/font_size = 26
-text = "Select Character"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="TitleTexture" type="TextureRect" parent="." unique_id=1071157700]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -144.0
+offset_top = 100.0
+offset_right = 144.0
+offset_bottom = 210.0
+grow_horizontal = 2
+texture = ExtResource("2")
+stretch_mode = 5
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1092496613]
 layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.4
@@ -38,19 +45,19 @@ offset_right = 140.0
 theme_override_constants/separation = 40
 alignment = 1
 
-[node name="Reimu" type="Label" parent="HBoxContainer"]
+[node name="Reimu" type="Label" parent="HBoxContainer" unique_id=2138238334]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Reimu"
 horizontal_alignment = 1
 
-[node name="Marisa" type="Label" parent="HBoxContainer"]
+[node name="Marisa" type="Label" parent="HBoxContainer" unique_id=969240022]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Marisa"
 horizontal_alignment = 1
 
-[node name="BackHint" type="Label" parent="."]
+[node name="BackHint" type="Label" parent="." unique_id=268153421]
 layout_mode = 0
 anchor_top = 0.88
 anchor_right = 1.0
@@ -60,7 +67,7 @@ text = "X: Back"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="DifficultyBadge" type="Label" parent="."]
+[node name="DifficultyBadge" type="Label" parent="." unique_id=696453909]
 layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.82

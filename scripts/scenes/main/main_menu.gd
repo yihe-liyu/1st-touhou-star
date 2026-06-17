@@ -1,102 +1,161 @@
-extends BaseMenu
-class_name MainMenu
+# MainMenu.gd — 标题画面 + 子页面导航中枢
+#
+# 特殊处理：MainMenu 是场景根节点，不走 MenuNav push 流程。
+# 它继承 NavPage 以复用选项导航，但自己管理入口时机。
 
-@onready var _logo: TextureRect = $logo
-@onready var _title_container: Control = $Container
+extends NavPage
+
+@onready var _logo: TextureRect = $"logo"
+@onready var _particles: GPUParticles2D = $"GPUParticles2D"
 
 
-func _on_ready():
-	GameManager.current_scene_path = "res://scenes/ui/main_menu.tscn"
-	GameManager.push_menu(self)
+func _ready() -> void:
+	# 导航初始化（不走 NavPage._on_enter，因为 MainMenu 是场景根）
+	_setup_nav()
+	_nav_enabled = false  # 等 Logo 播完再启用
 
-	$Container/Label1.set_meta("locked", true)
-	
-	# 没有符卡记录时锁住 Spell Practice
+	# 锁定项
+	_container.get_node("Label1").set_meta("locked", true)
+
 	if GameState.spell_book.records.is_empty():
-		$Container/Label3.set_meta("locked", true)
-	
+		_container.get_node("Label3").set_meta("locked", true)
+
+	refresh_colors()
+
+	# 选项先隐藏，等 Logo 播完再入场
+	for item: Control in _nav_items:
+		item.modulate.a = 0.0
+
+	GameManager.current_scene_path = "res://scenes/ui/main_menu.tscn"
 	AudioManager.play_bgm(preload("res://assets/Music/THq01_01.无缘故之回.mp3"), 1.0)
 
 	# Logo 入场动画
 	_logo.material.set_shader_parameter("progress", 0.0)
 	_logo.material.set_shader_parameter("alpha_mult", 1.0)
-	var tw = create_tween()
+
+	# 选项入场节奏：更从容
+	entrance_stagger = 0.03
+	entrance_duration = 0.4
+
+	var tw := create_tween()
 	tw.tween_property(_logo.material, "shader_parameter/progress", 1.0, 4.0)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(_play_entrance_animation)
+	tw.tween_callback(_play_entrance)  # 选项在 Logo 播完后入场
 
 
-func _on_item_selected(index: int):
+func _on_item_selected(index: int) -> void:
 	match index:
-		0:
-			_open_difficulty()
-		3:
-			_open_spell_practice()
-		9:
-			get_tree().quit()
+		0: _start_game_flow()
+		2: _open_page("res://scenes/ui/stage_practice_menu.tscn")
+		3: _open_spell_practice()
+		4: _open_page("res://scenes/ui/replay_menu.tscn")
+		5: _open_page("res://scenes/ui/player_data_menu.tscn")
+		6: _open_page("res://scenes/ui/music_room_menu.tscn")
+		7: _open_page("res://scenes/ui/option_menu.tscn")
+		8: _open_page("res://scenes/ui/manual_menu.tscn")
+		9: get_tree().quit()
 
 
-func _open_spell_practice() -> void:
+func _open_page(path: String) -> void:
 	_deactivate_title()
-	var menu := preload("res://scenes/ui/spell_practice_menu.tscn").instantiate()
-	menu.tree_exited.connect(_activate_title)
-	add_child(menu)
-	if menu.has_method("_on_enter"):
-		menu._on_enter()
+	var page := GameManager.push_page(path)
+	page.tree_exited.connect(func(): _activate_title.call_deferred(), CONNECT_ONE_SHOT)
 
 
-# ═══ 标题菜单 停用/恢复 ═══
-
-func _deactivate_title() -> void:
-	input_enabled = false
-	_stop_pulse()
-	refresh_colors(true)
-	var tw := create_tween().set_parallel(true)
-	tw.tween_property(_title_container, "modulate:a", 0.0, 0.25)
-	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 0.0, 0.25)
-	tw.tween_property($GPUParticles2D, "modulate:a", 0.5, 0.25)
-	tw.tween_callback(_title_container.hide).set_delay(0.25)
-	tw.tween_callback(_logo.hide).set_delay(0.25)
+func _on_cancel() -> void:
+	var last_idx := _nav_items.size() - 1
+	if _nav_index < last_idx:
+		sfx_nav()
+		_select(last_idx)
+	else:
+		get_tree().quit()
 
 
-func _activate_title() -> void:
-	_title_container.show()
-	_logo.show()
-	_title_container.modulate.a = 0.0
-	_logo.material.set_shader_parameter("alpha_mult", 0.0)
-	var tw := create_tween().set_parallel(true)
-	tw.tween_property(_title_container, "modulate:a", 1.0, 0.25)
-	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 1.0, 0.25)
-	tw.tween_property($GPUParticles2D, "modulate:a", 0.0, 0.25)
-	tw.tween_callback(func():
-		refresh_colors()
-		input_enabled = true
-		if current_index >= 0 and current_index < menu_items.size():
-			_start_pulse(menu_items[current_index])
-	).set_delay(0.25)
+# ═══ 开始游戏流程（难度 → 角色） ═══
 
-
-func _open_difficulty() -> void:
+func _start_game_flow() -> void:
+	GameState.is_stage_practice = false
 	_deactivate_title()
-	var screen: Node = $MenuHost.push("res://scenes/ui/difficulty_screen.tscn")
-	screen.finished.connect(_on_difficulty_finished)
+	_push_difficulty()
 
 
-func _on_difficulty_finished(result: Dictionary) -> void:
+func _push_difficulty() -> void:
+	var page := GameManager.push_page("res://scenes/ui/difficulty_screen.tscn")
+	page.finished.connect(_on_difficulty_result.bind(page), CONNECT_ONE_SHOT)
+
+
+func _on_difficulty_result(result: Dictionary, _page: Node) -> void:
+	GameManager.pop_page()
 	if result.has("difficulty"):
 		GameState.selected_difficulty = result.difficulty
-		# 难度选定 → 打开角色选择
-		$MenuHost.push("res://scenes/ui/character_screen.tscn").finished.connect(_on_character_finished)
+		_push_character()
 	else:
-		# X 返回 → 恢复标题
-		get_tree().create_timer(0.25).timeout.connect(func(): _activate_title())
+		_activate_title()
 
 
-func _on_character_finished(result: Dictionary) -> void:
+func _push_character() -> void:
+	var page := GameManager.push_page("res://scenes/ui/character_screen.tscn")
+	page.finished.connect(_on_character_result.bind(page), CONNECT_ONE_SHOT)
+
+
+func _on_character_result(result: Dictionary, _page: Node) -> void:
+	GameManager.pop_page()
 	if result.has("character"):
 		GameState.selected_character = result.character
 		AudioManager.stop_bgm()
 		GameManager.change_scene("res://scenes/game_scene.tscn")
 	else:
-		# X 返回 → 重新打开难度选择
-		$MenuHost.push("res://scenes/ui/difficulty_screen.tscn").finished.connect(_on_difficulty_finished)
+		_push_difficulty()
+
+
+# ═══ 符卡练习 ═══
+
+func _open_spell_practice() -> void:
+	_deactivate_title()
+	var page := GameManager.push_page("res://scenes/ui/spell_practice_menu.tscn")
+	page.tree_exited.connect(func(): _activate_title.call_deferred(), CONNECT_ONE_SHOT)
+
+
+# ═══ 标题停用/恢复 ═══
+
+func _deactivate_title() -> void:
+	_nav_enabled = false
+	_stop_pulse()
+	refresh_colors()
+
+	# 与 MenuNav 黑场同步渐隐（0.12s）
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_container, "modulate:a", 0.0, 0.12)
+	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 0.0, 0.12)
+	tw.tween_property(_particles, "modulate:a", 0.5, 0.12)
+	tw.tween_callback(_container.hide).set_delay(0.12)
+	tw.tween_callback(_logo.hide).set_delay(0.12)
+
+
+func _activate_title() -> void:
+	if not is_instance_valid(self) or not is_instance_valid(_container):
+		return
+	_container.show()
+	_logo.show()
+	_container.modulate.a = 0.0
+	_logo.material.set_shader_parameter("alpha_mult", 0.0)
+
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_container, "modulate:a", 1.0, 0.25)
+	tw.tween_property(_logo.material, "shader_parameter/alpha_mult", 1.0, 0.25)
+	tw.tween_property(_particles, "modulate:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		refresh_colors()
+		_nav_enabled = true
+		if _nav_index >= 0 and _nav_index < _nav_items.size():
+			_start_pulse(_nav_items[_nav_index])
+	).set_delay(0.25)
+
+
+# ═══ 调试（F1 全开符卡） ═══
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("debug_toggle"):
+		GameState.debug_fill_spells()
+		_container.get_node("Label3").remove_meta("locked")
+		refresh_colors()
