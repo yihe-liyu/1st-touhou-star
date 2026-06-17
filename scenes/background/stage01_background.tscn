@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://14hmn1qoll6l"]
 
-[ext_resource type="Script" uid="uid://b2aqhbms4xuer" path="res://scripts/background/stage01_background.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://b2aqhbms4xuer" path="res://scripts/background/stage_background.gd" id="1_script"]
 [ext_resource type="Script" uid="uid://cys5ctkx6l5h8" path="res://scripts/background/background_plane.gd" id="2_plane"]
 [ext_resource type="Shader" uid="uid://dk0cc5a6lkcd0" path="res://gdshader/background_plane.gdshader" id="3_shader"]
 [ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="4_grass"]
@@ -14,7 +14,7 @@ fog_enabled = true
 fog_light_color = Color(0, 0, 0, 1)
 fog_density = 0.5
 
-[sub_resource type="ShaderMaterial" id="Mat_Ground"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0dhpc"]
 render_priority = 0
 shader = ExtResource("3_shader")
 shader_parameter/base_texture = ExtResource("4_grass")
@@ -23,7 +23,7 @@ shader_parameter/uv_offset = Vector2(0, 0)
 shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_Ground"]
-material = SubResource("Mat_Ground")
+material = SubResource("ShaderMaterial_0dhpc")
 size = Vector2(256, 256)
 
 [sub_resource type="ShaderMaterial" id="Mat_Cylinder"]

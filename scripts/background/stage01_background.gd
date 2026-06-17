@@ -1,2 +1,0 @@
-extends StageBackground
-class_name Stage01Background
