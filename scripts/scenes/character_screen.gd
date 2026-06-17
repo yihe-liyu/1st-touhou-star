@@ -21,7 +21,11 @@ func _on_enter() -> void:
 	var diff_names := ["Easy", "Normal", "Hard", "Lunatic"]
 	$DifficultyBadge.text = diff_names[GameState.selected_difficulty] + " 难度"
 	
-	# 内容渐显，遮罩保持当前暗度
+	# 遮罩先出来挡住背景
+	$Overlay.visible = true
+	$Overlay.modulate.a = 0.5
+	
+	# 内容渐显
 	var content := $HBoxContainer
 	content.modulate.a = 0.0
 	if has_node("TitleLabel"): $TitleLabel.modulate.a = 0.0

@@ -18,7 +18,11 @@ func _on_enter() -> void:
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
 	
-	# 内容渐显，遮罩保持当前暗度
+	# 遮罩先出来挡住背景
+	$Overlay.visible = true
+	$Overlay.modulate.a = 0.5
+	
+	# 内容渐显
 	$Container.modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property($Container, "modulate:a", 1.0, 0.2)
