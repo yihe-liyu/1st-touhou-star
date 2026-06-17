@@ -37,9 +37,11 @@ func _on_leave() -> void:
 
 
 func leave() -> void:
+	# X→返回: 遮罩+内容一起渐隐
 	_ready_to_input = false
 	_stop_pulse()
-	var tw := create_tween()
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property($Overlay, "modulate:a", 0.0, 0.15)
 	tw.tween_property($Container, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(func ():
 		finished.emit({})

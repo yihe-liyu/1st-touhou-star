@@ -45,12 +45,14 @@ func _on_leave() -> void:
 
 
 func leave() -> void:
+	# X→返回: 遮罩+内容一起渐隐
 	_ready_to_input = false
 	_stop_pulse()
 	var tw := create_tween().set_parallel(true)
-	tw.tween_property($HBoxContainer, "modulate:a", 0.0, 0.15)
+	tw.tween_property($Overlay, "modulate:a", 0.0, 0.15)
 	if has_node("TitleLabel"): tw.tween_property($TitleLabel, "modulate:a", 0.0, 0.15)
 	if has_node("DifficultyBadge"): tw.tween_property($DifficultyBadge, "modulate:a", 0.0, 0.15)
+	tw.tween_property($HBoxContainer, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(func ():
 		finished.emit({})
 		queue_free()
