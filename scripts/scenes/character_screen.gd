@@ -38,6 +38,16 @@ func _on_leave() -> void:
 	_stop_pulse()
 	queue_free()
 
+func leave() -> void:
+	_ready_to_input = false
+	_stop_pulse()
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 0.0, 0.15)
+	tw.tween_callback(func ():
+		finished.emit({})
+		queue_free()
+	)
+
 
 func _input(event: InputEvent) -> void:
 	if not _ready_to_input:
