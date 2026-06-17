@@ -17,6 +17,7 @@ func _on_enter() -> void:
 	
 	# 恢复上次选择的角色
 	_index = clampi(GameState.selected_character, 0, _labels.size() - 1)
+	_play_entrance(_labels)
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
 	

@@ -73,3 +73,13 @@ func _stop_pulse() -> void:
 	if _pulse_tween and _pulse_tween.is_valid():
 		_pulse_tween.kill()
 	_pulse_tween = null
+
+func _play_entrance(items: Array) -> void:
+	for i in items.size():
+		items[i].modulate.a = 0.0
+		items[i].scale = Vector2(0.85, 0.85)
+	var tw := create_tween().set_parallel(true)
+	for i in items.size():
+		var delay := i * 0.04
+		tw.tween_property(items[i], "modulate:a", 1.0, 0.15).set_delay(delay)
+		tw.tween_property(items[i], "scale", Vector2.ONE, 0.2).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

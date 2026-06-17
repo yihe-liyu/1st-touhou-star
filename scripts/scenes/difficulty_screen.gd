@@ -16,6 +16,7 @@ func _on_enter() -> void:
 		if child is Label:
 			_labels.append(child)
 	_index = clampi(GameState.selected_difficulty, 0, _labels.size() - 1)
+	_play_entrance(_labels)
 	_highlight_items(_labels, _index)
 	_start_pulse(_labels[_index])
 	modulate.a = 1.0
