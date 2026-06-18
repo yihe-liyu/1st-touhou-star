@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="DecorLayer" format=3 uid="uid://cuesnpdklufr8"]
 
-[ext_resource type="Script" uid="uid://bjcsruse6fv5h" path="res://scripts/background/decor_layer.gd" id="1"]
+[ext_resource type="Script" uid="uid://d17fbnb81q2gq" path="res://scripts/background/decor_layer.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dqlgb2gg7syy5" path="res://assets/Textures/background/stage01/stage01_oak.png" id="2"]
 
 [resource]
@@ -11,4 +11,6 @@ size_min = Vector2(8, 8)
 size_max = Vector2(20, 20)
 density = 0.3
 y_offset = 8.0
+y_variance = 2.0
 alpha_mode = 1
+billboard = false

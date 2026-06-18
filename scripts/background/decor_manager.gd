@@ -80,17 +80,26 @@ func _process(delta: float) -> void:
 		var g: _LayerGroup = _groups[key]
 		var entries: Array[DecorEntry] = g.entries
 		for e in entries:
+			# 跟随地面滚动
+			if e.follow:
+				var rx: float = e.follow.plane_size.x / maxf(e.follow.tiling.x, 1.0)
+				var ry: float = e.follow.plane_size.y / maxf(e.follow.tiling.y, 1.0)
+				e.position += Vector3(
+					e.follow.scroll_speed.x * rx,
+					0,
+					-e.follow.scroll_speed.y * ry
+				) * delta
+			# 生命周期 / 超视野
 			if e.lifetime > 0 and (e.spawn_time > 0 and _elapsed - e.spawn_time >= e.lifetime):
 				e.alive = false
 			if e.position.z > 100 or e.position.z < -400:
 				e.alive = false
-		# 只保留活的
 		var alive: Array[DecorEntry] = []
 		for e in entries:
 			if e.alive: alive.append(e)
 		g.entries = alive
-		# 深度排序
-		entries.sort_custom(func(a, b): return a.position.z < b.position.z)
+		g.entries.sort_custom(func(a, b): return a.position.z < b.position.z)
+		_flush_mm(g)
 		_flush_mm(g)
 
 
@@ -134,9 +143,6 @@ func _flush_mm(g: _LayerGroup) -> void:
 		if e.alive:
 			var t := Transform3D().scaled(Vector3(e.scale.x, e.scale.y, 1.0))
 			t.origin = e.position
-			if _camera and g.layer.billboard:
-				t = t.looking_at(_camera.global_position, Vector3.UP)
-				t = t.rotated_local(Vector3.UP, PI)
 			mm.set_instance_transform(i, t)
 		else:
 			mm.set_instance_transform(i, Transform3D())
