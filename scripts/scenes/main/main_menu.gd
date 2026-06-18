@@ -33,9 +33,9 @@ func _ready() -> void:
 	_logo.material.set_shader_parameter("progress", 0.0)
 	_logo.material.set_shader_parameter("alpha_mult", 1.0)
 
-	# 选项入场节奏：更从容
-	entrance_stagger = 0.03
-	entrance_duration = 0.4
+	# 从容淡入 ~1.0s
+	entrance_stagger = 0.05
+	entrance_duration = 0.5
 
 	var tw := create_tween()
 	tw.tween_property(_logo.material, "shader_parameter/progress", 1.0, 4.0)\

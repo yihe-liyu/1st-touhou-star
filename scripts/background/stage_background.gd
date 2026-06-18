@@ -118,7 +118,7 @@ func move_camera(target_pos: Vector3, duration: float, ease_type: int = Tween.EA
 		return
 	var tween = create_tween()
 	tween.set_ease(ease_type).set_trans(trans_type)
-	tween.tween_property(camera, "transform", Transform3D(camera.transform.basis, target_pos), duration)
+	tween.tween_property(camera, "position", target_pos, duration)
 
 ## 后处理 — 亮度/对比/饱和
 func tween_post_processing(brightness: float = 1.0, contrast: float = 1.0, saturation: float = 1.0, duration: float = 1.0, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):

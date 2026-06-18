@@ -99,7 +99,8 @@ func _create_group(key: String, tex: Texture2D) -> void:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_texture = tex
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	mat.alpha_scissor_threshold = 0.8
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_DISABLED
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mesh.material = mat
