@@ -30,7 +30,7 @@ script = ExtResource("1_4oxri")
 environment = SubResource("Environment_wqyen")
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1690319242]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -62)
 mesh = SubResource("PlaneMesh_h8p4f")
 script = ExtResource("3_2145v")
 scroll_speed = Vector2(0, -0.1)

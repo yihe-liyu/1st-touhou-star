@@ -155,9 +155,9 @@ func spawn_decor(layer_name: String, pos3d: Vector3, scale: Vector2 = Vector2(1,
 	if mgr: mgr.spawn(layer_name, pos3d, scale, follow_plane, lifetime)
 
 ## 在指定层批量生成装饰物
-func batch_spawn_decor(layer_name: String, count: int, x_range: Vector2, follow_plane: BackgroundPlane = null, lifetime: float = -1.0) -> void:
+func batch_spawn_decor(layer_name: String, count: int, x_range: Vector2, z_range: Vector2 = Vector2.ZERO, follow_plane: BackgroundPlane = null, lifetime: float = -1.0) -> void:
 	var mgr: DecorManager = _get_or_create_decor_manager()
-	if mgr: mgr.batch_spawn(layer_name, count, x_range, follow_plane, lifetime)
+	if mgr: mgr.batch_spawn(layer_name, count, x_range, z_range, follow_plane, lifetime)
 
 
 func _get_or_create_decor_manager() -> DecorManager:

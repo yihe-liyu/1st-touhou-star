@@ -39,20 +39,23 @@ func add_layer(layer: DecorLayer) -> void:
 func spawn(layer_name: String, pos: Vector3, tex_scale: Vector2, follow: BackgroundPlane, lifetime: float = -1.0) -> void:
 	var g: _LayerGroup = _groups.get(layer_name)
 	if not g: return
+	var scale := tex_scale
+	if scale == Vector2.ZERO:
+		scale = Vector2(RNG.randf_range(g.layer.size_min.x, g.layer.size_max.x), RNG.randf_range(g.layer.size_min.y, g.layer.size_max.y))
 	var e := DecorEntry.new()
 	e.position = pos
-	e.scale = tex_scale
+	e.scale = scale
 	e.follow = follow
 	e.spawn_time = _elapsed
 	e.lifetime = lifetime
 	g.entries.append(e)
 
 
-func batch_spawn(layer_name: String, count: int, x_range: Vector2, follow: BackgroundPlane, lifetime: float = -1.0) -> void:
+func batch_spawn(layer_name: String, count: int, x_range: Vector2, z_range: Vector2, follow: BackgroundPlane, lifetime: float = -1.0) -> void:
 	var g: _LayerGroup = _groups.get(layer_name)
 	if not g: return
 	var layer := g.layer
-	var band := layer.spawn_band
+	var band := z_range if z_range != Vector2.ZERO else layer.spawn_band
 	var y_var := layer.y_variance
 	var s_min := layer.size_min
 	var s_max := layer.size_max

@@ -6,8 +6,8 @@
 [ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="4_grass"]
 [ext_resource type="Script" uid="uid://dbptkyms8tcv1" path="res://scripts/background/background_cylinder.gd" id="5_cyl"]
 [ext_resource type="Shader" uid="uid://jqdvf1cx2kha" path="res://gdshader/background_cylinder.gdshader" id="6_shader"]
-[ext_resource type="Script" uid="uid://cgepov6q7kvxi" path="res://scripts/coroutine/examples/stage01_decor.gd" id="7_g553e"]
-[ext_resource type="Texture2D" uid="uid://dudt7kr2rhib1" path="res://assets/Textures/background/stage01/st01b.png" id="8_0dhpc"]
+[ext_resource type="Script" path="res://scripts/coroutine/examples/stage01_decor.gd" id="7_g553e"]
+[ext_resource type="Texture2D" uid="uid://dqlgb2gg7syy5" path="res://assets/Textures/background/stage01/stage01_oak.png" id="8_0dhpc"]
 
 [sub_resource type="Environment" id="Environment_cnuel"]
 fog_enabled = true

@@ -7,10 +7,10 @@
 script = ExtResource("1")
 name = "橡树"
 texture = ExtResource("2")
-size_min = Vector2(8, 8)
+size_min = Vector2(12, 12)
 size_max = Vector2(20, 20)
-density = 0.3
+density = 1.0
 y_offset = 8.0
-y_variance = 2.0
+lod_distance = 175.0
 alpha_mode = 1
 billboard = false

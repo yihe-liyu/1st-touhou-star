@@ -15,7 +15,7 @@ extends Resource
 ## 每米密度（在 spawn_band 区间内的平均实例数/米）
 @export var density: float = 0.5
 
-## 垂直偏移 & 随机
+## 垂直偏移
 @export var y_offset: float = 0.0
 ## 垂直随机（batch_spawn 贴地自动计算，此值用于手动 spawn）
 @export var y_variance: float = 0.0
