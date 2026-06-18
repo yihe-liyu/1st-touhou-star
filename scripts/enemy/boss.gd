@@ -48,11 +48,16 @@ func setup(data: BossData, api: StageAPI) -> void:
 	collision_mask = 2
 	area_entered.connect(_on_area_entered)
 
-func start_boss() -> void:
+func start_boss(defer: bool = false) -> void:
 	set_process(true)
 	GameState.active_enemies.append(self)
 	tree_exited.connect(func(): GameState.active_enemies.erase(self))
 	GameEvents.boss_spawned.emit(self)
+	if not defer:
+		_next_phase()
+
+
+func begin_battle() -> void:
 	_next_phase()
 
 func _next_phase() -> void:
@@ -144,11 +149,12 @@ func _on_phase_clear(captured: bool) -> void:
 	var phase_type: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
 	var phase_num: int = _spell_count if is_spell else _non_count
 	var difficulty: int = GameState.selected_difficulty
+	var sp_uid: int = _current_phase.uid
 	
 	if GameState.is_practice_mode:
-		GameState.record_practice(character, stage_id, phase_type, phase_num, difficulty, captured)
+		GameState.record_practice(sp_uid, character, difficulty, captured)
 	else:
-		GameState.record_spell(character, stage_id, phase_type, phase_num, difficulty, captured, _bonus, _elapsed, _phase_index + 1, _current_phase.uid, _current_phase.name)
+		GameState.record_spell(character, stage_id, phase_type, phase_num, difficulty, captured, _bonus, _elapsed, _phase_index + 1, sp_uid, _current_phase.name)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

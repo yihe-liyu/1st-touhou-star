@@ -1,9 +1,13 @@
 [gd_resource type="Resource" script_class="StageData" format=3 uid="uid://bthqoru8kg8en"]
 
 [ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="1_kitru"]
+[ext_resource type="PackedScene" uid="uid://40gibb6sxa5f" path="res://data/stages/stage01/background/stage01_background.tscn" id="1_t41ke"]
 [ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="2_t41ke"]
+[ext_resource type="Script" uid="uid://cnr7on4pekex" path="res://data/stages/stage01/stage_script/stage01_easy.gd" id="3_wwb4a"]
 
 [resource]
 script = ExtResource("2_t41ke")
 difficulty = 0
+create_script = ExtResource("3_wwb4a")
+background_scene = ExtResource("1_t41ke")
 metadata/_custom_type_script = "uid://bvlmm7m3gtwc0"

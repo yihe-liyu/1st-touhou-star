@@ -1,5 +1,4 @@
 extends BackgroundScript
-class_name Stage01Decor
 
 
 # ═══════════════════════════════════════════

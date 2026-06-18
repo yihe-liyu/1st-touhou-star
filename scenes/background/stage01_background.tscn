@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://14hmn1qoll6l"]
 
-[ext_resource type="Script" uid="uid://b2aqhbms4xuer" path="res://scripts/background/stage_background.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dbhbj3e3flrhs" path="res://scripts/background/stage01_background.gd" id="1_stage_bg"]
 [ext_resource type="Script" uid="uid://cys5ctkx6l5h8" path="res://scripts/background/background_plane.gd" id="2_plane"]
 [ext_resource type="Shader" uid="uid://dk0cc5a6lkcd0" path="res://gdshader/background_plane.gdshader" id="3_shader"]
 [ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="4_grass"]
@@ -41,7 +41,7 @@ bottom_radius = 200.0
 height = 80.0
 
 [node name="Stage01Background" type="Node3D" unique_id=2143515814]
-script = ExtResource("1_script")
+script = ExtResource("1_stage_bg")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1733152401]
 environment = SubResource("Environment_cnuel")

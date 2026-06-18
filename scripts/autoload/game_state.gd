@@ -75,6 +75,7 @@ func _get_all_stages() -> Array[StageData]:
 	return result
 
 func debug_fill_spells() -> void:
+	spell_book.records.clear()
 	for sd in _get_all_stages():
 		for boss in sd.bosses:
 			_fill_from_boss(boss, sd.stage_id, sd.difficulty)
@@ -108,8 +109,10 @@ func unlock_spell(character: int, stage_id: int, phase_type: int, phase_num: int
 		stage_id, phase_type, phase_num, order, sname)
 	_save_spell_book()
 
-func record_practice(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, captured: bool) -> void:
-	return  # TODO: uid 架构迁移 — 调用处需传入 uid
+func record_practice(uid: int, character: int, difficulty: int, captured: bool) -> void:
+	if uid == 0: return
+	spell_book.record_practice(uid, character, difficulty, captured)
+	_save_spell_book()
 
 var active_enemies: Array = []
 

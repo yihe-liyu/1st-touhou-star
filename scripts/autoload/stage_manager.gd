@@ -70,7 +70,7 @@ func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	_add_enemy_to_scene(enemy)
 	return enemy
 
-func spawn_boss(data: BossData, position: Vector2, api: StageAPI) -> Node:
+func spawn_boss(data: BossData, position: Vector2, api: StageAPI, defer: bool = false) -> Node:
 	var boss := BossClass.new()
 	boss.global_position = position
 	
@@ -81,7 +81,7 @@ func spawn_boss(data: BossData, position: Vector2, api: StageAPI) -> Node:
 	
 	_add_enemy_to_scene(boss)
 	boss.setup(data, api)
-	boss.start_boss()
+	boss.start_boss(defer)
 	return boss
 
 func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bullet:

@@ -1,8 +1,7 @@
 extends StageScript
-class_name TestLevel
 
 const EX_BOSS = preload("res://data/boss_data/ex_boss.tres")
-const TEST_DIALOGUE = preload("res://data/dialogue/reimu/stage1.tres")
+const TEST_DIALOGUE = preload("res://data/dialogue/reimu/stage01_before.tres")
 
 var _phase: int = 0
 
