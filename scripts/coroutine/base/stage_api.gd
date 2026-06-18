@@ -159,6 +159,14 @@ func batch_spawn_decor(layer_name: String, count: int, x_range: Vector2, z_range
 	var mgr: DecorManager = _get_or_create_decor_manager()
 	if mgr: mgr.batch_spawn(layer_name, count, x_range, z_range, follow_plane, lifetime)
 
+func clear_decor_layer(layer_name: String) -> void:
+	var mgr: DecorManager = _get_or_create_decor_manager()
+	if mgr: mgr.clear_layer(layer_name)
+
+func fade_out_decor_layer(layer_name: String, duration: float) -> void:
+	var mgr: DecorManager = _get_or_create_decor_manager()
+	if mgr: mgr.fade_out_layer(layer_name, duration)
+
 
 func _get_or_create_decor_manager() -> DecorManager:
 	var bg := StageManager.current_background

@@ -39,12 +39,12 @@ func add_layer(layer: DecorLayer) -> void:
 func spawn(layer_name: String, pos: Vector3, tex_scale: Vector2, follow: BackgroundPlane, lifetime: float = -1.0) -> void:
 	var g: _LayerGroup = _groups.get(layer_name)
 	if not g: return
-	var scale := tex_scale
-	if scale == Vector2.ZERO:
-		scale = Vector2(RNG.randf_range(g.layer.size_min.x, g.layer.size_max.x), RNG.randf_range(g.layer.size_min.y, g.layer.size_max.y))
+	var sz := tex_scale
+	if sz == Vector2.ZERO:
+		sz = Vector2(RNG.randf_range(g.layer.size_min.x, g.layer.size_max.x), RNG.randf_range(g.layer.size_min.y, g.layer.size_max.y))
 	var e := DecorEntry.new()
 	e.position = pos
-	e.scale = scale
+	e.scale = sz
 	e.follow = follow
 	e.spawn_time = _elapsed
 	e.lifetime = lifetime
@@ -69,6 +69,22 @@ func batch_spawn(layer_name: String, count: int, x_range: Vector2, z_range: Vect
 		e.spawn_time = _elapsed
 		e.lifetime = lifetime
 		g.entries.append(e)
+
+func clear_layer(layer_name: String) -> void:
+	var g: _LayerGroup = _groups.get(layer_name)
+	if not g: return
+	g.entries.clear()
+	_flush_mm(g)
+
+func fade_out_layer(layer_name: String, duration: float) -> void:
+	var g: _LayerGroup = _groups.get(layer_name)
+	if not g or not g.mmi: return
+	var tw := create_tween()
+	tw.tween_property(g.mmi, "transparency", 1.0, duration)
+	tw.tween_callback(func():
+		if g.mmi: g.mmi.transparency = 0.0
+		clear_layer(layer_name)
+	)
 
 
 # ═══ 生命周期 ═══
