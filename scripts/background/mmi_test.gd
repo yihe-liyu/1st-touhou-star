@@ -1,0 +1,43 @@
+extends Node3D
+
+func _ready():
+	var layer: DecorLayer = preload("res://data/decor_layers/oak.tres")
+
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.instance_count = 0
+
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(1, 1)
+	mesh.orientation = QuadMesh.FACE_Z
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = layer.texture
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	match layer.alpha_mode:
+		DecorLayer.AlphaMode.BLEND:
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_:
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+			mat.alpha_scissor_threshold = layer.alpha_threshold
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED if layer.billboard else BaseMaterial3D.BILLBOARD_DISABLED
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mesh.material = mat
+	mm.mesh = mesh
+
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mmi)
+
+	# 灌数据
+	var count := 9
+	mm.instance_count = count
+	for i in 3:
+		for j in 3:
+			var idx := i * 3 + j
+			var t := Transform3D().scaled(Vector3(16, 16, 1))
+			t.origin = Vector3(i * 30 - 30, 8, -30 - j * 20)
+			mm.set_instance_transform(idx, t)
+
+	print("OAK test ready, count=", count)

@@ -17,6 +17,7 @@ extends Resource
 
 ## 垂直偏移 & 随机
 @export var y_offset: float = 0.0
+## 垂直随机（batch_spawn 贴地自动计算，此值用于手动 spawn）
 @export var y_variance: float = 0.0
 
 ## 在相机前方多远区间生成新实例 (z_near, z_far)

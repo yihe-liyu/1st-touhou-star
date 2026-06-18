@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://yalrtf7ig314"]
+
+[ext_resource type="Script" uid="uid://hohc0wnrvrbr" path="res://scripts/background/mmi_test.gd" id="1_u31p2"]
+
+[node name="Node3D" type="Node3D" unique_id=1452676036]
+script = ExtResource("1_u31p2")

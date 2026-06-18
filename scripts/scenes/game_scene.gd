@@ -6,7 +6,7 @@ const GAME_OVER_MENU = preload("res://scenes/ui/game_over_menu.tscn")
 @onready var _sub_viewport: SubViewport = $Background/SubViewportContainer/SubViewport
 
 var _blur_rect: ColorRect
-var _background_instance: StageBackground
+var _background_instance: Node  # StageBackground 或测试 Node3D
 var _practice_runner: CoroutineRunner
 
 
@@ -61,19 +61,18 @@ func _start_practice_game() -> void:
 
 func _resolve_stage_data() -> StageData:
 	if GameState.stage_registry:
-		return GameState.stage_registry.find(
-			GameState.current_stage_id, GameState.selected_difficulty)
+		return GameState.stage_registry.find(GameState.current_stage_id, GameState.selected_difficulty)
 	push_error("GameScene: stage_registry 未设置")
 	return null
 
 
 func _load_background(scene: PackedScene) -> void:
-	if not scene:
-		return
+	if not scene: return
 	if _background_instance:
 		_background_instance.queue_free()
 	_background_instance = scene.instantiate()
-	StageManager.current_background = _background_instance
+	if _background_instance is StageBackground:
+		StageManager.current_background = _background_instance
 	_sub_viewport.add_child(_background_instance)
 
 
@@ -99,8 +98,6 @@ func _setup_player() -> void:
 		player._apply_player_data()
 		player._reinit_shoot()
 
-
-# ═══ 事件 ═══
 
 func _on_player_death():
 	await get_tree().create_timer(2.0).timeout
@@ -135,23 +132,18 @@ func _on_practice_cleared(_boss: Node) -> void:
 	GameManager.change_scene("res://scenes/ui/main_menu.tscn", GameManager.AppState.MENU)
 
 
-# ═══ 暂停模糊 ═══
-
 func _add_blur() -> void:
 	if _blur_rect: return
 	var container := $Background/SubViewportContainer
 	var vs := get_viewport().get_visible_rect().size
-
 	_blur_rect = ColorRect.new()
 	_blur_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_blur_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/pause_blur.gdshader")
 	mat.set_shader_parameter("rect_min", Vector2(container.position) / vs)
 	mat.set_shader_parameter("rect_max", Vector2(container.position + container.size) / vs)
 	_blur_rect.material = mat
-
 	var blur_layer := CanvasLayer.new()
 	blur_layer.layer = 15
 	blur_layer.name = "BlurLayer"
