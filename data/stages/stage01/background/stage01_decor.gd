@@ -3,7 +3,7 @@ extends BackgroundScript
 @onready var bg: StageBackground = $".."
 @onready var ground: BackgroundPlane = $"../Ground"
 
-@export var tree_texture: Texture2D
+const OAK_LAYER = preload("res://data/decor_layers/oak.tres")
 
 var _phase: int = 0
 var _loop: int = 0
@@ -16,18 +16,18 @@ func _on_init(api: StageAPI) -> void:
 	if bg.camera:
 		bg.camera.fov = 55.0
 
+	# 注册分层
+	api.add_decor_layer(OAK_LAYER)
+
 	# 黑雾里预生成树, 雾散时已经在场
-	for i in range(200):
-		var x = RNG.randf_range(-70, 70)
-		var z = RNG.randf_range(-200, -30)
-		_spawn(api, tree_texture, Vector2(16, 16), 8.0, x, z)
+	api.batch_spawn_decor("橡树", 200, Vector2(-70, 70), ground)
 
 func _on_step(api: StageAPI) -> Variant:
 	_loop += 1
 	if _loop == 18:
-		var x = RNG.randf_range(-70, 70)
-		var z = RNG.randf_range(-220, -180)
-		_spawn(api, tree_texture, Vector2(16, 16), 8.0, x, z)
+		var x: float = RNG.randf_range(-70, 70)
+		var z: float = RNG.randf_range(-220, -180)
+		api.spawn_decor("橡树", Vector3(x, 8.0, z), Vector2(16, 16), ground)
 		_loop = 0
 
 	match _phase:
@@ -41,9 +41,6 @@ func _on_step(api: StageAPI) -> Variant:
 			_phase = 2
 			return api.seconds(2)
 	return true
-
-func _spawn(api: StageAPI, tex: Texture2D, size: Vector2, y: float, x: float, z: float):
-	api.spawn_decor_batched(tex, Vector3(x, y, z), size, ground)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment

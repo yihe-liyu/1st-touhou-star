@@ -5,7 +5,6 @@
 [ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="2_4oxri"]
 [ext_resource type="Script" uid="uid://cys5ctkx6l5h8" path="res://scripts/background/background_plane.gd" id="3_2145v"]
 [ext_resource type="Script" uid="uid://c3a5hfx0ggmx5" path="res://data/stages/stage01/background/stage01_decor.gd" id="5_2145v"]
-[ext_resource type="Texture2D" uid="uid://dqlgb2gg7syy5" path="res://assets/Textures/background/stage01/stage01_oak.png" id="6_oak"]
 
 [sub_resource type="Environment" id="Environment_wqyen"]
 fog_enabled = true
@@ -39,4 +38,3 @@ base_texture = ExtResource("2_4oxri")
 
 [node name="Decor" type="Node" parent="." unique_id=800298208]
 script = ExtResource("5_2145v")
-tree_texture = ExtResource("6_oak")
