@@ -1,11 +1,6 @@
 [gd_scene format=3 uid="uid://bwbl2x4t1hpet"]
 
 [ext_resource type="PackedScene" uid="uid://cuprua8ark5uf" path="res://scenes/player.tscn" id="1_w5aja"]
-[ext_resource type="PackedScene" uid="uid://14hmn1qoll6l" path="res://scenes/background/stage01_background.tscn" id="2_liy57"]
-[ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="3_mwyo0"]
-[ext_resource type="Resource" uid="uid://t5j6ojru1hpk" path="res://data/boss_data/ex_boss.tres" id="4_s76x2"]
-[ext_resource type="Script" uid="uid://bsg7bc25qr4o6" path="res://scripts/coroutine/examples/test_wave.gd" id="5_77hjl"]
-[ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="6_6aqbo"]
 [ext_resource type="Resource" uid="uid://dpfnytduqm40y" path="res://data/player_data/reimu_data.tres" id="6_b5spy"]
 [ext_resource type="Texture2D" uid="uid://c55c2cfyu20ec" path="res://assets/Textures/title/title.png" id="6_kk2rg"]
 [ext_resource type="Texture2D" uid="uid://dtv267387tbw0" path="res://assets/Textures/front/front02.png" id="6_mw25s"]
@@ -16,13 +11,6 @@
 [ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/game_ui.gd" id="10_ui"]
 [ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/components/rect_outline.gd" id="12_rect_outline"]
 [ext_resource type="Shader" uid="uid://dbi40qjrrq0q4" path="res://gdshader/water_flow.gdshader" id="13_water"]
-
-[sub_resource type="Resource" id="Resource_ro0ie"]
-script = ExtResource("6_6aqbo")
-difficulty = 0
-create_script = ExtResource("5_77hjl")
-background_scene = ExtResource("2_liy57")
-bosses = Array[ExtResource("3_mwyo0")]([ExtResource("4_s76x2")])
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mwyo0"]
 atlas = ExtResource("6_mw25s")
@@ -99,7 +87,6 @@ shader_parameter/foam_detail = 100.0
 
 [node name="Main" type="Node" unique_id=1241607837]
 script = ExtResource("9_script")
-stage_data = SubResource("Resource_ro0ie")
 
 [node name="Background" type="CanvasLayer" parent="." unique_id=1180211993]
 layer = -1

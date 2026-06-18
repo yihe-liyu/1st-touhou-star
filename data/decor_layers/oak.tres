@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DecorLayer" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/background/decor_layer.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/Textures/background/stage01/stage01_oak.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+name = "橡树"
+texture = ExtResource("2")
+size_min = Vector2(8, 8)
+size_max = Vector2(20, 20)
+density = 0.5
+y_offset = 4.0
+y_variance = 2.0
+spawn_band = Vector2(-200, 0)
+lod_distance = 150.0
+scroll_mult = 1.0
+alpha_mode = 0
+alpha_threshold = 0.5
+billboard = true

@@ -8,6 +8,7 @@ class_name StageAPI
 
 const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
 const DecorBatcherClass = preload("res://scripts/background/decor_batcher.gd")
+const DecorManagerClass = preload("res://scripts/background/decor_manager.gd")
 
 var runner: CoroutineRunner
 
@@ -140,7 +141,26 @@ func _find_item_pool() -> Node:
 
 # ---------- 背景装饰物 ----------
 
-## 生成背景装饰物（MultiMesh 批渲染）
+## 注册分层（新系统）
+func add_decor_layer(layer: DecorLayer) -> void:
+	var mgr: DecorManager = _get_or_create_decor_manager()
+	if mgr: mgr.add_layer(layer)
+
+func remove_decor_layer(layer_name: String) -> void:
+	var mgr: DecorManager = _get_or_create_decor_manager()
+	if mgr: mgr.remove_layer(layer_name)
+
+## 在指定层生成单个装饰物
+func spawn_decor(layer_name: String, pos3d: Vector3, scale: Vector2 = Vector2(1, 1), follow_plane: BackgroundPlane = null, lifetime: float = -1.0) -> void:
+	var mgr: DecorManager = _get_or_create_decor_manager()
+	if mgr: mgr.spawn(layer_name, pos3d, scale, follow_plane, lifetime)
+
+## 在指定层批量生成装饰物
+func batch_spawn_decor(layer_name: String, count: int, x_range: Vector2, follow_plane: BackgroundPlane = null, lifetime: float = -1.0) -> void:
+	var mgr: DecorManager = _get_or_create_decor_manager()
+	if mgr: mgr.batch_spawn(layer_name, count, x_range, follow_plane, lifetime)
+
+## 旧接口：生成背景装饰物（MultiMesh 批渲染）— 兼容旧关卡
 func spawn_decor_batched(tex: Texture2D, pos3d: Vector3, scale: Vector2 = Vector2(1, 1), follow_plane: BackgroundPlane = null) -> void:
 	var bg := StageManager.current_background
 	if not bg:
@@ -151,6 +171,17 @@ func spawn_decor_batched(tex: Texture2D, pos3d: Vector3, scale: Vector2 = Vector
 		batcher.name = "DecorBatcher"
 		bg.add_child(batcher)
 	batcher.spawn(tex, pos3d, scale, follow_plane)
+
+
+func _get_or_create_decor_manager() -> DecorManager:
+	var bg := StageManager.current_background
+	if not bg: return null
+	var mgr: DecorManager = bg.get_node_or_null("DecorManager") as DecorManager
+	if not mgr:
+		mgr = DecorManagerClass.new()
+		mgr.name = "DecorManager"
+		bg.add_child(mgr)
+	return mgr
 
 
 # ═══ 对话 ═══
