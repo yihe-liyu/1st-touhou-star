@@ -208,6 +208,15 @@ tree.fade_in(3.0)
 | 同贴图多层变多个 draw call | 会 | 但 GPU 瓶颈在 fill 不在 draw call，影响≈0 |
 | 旧代码 | 不会 | DecorBatcher 保留，旧关卡不动 |
 
+### 扩展方向（未实现）
+
+- **alpha 控制**：DecorEntry 加 `modulate.a` 字段，支持 `fade_in(duration)` / `fade_out(duration)`
+- **动画**：scale / rotation / position 随时间插值（摇摆、漂浮、散落）
+- **查询**：`ctx.decor.get_in_region(aabb)` 拿范围内的实例列表，用于"弹幕吹散范围内的树"
+- **条件生成**：`spawn_when(condition)` — 只在某个条件满足后才生成（如"雾散了才 spawn 中景"）
+- **LOD 降级**：远距离用低分辨率贴图或减少实例密度
+- **剔除回调**：实例被裁剪/回收时触发事件（播放粒子、掉道具等）
+
 ### 迁移步骤
 
 1. 新建 `DecorLayer` 资源类 + 在 `data/decor_layers/` 创建第一个 `.tres`

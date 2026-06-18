@@ -127,12 +127,7 @@ func _process(delta: float) -> void:
 
 			alive_entries.append(e)
 
-			# 跟随平面滚动
-			if e.follow:
-				var scrolled: Vector3 = e.follow.get_scrolled_position(e.position, g.layer.scroll_mult)
-				if scrolled != e.position:
-					e.position = scrolled
-					needs_flush = true
+			# 装饰物世界位置固定，滚动靠 plane shader UV
 
 		# 替换为活着的条目
 		g.entries = alive_entries
@@ -143,11 +138,14 @@ func _process(delta: float) -> void:
 
 
 func _find_camera() -> void:
-	var parent := get_parent()
-	if not parent: return
-	_camera = parent.get_node_or_null("Camera3D") as Camera3D
+	var bg := get_parent()
+	if not bg: return
+	# 相机是 StageBackground 的兄弟节点（同属 SubViewport）
+	var subviewport := bg.get_parent()
+	if subviewport:
+		_camera = subviewport.get_node_or_null("Camera3D") as Camera3D
 	if not _camera:
-		# 从场景根搜索
+		# 后备：从场景根搜索
 		var root := get_tree().current_scene
 		if root:
 			_camera = root.find_child("Camera3D", true, false) as Camera3D

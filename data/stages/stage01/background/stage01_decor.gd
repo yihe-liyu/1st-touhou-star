@@ -5,8 +5,8 @@ extends BackgroundScript
 
 @export var tree_texture: Texture2D
 
-var _phase = 0
-var _loop = 0
+var _phase: int = 0
+var _loop: int = 0
 
 func _on_init(api: StageAPI) -> void:
 	if bg.world_environment:
