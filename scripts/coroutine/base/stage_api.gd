@@ -7,7 +7,6 @@ class_name StageAPI
 ##   frames(n)  → 返回等价秒数
 
 const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
-const DecorBatcherClass = preload("res://scripts/background/decor_batcher.gd")
 const DecorManagerClass = preload("res://scripts/background/decor_manager.gd")
 
 var runner: CoroutineRunner
@@ -159,18 +158,6 @@ func spawn_decor(layer_name: String, pos3d: Vector3, scale: Vector2 = Vector2(1,
 func batch_spawn_decor(layer_name: String, count: int, x_range: Vector2, follow_plane: BackgroundPlane = null, lifetime: float = -1.0) -> void:
 	var mgr: DecorManager = _get_or_create_decor_manager()
 	if mgr: mgr.batch_spawn(layer_name, count, x_range, follow_plane, lifetime)
-
-## 旧接口：生成背景装饰物（MultiMesh 批渲染）— 兼容旧关卡
-func spawn_decor_batched(tex: Texture2D, pos3d: Vector3, scale: Vector2 = Vector2(1, 1), follow_plane: BackgroundPlane = null) -> void:
-	var bg := StageManager.current_background
-	if not bg:
-		return
-	var batcher = bg.get_node_or_null("DecorBatcher")
-	if not batcher:
-		batcher = DecorBatcherClass.new()
-		batcher.name = "DecorBatcher"
-		bg.add_child(batcher)
-	batcher.spawn(tex, pos3d, scale, follow_plane)
 
 
 func _get_or_create_decor_manager() -> DecorManager:
