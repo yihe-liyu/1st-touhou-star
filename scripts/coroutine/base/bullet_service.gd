@@ -21,8 +21,6 @@ func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base
 		BulletManager.shoot_enemy_bullet(bullet_data, at, dir)
 
 
-const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
-
 func fire_growing_laser(data: Resource, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0) -> CurvedLaser:
 	if not active: return null
 	return BulletManager.fire_laser(data, origin, guide_curve, rot_speed)

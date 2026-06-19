@@ -3,7 +3,6 @@ class_name LaserSystem
 extends RefCounted
 
 const MAX_LASERS := 64
-const CurvedLaserClass = preload("res://scripts/laser/curved_laser.gd")
 
 var _active_lasers: Array = []
 var _parent
@@ -19,9 +18,9 @@ func setup(p_parent, p_physics) -> void:
 	_physics = p_physics
 
 
-func fire(data: Resource, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0):
+func fire(data: Resource, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0) -> CurvedLaser:
 	for l in _active_lasers:
-		if l.phase == CurvedLaserClass.DEAD:
+		if l.phase == CurvedLaser.DEAD:
 			l.init(data, origin, guide_curve, rot_speed)
 			return l
 	
@@ -29,7 +28,7 @@ func fire(data: Resource, origin: Vector2, guide_curve: Curve2D, rot_speed: floa
 		push_warning("LaserSystem: max lasers reached (%d)" % MAX_LASERS)
 		return null
 	
-	var laser = CurvedLaserClass.new()
+	var laser = CurvedLaser.new()
 	laser.name = "CurvedLaser_%d" % _active_lasers.size()
 	_parent.add_child(laser)
 	laser.init(data, origin, guide_curve, rot_speed)
@@ -39,7 +38,7 @@ func fire(data: Resource, origin: Vector2, guide_curve: Curve2D, rot_speed: floa
 
 func clear() -> void:
 	for laser in _active_lasers:
-		laser.phase = CurvedLaserClass.DEAD
+		laser.phase = CurvedLaser.DEAD
 		laser.line.visible = false
 		for sl in laser._seg_lines:
 			sl.visible = false
@@ -59,12 +58,12 @@ func step(delta: float) -> void:
 	
 	var hit := false
 	for laser in _active_lasers:
-		if laser.phase == CurvedLaserClass.DEAD:
+		if laser.phase == CurvedLaser.DEAD:
 			continue
 		
 		laser.step(delta)
 		
-		if laser.phase == CurvedLaserClass.ALIVE and has_player and not hit:
+		if laser.phase == CurvedLaser.ALIVE and has_player and not hit:
 			if laser.is_hitting_player(player_pos):
 				hit = true
 			elif laser.is_hitting_player(player_pos, player.graze_radius):
