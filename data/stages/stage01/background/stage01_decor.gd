@@ -24,24 +24,24 @@ func start_background(p_ctx: StageContext):
 	var tl := start_timeline()
 
 	# ① 雾散光来 (0→6s, tween 12s)
-	tl.at(0.0); tl.do(func():
-		_fog_to(Color(0.1, 0.1, 0.1, 0.5), 0.04, 68.0, 12)
+	tl.at(0.0).do(func():
+		_fog_to(Color(0.0, 0.0, 0.0, 0.5), 0.04, 68.0, 12)
 	)
 
 	# ② 相机移动 + 旋转 (6s)
-	tl.at(6.0); tl.do(func():
+	tl.at(6.0).do(func():
 		bg.pan_camera(Vector3(0, 20, -3), 8.0, Tween.EASE_IN_OUT, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-22), 0, deg_to_rad(6)), 6.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
 	)
 
 	# ③ 地面加速 (10s)
-	tl.at(10.0); tl.do(func():
+	tl.at(10.0).do(func():
 		var t := bg.create_tween()
 		t.tween_method(_camera_accel, 1.0, 7.0, 16).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	)
 
 	# ④ 每 4 帧喷一棵树（持续）
-	tl.at(0.0); tl.every(4.0 / Engine.physics_ticks_per_second); tl.do(func():
+	tl.at(0.0).every(4.0 / Engine.physics_ticks_per_second).do(func():
 		var x: float = RNG.randf_range(-90, 90)
 		var z: float = RNG.randf_range(-220, -180)
 		ctx.decor.spawn("橡树", Vector3(x, 8.0, z), Vector2.ZERO, ground)

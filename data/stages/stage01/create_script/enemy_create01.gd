@@ -10,7 +10,7 @@ func start_creating(p_ctx: StageContext):
 	var tl := start_timeline()
 	var p := ctx.player.get_player()
 	
-	tl.at(1.5).every(0.8).do(func():
+	tl.at(1.5).every(2.0).times(3).do(func():
 		var dir := (p.global_position - me.global_position).normalized()
 		ctx.bullets.shoot_spread(BULLET01, 1, TAU, dir, me.global_position, BULLET_SFX)
 	)

@@ -149,6 +149,7 @@ func miss() -> void:
 	if is_invincible:
 		return
 	
+	AudioManager.play_sfx(preload("res://assets/Sound/player_dead.wav"), -6.0)
 	var pos = global_position
 	MissEffectManager.add_circle(pos, 2.5, 1280)
 	MissEffectManager.add_circle(pos + Vector2(100, 0), 2.5, 1280)
@@ -160,7 +161,7 @@ func miss() -> void:
 	BulletManager.start_death_clear(pos, 2048, 3.0)
 	
 	# Miss 后记忆值增加 25%
-	GameState.add_memory(25.0)
+	GameState.add_memory(GameState.MEMORY_MISS)
 	
 	# 残机扣除
 	if GameState.lives > 0:

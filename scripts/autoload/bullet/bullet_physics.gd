@@ -50,7 +50,7 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 				continue
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(ceilf(bullet.damage * bonus))
-			GameState.reduce_memory(0.03)
+			GameState.reduce_memory(GameState.MEMORY_HIT_BY_BULLET)
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
 			return
@@ -131,7 +131,7 @@ func _grazes_player(bullet: Bullet, player: Player) -> bool:
 func on_graze() -> void:
 	GameState.graze_count += 1
 	GameState.add_score(10)
-	GameState.add_memory(0.1)
+	GameState.add_memory(GameState.MEMORY_GRAZE)
 	
 	if not _graze_sfx_played:
 		_graze_sfx_played = true

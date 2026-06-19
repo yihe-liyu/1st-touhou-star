@@ -84,6 +84,7 @@ func take_damage(damage: int):
 
 
 func die():
+	AudioManager.play_sfx(preload("res://assets/Sound/enemy_dead.wav"), -6.0)
 	GameState.active_enemies.erase(self)
 	
 	# 掉落 item

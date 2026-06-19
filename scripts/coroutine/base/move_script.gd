@@ -3,6 +3,11 @@ class_name MoveScript
 
 var target: Node2D
 var ctx: StageContext
+var _tl: Timeline
+
+func start_timeline() -> Timeline:
+	_tl = Timeline.new(ctx)
+	return _tl
 
 func start_moving(p_ctx: StageContext, p_target: Node2D):
 	ctx = p_ctx
@@ -10,4 +15,6 @@ func start_moving(p_ctx: StageContext, p_target: Node2D):
 	run(_on_step.bind(ctx))
 
 func _on_step(_ctx: StageContext) -> Variant:
-	return false
+	if _tl:
+		_tl.tick(get_physics_process_delta_time())
+	return true

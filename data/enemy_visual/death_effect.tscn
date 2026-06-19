@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://cy6khntunjs65"]
+
+[ext_resource type="Texture2D" uid="uid://cfu1kcl2wy1eu" path="res://assets/Textures/effect/etbreak.png" id="1_kk808"]
+[ext_resource type="Script" uid="uid://che3mwj672kwo" path="res://data/enemy_visual/death_effect.gd" id="2_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6e7oh"]
+atlas = ExtResource("1_kk808")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dxi7h"]
+atlas = ExtResource("1_kk808")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n6nk5"]
+atlas = ExtResource("1_kk808")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_deyvn"]
+atlas = ExtResource("1_kk808")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_32a5b"]
+atlas = ExtResource("1_kk808")
+region = Rect2(0, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1ly3b"]
+atlas = ExtResource("1_kk808")
+region = Rect2(64, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dpe4u"]
+atlas = ExtResource("1_kk808")
+region = Rect2(128, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w4xoo"]
+atlas = ExtResource("1_kk808")
+region = Rect2(192, 64, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_pmp2p"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6e7oh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dxi7h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n6nk5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_deyvn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_32a5b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1ly3b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dpe4u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w4xoo")
+}],
+"loop": false,
+"name": &"default",
+"speed": 30.0
+}]
+
+[node name="DeathEffect" type="Node2D" unique_id=770363622]
+script = ExtResource("2_script")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1915019404]
+modulate = Color(1, 1, 1, 0.5)
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_pmp2p")
+frame = 7
+frame_progress = 1.0
