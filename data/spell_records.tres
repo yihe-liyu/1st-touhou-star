@@ -3,5 +3,20 @@
 [ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="1_lls5d"]
 [ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="2_4fnre"]
 
+[sub_resource type="Resource" id="Resource_lls5d"]
+script = ExtResource("1_lls5d")
+uid = 1
+phase_type = 1
+difficulty = 0
+spell_name = "声符「停顿波」"
+phase_order = 2
+attempts = 4
+captures = 3
+practice_attempts = 1
+practice_captures = 1
+best_score = 28478
+best_time = 26.116160000002075
+
 [resource]
 script = ExtResource("2_4fnre")
+records = Array[ExtResource("1_lls5d")]([SubResource("Resource_lls5d")])

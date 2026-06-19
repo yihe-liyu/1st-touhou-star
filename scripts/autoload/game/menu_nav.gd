@@ -76,12 +76,13 @@ func pop() -> void:
 
 	# 恢复上一层
 	if not _page_stack.is_empty():
-		var prev: Node = _page_stack[-1]
-		prev.visible = true
-		if prev.has_method("_on_activate"):
-			prev._on_activate()
+		var prev = _page_stack[-1]
+		if is_instance_valid(prev):
+			prev.visible = true
+			if prev.has_method("_on_activate"):
+				prev._on_activate()
 
-	page_changed.emit(_page_stack[-1] if not _page_stack.is_empty() else null, page)
+	page_changed.emit(_page_stack[-1] if not _page_stack.is_empty() and is_instance_valid(_page_stack[-1]) else null, page)
 
 
 ## 弹出到指定页面（保留该页）
@@ -99,9 +100,9 @@ func pop_to(page: Node) -> void:
 ## 清空页面栈
 func clear_pages() -> void:
 	while not _page_stack.is_empty():
-		var page: Node = _page_stack.pop_back()
-		_disconnect_signals(page)
+		var page = _page_stack.pop_back()
 		if is_instance_valid(page):
+			_disconnect_signals(page)
 			page.queue_free()
 
 

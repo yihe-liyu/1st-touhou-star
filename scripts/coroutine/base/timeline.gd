@@ -73,7 +73,8 @@ func _add(t: float, cb: Callable, ev: float = -1.0, n: int = -1) -> void:
 func tick(delta: float) -> bool:
 	if _paused:
 		return true
-	_elapsed += delta
+	var dt := delta if delta > 0.0 else (1.0 / Engine.physics_ticks_per_second)
+	_elapsed += dt
 	
 	for ev in _events:
 		if ev.fired and ev.repeat_every <= 0:
@@ -88,24 +89,24 @@ func tick(delta: float) -> bool:
 			else:
 				ev.fired = true
 	
-	if _loop_start >= 0 and _all_onetime_fired():
+	if _loop_start >= 0 and _elapsed >= _loop_start and _all_onetime_fired():
 		_reset_onetime()
 		_elapsed = _loop_start
 	
-	return _events.any(func(e): return not e.fired or e.repeat_every > 0)
+	return true
 
 
 func _all_onetime_fired() -> bool:
 	for ev in _events:
-		if ev.repeat_every <= 0 and not ev.fired:
+		if not ev.fired:
 			return false
 	return true
 
 func _reset_onetime() -> void:
 	for ev in _events:
-		if ev.repeat_every <= 0:
-			ev.fired = false
-			ev.time -= _loop_start
+		ev.fired = false
+		ev.time = _elapsed + ev._original_time
+		ev.fired_count = 0
 
 
 func pause() -> void: _paused = true

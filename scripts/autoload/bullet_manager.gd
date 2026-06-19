@@ -101,6 +101,8 @@ func clear_all():
 	_pool.clear()
 	_lasers.clear()
 	_death_clear.clear_all()
+	HitEffectPool.clear_all_pool()
+	MissEffectManager.clear_all()
 	if _multi_mesh:
 		_multi_mesh.clear()
 

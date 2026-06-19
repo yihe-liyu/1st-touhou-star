@@ -96,11 +96,10 @@ func clear_pages() -> void:
 # ═══ 覆盖层（暂停 / Game Over / 通关） ═══
 
 ## 推入覆盖层（暂停游戏）— 接受已实例化的节点（兼容旧 API）
-func push_overlay_menu(menu: CanvasLayer) -> void:
+func push_overlay_menu(menu) -> void:
 	_nav.add_overlay_instance(menu)
 
-## 弹出指定覆盖层（兼容旧 API）
-func pop_overlay_menu(menu: CanvasLayer) -> void:
+func pop_overlay_menu(menu) -> void:
 	_nav.pop_specific_overlay(menu)
 
 

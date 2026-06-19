@@ -30,6 +30,7 @@ func _ready() -> void:
 
 
 func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 1280.0, start_radius: float = 0.0, start_delay: float = 0.0) -> void:
+	if _circles.size() >= MAX_CIRCLES: return
 	_circles.append({
 		world_pos = world_pos,
 		age = -start_delay,
@@ -46,6 +47,10 @@ func _process(delta: float) -> void:
 	for i in range(_circles.size() - 1, -1, -1):
 		if _circles[i].age >= _circles[i].duration:
 			_circles.remove_at(i)
+
+func clear_all() -> void:
+	_circles.clear()
+	_update_shader()
 
 
 func _update_shader() -> void:

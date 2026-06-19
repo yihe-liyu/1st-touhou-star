@@ -4,10 +4,12 @@
 [ext_resource type="PackedScene" uid="uid://40gibb6sxa5f" path="res://data/stages/stage01/background/stage01_background.tscn" id="1_t41ke"]
 [ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="2_t41ke"]
 [ext_resource type="Script" uid="uid://cnr7on4pekex" path="res://data/stages/stage01/stage_script/stage01_easy.gd" id="3_wwb4a"]
+[ext_resource type="Resource" uid="uid://t5j6ojru1hpk" path="res://data/boss_data/ex_boss.tres" id="4_boss"]
 
 [resource]
 script = ExtResource("2_t41ke")
 difficulty = 0
 create_script = ExtResource("3_wwb4a")
 background_scene = ExtResource("1_t41ke")
+bosses = Array[ExtResource("1_kitru")]([ExtResource("4_boss")])
 metadata/_custom_type_script = "uid://bvlmm7m3gtwc0"

@@ -57,5 +57,12 @@ func _acquire(scene: PackedScene) -> HitEffect:
 	return instance
 
 
+func clear_all_pool() -> void:
+	for key in _pools:
+		for eff in _pools[key]:
+			if is_instance_valid(eff):
+				eff.queue_free()
+	_pools.clear()
+
 func _recycle(effect: HitEffect) -> void:
 	effect.visible = false
