@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StageData" format=3 uid="uid://crnfgupy43k1i"]
+
+[ext_resource type="PackedScene" uid="uid://40gibb6sxa5f" path="res://data/stages/stage01/background/stage01_background.tscn" id="1_4vo5f"]
+[ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="2_aj00d"]
+[ext_resource type="Script" uid="uid://c32x7ubxo65e6" path="res://data/stages/stage01/stage_script/stage01_hard.gd" id="3_4vo5f"]
+[ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="4_ymoa0"]
+
+[resource]
+script = ExtResource("4_ymoa0")
+difficulty = 2
+create_script = ExtResource("3_4vo5f")
+background_scene = ExtResource("1_4vo5f")
+metadata/_custom_type_script = "uid://bvlmm7m3gtwc0"

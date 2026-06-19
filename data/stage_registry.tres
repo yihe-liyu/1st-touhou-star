@@ -3,7 +3,9 @@
 [ext_resource type="Script" uid="uid://b1aoagjxfaud2" path="res://scripts/data/stage_registry.gd" id="1_67w4g"]
 [ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="2_bpsic"]
 [ext_resource type="Resource" uid="uid://bthqoru8kg8en" path="res://data/stages/stage01/stage_data/stage01_easy.tres" id="3_bpsic"]
+[ext_resource type="Resource" uid="uid://ly8arugjypq4" path="res://data/stages/stage01/stage_data/stage01_normal.tres" id="4_h31dk"]
+[ext_resource type="Resource" uid="uid://crnfgupy43k1i" path="res://data/stages/stage01/stage_data/stage01_hard.tres" id="5_jn4wv"]
 
 [resource]
 script = ExtResource("1_67w4g")
-stages = Array[ExtResource("2_bpsic")]([ExtResource("3_bpsic")])
+stages = Array[ExtResource("2_bpsic")]([ExtResource("3_bpsic"), ExtResource("4_h31dk"), ExtResource("5_jn4wv")])

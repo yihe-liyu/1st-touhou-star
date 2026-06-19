@@ -10,6 +10,9 @@ class_name EnemyData
 @export var death_effect: PackedScene
 @export var create_script: Script
 @export var move_script: Script
+## 按难度选脚本: {0: {create: Script, move: Script}, 1: ...}
+## 空或缺少某难度时回退到上面 create_script/move_script
+@export var scripts: Dictionary = {}
 @export var boss_data: BossData   ## Boss 数据（非空=此敌是 Boss）
 
 @export_group("Item", "item_")

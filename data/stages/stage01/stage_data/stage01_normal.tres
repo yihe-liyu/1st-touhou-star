@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StageData" format=3 uid="uid://ly8arugjypq4"]
+
+[ext_resource type="PackedScene" uid="uid://40gibb6sxa5f" path="res://data/stages/stage01/background/stage01_background.tscn" id="1_am6yd"]
+[ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="2_dci3t"]
+[ext_resource type="Script" uid="uid://br22c0lf5gjv" path="res://data/stages/stage01/stage_script/stage01_normal.gd" id="3_am6yd"]
+[ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="4_qpvd7"]
+
+[resource]
+script = ExtResource("4_qpvd7")
+create_script = ExtResource("3_am6yd")
+background_scene = ExtResource("1_am6yd")
+metadata/_custom_type_script = "uid://bvlmm7m3gtwc0"

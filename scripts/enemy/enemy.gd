@@ -58,13 +58,18 @@ func _apply_enemy_data(data: EnemyData):
 	if cs.shape is CircleShape2D:
 		cs.shape.radius = hitbox_radius
 	
-	if data.create_script:
-		_create_script = data.create_script.new()
+	var diff := GameState.selected_difficulty
+	var s: Dictionary = data.scripts.get(diff, {})
+	var create: Script = s.get("create", data.create_script)
+	var move: Script = s.get("move", data.move_script)
+	
+	if create:
+		_create_script = create.new()
 		assert(_create_script is CreateScript, "Enemy: create_script must be a CreateScript")
 		add_child(_create_script)
 	
-	if data.move_script:
-		_ms = data.move_script.new()
+	if move:
+		_ms = move.new()
 		assert(_ms is MoveScript, "Enemy: move_script must be a MoveScript")
 		add_child(_ms)
 

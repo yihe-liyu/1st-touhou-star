@@ -1,9 +1,8 @@
 extends StageScript
-## 第一面 Easy —— 时间线版
 
 const REIMU_BEFORE_DIALOGUE = preload("res://data/dialogue/reimu/stage01_before.tres")
 
-const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy_easy01.tres")
+const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy_hard01.tres")
 const LOGO = preload("res://assets/Textures/front/logo/logo1.png")
 
 var _spawn_offset_x = 300
