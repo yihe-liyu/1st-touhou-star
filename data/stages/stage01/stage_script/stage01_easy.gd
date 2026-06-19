@@ -9,7 +9,8 @@ var _tl
 
 
 func _on_step(_ctx: StageContext) -> Variant:
-	return _tl.tick(_ctx.clock.delta)
+	_tl.tick()
+	return true
 
 
 func start_stage(p_ctx: StageContext):

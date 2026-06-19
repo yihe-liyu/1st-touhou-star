@@ -10,7 +10,7 @@ var _tl
 
 
 func _on_step(_ctx: StageContext) -> Variant:
-	return _tl.tick(_ctx.clock.delta)
+	return _tl.tick()
 
 
 func start_creating(p_ctx: StageContext):
