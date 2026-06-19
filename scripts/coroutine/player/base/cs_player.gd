@@ -5,9 +5,11 @@ const OPTION = preload("res://assets/Textures/player/pl00.png")
 
 var _options: Array[Node2D] = []
 var _phase: int = 0
+var ctx  ## StageContext
 
 
-func start_shooting(api: StageAPI):
+func start_shooting(api: StageAPI, p_ctx):
+	ctx = p_ctx
 	run(_on_step.bind(api))
 
 
@@ -20,7 +22,7 @@ func _on_step(api: StageAPI) -> Variant:
 			_phase = 1
 			return true
 		1:
-			var player = api.get_player()
+			var player: Player = ctx.player.get_player()
 			if not is_instance_valid(player):
 				return true
 			_sync_options(player, api)
@@ -54,13 +56,13 @@ func _option_shoot(_api: StageAPI, _options_count: int) -> float:
 
 # ── 通用实现 ──
 
-func _main_step(api: StageAPI) -> Variant:
+func _main_step(_api: StageAPI) -> Variant:
 	if not Input.is_action_pressed("shoot"):
 		return true
-	var player = api.get_player()
+	var player: Player = ctx.player.get_player()
 	if not is_instance_valid(player):
 		return true
-	var interval := _main_shoot(api, player)
+	var interval := _main_shoot(_api, player)
 	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"), -12.0)
 	return interval
 
@@ -137,9 +139,9 @@ func _sync_options(leader: Node2D, api: StageAPI) -> void:
 			visual.update_visual(api, leader)
 
 
-func _shoot_options(api: StageAPI, bullet_data: BulletData, count: int, spread: float, dir: Vector2, offset: Vector2) -> void:
+func _shoot_options(_api: StageAPI, bullet_data: BulletData, count: int, spread: float, dir: Vector2, offset: Vector2) -> void:
 	for opt in _options:
-		api.shoot_spread(bullet_data, count, spread, dir, opt.global_position + offset)
+		ctx.bullets.shoot_spread(bullet_data, count, spread, dir, opt.global_position + offset)
 
 
 func _cleanup_options() -> void:

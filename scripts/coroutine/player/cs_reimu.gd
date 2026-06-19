@@ -29,17 +29,17 @@ func _option_setup() -> Dictionary:
 	}
 
 
-func _main_shoot(api: StageAPI, player: Player) -> float:
-	api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
-	api.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(20, 0))
-	return api.frames(MAIN_INTERVAL)
+func _main_shoot(_api: StageAPI, player: Player) -> float:
+	ctx.bullets.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
+	ctx.bullets.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(20, 0))
+	return ctx.clock.wait_frames(MAIN_INTERVAL)
 
 
 func _option_shoot(api: StageAPI, _count: int) -> float:
 	if Input.is_action_pressed("focus"):
 		_shoot_options(api, OPTION_BULLET_FOCUSED, 1, 0.0, Vector2.UP, Vector2(-7, 0))
 		_shoot_options(api, OPTION_BULLET_FOCUSED, 1, 0.0, Vector2.UP, Vector2(7, 0))
-		return api.frames(4)
+		return ctx.clock.wait_frames(4)
 	else:
 		_shoot_options(api, OPTION_BULLET_UNFOCUSED, 1, 0.0, Vector2.UP, Vector2.ZERO)
-		return api.frames(8)
+		return ctx.clock.wait_frames(8)
