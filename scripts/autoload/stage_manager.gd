@@ -70,14 +70,14 @@ func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	_add_enemy_to_scene(enemy)
 	return enemy
 
-func spawn_boss(data: BossData, position: Vector2, api: StageAPI = null, defer: bool = false, p_ctx: StageContext = null) -> Node:
+func spawn_boss(data: BossData, position: Vector2, defer: bool = false, p_ctx: StageContext = null) -> Node:
 	var boss := BossClass.new()
 	boss.global_position = position
 	if data.visual:
 		var vis := data.visual.instantiate()
 		boss.add_child(vis)
 	_add_enemy_to_scene(boss)
-	boss.setup(data, api, p_ctx)
+	boss.setup(data, p_ctx)
 	boss.start_boss(defer)
 	return boss
 

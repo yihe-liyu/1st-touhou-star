@@ -17,10 +17,10 @@ func _on_init(_ctx: StageContext) -> void:
 		bg.camera.fov = 55.0
 
 	# 注册分层
-	ctx.decor.add_layer(OAK_LAYER)
+	_ctx.decor.add_layer(OAK_LAYER)
 
 	# 黑雾里预生成树, 雾散时已经在场
-	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
+	_ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 
 func _on_step(_ctx: StageContext) -> Variant:
 	_loop += 1

@@ -55,7 +55,7 @@ func _start_practice_game() -> void:
 	single.score_value = full_data.score_value
 	single.phases = [full_data.phases[GameState.practice_phase_index]]
 
-	StageManager.spawn_boss(single, Vector2(448, 240), null, false, ctx)
+	StageManager.spawn_boss(single, Vector2(448, 240), false, ctx)
 	GameEvents.boss_defeated.connect(_on_practice_cleared)
 
 

@@ -13,7 +13,7 @@ func _on_step(_ctx: StageContext) -> Variant:
 			_phase = 1
 			return ctx.clock.wait(2.0)
 		1:
-			ctx.enemies.spawn_boss(EX_BOSS, Vector2(448, 160), null)
+			ctx.enemies.spawn_boss(EX_BOSS, Vector2(448, 160))
 			_phase = 99
 			return ctx.clock.wait(999)
 		2:

@@ -8,7 +8,6 @@ var boss_data: BossData
 var hp: int = 0
 var hitbox_radius: float = 24.0
 
-var _api: StageAPI
 var _ctx  ## StageContext
 var _phase_index: int = -1
 var _current_phase: PhaseData
@@ -26,10 +25,9 @@ func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
 
 
-func setup(data: BossData, api: StageAPI, p_ctx: StageContext = null) -> void:
+func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	boss_data = data
-	_api = api
-	_ctx = p_ctx if p_ctx else (api.ctx if api else null)
+	_ctx = p_ctx
 	z_index = LayerConfig.BOSS
 	
 	if GameState.is_practice_mode:
