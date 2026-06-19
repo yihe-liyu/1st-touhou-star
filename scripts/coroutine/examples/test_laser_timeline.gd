@@ -4,23 +4,15 @@ class_name TestLaserTimeline
 
 const LASER_DATA = preload("res://data/laser_data/test_laser_red.tres")
 const BULLET_DATA = preload("res://data/bullet_data/test_enemy_bullet.tres")
-const TimelineClass = preload("res://scripts/coroutine/base/timeline.gd")
-
-var _tl
-
-
-func _on_step(_ctx: StageContext) -> Variant:
-	return _tl.tick(get_physics_process_delta_time())
 
 
 func start_creating(p_ctx: StageContext):
 	ctx = p_ctx
 	var enemy := get_parent() as Node2D
-	_tl = TimelineClass.new(ctx)
+	var tl := start_timeline()
 
 	# ① 六向梭形激光
-	_tl.at(0.0)
-	_tl.do(func():
+	tl.at(0.0); tl.do(func():
 		for i in 12:
 			var a := deg_to_rad(i * 30)
 			var dir := Vector2.RIGHT.rotated(a)
@@ -28,18 +20,12 @@ func start_creating(p_ctx: StageContext):
 	)
 
 	# ② 1.5秒后，每1.2秒撒圆弹 ×3
-	_tl.at(1.5)
-	_tl.every(1.2)
-	_tl.times(3)
-	_tl.do(func():
+	tl.at(1.5); tl.every(1.2); tl.times(3); tl.do(func():
 		ctx.bullets.shoot_spread(BULLET_DATA, 24, TAU, Vector2.DOWN, enemy.global_position)
 	)
 
 	# ③ 5.1秒后，每0.8秒自机狙曲线激光 ×6
-	_tl.at(5.1)
-	_tl.every(0.8)
-	_tl.times(6)
-	_tl.do(func():
+	tl.at(5.1); tl.every(0.8); tl.times(6); tl.do(func():
 		var p := ctx.player.get_player()
 		if p and is_instance_valid(p):
 			var to_p := (p.global_position - enemy.global_position).normalized()
@@ -47,8 +33,7 @@ func start_creating(p_ctx: StageContext):
 			ctx.bullets.fire_growing_laser(LASER_DATA, enemy.global_position, curve)
 	)
 
-	_tl.at(11.0)
-	_tl.loop()
+	tl.at(12.0); tl.loop()
 	super.start_creating(p_ctx)
 
 

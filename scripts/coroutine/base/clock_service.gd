@@ -1,13 +1,6 @@
 class_name ClockService
 extends RefCounted
-## 时间服务 —— 替换 api.seconds / api.frames
-
-var elapsed: float = 0.0
-var delta: float = 0.0
-
-func tick(dt: float) -> void:
-	delta = dt
-	elapsed += dt
+## 时间服务 —— 协程等待（返回秒数给 CoroutineRunner）
 
 func wait(seconds: float) -> float:
 	return seconds
