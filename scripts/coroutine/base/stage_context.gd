@@ -6,14 +6,12 @@ var clock: ClockService
 var bullets: BulletService
 var enemies: EnemyService
 var player: PlayerService
-var dialogue  ## DialogueService
-var items  ## ItemService
+var dialogue: DialogueService
+var items: ItemService
 var runner: CoroutineRunner
 
 var _decor_mgr: DecorManager
 
-const DialogueServiceClass = preload("res://scripts/coroutine/base/dialogue_service.gd")
-const ItemServiceClass = preload("res://scripts/coroutine/base/item_service.gd")
 const DecorManagerClass = preload("res://scripts/background/decor_manager.gd")
 
 func _init(p_runner: CoroutineRunner) -> void:
@@ -23,9 +21,9 @@ func _init(p_runner: CoroutineRunner) -> void:
 	enemies = EnemyService.new()
 	enemies.ctx = self
 	player = PlayerService.new()
-	dialogue = DialogueServiceClass.new()
+	dialogue = DialogueService.new()
 	dialogue.ctx = self
-	items = ItemServiceClass.new()
+	items = ItemService.new()
 	items.ctx = self
 
 ## 装饰物管理器（树附着，懒加载）
