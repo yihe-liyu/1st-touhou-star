@@ -6,7 +6,7 @@ var callback: Callable
 var fired: bool = false
 var repeat_every: float = -1.0
 var repeat_times: int = -1      ## -1=无限, >0=限制次数
-var _repeat_count: int = 0
+var fired_count: int = 0        ## 已触发次数（外部读写）
 var args: Array = []
 
 func _init(p_time: float, p_cb: Callable, p_every: float = -1.0, p_times: int = -1) -> void:

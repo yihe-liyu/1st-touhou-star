@@ -8,6 +8,7 @@ var _center_x: float
 var _t: float = 0.0
 
 func start_moving(p_ctx: StageContext, p_target: Node2D) -> void:
+	ctx = p_ctx
 	target = p_target
 	_center_x = target.global_position.x
 	run(_on_step.bind(ctx))
