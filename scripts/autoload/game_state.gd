@@ -96,20 +96,17 @@ func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
 
 func record_spell(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, captured: bool, score: int, elapsed: float, order: int = 1, uid: int = 0, sname: String = "") -> void:
-	if uid == 0: return  # 非符不记录
 	spell_book.record_attempt(uid, character, difficulty, captured, score, elapsed,
 		{"stage": stage_id, "phase_type": phase_type, "phase_num": phase_num,
 		 "order": order, "name": sname})
 	_save_spell_book()
 
 func unlock_spell(character: int, stage_id: int, phase_type: int, phase_num: int, difficulty: int, order: int = 1, uid: int = 0, sname: String = "") -> void:
-	if uid == 0: return  # 非符不记录
 	spell_book.get_or_create(uid, character, difficulty,
 		stage_id, phase_type, phase_num, order, sname)
 	_save_spell_book()
 
 func record_practice(uid: int, character: int, difficulty: int, captured: bool) -> void:
-	if uid == 0: return
 	spell_book.record_practice(uid, character, difficulty, captured)
 	_save_spell_book()
 

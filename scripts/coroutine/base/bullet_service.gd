@@ -4,9 +4,11 @@ extends RefCounted
 
 var active: bool = true
 
-func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2) -> void:
+func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2, sfx: AudioStream = null) -> void:
 	if not active: return
 	if count <= 0: return
+	if sfx:
+		AudioManager.play_sfx(sfx, -8.0)
 	if count == 1:
 		BulletManager.shoot_enemy_bullet(bullet_data, at, base_dir)
 		return

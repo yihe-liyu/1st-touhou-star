@@ -88,6 +88,7 @@ func collect() -> void:
 	if _dead:
 		return
 	_dead = true
+	AudioManager.play_sfx(preload("res://assets/Sound/item.wav"), -6.0)
 	visible = false
 	set_physics_process(false)
 	match item_type:

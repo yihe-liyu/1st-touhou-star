@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://bawwdrq1fml3j"
-path="res://.godot/imported/tan00.wav-fa7e5650ab558164c7dc882348606a5a.sample"
+uid="uid://cgih4wtiaseui"
+path="res://.godot/imported/bullet01.wav-cac842b131bff39693c9499074133429.sample"
 
 [deps]
 
-source_file="res://assets/Sound/tan00.wav"
-dest_files=["res://.godot/imported/tan00.wav-fa7e5650ab558164c7dc882348606a5a.sample"]
+source_file="res://assets/Sound/bullet01.wav"
+dest_files=["res://.godot/imported/bullet01.wav-cac842b131bff39693c9499074133429.sample"]
 
 [params]
 

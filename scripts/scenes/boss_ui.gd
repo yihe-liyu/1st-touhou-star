@@ -150,20 +150,24 @@ func _add_info_labels() -> void:
 	parent.add_child(_bonus_label)
 	_bonus_label.position = Vector2(0, label_h)
 	
-	# 收取率 — 右下 (仅 Story)
-	if not GameState.is_practice_mode:
-		_capture_label = Label.new()
-		_capture_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		_capture_label.add_theme_font_size_override("font_size", 32)
-		_capture_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-		parent.add_child(_capture_label)
-		_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6, label_h)
-		_update_capture_text()
+	# 收取率 — 右下
+	_capture_label = Label.new()
+	_capture_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_capture_label.add_theme_font_size_override("font_size", 32)
+	_capture_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
+	parent.add_child(_capture_label)
+	_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6, label_h)
+	_update_capture_text()
 
 func _update_capture_text() -> void:
 	if not _capture_label or not _boss_ref: return
-	# TODO: uid 架构迁移 — 从 boss 数据获取当前 phase 的 uid
+	var phase := _boss_ref.current_phase()
+	if not phase: return
+	var sp_uid: int = SpellRecord.get_phase_uid(_boss_ref.boss_data, _boss_ref._phase_index, _boss_ref._stage_id)
 	var book: SpellRecordBook = GameState.spell_book
-	var rec: SpellRecord = book.get_record(0, GameState.selected_character, GameState.selected_difficulty)
+	var rec: SpellRecord = book.get_record(sp_uid, GameState.selected_character, GameState.selected_difficulty)
 	if rec:
-		_capture_label.text = "%02d/%02d" % [rec.captures, rec.attempts]
+		if GameState.is_practice_mode:
+			_capture_label.text = "%02d/%02d" % [rec.practice_captures, rec.practice_attempts]
+		else:
+			_capture_label.text = "%02d/%02d" % [rec.captures, rec.attempts]

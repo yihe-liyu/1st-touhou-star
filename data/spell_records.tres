@@ -5,18 +5,47 @@
 
 [sub_resource type="Resource" id="Resource_lls5d"]
 script = ExtResource("1_lls5d")
+uid = -101
+phase_number = 0
+difficulty = 0
+spell_name = "非符1"
+attempts = 2
+captures = 2
+best_time = 15.751515151514745
+
+[sub_resource type="Resource" id="Resource_4fnre"]
+script = ExtResource("1_lls5d")
+uid = -101
+character = 1
+phase_number = 0
+difficulty = 0
+spell_name = "非符1"
+
+[sub_resource type="Resource" id="Resource_8qneb"]
+script = ExtResource("1_lls5d")
 uid = 1
 phase_type = 1
+phase_number = 0
 difficulty = 0
 spell_name = "声符「停顿波」"
 phase_order = 2
-attempts = 5
-captures = 4
+attempts = 1
+captures = 1
 practice_attempts = 1
 practice_captures = 1
-best_score = 28478
-best_time = 26.116160000002075
+best_score = 25530
+best_time = 29.679594515154687
+
+[sub_resource type="Resource" id="Resource_8upsx"]
+script = ExtResource("1_lls5d")
+uid = 1
+character = 1
+phase_type = 1
+phase_number = 0
+difficulty = 0
+spell_name = "声符「停顿波」"
+phase_order = 2
 
 [resource]
 script = ExtResource("2_4fnre")
-records = Array[ExtResource("1_lls5d")]([SubResource("Resource_lls5d")])
+records = Array[ExtResource("1_lls5d")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre"), SubResource("Resource_8qneb"), SubResource("Resource_8upsx")])

@@ -79,6 +79,8 @@ func _load_background(scene: PackedScene) -> void:
 func _exit_tree():
 	BulletManager.clear_all()
 	HitEffectPool.clear_all_pool()
+	if GameState.is_practice_mode:
+		GameState.end_practice()
 	if _background_instance and is_instance_valid(_background_instance):
 		_background_instance.queue_free()
 		_background_instance = null

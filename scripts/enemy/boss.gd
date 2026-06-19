@@ -86,7 +86,7 @@ func _next_phase() -> void:
 	var phase_type: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
 	var phase_num: int = _spell_count if is_spell else _non_count
 	var difficulty: int = GameState.selected_difficulty
-	GameState.unlock_spell(character, stage_id, phase_type, phase_num, difficulty, _phase_index + 1, _current_phase.uid, _current_phase.name)
+	GameState.unlock_spell(character, stage_id, phase_type, phase_num, difficulty, _phase_index + 1, SpellRecord.get_phase_uid(boss_data, _phase_index, _stage_id), _current_phase.name)
 	
 	if _current_phase.name != "":
 		GameEvents.phase_start.emit(_current_phase)
@@ -149,7 +149,7 @@ func _on_phase_clear(captured: bool) -> void:
 	var phase_type: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
 	var phase_num: int = _spell_count if is_spell else _non_count
 	var difficulty: int = GameState.selected_difficulty
-	var sp_uid: int = _current_phase.uid
+	var sp_uid: int = SpellRecord.get_phase_uid(boss_data, _phase_index, _stage_id)
 	
 	if GameState.is_practice_mode:
 		GameState.record_practice(sp_uid, character, difficulty, captured)

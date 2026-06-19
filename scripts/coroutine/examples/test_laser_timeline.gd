@@ -4,6 +4,7 @@ class_name TestLaserTimeline
 
 const LASER_DATA = preload("res://data/laser_data/test_laser_red.tres")
 const BULLET_DATA = preload("res://data/bullet_data/test_enemy_bullet.tres")
+const SHOOT_SFX = preload("res://assets/Sound/bullet01.wav")
 
 
 func start_creating(p_ctx: StageContext):
@@ -21,7 +22,7 @@ func start_creating(p_ctx: StageContext):
 
 	# ② 1.5秒后，每1.2秒撒圆弹 ×3
 	tl.at(1.5); tl.every(1.2); tl.times(3); tl.do(func():
-		ctx.bullets.shoot_spread(BULLET_DATA, 24, TAU, Vector2.DOWN, enemy.global_position)
+		ctx.bullets.shoot_spread(BULLET_DATA, 24, TAU, Vector2.DOWN, enemy.global_position, SHOOT_SFX)
 	)
 
 	# ③ 5.1秒后，每0.8秒自机狙曲线激光 ×6
@@ -33,7 +34,7 @@ func start_creating(p_ctx: StageContext):
 			ctx.bullets.fire_growing_laser(LASER_DATA, enemy.global_position, curve)
 	)
 
-	tl.at(12.0); tl.loop()
+	tl.at(10.0); tl.loop()
 	super.start_creating(p_ctx)
 
 
