@@ -80,7 +80,6 @@ func debug_fill_spells() -> void:
 		for boss in sd.bosses:
 			_fill_from_boss(boss, sd.stage_id, sd.difficulty)
 	_save_spell_book()
-	print("Debug: filled spell records from stage data")
 
 
 func _fill_from_boss(boss: BossData, stage_id: int, diff: int) -> void:
