@@ -4,7 +4,7 @@ extends BackgroundScript
 @onready var bg: StageBackground = $".."
 @onready var ground: BackgroundPlane = $"../Ground"
 
-const OAK_LAYER = preload("res://data/decor_layers/oak.tres")
+const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
 
 func _on_init(_ctx: StageContext) -> void:

@@ -63,11 +63,13 @@ func _on_stage_finished():
 	all_enemies_defeated.emit()
 	GameState.save_high_score(current_stage.stage_id, GameState.current_score)
 
-func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
+func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) -> Enemy:
 	var enemy = ENEMY_SCENE.instantiate()
 	enemy.enemy_data = data
 	enemy.global_position = position
 	_add_enemy_to_scene(enemy)
+	if auto_start:
+		enemy.start.call_deferred()
 	return enemy
 
 func spawn_boss(data: BossData, position: Vector2, defer: bool = false, p_ctx: StageContext = null) -> Node:

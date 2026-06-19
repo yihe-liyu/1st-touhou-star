@@ -13,7 +13,9 @@ var death_effect: PackedScene
 var hp: int
 
 var _create_script: CreateScript
-var _move_script: MoveScript
+var _ms: MoveScript
+var move_script: MoveScript:
+	get: return _ms
 var _last_pos: Vector2
 
 
@@ -60,15 +62,20 @@ func _apply_enemy_data(data: EnemyData):
 		_create_script = data.create_script.new()
 		assert(_create_script is CreateScript, "Enemy: create_script must be a CreateScript")
 		add_child(_create_script)
-		var ctx := StageContext.new(_create_script)
-		_create_script.start_creating(ctx)
 	
 	if data.move_script:
-		_move_script = data.move_script.new()
-		assert(_move_script is MoveScript, "Enemy: move_script must be a MoveScript")
-		add_child(_move_script)
-		var move_ctx := StageContext.new(_move_script)
-		_move_script.start_moving(move_ctx, self)
+		_ms = data.move_script.new()
+		assert(_ms is MoveScript, "Enemy: move_script must be a MoveScript")
+		add_child(_ms)
+
+
+func start() -> void:
+	if _create_script:
+		var ctx := StageContext.new(_create_script)
+		_create_script.start_creating(ctx)
+	if _ms:
+		var move_ctx := StageContext.new(_ms)
+		_ms.start_moving(move_ctx, self)
 
 
 func take_damage(damage: int):
@@ -89,8 +96,8 @@ func die():
 	
 	if _create_script and is_instance_valid(_create_script):
 		_create_script.stop()
-	if _move_script and is_instance_valid(_move_script):
-		_move_script.stop()
+	if _ms and is_instance_valid(_ms):
+		_ms.stop()
 	
 	queue_free()
 

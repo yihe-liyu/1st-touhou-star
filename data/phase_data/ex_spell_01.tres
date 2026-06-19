@@ -1,8 +1,6 @@
 [gd_resource type="Resource" script_class="PhaseData" format=3 uid="uid://eglllrgngahv"]
 
 [ext_resource type="Script" uid="uid://70htyyc4o2hu" path="res://scripts/data/phase_data.gd" id="1"]
-[ext_resource type="Script" uid="uid://c3nrptduc8s72" path="res://scripts/coroutine/examples/boss_ex_move.gd" id="2"]
-[ext_resource type="Script" uid="uid://6bj5vmk5apu7" path="res://scripts/coroutine/examples/test_laser_timeline.gd" id="4"]
 
 [resource]
 script = ExtResource("1")
@@ -11,8 +9,6 @@ uid = 1
 bonus = 50000
 time_limit = 60.0
 hp = 6500
-move_script = ExtResource("2")
-shoot_script = ExtResource("4")
 item_power = 30
 item_point = 30
 item_life = 1

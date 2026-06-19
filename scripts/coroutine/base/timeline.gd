@@ -85,6 +85,7 @@ func tick(delta: float) -> bool:
 				ev.fired_count += 1
 				if ev.repeat_times > 0 and ev.fired_count >= ev.repeat_times:
 					ev.fired = true
+					ev.repeat_every = -1.0
 			else:
 				ev.fired = true
 	
@@ -92,7 +93,6 @@ func tick(delta: float) -> bool:
 		_reset_onetime()
 		_elapsed = _loop_start
 	
-	# 有未触发事件或有循环 → 继续
 	return _events.any(func(e): return not e.fired) or _loop_start >= 0
 
 

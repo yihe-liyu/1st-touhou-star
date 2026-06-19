@@ -1,9 +1,9 @@
 extends PlayerShootScript
 class_name ReimuShoot
 
-const MAIN_BULLET = preload("res://data/bullet_data/player/reimu_main_bullet.tres")
-const OPTION_BULLET_UNFOCUSED = preload("res://data/bullet_data/player/reimu_option_bullet01.tres")
-const OPTION_BULLET_FOCUSED = preload("res://data/bullet_data/player/reimu_option_bullet02.tres")
+const MAIN_BULLET = preload("res://data/player_data/bullet/reimu_main.tres")
+const OPTION_BULLET_UNFOCUSED = preload("res://data/player_data/bullet/reimu_option01.tres")
+const OPTION_BULLET_FOCUSED = preload("res://data/player_data/bullet/reimu_option02.tres")
 const OPTION_VISUAL = preload("res://scripts/coroutine/player/ov_reimu.gd")
 
 const MAIN_INTERVAL: int = 3

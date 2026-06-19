@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://cb505yupublnp"]
+
+[ext_resource type="Script" uid="uid://bkyeh7o7e4vu5" path="res://data/stages/stage01/move_script/enemy_move01.gd" id="1_3m1gh"]
+[ext_resource type="Script" uid="uid://daomjkwecuuf" path="res://data/stages/stage01/create_script/enemy_create01.gd" id="1_n4gdj"]
+[ext_resource type="Script" uid="uid://bj36hhiuvhaqy" path="res://scripts/data/enemy_data.gd" id="1_qcu45"]
+[ext_resource type="PackedScene" uid="uid://bgp37sorjc6hv" path="res://scenes/enemy_visual_test.tscn" id="2_3m1gh"]
+
+[resource]
+script = ExtResource("1_qcu45")
+visual_scene = ExtResource("2_3m1gh")
+max_hp = 150
+hitbox_radius = 28.0
+score_value = 1000
+create_script = ExtResource("1_n4gdj")
+move_script = ExtResource("1_3m1gh")
+item_power = 1
+item_point = 2
+metadata/_custom_type_script = "uid://bj36hhiuvhaqy"

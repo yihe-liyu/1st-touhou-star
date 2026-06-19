@@ -8,8 +8,8 @@ class_name PhaseData
 @export var time_limit: float = 30.0     ## 时限（秒）
 @export var hp: int = 1000               ## 血量
 @export var is_timeout_only: bool = false ## 时符
-@export var move_script: Script          ## 移动脚本
-@export var shoot_script: Script         ## 弹幕脚本
+@export var move_script: Script
+@export var shoot_script: Script
 @export var background: PackedScene      ## 可选换背景
 @export var item_power: int = 0         ## 击破掉落 P 点
 @export var item_point: int = 0         ## 击破掉落蓝点

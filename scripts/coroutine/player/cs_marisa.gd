@@ -1,7 +1,7 @@
 extends PlayerShootScript
 class_name MarisaShoot
 
-const BULLET = preload("res://data/bullet_data/player/marisa_main_bullet.tres")
+const BULLET = preload("res://data/player_data/bullet/marisa_main.tres")
 const OPTION_VISUAL = preload("res://scripts/coroutine/player/base/option_visual.gd")
 
 const MAIN_INTERVAL_LO: int = 5

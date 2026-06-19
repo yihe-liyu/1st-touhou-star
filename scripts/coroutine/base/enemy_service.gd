@@ -5,9 +5,9 @@ extends RefCounted
 var active: bool = true
 var ctx: StageContext
 
-func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
+func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) -> Enemy:
 	if not active: return null
-	return StageManager.spawn_enemy(data, position)
+	return StageManager.spawn_enemy(data, position, auto_start)
 
 func spawn_boss(data: BossData, position: Vector2) -> void:
 	if not active: return

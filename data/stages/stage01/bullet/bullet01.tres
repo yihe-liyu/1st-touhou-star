@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BulletData" format=3 uid="uid://cxqutl4e5d7uv"]
+
+[ext_resource type="Texture2D" uid="uid://cr6xlqf21b8rt" path="res://assets/Textures/bullet/弹雾.png" id="1_qfqkk"]
+[ext_resource type="PackedScene" uid="uid://bkxjsyu2sqdty" path="res://scenes/effect/enemy_bullet_clear.tscn" id="2_rgt3f"]
+[ext_resource type="Script" uid="uid://d34w5u8h1ij2v" path="res://scripts/data/bullet_data.gd" id="3_kwe0p"]
+[ext_resource type="Texture2D" uid="uid://dcawi5nd63ra" path="res://assets/Textures/bullet/鳞弹.png" id="4_508pl"]
+
+[resource]
+script = ExtResource("3_kwe0p")
+texture = ExtResource("4_508pl")
+tint_mode = 1
+tint = Color(1, 0, 1, 1)
+velocity = Vector2(0, 400)
+hit_effect = ExtResource("2_rgt3f")
+faction = 1
+can_be_canceled = true
+spawn_fog = true
+fog_texture = ExtResource("1_qfqkk")
