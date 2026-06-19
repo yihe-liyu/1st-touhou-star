@@ -8,7 +8,10 @@ class_name BackgroundScript
 ## 不自动启动，由 StageBackground._on_setup() 调 _on_init，
 ## StageManager 调 start_background()。
 
-func start_background(api: StageAPI) -> void:
+var ctx  ## StageContext
+
+func start_background(api: StageAPI, p_ctx) -> void:
+	ctx = p_ctx
 	run(_on_step.bind(api))
 
 func _on_init(_api: StageAPI) -> void:

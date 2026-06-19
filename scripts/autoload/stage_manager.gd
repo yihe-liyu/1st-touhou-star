@@ -31,15 +31,15 @@ func load_stage(data: StageData):
 	_stage_script = stage_script
 	stage_script.finished.connect(_on_stage_finished)
 
-	var api = StageAPI.new(stage_script)
-	stage_script.start_stage(api)
+	var api := StageAPI.new(stage_script)
+	stage_script.start_stage(api, api.ctx)
 
 	# 自动启动背景场景里挂的所有 BackgroundScript
 	if current_background:
 		for child in current_background.get_children():
 			if child is BackgroundScript:
-				var bg_api = StageAPI.new(child)
-				child.start_background(bg_api)
+				var bg_api := StageAPI.new(child)
+				child.start_background(bg_api, bg_api.ctx)
 
 	stage_started.emit()
 
