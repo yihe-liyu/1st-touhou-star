@@ -6,10 +6,14 @@ var clock: ClockService
 var bullets: BulletService
 var enemies: EnemyService
 var player: PlayerService
+var dialogue  ## DialogueService
+var items  ## ItemService
 var runner: CoroutineRunner
 
 var _decor_mgr: DecorManager
 
+const DialogueServiceClass = preload("res://scripts/coroutine/base/dialogue_service.gd")
+const ItemServiceClass = preload("res://scripts/coroutine/base/item_service.gd")
 const DecorManagerClass = preload("res://scripts/background/decor_manager.gd")
 
 func _init(p_runner: CoroutineRunner) -> void:
@@ -19,6 +23,10 @@ func _init(p_runner: CoroutineRunner) -> void:
 	enemies = EnemyService.new()
 	enemies.ctx = self
 	player = PlayerService.new()
+	dialogue = DialogueServiceClass.new()
+	dialogue.ctx = self
+	items = ItemServiceClass.new()
+	items.ctx = self
 
 ## 装饰物管理器（树附着，懒加载）
 func get_decor() -> DecorManager:
@@ -40,39 +48,17 @@ var decor: DecorManager:
 func active() -> bool:
 	return is_instance_valid(runner) and runner.is_running
 
-## 对话框（暂留，后续拆到 DialogueService）
-const DialogueBoxScene = preload("res://scenes/ui/dialogue_box.tscn")
-
+## 对话框（便捷委托）
 func play_dialogue(lines: Array) -> float:
-	if not active() or not is_instance_valid(runner): return 0.0
-	var box := DialogueBoxScene.instantiate()
-	runner.get_tree().current_scene.add_child(box)
-	runner.is_running = false
-	box.finished.connect(func(): runner.is_running = true, CONNECT_ONE_SHOT)
-	box.play(lines)
-	return 0.0
+	return dialogue.play(lines)
 
 func dialogue_show(char_name: String, text: String, pos: Vector2 = Vector2(100, 200), portrait: Texture2D = null) -> void:
-	var profile := CharacterProfile.new()
-	profile.char_name = char_name
-	if portrait: profile.portraits["通常"] = portrait
-	var bubble := DialogueBubble.new()
-	bubble.speaker = profile
-	bubble.text = text
-	bubble.portrait_pos = pos
-	var line := DialogueLine.new()
-	line.bubbles = [bubble]
-	play_dialogue([line])
+	dialogue.show(char_name, text, pos, portrait)
 
 func get_field_rect() -> Rect2:
 	if not is_instance_valid(runner): return Rect2()
 	return runner.get_viewport().get_visible_rect()
 
+## 道具（便捷委托）
 func spawn_item(type: int, position: Vector2) -> void:
-	if not active(): return
-	var scene := runner.get_tree().current_scene
-	if not scene: return
-	var world := scene.get_node_or_null("World")
-	if world:
-		var pool := world.get_node_or_null("ItemPool")
-		if pool: pool.spawn(position, type)
+	items.spawn(type, position)
