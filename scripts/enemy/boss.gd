@@ -9,6 +9,7 @@ var hp: int = 0
 var hitbox_radius: float = 24.0
 
 var _api: StageAPI
+var _ctx  ## StageContext
 var _phase_index: int = -1
 var _current_phase: PhaseData
 var _bonus: int = 0
@@ -28,6 +29,7 @@ func current_bonus() -> int: return _bonus
 func setup(data: BossData, api: StageAPI) -> void:
 	boss_data = data
 	_api = api
+	_ctx = api.ctx
 	z_index = LayerConfig.BOSS
 	
 	if GameState.is_practice_mode:
@@ -106,11 +108,11 @@ func _begin_phase() -> void:
 	if _current_phase.move_script:
 		_move = _current_phase.move_script.new()
 		add_child(_move)
-		_move.start_moving(_api, self)
+		_move.start_moving(_api, self, _ctx)
 	if _current_phase.shoot_script:
 		_shoot = _current_phase.shoot_script.new()
 		add_child(_shoot)
-		_shoot.start_creating(_api)
+		_shoot.start_creating(_api, _ctx)
 
 func _process(delta: float) -> void:
 	if not _current_phase: return
@@ -190,4 +192,4 @@ func _drop_items() -> void:
 	
 	for t in drops:
 		var offset := Vector2(RNG.randf_range(-scatter, scatter), RNG.randf_range(-scatter, scatter))
-		_api.spawn_item(t, pos + offset)
+		if _ctx: _ctx.spawn_item(t, pos + offset)

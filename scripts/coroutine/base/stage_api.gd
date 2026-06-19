@@ -56,7 +56,7 @@ func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	return ctx.enemies.spawn_enemy(data, position)
 
 func spawn_boss(data: BossData, position: Vector2):
-	ctx.enemies.spawn_boss(data, position)
+	ctx.enemies.spawn_boss(data, position, self)
 
 func all_defeated() -> bool:
 	return ctx.enemies.all_defeated()

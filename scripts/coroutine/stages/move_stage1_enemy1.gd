@@ -53,7 +53,7 @@ func _on_step(api: StageAPI) -> Variant:
 		Phase.ENTRANCE:
 			_phase = Phase.PATROL
 			_going_right = true
-			return api.seconds(entrance_duration)
+			return ctx.clock.wait(entrance_duration)
 
 		Phase.PATROL:
 			_going_right = not _going_right
@@ -63,7 +63,7 @@ func _on_step(api: StageAPI) -> Variant:
 			_tween.tween_property(target, "global_position:x", dest, period) \
 				.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
-			return api.seconds(period)
+			return ctx.clock.wait(period)
 
 	return false
 

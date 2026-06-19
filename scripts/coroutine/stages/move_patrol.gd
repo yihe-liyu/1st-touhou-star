@@ -36,4 +36,4 @@ func _on_step(api: StageAPI) -> Variant:
 	tween.tween_property(target, "global_position:x", dest, period) \
 		.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
-	return api.seconds(period)
+	return ctx.clock.wait(period)

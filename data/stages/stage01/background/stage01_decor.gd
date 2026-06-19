@@ -20,7 +20,7 @@ func _on_init(api: StageAPI) -> void:
 	api.add_decor_layer(OAK_LAYER)
 
 	# 黑雾里预生成树, 雾散时已经在场
-	api.batch_spawn_decor("橡树", 160, Vector2(-90, 90), Vector2(-200, -50), ground)
+	api.batch_spawn_decor("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 
 func _on_step(api: StageAPI) -> Variant:
 	_loop += 1

@@ -18,33 +18,33 @@ func _on_step(api: StageAPI) -> Variant:
 			for i in 12:
 				var angle := deg_to_rad(i * 30)
 				var dir := Vector2.RIGHT.rotated(angle)
-				api.fire_straight_laser(LASER_DATA, enemy.global_position, dir, 800)
+				ctx.bullets.fire_straight_laser(LASER_DATA, enemy.global_position, dir, 800)
 			_phase = 1
-			return api.seconds(1.5)
+			return ctx.clock.wait(1.5)
 
 		1:
 			# 激光还在飞，撒圆形弹幕
-			api.shoot_spread(BULLET_DATA, 24, TAU, Vector2.DOWN, enemy.global_position)
+			ctx.bullets.shoot_spread(BULLET_DATA, 24, TAU, Vector2.DOWN, enemy.global_position)
 			_count += 1
 			if _count >= 3:
 				_count = 0
 				_phase = 2
-				return api.seconds(1.0)
-			return api.seconds(1.2)
+				return ctx.clock.wait(1.0)
+			return ctx.clock.wait(1.2)
 
 		2:
 			# 自机狙弯曲 S 形曲线激光
-			var player := api.get_player()
+			var player: Player = ctx.player.get_player()
 			if player and is_instance_valid(player):
 				var to_p := (player.global_position - enemy.global_position).normalized()
 				var curve := _make_s_curve(enemy.global_position, to_p, 500, 150)
-				api.fire_growing_laser(LASER_DATA, enemy.global_position, curve)
+				ctx.bullets.fire_growing_laser(LASER_DATA, enemy.global_position, curve)
 			_count += 1
 			if _count >= 6:
 				_count = 0
 				_phase = 0
-				return api.seconds(3.0)  # 等激光自然飞出屏
-			return api.seconds(0.8)
+				return ctx.clock.wait(3.0)  # 等激光自然飞出屏
+			return ctx.clock.wait(0.8)
 		_:
 			return false
 

@@ -9,7 +9,8 @@ const FOLLOW_SPEED: float = 13.39
 
 var _lerp_factor: float
 
-func start_moving(api: StageAPI, p_target: Node2D):
+func start_moving(api: StageAPI, p_target: Node2D, p_ctx = null):
+	ctx = p_ctx
 	target = p_target
 	var delta := 1.0 / Engine.physics_ticks_per_second
 	_lerp_factor = 1.0 - exp(-FOLLOW_SPEED * delta)

@@ -116,8 +116,8 @@ func _start_movement(data: BulletData):
 	coroutine_movement = data.movement_script.new()
 	assert(coroutine_movement is MoveScript, "Bullet: movement_script must be a MoveScript")
 	add_child(coroutine_movement)
-	var api = StageAPI.new(coroutine_movement)
-	coroutine_movement.start_moving(api, self)
+	var api := StageAPI.new(coroutine_movement)
+	coroutine_movement.start_moving(api, self, api.ctx)
 
 func batch_texture() -> Texture2D:
 	return sprite.texture

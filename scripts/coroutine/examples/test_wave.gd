@@ -8,16 +8,16 @@ var _phase: int = 0
 func _on_step(api: StageAPI) -> Variant:
 	match _phase:
 		0:
-			api.play_dialogue(TEST_DIALOGUE.lines)
+			ctx.play_dialogue(TEST_DIALOGUE.lines)
 			AudioManager.play_bgm(preload("res://assets/Music/THq01_02.夜间漫步.mp3"), 0.0)
 			_phase = 1
-			return api.seconds(2.0)
+			return ctx.clock.wait(2.0)
 		1:
-			api.spawn_boss(EX_BOSS, Vector2(448, 160))
+			ctx.enemies.spawn_boss(EX_BOSS, Vector2(448, 160), api)
 			_phase = 99
-			return api.seconds(999)
+			return ctx.clock.wait(999)
 		2:
-			if api.all_defeated():
+			if ctx.enemies.all_defeated():
 				return false
 			return true
 		_:

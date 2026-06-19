@@ -12,9 +12,9 @@ func _on_step(api: StageAPI) -> Variant:
 		# 每条激光偏移一点角度，错开发射
 		var base_angle := deg_to_rad(i * 15)
 		var fancy_curve := _make_fancy_curve(enemy.global_position, base_angle)
-		api.fire_growing_laser(LASER_DATA, enemy.global_position, fancy_curve)
+		ctx.bullets.fire_growing_laser(LASER_DATA, enemy.global_position, fancy_curve)
 
-	return api.seconds(9.0)
+	return ctx.clock.wait(9.0)
 
 
 func _make_fancy_curve(origin: Vector2, offset_angle: float) -> Curve2D:

@@ -13,7 +13,8 @@ var _elapsed: float = 0.0
 var _base_speed: float
 var _max_speed: float
 
-func start_moving(api: StageAPI, p_target: Node2D):
+func start_moving(api: StageAPI, p_target: Node2D, p_ctx = null):
+	ctx = p_ctx
 	target = p_target
 	_elapsed = 0.0
 	_base_speed = target.velocity.length()

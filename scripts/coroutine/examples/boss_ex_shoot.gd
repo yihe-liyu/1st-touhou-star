@@ -21,5 +21,5 @@ func _on_step(_api: StageAPI) -> Variant:
 	var base := (player.global_position - pos).angle()
 	for i in range(3):
 		var a := base + deg_to_rad((i - 1) * 10.0)
-		_api.shoot_spread(BULLET_DATA, 1, 0, Vector2(cos(a), sin(a)), pos)
+		ctx.bullets.shoot_spread(BULLET_DATA, 1, 0, Vector2(cos(a), sin(a)), pos)
 	return true
