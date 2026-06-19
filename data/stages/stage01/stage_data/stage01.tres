@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://data/stages/stage01/background/stage01_background.tscn" id="2"]
+[ext_resource type="Script" path="res://data/stages/stage01/stage_script/stage01.gd" id="3"]
+
+[resource]
+script = ExtResource("1")
+difficulty = -1
+create_script = ExtResource("3")
+background_scene = ExtResource("2")

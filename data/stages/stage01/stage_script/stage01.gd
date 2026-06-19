@@ -1,9 +1,10 @@
 extends StageScript
+## 第一面——全难度共享
 
 const REIMU_BEFORE_DIALOGUE = preload("res://data/dialogue/reimu/stage01_before.tres")
-
-const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy_normal01.tres")
 const LOGO = preload("res://assets/Textures/front/logo/logo1.png")
+
+const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy01.tres")
 
 var _spawn_offset_x = 300
 var _spawn_i = 0
@@ -11,12 +12,14 @@ var _spawn_i = 0
 func start_stage(p_ctx: StageContext):
 	ctx = p_ctx
 	var tl := start_timeline()
-
+	
 	tl.at(0.0).do(func():
 		AudioManager.play_bgm(preload("res://assets/Music/THq01_02.夜间漫步.mp3"), 0.0)
 	)
 
-	tl.at(1.0).every(0.1).times(6).do(func():
+	# 难度差异：Hard 多一波
+	var wave_count: int = diff_pick([6, 6, 8])
+	tl.at(1.0).every(0.1).times(wave_count).do(func():
 		var e := ctx.enemies.spawn_enemy(ENEMY01, Vector2(448 + _spawn_offset_x, 0), false)
 		e.move_script.target_y = 150 + _spawn_i * 60
 		e.start()
@@ -24,14 +27,15 @@ func start_stage(p_ctx: StageContext):
 		_spawn_i += 1
 	)
 	
-	tl.at(3.9).do(func(): _spawn_i = 0)
-	tl.at(4.0).every(0.1).times(6).do(func():
-		var e := ctx.enemies.spawn_enemy(ENEMY01, Vector2(448 + _spawn_offset_x, 0), false)
-		e.move_script.target_y = 150 + _spawn_i * 60
-		e.start()
-		_spawn_offset_x += 100
-		_spawn_i += 1
-	)
+	if wave_count > 0:
+		tl.at(3.9).do(func(): _spawn_i = 0)
+		tl.at(4.0).every(0.1).times(wave_count).do(func():
+			var e := ctx.enemies.spawn_enemy(ENEMY01, Vector2(448 + _spawn_offset_x, 0), false)
+			e.move_script.target_y = 150 + _spawn_i * 60
+			e.start()
+			_spawn_offset_x += 100
+			_spawn_i += 1
+		)
 	
 	tl.at(7.0).do(func(): 
 		# LOGO
@@ -49,9 +53,5 @@ func start_stage(p_ctx: StageContext):
 		t.tween_property(logo, "modulate:a", 0.0, 1.0)
 		t.tween_callback(layer.queue_free)
 	)
-	
-	#tl.at(1.0); tl.do(func():
-		#ctx.play_dialogue(REIMU_BEFORE_DIALOGUE.lines)
-	#)
 
 	super.start_stage(p_ctx)
