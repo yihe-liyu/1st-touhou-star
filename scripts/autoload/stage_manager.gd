@@ -31,15 +31,15 @@ func load_stage(data: StageData):
 	_stage_script = stage_script
 	stage_script.finished.connect(_on_stage_finished)
 
-	var api := StageAPI.new(stage_script)
-	stage_script.start_stage(api, api.ctx)
+	var ctx := StageContext.new(stage_script)
+	stage_script.start_stage(ctx)
 
 	# 自动启动背景场景里挂的所有 BackgroundScript
 	if current_background:
 		for child in current_background.get_children():
 			if child is BackgroundScript:
-				var bg_api := StageAPI.new(child)
-				child.start_background(bg_api, bg_api.ctx)
+				var bg_ctx := StageContext.new(child)
+				child.start_background(bg_ctx)
 
 	stage_started.emit()
 
@@ -70,17 +70,14 @@ func spawn_enemy(data: EnemyData, position: Vector2) -> Enemy:
 	_add_enemy_to_scene(enemy)
 	return enemy
 
-func spawn_boss(data: BossData, position: Vector2, api: StageAPI, defer: bool = false) -> Node:
+func spawn_boss(data: BossData, position: Vector2, api: StageAPI = null, defer: bool = false, p_ctx: StageContext = null) -> Node:
 	var boss := BossClass.new()
 	boss.global_position = position
-	
-	# 挂视觉
 	if data.visual:
 		var vis := data.visual.instantiate()
 		boss.add_child(vis)
-	
 	_add_enemy_to_scene(boss)
-	boss.setup(data, api)
+	boss.setup(data, api, p_ctx)
 	boss.start_boss(defer)
 	return boss
 

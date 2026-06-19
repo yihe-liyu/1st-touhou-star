@@ -6,16 +6,36 @@ var clock: ClockService
 var bullets: BulletService
 var enemies: EnemyService
 var player: PlayerService
-var decor: DecorManager
 var runner: CoroutineRunner
+
+var _decor_mgr: DecorManager
+
+const DecorManagerClass = preload("res://scripts/background/decor_manager.gd")
 
 func _init(p_runner: CoroutineRunner) -> void:
 	runner = p_runner
 	clock = ClockService.new()
 	bullets = BulletService.new()
 	enemies = EnemyService.new()
+	enemies.ctx = self
 	player = PlayerService.new()
-	decor = DecorManager.new()
+
+## 装饰物管理器（树附着，懒加载）
+func get_decor() -> DecorManager:
+	if _decor_mgr: return _decor_mgr
+	var bg := StageManager.current_background
+	if not bg: return null
+	var mgr := bg.get_node_or_null("DecorManager") as DecorManager
+	if not mgr:
+		mgr = DecorManagerClass.new()
+		mgr.name = "DecorManager"
+		bg.add_child(mgr)
+	_decor_mgr = mgr
+	return mgr
+
+## 便捷属性
+var decor: DecorManager:
+	get: return get_decor()
 
 func active() -> bool:
 	return is_instance_valid(runner) and runner.is_running

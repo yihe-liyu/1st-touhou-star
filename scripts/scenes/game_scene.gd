@@ -46,7 +46,7 @@ func _start_practice_game() -> void:
 	_practice_runner = CoroutineRunner.new()
 	add_child(_practice_runner)
 	_practice_runner.run(func(): return true)
-	var api := StageAPI.new(_practice_runner)
+	var api := StageContext.new(_practice_runner)
 
 	var full_data: BossData = GameState.practice_boss_data
 	var single := BossData.new()

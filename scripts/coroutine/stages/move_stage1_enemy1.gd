@@ -32,7 +32,7 @@ var _going_right: bool = true
 var _tween: Tween
 
 
-func start_moving(api: StageAPI, p_target: Node2D):
+func start_moving(p_ctx: StageContext, p_target: Node2D):
 	target = p_target
 
 	# ── 入场：滑到 (patrol_x, entrance_y) ──
@@ -42,11 +42,11 @@ func start_moving(api: StageAPI, p_target: Node2D):
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
 
 	_phase = Phase.ENTRANCE
-	run(_on_step.bind(api))
+	run(_on_step.bind(ctx))
 
 
-func _on_step(api: StageAPI) -> Variant:
-	if not api.active() or not is_instance_valid(target):
+func _on_step(_ctx: StageContext) -> Variant:
+	if not ctx.active() or not is_instance_valid(target):
 		return false
 
 	match _phase:

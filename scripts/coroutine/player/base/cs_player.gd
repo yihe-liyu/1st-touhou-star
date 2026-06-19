@@ -5,27 +5,26 @@ const OPTION = preload("res://assets/Textures/player/pl00.png")
 
 var _options: Array[Node2D] = []
 var _phase: int = 0
-var ctx  ## StageContext
+var ctx: StageContext
 
-
-func start_shooting(api: StageAPI, p_ctx):
+func start_shooting(p_ctx: StageContext):
 	ctx = p_ctx
-	run(_on_step.bind(api))
+	run(_on_step.bind(ctx))
 
 
 ## 主状态机 — 子类不覆写
-func _on_step(api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	match _phase:
 		0:
-			run_parallel(_main_step.bind(api))
-			run_parallel(_option_step.bind(api))
+			run_parallel(_main_step.bind(ctx))
+			run_parallel(_option_step.bind(ctx))
 			_phase = 1
 			return true
 		1:
 			var player: Player = ctx.player.get_player()
 			if not is_instance_valid(player):
 				return true
-			_sync_options(player, api)
+			_sync_options(player, ctx)
 			return true
 		_:
 			return false
@@ -45,37 +44,37 @@ func _option_setup() -> Dictionary:
 
 
 ## 主射击：返回 frame 间隔（seconds）
-func _main_shoot(_api: StageAPI, _player: Player) -> float:
+func _main_shoot(_ctx: StageContext, _player: Player) -> float:
 	return 0.0
 
 
 ## 僚机射击：返回 frame 间隔（seconds）。options > 0 确保有僚机
-func _option_shoot(_api: StageAPI, _options_count: int) -> float:
+func _option_shoot(_ctx: StageContext, _options_count: int) -> float:
 	return 0.0
 
 
 # ── 通用实现 ──
 
-func _main_step(_api: StageAPI) -> Variant:
+func _main_step(_ctx: StageContext) -> Variant:
 	if not Input.is_action_pressed("shoot"):
 		return true
 	var player: Player = ctx.player.get_player()
 	if not is_instance_valid(player):
 		return true
-	var interval := _main_shoot(_api, player)
+	var interval := _main_shoot(_ctx, player)
 	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"), -12.0)
 	return interval
 
 
-func _option_step(api: StageAPI) -> Variant:
+func _option_step(_ctx: StageContext) -> Variant:
 	if not Input.is_action_pressed("shoot"):
 		return true
 	if _options.size() > 0:
-		return _option_shoot(api, _options.size())
+		return _option_shoot(_ctx, _options.size())
 	return true
 
 
-func _sync_options(leader: Node2D, api: StageAPI) -> void:
+func _sync_options(leader: Node2D, _ctx: StageContext) -> void:
 	var setup := _option_setup()
 	if setup.is_empty():
 		return
@@ -119,7 +118,7 @@ func _sync_options(leader: Node2D, api: StageAPI) -> void:
 		follow.name = "Follow"
 		follow.leader = leader
 		opt.add_child(follow)
-		follow.start_moving(StageAPI.new(follow), opt, ctx)
+		follow.start_moving(ctx, opt)
 
 		_options.append(opt)
 
@@ -136,10 +135,10 @@ func _sync_options(leader: Node2D, api: StageAPI) -> void:
 	for opt in _options:
 		var visual = opt.get_node_or_null("Visual") as OptionVisual
 		if visual:
-			visual.update_visual(api, leader)
+			visual.update_visual(ctx, leader)
 
 
-func _shoot_options(_api: StageAPI, bullet_data: BulletData, count: int, spread: float, dir: Vector2, offset: Vector2) -> void:
+func _shoot_options(_ctx: StageContext, bullet_data: BulletData, count: int, spread: float, dir: Vector2, offset: Vector2) -> void:
 	for opt in _options:
 		ctx.bullets.shoot_spread(bullet_data, count, spread, dir, opt.global_position + offset)
 

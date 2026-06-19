@@ -7,7 +7,7 @@ const BULLET_DATA = preload("res://data/bullet_data/test_enemy_bullet.tres")
 var _phase: int = 0
 var _count: int = 0
 
-func _on_step(api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	var enemy := get_parent() as Node2D
 	if not enemy or not is_instance_valid(enemy):
 		return false

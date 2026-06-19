@@ -60,15 +60,15 @@ func _apply_enemy_data(data: EnemyData):
 		_create_script = data.create_script.new()
 		assert(_create_script is CreateScript, "Enemy: create_script must be a CreateScript")
 		add_child(_create_script)
-		var api = StageAPI.new(_create_script)
-		_create_script.start_creating(api)
+		var ctx := StageContext.new(_create_script)
+		_create_script.start_creating(ctx)
 	
 	if data.move_script:
 		_move_script = data.move_script.new()
 		assert(_move_script is MoveScript, "Enemy: move_script must be a MoveScript")
 		add_child(_move_script)
-		var api := StageAPI.new(_move_script)
-		_move_script.start_moving(api, self, api.ctx)
+		var move_ctx := StageContext.new(_move_script)
+		_move_script.start_moving(move_ctx, self)
 
 
 func take_damage(damage: int):

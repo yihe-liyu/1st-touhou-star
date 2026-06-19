@@ -5,7 +5,7 @@ const BULLET_DATA = preload("res://data/bullet_data/test_enemy_bullet.tres")
 
 var _i: int = 0
 
-func _on_step(_api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	if _i >= 4000000:
 		return false
 	var parent := get_parent()

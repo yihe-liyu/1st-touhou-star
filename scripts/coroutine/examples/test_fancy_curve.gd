@@ -3,7 +3,7 @@ class_name TestFancyCurve
 
 const LASER_DATA = preload("res://data/laser_data/test_laser_red.tres")
 
-func _on_step(api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	var enemy := get_parent() as Node2D
 	if not enemy or not is_instance_valid(enemy):
 		return false

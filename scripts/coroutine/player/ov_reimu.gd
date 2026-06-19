@@ -20,5 +20,5 @@ func _process(_delta):
 		return
 	sprite.rotation += deg_to_rad(rotation_speed)
 
-func update_visual(_api: StageAPI, _leader: Node2D) -> void:
+func update_visual(_ctx: StageContext, _leader: Node2D) -> void:
 	pass

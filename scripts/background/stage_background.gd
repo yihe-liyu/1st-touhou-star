@@ -153,7 +153,7 @@ func camera_rush(direction: Vector3, duration: float, accel: float = 2.0):
 func _on_setup():
 	for child in get_children():
 		if child is BackgroundScript:
-			child._on_init(StageAPI.new(child))
+			child._on_init(StageContext.new(child))
 
 func _on_update(_delta: float, _t: float):
 	pass

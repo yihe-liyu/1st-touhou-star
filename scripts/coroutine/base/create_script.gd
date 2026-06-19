@@ -1,11 +1,11 @@
 extends CoroutineRunner
 class_name CreateScript
 
-var ctx  ## StageContext
+var ctx: StageContext
 
-func start_creating(api: StageAPI, p_ctx = null):
+func start_creating(p_ctx: StageContext):
 	ctx = p_ctx
-	run(_on_step.bind(api))
+	run(_on_step.bind(ctx))
 
-func _on_step(_api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	return false

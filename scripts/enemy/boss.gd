@@ -26,10 +26,10 @@ func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
 
 
-func setup(data: BossData, api: StageAPI) -> void:
+func setup(data: BossData, api: StageAPI, p_ctx: StageContext = null) -> void:
 	boss_data = data
 	_api = api
-	_ctx = api.ctx
+	_ctx = p_ctx if p_ctx else (api.ctx if api else null)
 	z_index = LayerConfig.BOSS
 	
 	if GameState.is_practice_mode:
@@ -108,11 +108,11 @@ func _begin_phase() -> void:
 	if _current_phase.move_script:
 		_move = _current_phase.move_script.new()
 		add_child(_move)
-		_move.start_moving(_api, self, _ctx)
+		_move.start_moving(_ctx, self)
 	if _current_phase.shoot_script:
 		_shoot = _current_phase.shoot_script.new()
 		add_child(_shoot)
-		_shoot.start_creating(_api, _ctx)
+		_shoot.start_creating(_ctx)
 
 func _process(delta: float) -> void:
 	if not _current_phase: return

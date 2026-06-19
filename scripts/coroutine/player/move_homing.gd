@@ -13,16 +13,16 @@ var _elapsed: float = 0.0
 var _base_speed: float
 var _max_speed: float
 
-func start_moving(api: StageAPI, p_target: Node2D, p_ctx = null):
+func start_moving(p_ctx: StageContext, p_target: Node2D):
 	ctx = p_ctx
 	target = p_target
 	_elapsed = 0.0
 	_base_speed = target.velocity.length()
 	_max_speed = max_speed if max_speed > 0.0 else _base_speed
-	run(_on_step.bind(api))
+	run(_on_step.bind(ctx))
 
-func _on_step(api: StageAPI) -> Variant:
-	if not api.active() or not is_instance_valid(target):
+func _on_step(_ctx: StageContext) -> Variant:
+	if not ctx.active() or not is_instance_valid(target):
 		return false
 
 	_elapsed += 1.0 / Engine.physics_ticks_per_second

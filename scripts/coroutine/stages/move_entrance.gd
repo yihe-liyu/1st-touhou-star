@@ -24,7 +24,7 @@ var _wait: float = 0.0
 ## 启动入场动画
 ## @param api     StageAPI 实例
 ## @param p_target 要移动的节点
-func start_moving(api: StageAPI, p_target: Node2D, p_ctx = null):
+func start_moving(p_ctx: StageContext, p_target: Node2D):
 	ctx = p_ctx
 	target = p_target
 
@@ -38,9 +38,9 @@ func start_moving(api: StageAPI, p_target: Node2D, p_ctx = null):
 
 	# 协程等 duration 秒后结束
 	_wait = duration
-	run(_on_step.bind(api))
+	run(_on_step.bind(ctx))
 
 
 ## 协程回调 — 返回等待秒数
-func _on_step(_api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	return ctx.clock.wait(_wait)

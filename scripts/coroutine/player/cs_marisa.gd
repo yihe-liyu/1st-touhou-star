@@ -27,7 +27,7 @@ func _option_setup() -> Dictionary:
 	}
 
 
-func _main_shoot(_api: StageAPI, player: Player) -> float:
+func _main_shoot(_ctx: StageContext, player: Player) -> float:
 	var pw := GameState.power_raw
 	if pw >= 200:
 		ctx.bullets.shoot_spread(BULLET, 5, deg_to_rad(15), Vector2.UP, player.global_position)
@@ -41,12 +41,12 @@ func _main_shoot(_api: StageAPI, player: Player) -> float:
 		return ctx.clock.wait_frames(MAIN_INTERVAL_LO)
 
 
-func _option_shoot(api: StageAPI, _count: int) -> float:
+func _option_shoot(_ctx: StageContext, _count: int) -> float:
 	var pw := GameState.power_raw
 	if pw >= 200:
-		_shoot_options(api, BULLET, 3, deg_to_rad(8), Vector2.UP, Vector2.ZERO)
+		_shoot_options(ctx, BULLET, 3, deg_to_rad(8), Vector2.UP, Vector2.ZERO)
 	elif pw >= 100:
-		_shoot_options(api, BULLET, 1, 0.0, Vector2.UP, Vector2.ZERO)
+		_shoot_options(ctx, BULLET, 1, 0.0, Vector2.UP, Vector2.ZERO)
 	else:
 		return 0.0
 	return ctx.clock.wait_frames(OPTION_INTERVAL)

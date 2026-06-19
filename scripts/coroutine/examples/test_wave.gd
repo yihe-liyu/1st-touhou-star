@@ -5,7 +5,7 @@ const TEST_DIALOGUE = preload("res://data/dialogue/reimu/stage01_before.tres")
 
 var _phase: int = 0
 
-func _on_step(api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	match _phase:
 		0:
 			ctx.play_dialogue(TEST_DIALOGUE.lines)
@@ -13,7 +13,7 @@ func _on_step(api: StageAPI) -> Variant:
 			_phase = 1
 			return ctx.clock.wait(2.0)
 		1:
-			ctx.enemies.spawn_boss(EX_BOSS, Vector2(448, 160), api)
+			ctx.enemies.spawn_boss(EX_BOSS, Vector2(448, 160), null)
 			_phase = 99
 			return ctx.clock.wait(999)
 		2:

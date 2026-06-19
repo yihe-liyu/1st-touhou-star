@@ -18,15 +18,15 @@ var _start_x: float
 var _going_right: bool = true
 
 
-func start_moving(api: StageAPI, p_target: Node2D):
+func start_moving(p_ctx: StageContext, p_target: Node2D):
 	target = p_target
 	_start_x = target.global_position.x
 	_going_right = true
-	run(_on_step.bind(api))
+	run(_on_step.bind(ctx))
 
 
-func _on_step(api: StageAPI) -> Variant:
-	if not api.active() or not is_instance_valid(target):
+func _on_step(_ctx: StageContext) -> Variant:
+	if not ctx.active() or not is_instance_valid(target):
 		return false
 
 	_going_right = not _going_right

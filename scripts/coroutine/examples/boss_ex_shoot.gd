@@ -6,7 +6,7 @@ const BULLET_DATA = preload("res://data/bullet_data/test_enemy_bullet.tres")
 
 var _tick: int = 0
 
-func _on_step(_api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	_tick += 1
 	if _tick < 30:  # ~0.5s
 		return true

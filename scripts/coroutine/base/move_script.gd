@@ -2,12 +2,12 @@ extends CoroutineRunner
 class_name MoveScript
 
 var target: Node2D
-var ctx  ## StageContext
+var ctx: StageContext
 
-func start_moving(api: StageAPI, p_target: Node2D, p_ctx = null):
+func start_moving(p_ctx: StageContext, p_target: Node2D):
 	ctx = p_ctx
 	target = p_target
-	run(_on_step.bind(api))
+	run(_on_step.bind(ctx))
 
-func _on_step(_api: StageAPI) -> Variant:
+func _on_step(_ctx: StageContext) -> Variant:
 	return false
