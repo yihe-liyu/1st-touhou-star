@@ -42,7 +42,7 @@ func _on_step(api: StageAPI) -> Variant:
 			return api.seconds(4)
 		2:
 			var t_accel := bg.create_tween()
-			t_accel.tween_method(_camera_accel, 1.0, 8.0, 16).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+			t_accel.tween_method(_camera_accel, 1.0, 7.0, 16).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 			_phase = 3
 			return api.seconds(1)
 	return true
