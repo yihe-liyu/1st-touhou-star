@@ -10,7 +10,7 @@ var _tl
 
 
 func _on_step(_ctx: StageContext) -> Variant:
-	return _tl.tick()
+	return _tl.tick(get_physics_process_delta_time())
 
 
 func start_creating(p_ctx: StageContext):

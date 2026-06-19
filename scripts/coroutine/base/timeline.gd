@@ -15,7 +15,6 @@ var _events: Array[TimelineEvent] = []
 var _elapsed: float = 0.0
 var _paused: bool = false
 var _loop_start: float = -1.0
-var _last_tick_usec: int = 0
 
 # builder state
 var _time: float = -1.0
@@ -71,15 +70,10 @@ func _add(t: float, cb: Callable, ev: float = -1.0, n: int = -1) -> void:
 
 # ═══ 运行 ═══
 
-func tick(_delta: float = 0.0) -> bool:
+func tick(delta: float) -> bool:
 	if _paused:
 		return true
-	var now := Time.get_ticks_usec()
-	var dt: float = 0.0
-	if _last_tick_usec > 0:
-		dt = (now - _last_tick_usec) / 1_000_000.0
-	_last_tick_usec = now
-	_elapsed += dt
+	_elapsed += delta
 	
 	for ev in _events:
 		if ev.fired and ev.repeat_every <= 0:
@@ -120,7 +114,6 @@ func resume() -> void: _paused = false
 
 func reset() -> void:
 	_elapsed = 0.0
-	_last_tick_usec = 0
 	for ev in _events:
 		ev.fired = false
 

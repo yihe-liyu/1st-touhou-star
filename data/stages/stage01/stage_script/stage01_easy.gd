@@ -9,7 +9,7 @@ var _tl
 
 
 func _on_step(_ctx: StageContext) -> Variant:
-	_tl.tick()
+	_tl.tick(get_physics_process_delta_time())
 	return true
 
 
