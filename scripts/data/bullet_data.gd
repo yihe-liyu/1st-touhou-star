@@ -43,13 +43,10 @@ var movement_script: Script
 
 ## ---- 构造链方法 ----
 func tex(key: String) -> BulletData:
-	var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
-	texture = cfg.get("tex", texture)
-	# 碰撞箱默认值
-	var hb: Array = cfg.get("hitbox", [])
-	if hb.size() > 0:
-		hitbox_shape = HitboxShape.CIRCLE
-		hitbox_radius = hb[0]
+	texture = AssetRegistry.get_bullet_tex(key)
+	var r := AssetRegistry.get_bullet_hitbox(key)
+	hitbox_shape = HitboxShape.CIRCLE
+	hitbox_radius = r
 	return self
 
 func speed(v: float) -> BulletData:

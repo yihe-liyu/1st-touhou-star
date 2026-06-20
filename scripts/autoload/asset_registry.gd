@@ -31,3 +31,12 @@ const ui_textures := {
 const enemies := {
 	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
 }
+
+static func get_bullet_tex(key: String) -> Texture2D:
+	var cfg: Dictionary = bullet_configs.get(key, {})
+	return cfg.get("tex")
+
+static func get_bullet_hitbox(key: String) -> float:
+	var cfg: Dictionary = bullet_configs.get(key, {})
+	var hb: Array = cfg.get("hitbox", [])
+	return hb[0] if hb.size() > 0 else 4.0
