@@ -45,7 +45,7 @@ var movement_script: Script
 ## ---- 构造链方法 ----
 func tex(key: String) -> BulletData:
 	texture = AssetRegistry.get_bullet_tex(key)
-	var cfg: Dictionary = AssetRegistry.bullet_configs().get(key, {})
+	var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
 	var hb: Dictionary = cfg.get("hitbox", {})
 	if hb.has("circle"):
 		hitbox_shape = HitboxShape.CIRCLE
@@ -55,9 +55,8 @@ func tex(key: String) -> BulletData:
 		var r: Dictionary = hb["rect"]
 		hitbox_size = Vector2(r.get("w", 48), r.get("h", 24))
 		hitbox_rotation = r.get("rotation", 0.0)
-	hitbox_offset = hb.get("offset", {})
-	if hitbox_offset is Dictionary:
-		hitbox_offset = Vector2(hitbox_offset.get("x", 0), hitbox_offset.get("y", 0))
+	var off := hb.get("offset", {})
+	hitbox_offset = Vector2(off.get("x", 0), off.get("y", 0)) if off is Dictionary else off
 	fog_texture = AssetRegistry.FOG_TEXTURE
 	return self
 
