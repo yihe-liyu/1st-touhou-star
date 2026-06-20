@@ -51,6 +51,9 @@ func tex(key: String) -> BulletData:
 	var r := AssetRegistry.get_bullet_hitbox(key)
 	hitbox_shape = HitboxShape.CIRCLE
 	hitbox_radius = r
+	# 弹雾纹理跟子弹纹理走
+	if texture:
+		fog_texture = texture
 	return self
 
 func speed(v: float) -> BulletData:
@@ -72,6 +75,7 @@ func blend(b: bool) -> BulletData:
 func enemy() -> BulletData:
 	faction = Faction.ENEMY
 	can_be_canceled = true
+	spawn_fog = true
 	hitbox_shape = HitboxShape.CIRCLE
 	hitbox_radius = 4.0
 	return self
