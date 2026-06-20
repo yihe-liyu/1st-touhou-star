@@ -27,9 +27,8 @@ func _init_pool() -> void:
 	for i in POOL_SIZE:
 		var laser := CurvedLaser.new()
 		laser.name = &"LaserPool_%d" % i
-		_parent.add_child(laser)
 		laser.phase = CurvedLaser.DEAD
-		laser.line.visible = false
+		_parent.add_child(laser)
 		_pool[i] = laser
 
 
