@@ -56,7 +56,7 @@ func tex(key: String) -> BulletData:
 		hitbox_size = Vector2(r.get("w", 48), r.get("h", 24))
 		hitbox_rotation = r.get("rotation", 0.0)
 	hitbox_offset = hb.get("offset", Vector2.ZERO)
-	fog_texture = AssetRegistry.get_bullet_tex("弹雾")
+	fog_texture = AssetRegistry.FOG_TEXTURE
 	return self
 
 func speed(v: float) -> BulletData:
