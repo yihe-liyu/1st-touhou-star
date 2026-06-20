@@ -19,13 +19,8 @@ func setup(_enemy: Enemy, _ctx: StageContext) -> void:
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 
 	# 弹幕
-	var bullet := BulletData.new()
-	bullet.texture = AssetRegistry.bullet_textures["小玉"]
+	var bullet: BulletData = BulletData.new().tex("小玉").color(Color.RED).enemy().blend(true)
 	bullet.velocity = Vector2(0, bullet_speed)
-	bullet.tint = Color.RED
-	bullet.faction = BulletData.Faction.ENEMY
-	bullet.can_be_canceled = true
-	bullet.tint_mode = BulletData.TintMode.BLEND
 
 	var tl := start_timeline()
 	tl.at(0.0).every(shoot_interval).do(func():
