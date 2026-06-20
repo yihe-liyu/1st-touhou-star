@@ -78,12 +78,16 @@ func debug_fill_spells() -> void:
 	spell_book.records.clear()
 	for sd in _get_all_stages():
 		for boss in sd.bosses:
-			if sd.difficulty.has(-1):
-				for d in [0, 1, 2, 3, 4]:
+			if sd.difficulty == -1:
+				for d in [1, 2, 4, 8, 16]:
 					_fill_from_boss(boss, sd.stage_id, d)
 			else:
-				for d in sd.difficulty:
-					_fill_from_boss(boss, sd.stage_id, d)
+				var diff := sd.difficulty
+				var d := 1
+				while d <= 16:
+					if diff & d:
+						_fill_from_boss(boss, sd.stage_id, d)
+					d <<= 1
 	_save_spell_book()
 
 
