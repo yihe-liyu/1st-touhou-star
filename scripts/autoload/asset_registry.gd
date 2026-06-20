@@ -6,12 +6,6 @@ const enemy_visuals := {
 	"death":  preload("res://data/enemy_visual/death_effect.tscn"),
 }
 
-static func _circle_tex(path: String, r: float) -> Dictionary:
-	return {"tex": preload(path), "shape": "circle", "size": r}
-
-static func _rect_tex(path: String, w: float, h: float, ox: float = 0, oy: float = 0, rot: float = 0) -> Dictionary:
-	return {"tex": preload(path), "shape": "rect", "size": {"w": w, "h": h}, "offset": Vector2(ox, oy), "rotation": rot}
-
 var _bullet_configs: Dictionary
 var bullet_configs: Dictionary:
 	get:
@@ -21,11 +15,11 @@ var bullet_configs: Dictionary:
 
 func _build_bullet_configs() -> Dictionary:
 	return {
-		"小玉":   _circle_tex("res://assets/Textures/bullet/小玉.png", 4.0),
-		"小光玉": _circle_tex("res://assets/Textures/bullet/小光玉.png", 4.0),
-		"点弹":   _circle_tex("res://assets/Textures/bullet/点弹.png", 6.0),
-		"棱弹":   _circle_tex("res://assets/Textures/bullet/棱弹.png", 8.0),
-		"弹雾":   _circle_tex("res://assets/Textures/bullet/弹雾.png", 10.0),
+		"小玉":   {"tex": preload("res://assets/Textures/bullet/小玉.png"), "圆": 4.0},
+		"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"), "圆": 4.0},
+		"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"), "圆": 6.0},
+		"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"), "圆": 8.0},
+		"弹雾":   {"tex": preload("res://assets/Textures/bullet/弹雾.png"), "圆": 10.0},
 	}
 
 const sounds := {
