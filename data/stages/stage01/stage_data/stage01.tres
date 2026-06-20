@@ -7,6 +7,5 @@
 
 [resource]
 script = ExtResource("1")
-difficulty = -1
 create_script = ExtResource("3")
 background_scene = ExtResource("2")
