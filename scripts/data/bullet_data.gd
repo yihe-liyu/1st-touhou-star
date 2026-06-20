@@ -47,13 +47,15 @@ func tex(key: String) -> BulletData:
 	texture = AssetRegistry.get_bullet_tex(key)
 	var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
 	var shape: String = cfg.get("shape", "circle")
-	var sz: float = cfg.get("size", 4.0)
 	if shape == "circle":
 		hitbox_shape = HitboxShape.CIRCLE
-		hitbox_radius = sz
+		hitbox_radius = cfg.get("size", 4.0)
 	else:
 		hitbox_shape = HitboxShape.RECTANGLE
-		hitbox_size = Vector2(sz, sz)
+		var s: Dictionary = cfg.get("size", {"w": 48, "h": 24})
+		hitbox_size = Vector2(s.get("w", 48), s.get("h", 24))
+		hitbox_rotation = cfg.get("rotation", 0.0)
+	hitbox_offset = cfg.get("offset", Vector2.ZERO)
 	fog_texture = AssetRegistry.get_bullet_tex("弹雾")
 	return self
 

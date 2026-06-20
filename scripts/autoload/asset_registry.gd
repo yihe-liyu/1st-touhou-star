@@ -6,13 +6,27 @@ const enemy_visuals := {
 	"death":  preload("res://data/enemy_visual/death_effect.tscn"),
 }
 
-var bullet_configs := {
-	"小玉":   {"tex": preload("res://assets/Textures/bullet/小玉.png"), "shape": "circle", "size": 4.0},
-	"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"), "shape": "circle", "size": 4.0},
-	"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"), "shape": "circle", "size": 6.0},
-	"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"), "shape": "circle", "size": 8.0},
-	"弹雾":   {"tex": preload("res://assets/Textures/bullet/弹雾.png"), "shape": "circle", "size": 10.0},
-}
+static func _circle_tex(path: String, r: float) -> Dictionary:
+	return {"tex": preload(path), "shape": "circle", "size": r}
+
+static func _rect_tex(path: String, w: float, h: float, ox: float = 0, oy: float = 0, rot: float = 0) -> Dictionary:
+	return {"tex": preload(path), "shape": "rect", "size": {"w": w, "h": h}, "offset": Vector2(ox, oy), "rotation": rot}
+
+var _bullet_configs: Dictionary
+var bullet_configs: Dictionary:
+	get:
+		if _bullet_configs.is_empty():
+			_bullet_configs = _build_bullet_configs()
+		return _bullet_configs
+
+func _build_bullet_configs() -> Dictionary:
+	return {
+		"小玉":   _circle_tex("res://assets/Textures/bullet/小玉.png", 4.0),
+		"小光玉": _circle_tex("res://assets/Textures/bullet/小光玉.png", 4.0),
+		"点弹":   _circle_tex("res://assets/Textures/bullet/点弹.png", 6.0),
+		"棱弹":   _circle_tex("res://assets/Textures/bullet/棱弹.png", 8.0),
+		"弹雾":   _circle_tex("res://assets/Textures/bullet/弹雾.png", 10.0),
+	}
 
 const sounds := {
 	"shoot":    preload("res://assets/Sound/bullet01.wav"),
