@@ -58,8 +58,11 @@ func _physics_process(delta: float) -> void:
 	
 	# 出屏回收
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
-		if _pool.is_offscreen(_pool.active_bullets[i].global_position):
-			_pool.return_bullet(_pool.active_bullets[i])
+		var b: Bullet = _pool.active_bullets[i]
+		if b.hitbox_shape == BulletData.HitboxShape.CAPSULE:
+			continue
+		if _pool.is_offscreen(b.global_position):
+			_pool.return_bullet(b)
 
 
 # ═══ 子弹 API（委托给 pool）═══

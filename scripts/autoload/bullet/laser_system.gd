@@ -72,7 +72,7 @@ func get_active() -> Array:
 
 
 func step(delta: float) -> void:
-	var player := GameState.player
+	var _player := GameState.player
 	
 	for laser in _active_lasers:
 		if laser.phase == CurvedLaser.DEAD:
@@ -86,6 +86,11 @@ func step(delta: float) -> void:
 			continue
 		
 		_update_capsules(laser)
+		
+		# 胶囊体碰撞
+		var capsules: Array = _capsule_map.get(laser, [])
+		if capsules.size() > 0:
+			_physics.check_capsules(capsules)
 
 
 func _capsule_step(step_px: float = 20.0) -> float:
@@ -98,7 +103,14 @@ func _update_capsules(laser: CurvedLaser) -> void:
 	if bullets == null:
 		return
 	
-	# 计算需要的总采样数
+	# 过滤被回收的子弹
+	var alive: Array[Bullet] = []
+	for b in bullets:
+		if is_instance_valid(b):
+			alive.append(b)
+	bullets = alive
+	_capsule_map[laser] = bullets
+	
 	var total_needed := 0
 	var samples_per_seg: Array[int] = []
 	for seg in segs:
@@ -107,32 +119,35 @@ func _update_capsules(laser: CurvedLaser) -> void:
 		samples_per_seg.append(n)
 		total_needed += n
 	
-	# 回收多余的
 	while bullets.size() > total_needed:
 		_bullet_pool.return_bullet(bullets.pop_back())
-	
-	# 补充不足的
 	while bullets.size() < total_needed:
-		var b := _bullet_pool.request_bullet()
+		var b := _bullet_pool.request_capsule()
 		if b:
 			bullets.append(b)
 	
-	# 更新位置
 	var idx := 0
 	for si in segs.size():
 		var seg = segs[si]
-		var seg_len: float = (seg.end_dist as float) - (seg.start_dist as float)
+		var seg_start: float = seg.start_dist as float
+		var seg_end: float = seg.end_dist as float
+		var seg_len: float = seg_end - seg_start
 		var n := samples_per_seg[si]
 		for i in n:
 			var t: float = float(i) / float(n - 1) if n > 1 else 0.0
-			var dist: float = (seg.start_dist as float) + seg_len * t
+			var dist: float = seg_start + seg_len * t
 			var pos: Vector2 = laser.sample_curve(dist)
 			var dir: Vector2 = laser.sample_dir(dist)
+			
+			var w_factor: float = 1.0 - abs(t * 2.0 - 1.0)
+			var w: float = lerpf(laser.data.end_width, laser.data.mid_width, w_factor)
+			
 			var b: Bullet = bullets[idx]
 			b.global_position = pos
 			b.rotation = dir.angle()
+			b.velocity = dir * 100.0
 			b.hitbox_shape = BulletData.HitboxShape.CAPSULE
-			b.hitbox_radius = laser.data.hitbox_width
+			b.hitbox_radius = w / 2.0
 			b.hitbox_length = seg_len / float(n - 1) if n > 1 else seg_len
 			b.hitbox_offset = Vector2.ZERO
 			b.faction = Bullet.FACTION_ENEMY
@@ -142,5 +157,6 @@ func _update_capsules(laser: CurvedLaser) -> void:
 func _recycle_capsules(laser: CurvedLaser) -> void:
 	var bullets: Array = _capsule_map.get(laser, [])
 	for b in bullets:
-		_bullet_pool.return_bullet(b)
+		if is_instance_valid(b):
+			_bullet_pool.return_bullet(b)
 	_capsule_map.erase(laser)

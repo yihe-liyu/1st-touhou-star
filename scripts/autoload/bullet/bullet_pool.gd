@@ -1,9 +1,9 @@
-# BulletPool — 子弹池管理 + 发射/回收
+# BulletPool - 子弹池管理 + 发射/回收
 class_name BulletPool
 extends RefCounted
 
 const POOL_SIZE: int = 4000
-const MAX_TOTAL: int = 5000  # 硬上限，超限回收最老子弹
+const MAX_TOTAL: int = 5000  # 硬上限,超限回收最老子弹
 
 var use_multi_mesh: bool = true
 
@@ -47,26 +47,33 @@ func shoot(data: BulletData, pos: Vector2, direction: Vector2, override: BulletO
 func request_bullet() -> Bullet:
 	var bullet := _request_bullet()
 	if not bullet: return null
-	bullet.visible = true
-	bullet.process_mode = Node.PROCESS_MODE_INHERIT
+	# 激光胶囊体不加 active_bullets，由 LaserSystem 自己管理
 	active_bullets.append(bullet)
 	return bullet
 
 
+func request_capsule() -> Bullet:
+	var bullet := _request_bullet()
+	if not bullet: return null
+	bullet.visible = true
+	bullet.process_mode = Node.PROCESS_MODE_INHERIT
+	bullet.is_ready = true
+	return bullet
+
+
 func _request_bullet() -> Bullet:
-	if bullet_pool.is_empty():
-		var total := active_bullets.size() + bullet_pool.size()
-		if total >= MAX_TOTAL:
-			if active_bullets.size() > 0:
-				return_bullet(active_bullets[0])
-				return bullet_pool.pop_back() if not bullet_pool.is_empty() else null
-			return null
-		var b := bullet_scene.instantiate()
-		if use_multi_mesh:
-			b.get_node("Sprite2D").visible = false
-		_parent.add_child(b)
-		return b
-	return bullet_pool.pop_back()
+	while not bullet_pool.is_empty():
+		var b: Bullet = bullet_pool.pop_back()
+		if is_instance_valid(b) and not b.is_queued_for_deletion():
+			b.visible = false
+			b.process_mode = Node.PROCESS_MODE_DISABLED
+			return b
+	
+	var nb := bullet_scene.instantiate()
+	if use_multi_mesh:
+		nb.get_node("Sprite2D").visible = false
+	_parent.add_child(nb)
+	return nb
 
 
 func shoot_player(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
@@ -79,7 +86,9 @@ func shoot_bomb(data: BulletData, pos: Vector2, direction: Vector2, override: Bu
 	return shoot(data, pos, direction, override)
 
 
-func return_bullet(bullet: Bullet) -> void:
+func _return_to_pool(bullet: Bullet) -> void:
+	if not is_instance_valid(bullet) or bullet.is_queued_for_deletion():
+		return
 	if bullet.coroutine_movement and is_instance_valid(bullet.coroutine_movement):
 		bullet.coroutine_movement.stop()
 		bullet.coroutine_movement.queue_free()
@@ -94,11 +103,15 @@ func return_bullet(bullet: Bullet) -> void:
 	bullet.fog.texture = null
 	if bullet.fog.fog_finished.is_connected(bullet._on_fog_ready):
 		bullet.fog.fog_finished.disconnect(bullet._on_fog_ready)
-	active_bullets.erase(bullet)
 	if bullet_pool.size() < POOL_SIZE:
 		bullet_pool.append(bullet)
 	else:
 		bullet.queue_free()
+
+
+func return_bullet(bullet: Bullet) -> void:
+	_return_to_pool(bullet)
+	active_bullets.erase(bullet)
 
 
 func clear() -> void:

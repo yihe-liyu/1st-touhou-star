@@ -62,7 +62,9 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 		return
 	if _hit_target(bullet, player):
 		player.miss()
-		_pool.return_bullet(bullet)
+		# 激光胶囊体由 LaserSystem 自己回收，不走 return_bullet
+		if bullet.hitbox_shape != BulletData.HitboxShape.CAPSULE:
+			_pool.return_bullet(bullet)
 	elif not bullet._grazed and _grazes_player(bullet, player):
 		bullet._grazed = true
 		on_graze()
@@ -71,7 +73,8 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 			if RNG.randf() < chance:
 				if bullet.hit_effect:
 					_spawn_effect(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
-				_pool.return_bullet(bullet)
+				if bullet.hitbox_shape != BulletData.HitboxShape.CAPSULE:
+					_pool.return_bullet(bullet)
 
 
 func _bomb_vs_enemies(bullet: Bullet) -> void:
@@ -85,6 +88,21 @@ func _bomb_vs_enemies(bullet: Bullet) -> void:
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(bullet.damage)
 			_spawn_effect(bullet.hit_effect, bullet.global_position)
+
+
+func check_capsules(capsules: Array) -> void:
+	var player = GameState.player
+	if not is_instance_valid(player) or player.is_invincible:
+		return
+	for b in capsules:
+		if not is_instance_valid(b) or not b.is_ready:
+			continue
+		if _hit_target(b, player):
+			player.miss()
+			return
+		elif not b._grazed and _grazes_player(b, player):
+			b._grazed = true
+			on_graze()
 
 
 # ── 命中检测 ──
