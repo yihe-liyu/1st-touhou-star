@@ -8,6 +8,8 @@ const POOL_SIZE := 32
 var _pool: Array[CurvedLaser] = []
 var _active_lasers: Array[CurvedLaser] = []
 var _pool_index: int = 0
+var _parent
+var _physics
 
 
 func _init() -> void:
@@ -38,7 +40,7 @@ func _get_laser() -> CurvedLaser:
 			_pool_index = (idx + 1) % POOL_SIZE
 			return _pool[idx]
 	# 全部在用——覆盖最早发射的那条
-	var reuse := _active_lasers.front()
+	var reuse: CurvedLaser = _active_lasers.front()
 	_active_lasers.erase(reuse)
 	return reuse
 
