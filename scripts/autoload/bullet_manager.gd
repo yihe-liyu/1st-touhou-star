@@ -28,7 +28,7 @@ func _ready():
 	_physics = PhysicsClass.new()
 	_physics.setup(_pool)
 	_lasers = LaserClass.new()
-	_lasers.setup(self)
+	_lasers.setup(self, _physics)
 	_death_clear = DeathClearClass.new()
 	_death_clear.setup(_pool, _lasers)
 	
@@ -58,11 +58,8 @@ func _physics_process(delta: float) -> void:
 	
 	# 出屏回收
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
-		var b: Bullet = _pool.active_bullets[i]
-		if b.hitbox_shape == BulletData.HitboxShape.CAPSULE:
-			continue
-		if _pool.is_offscreen(b.global_position):
-			_pool.return_bullet(b)
+		if _pool.is_offscreen(_pool.active_bullets[i].global_position):
+			_pool.return_bullet(_pool.active_bullets[i])
 
 
 # ═══ 子弹 API（委托给 pool）═══

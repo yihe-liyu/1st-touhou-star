@@ -62,9 +62,7 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 		return
 	if _hit_target(bullet, player):
 		player.miss()
-		# 激光胶囊体由 LaserSystem 自己回收，不走 return_bullet
-		if bullet.hitbox_shape != BulletData.HitboxShape.CAPSULE:
-			_pool.return_bullet(bullet)
+		_pool.return_bullet(bullet)
 	elif not bullet._grazed and _grazes_player(bullet, player):
 		bullet._grazed = true
 		on_graze()
@@ -73,8 +71,7 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 			if RNG.randf() < chance:
 				if bullet.hit_effect:
 					_spawn_effect(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
-				if bullet.hitbox_shape != BulletData.HitboxShape.CAPSULE:
-					_pool.return_bullet(bullet)
+				_pool.return_bullet(bullet)
 
 
 func _bomb_vs_enemies(bullet: Bullet) -> void:
@@ -90,21 +87,6 @@ func _bomb_vs_enemies(bullet: Bullet) -> void:
 			_spawn_effect(bullet.hit_effect, bullet.global_position)
 
 
-func check_capsules(capsules: Array) -> void:
-	var player = GameState.player
-	if not is_instance_valid(player) or player.is_invincible:
-		return
-	for b in capsules:
-		if not is_instance_valid(b) or not b.is_ready:
-			continue
-		if _hit_target(b, player):
-			player.miss()
-			return
-		elif not b._grazed and _grazes_player(b, player):
-			b._grazed = true
-			on_graze()
-
-
 # ── 命中检测 ──
 
 func _hit_target(bullet: Bullet, target: Node2D) -> bool:
@@ -113,8 +95,6 @@ func _hit_target(bullet: Bullet, target: Node2D) -> bool:
 			return _check_circle(bullet, target)
 		BulletData.HitboxShape.RECTANGLE:
 			return _check_rect(bullet, target)
-		BulletData.HitboxShape.CAPSULE:
-			return _check_capsule(bullet, target)
 	return false
 
 
@@ -140,42 +120,10 @@ func _check_rect(bullet: Bullet, target: Node2D) -> bool:
 	return closest.distance_squared_to(local_target) < target_radius * target_radius
 
 
-func _check_capsule(bullet: Bullet, target: Node2D) -> bool:
-	var a: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
-	var dir: Vector2 = Vector2.RIGHT.rotated(bullet.rotation)
-	var b: Vector2 = a + dir * bullet.hitbox_length
-	var target_center: Vector2 = target.global_position
-	var target_radius: float = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
-	var threshold: float = bullet.hitbox_radius + target_radius
-	
-	var ab: Vector2 = b - a
-	var ap: Vector2 = target_center - a
-	var len_sq: float = ab.length_squared()
-	if len_sq < 0.0001:
-		return ap.length_squared() < threshold * threshold
-	var t: float = clampf(ap.dot(ab) / len_sq, 0.0, 1.0)
-	var closest: Vector2 = a + ab * t
-	return closest.distance_squared_to(target_center) < threshold * threshold
-
-
 # ── 擦弹 ──
 
 func _grazes_player(bullet: Bullet, player: Player) -> bool:
 	var center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
-	
-	if bullet.hitbox_shape == BulletData.HitboxShape.CAPSULE:
-		var dir: Vector2 = Vector2.RIGHT.rotated(bullet.rotation)
-		var a: Vector2 = center
-		var b: Vector2 = a + dir * bullet.hitbox_length
-		var ab: Vector2 = b - a
-		var ap: Vector2 = player.global_position - a
-		var len_sq: float = ab.length_squared()
-		if len_sq < 0.0001:
-			return ap.length_squared() < (bullet.hitbox_radius + player.graze_radius) ** 2
-		var t: float = clampf(ap.dot(ab) / len_sq, 0.0, 1.0)
-		var closest: Vector2 = a + ab * t
-		return closest.distance_squared_to(player.global_position) < (bullet.hitbox_radius + player.graze_radius) ** 2
-	
 	var total_radius: float = bullet.hitbox_radius + player.graze_radius
 	return center.distance_squared_to(player.global_position) < total_radius * total_radius
 

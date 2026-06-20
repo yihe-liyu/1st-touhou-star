@@ -8,10 +8,12 @@ var _pool: Array[CurvedLaser] = []
 var _active_lasers: Array[CurvedLaser] = []
 var _pool_index: int = 0
 var _parent
+var _physics
 
 
-func setup(p_parent) -> void:
+func setup(p_parent, p_physics) -> void:
 	_parent = p_parent
+	_physics = p_physics
 	_init_pool()
 
 
@@ -58,7 +60,20 @@ func get_active() -> Array:
 
 
 func step(delta: float) -> void:
+	var player := GameState.player
+	var has_player := is_instance_valid(player) and not player.is_invincible
+	
 	for laser in _active_lasers:
 		if laser.phase == CurvedLaser.DEAD:
 			continue
 		laser.step(delta)
+		
+		if has_player and laser.phase == CurvedLaser.ALIVE:
+			var pos := player.global_position
+			if laser.is_hitting_player(pos):
+				player.miss()
+			elif laser.is_hitting_player(pos, player.graze_radius) and not laser.is_grazed(laser.find_closest_dist(pos)):
+				laser.mark_grazed(laser.find_closest_dist(pos))
+				# 通知 BulletPhysics 处理擦弹
+				if _physics and _physics.has_method("on_graze"):
+					_physics.on_graze()

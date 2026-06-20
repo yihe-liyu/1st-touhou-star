@@ -51,19 +51,6 @@ func _draw():
 						var next = (i + 1) % 4
 						draw_line(corners[i], corners[next], Color.RED, 1.0)
 					draw_circle(box_center, 1.5, Color.RED)
-				BulletData.HitboxShape.CAPSULE:
-					var a: Vector2 = center + bullet.hitbox_offset.rotated(bullet.rotation)
-					var dir: Vector2 = Vector2.RIGHT.rotated(bullet.rotation)
-					var b: Vector2 = a + dir * bullet.hitbox_length
-					var r: float = bullet.hitbox_radius
-					# 画两个端圆 + 两条边
-					draw_circle(a, r, Color.RED, false)
-					draw_circle(b, r, Color.RED, false)
-					var perp: Vector2 = Vector2(-dir.y, dir.x) * r
-					draw_line(a + perp, b + perp, Color.RED, 1.0)
-					draw_line(a - perp, b - perp, Color.RED, 1.0)
-					draw_circle(a, 1.5, Color.RED)
-					draw_circle(b, 1.5, Color.RED)
 			
 			# 子弹原点
 			draw_circle(center, 2.0, Color.YELLOW)

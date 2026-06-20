@@ -3,7 +3,7 @@ extends Resource
 class_name BulletData
 
 enum Faction {PLAYER, ENEMY, BOMB}
-enum HitboxShape {CIRCLE, RECTANGLE, CAPSULE}
+enum HitboxShape {CIRCLE, RECTANGLE}
 enum TintMode {MULTIPLY, BLEND}
 
 ## 子弹贴图（白色/浅灰底图，用 tint 染色）
@@ -33,8 +33,6 @@ var hitbox_offset: Vector2 = Vector2.ZERO
 var hitbox_radius: float = 4.0
 ## [仅矩形] 判定宽高
 var hitbox_size: Vector2 = Vector2(8, 8)
-## [仅胶囊体] 判定长度（沿朝向方向）
-var hitbox_length: float = 20.0
 ## [仅矩形] 相对子弹朝向的额外旋转（弧度）
 var hitbox_rotation: float = 0.0
 ## 是否在生成前播放弹雾特效（一张贴图渐渐缩小）

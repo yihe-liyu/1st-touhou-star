@@ -52,15 +52,6 @@ func request_bullet() -> Bullet:
 	return bullet
 
 
-func request_capsule() -> Bullet:
-	var bullet := _request_bullet()
-	if not bullet: return null
-	bullet.visible = true
-	bullet.process_mode = Node.PROCESS_MODE_INHERIT
-	bullet.is_ready = true
-	return bullet
-
-
 func _request_bullet() -> Bullet:
 	while not bullet_pool.is_empty():
 		var b: Bullet = bullet_pool.pop_back()
