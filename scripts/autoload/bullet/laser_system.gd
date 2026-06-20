@@ -2,7 +2,6 @@
 class_name LaserSystem
 extends RefCounted
 
-const MAX_LASERS := 64
 const POOL_SIZE := 32
 
 var _pool: Array[CurvedLaser] = []
@@ -10,10 +9,6 @@ var _active_lasers: Array[CurvedLaser] = []
 var _pool_index: int = 0
 var _parent
 var _physics
-
-
-func _init() -> void:
-	pass
 
 
 func setup(p_parent, p_physics) -> void:
