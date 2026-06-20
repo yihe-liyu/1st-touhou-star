@@ -5,7 +5,8 @@
 [ext_resource type="Resource" uid="uid://ciayxtfq0vqjy" path="res://data/stages/stage01/stage_data/stage01_easy.tres" id="3_es"]
 [ext_resource type="Resource" uid="uid://crjdq5vsmukn7" path="res://data/stages/stage01/stage_data/stage01_normal.tres" id="4_nm"]
 [ext_resource type="Resource" uid="uid://74qpss4iye6b" path="res://data/stages/stage01/stage_data/stage01_hard.tres" id="5_hd"]
+[ext_resource type="Resource" uid="uid://dxt6r2wsr8c1" path="res://data/stages/stage01/stage_data/stage01_lunatic.tres" id="6_ln"]
 
 [resource]
 script = ExtResource("1_67w4g")
-stages = Array[ExtResource("2_bpsic")]([ExtResource("3_es"), ExtResource("4_nm"), ExtResource("5_hd")])
+stages = Array[ExtResource("2_bpsic")]([ExtResource("3_es"), ExtResource("4_nm"), ExtResource("5_hd"), ExtResource("6_ln")])
