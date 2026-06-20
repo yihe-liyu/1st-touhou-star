@@ -23,8 +23,6 @@ func get_by_stage(stage_id: int) -> Array[StageData]:
 	return result
 
 
-## 用于符卡练习：遍历所有关卡的所有 BossData
+## 符卡练习：遍历所有关卡的所有 BossData
 func for_each_boss(callback: Callable) -> void:
-	for s in stages:
-		for boss in s.bosses:
-			callback.call(boss, s.stage_id, s.difficulty)
+	pass

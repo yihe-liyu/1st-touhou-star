@@ -15,8 +15,7 @@ func start_stage(p_ctx: StageContext):
 		AudioManager.play_bgm(bgm, 0.0)
 	)
 
-	var wave_count: int = diff_pick([6, 6, 8])
-	tl.at(1.0).every(0.1).times(wave_count).do(func():
+	tl.at(1.0).every(0.1).times(6).do(func():
 		ctx.enemies.spawn("red_soldier",
 			Vector2(448 + _spawn_offset_x, 0),
 			{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
@@ -25,16 +24,15 @@ func start_stage(p_ctx: StageContext):
 		_spawn_i += 1
 	)
 	
-	if wave_count > 0:
-		tl.at(3.9).do(func(): _spawn_i = 0)
-		tl.at(4.0).every(0.1).times(wave_count).do(func():
-			ctx.enemies.spawn("red_soldier",
-				Vector2(448 + _spawn_offset_x, 0),
-				{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
-			)
-			_spawn_offset_x += 100
-			_spawn_i += 1
+	tl.at(3.9).do(func(): _spawn_i = 0)
+	tl.at(4.0).every(0.1).times(6).do(func():
+		ctx.enemies.spawn("red_soldier",
+			Vector2(448 + _spawn_offset_x, 0),
+			{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
 		)
+		_spawn_offset_x += 100
+		_spawn_i += 1
+	)
 	
 	tl.at(7.0).do(func(): 
 		var layer := CanvasLayer.new()

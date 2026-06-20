@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardRegistry" format=3 uid="uid://htt2dnssmj1l"]
+
+[ext_resource type="Script" uid="uid://bsyp2yh3va1v3" path="res://scripts/data/card_def.gd" id="1_1ks2g"]
+[ext_resource type="Script" uid="uid://k8vh122rrpib" path="res://scripts/data/card_registry.gd" id="2_hk77p"]
+
+[sub_resource type="Resource" id="Resource_kslju"]
+script = ExtResource("1_1ks2g")
+
+[resource]
+script = ExtResource("2_hk77p")
+cards = Array[ExtResource("1_1ks2g")]([SubResource("Resource_kslju")])

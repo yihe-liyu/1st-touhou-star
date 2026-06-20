@@ -75,22 +75,10 @@ func _get_all_stages() -> Array[StageData]:
 	return result
 
 func debug_fill_spells() -> void:
-	spell_book.records.clear()
-	for sd in _get_all_stages():
-		for boss in sd.bosses:
-			_fill_from_boss(boss, sd.stage_id, sd.difficulty)
-	_save_spell_book()
+	pass
 
 
-func _fill_from_boss(boss: BossData, stage_id: int, diff: int) -> void:
-	for i in boss.phases.size():
-		var phase := boss.phases[i]
-		var sp_uid: int = SpellRecord.get_phase_uid(boss, i, stage_id)
-		for char_idx in 2:
-			spell_book.get_or_create(sp_uid, char_idx, diff,
-				stage_id,
-				SpellRecord.PhaseType.SPELL if phase.uid != 0 else SpellRecord.PhaseType.NONSPELL,
-				0, i + 1, phase.name)
+
 
 func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
