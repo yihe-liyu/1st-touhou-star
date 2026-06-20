@@ -32,3 +32,14 @@ const patterns := {
 	"aimed":    preload("res://data/patterns/aimed_burst.gd"),
 	"move_down": preload("res://data/patterns/move_down.gd"),
 }
+
+const enemies := {
+	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
+}
+
+func bullet(tex_key: String, speed: int, color: Color = Color.WHITE) -> BulletData:
+	var b := BulletData.new()
+	b.texture = load(bullet_textures.get(tex_key, ""))
+	b.velocity = Vector2(0, speed)
+	b.tint = color
+	return b

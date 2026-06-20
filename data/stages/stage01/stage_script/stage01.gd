@@ -9,14 +9,7 @@ func start_stage(p_ctx: StageContext):
 	var tl := start_timeline()
 	
 	var bgm: AudioStream = AssetRegistry.sounds.get("bgm1", preload("res://assets/Music/THq01_02.夜间漫步.mp3"))
-	var logo_img := AssetRegistry.ui_textures["logo"]
-	
-	var shoot_cfg := {
-		type = "aimed",
-		bullet = {tex = "小玉", speed = 400, color = Color.RED},
-		count = 1, spread = 0, every = 1.0,
-		sfx = "shoot",
-	}
+	var logo_img: Texture2D = AssetRegistry.ui_textures["logo1"]
 	
 	tl.at(0.0).do(func():
 		AudioManager.play_bgm(bgm, 0.0)
@@ -24,10 +17,9 @@ func start_stage(p_ctx: StageContext):
 
 	var wave_count: int = diff_pick([6, 6, 8])
 	tl.at(1.0).every(0.1).times(wave_count).do(func():
-		ctx.enemies.spawn("s_red",
-			{type = "move_down", target_y = 150 + _spawn_i * 60, duration = 1.5},
-			shoot_cfg,
-			Vector2(448 + _spawn_offset_x, 0)
+		ctx.enemies.spawn("red_soldier",
+			Vector2(448 + _spawn_offset_x, 0),
+			{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
 		)
 		_spawn_offset_x -= 100
 		_spawn_i += 1
@@ -36,10 +28,9 @@ func start_stage(p_ctx: StageContext):
 	if wave_count > 0:
 		tl.at(3.9).do(func(): _spawn_i = 0)
 		tl.at(4.0).every(0.1).times(wave_count).do(func():
-			ctx.enemies.spawn("s_red",
-				{type = "move_down", target_y = 150 + _spawn_i * 60, duration = 1.5},
-				shoot_cfg,
-				Vector2(448 + _spawn_offset_x, 0)
+			ctx.enemies.spawn("red_soldier",
+				Vector2(448 + _spawn_offset_x, 0),
+				{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
 			)
 			_spawn_offset_x += 100
 			_spawn_i += 1

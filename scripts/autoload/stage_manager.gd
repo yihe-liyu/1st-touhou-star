@@ -93,3 +93,6 @@ func _add_enemy_to_scene(node: Node2D):
 		if world:
 			parent = world
 	parent.add_child(node)
+
+func add_enemy_to_scene(node: Node2D):
+	_add_enemy_to_scene(node)
