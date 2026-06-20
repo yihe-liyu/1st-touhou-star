@@ -13,5 +13,9 @@ func spawn_boss(data: BossData, position: Vector2) -> void:
 	if not active: return
 	StageManager.spawn_boss(data, position, false, ctx)
 
+func spawn_composed(visual: PackedScene, move: Node, shoot: Node, pos: Vector2, opts: Dictionary = {}) -> Enemy:
+	var f := EnemyFactory.new()
+	return f.spawn(ctx, visual, move, shoot, pos, opts)
+
 func all_defeated() -> bool:
 	return GameState.active_enemies.is_empty()

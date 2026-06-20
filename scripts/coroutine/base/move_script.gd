@@ -18,3 +18,6 @@ func _on_step(_ctx: StageContext) -> Variant:
 	if _tl:
 		_tl.tick(get_physics_process_delta_time())
 	return true
+
+func diff_pick(arr: Array) -> Variant:
+	return arr[GameState.selected_difficulty]

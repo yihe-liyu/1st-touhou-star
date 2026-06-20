@@ -14,6 +14,5 @@ void fragment() {
 	float min_dist = min(min(dist_left, dist_right), min(dist_top, dist_bottom));
 	
 	float alpha = step(min_dist, border_width);
-	COLOR = vec4(border_color.rgb, alpha * border_color.a * alpha_mult) * COLOR.a;
-	COLOR *= modulate;
+	COLOR = vec4(border_color.rgb, alpha * border_color.a * alpha_mult);
 }
