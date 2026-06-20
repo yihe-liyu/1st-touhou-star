@@ -18,6 +18,7 @@ var hitbox_shape: int = BulletData.HitboxShape.CIRCLE
 var hitbox_offset: Vector2 = Vector2.ZERO
 var hitbox_radius: float = 4.0
 var hitbox_size: Vector2 = Vector2(8, 8)
+var hitbox_length: float = 20.0
 var hitbox_rotation: float = 0.0
 
 # 运行时状态
@@ -71,6 +72,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 	hitbox_offset = data.hitbox_offset
 	hitbox_radius = data.hitbox_radius
 	hitbox_size = data.hitbox_size
+	hitbox_length = data.hitbox_length
 	hitbox_rotation = data.hitbox_rotation
 
 	var speed = data.velocity.length()
