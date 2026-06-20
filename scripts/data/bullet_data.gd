@@ -46,15 +46,16 @@ var movement_script: Script
 func tex(key: String) -> BulletData:
 	texture = AssetRegistry.get_bullet_tex(key)
 	var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
-	if cfg.has("circle"):
+	var hb: Dictionary = cfg.get("hitbox", {})
+	if hb.has("circle"):
 		hitbox_shape = HitboxShape.CIRCLE
-		hitbox_radius = cfg["circle"]
-	elif cfg.has("矩形"):
+		hitbox_radius = hb["circle"]
+	elif hb.has("rect"):
 		hitbox_shape = HitboxShape.RECTANGLE
-		var r: Dictionary = cfg["矩形"]
+		var r: Dictionary = hb["rect"]
 		hitbox_size = Vector2(r.get("w", 48), r.get("h", 24))
-		hitbox_offset = r.get("offset", Vector2.ZERO)
 		hitbox_rotation = r.get("rotation", 0.0)
+	hitbox_offset = hb.get("offset", Vector2.ZERO)
 	fog_texture = AssetRegistry.get_bullet_tex("弹雾")
 	return self
 
