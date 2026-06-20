@@ -64,17 +64,17 @@ func _physics_process(delta: float) -> void:
 
 # ═══ 子弹 API（委托给 pool）═══
 
-func shoot_bullet(data, pos: Vector2, direction: Vector2, override = null):
-	return _pool.shoot(data, pos, direction, override)
+func shoot_bullet(data, pos: Vector2, direction: Vector2):
+	return _pool.shoot(data, pos, direction)
 
-func shoot_player_bullet(data, pos: Vector2, direction: Vector2, override = null):
-	return _pool.shoot_player(data, pos, direction, override)
+func shoot_player_bullet(data, pos: Vector2, direction: Vector2):
+	return _pool.shoot(data, pos, direction)
 
-func shoot_enemy_bullet(data, pos: Vector2, direction: Vector2, override = null):
-	return _pool.shoot_enemy(data, pos, direction, override)
+func shoot_enemy_bullet(data, pos: Vector2, direction: Vector2):
+	return _pool.shoot(data, pos, direction)
 
-func shoot_bomb_bullet(data, pos: Vector2, direction: Vector2, override = null):
-	return _pool.shoot_bomb(data, pos, direction, override)
+func shoot_bomb_bullet(data, pos: Vector2, direction: Vector2):
+	return _pool.shoot(data, pos, direction)
 
 func return_bullet(bullet):
 	_pool.return_bullet(bullet)

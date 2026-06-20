@@ -15,34 +15,24 @@ func start_stage(p_ctx: StageContext):
 		AudioManager.play_bgm(bgm, 0.0)
 	)
 
-	#tl.at(1.0).every(0.1).times(6).do(func():
-		#ctx.enemies.spawn("red_soldier",
-			#Vector2(448 + _spawn_offset_x, 0),
-			#{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
-		#)
-		#_spawn_offset_x -= 100
-		#_spawn_i += 1
-	#)
-	
-	# 构造链示例：射一条激光
-	var laser_data := CurvedLaserData.new().speed(300).tail(200).width(16, 2).color(Color.RED).hitbox(5).lifetime(6.0)
-	var laser_curve := Curve2D.new()
-	laser_curve.add_point(Vector2(-50, 200))
-	laser_curve.add_point(Vector2(950, 200))
-	
-	tl.at(2.0).do(func():
-		ctx.bullets.fire_growing_laser(laser_data, Vector2(-50, 200), laser_curve)
+	tl.at(1.0).every(0.1).times(6).do(func():
+		ctx.enemies.spawn("red_soldier",
+			Vector2(448 + _spawn_offset_x, 0),
+			{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
+		)
+		_spawn_offset_x -= 100
+		_spawn_i += 1
 	)
 	
 	tl.at(3.9).do(func(): _spawn_i = 0)
-	#tl.at(4.0).every(0.1).times(6).do(func():
-		#ctx.enemies.spawn("red_soldier",
-			#Vector2(448 + _spawn_offset_x, 0),
-			#{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
-		#)
-		#_spawn_offset_x += 100
-		#_spawn_i += 1
-	#)
+	tl.at(4.0).every(0.1).times(6).do(func():
+		ctx.enemies.spawn("red_soldier",
+			Vector2(448 + _spawn_offset_x, 0),
+			{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
+		)
+		_spawn_offset_x += 100
+		_spawn_i += 1
+	)
 	
 	tl.at(7.0).do(func(): 
 		var layer := CanvasLayer.new()

@@ -33,10 +33,10 @@ func init_pool() -> void:
 		bullet_pool.append(b)
 
 
-func shoot(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
+func shoot(data: BulletData, pos: Vector2, direction: Vector2):
 	var bullet := _request_bullet()
 	if not bullet: return null
-	bullet.bind(data, direction, override)
+	bullet.bind(data, direction)
 	bullet.global_position = pos
 	bullet.visible = true
 	bullet.process_mode = Node.PROCESS_MODE_INHERIT
@@ -47,7 +47,6 @@ func shoot(data: BulletData, pos: Vector2, direction: Vector2, override: BulletO
 func request_bullet() -> Bullet:
 	var bullet := _request_bullet()
 	if not bullet: return null
-	# 激光胶囊体不加 active_bullets，由 LaserSystem 自己管理
 	active_bullets.append(bullet)
 	return bullet
 
@@ -65,16 +64,6 @@ func _request_bullet() -> Bullet:
 		nb.get_node("Sprite2D").visible = false
 	_parent.add_child(nb)
 	return nb
-
-
-func shoot_player(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
-	return shoot(data, pos, direction, override)
-
-func shoot_enemy(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
-	return shoot(data, pos, direction, override)
-
-func shoot_bomb(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
-	return shoot(data, pos, direction, override)
 
 
 func _return_to_pool(bullet: Bullet) -> void:

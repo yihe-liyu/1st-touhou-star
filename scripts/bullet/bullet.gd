@@ -32,7 +32,7 @@ var tint_mode: int = 0
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var fog: BulletFog = $Fog
 
-func bind(data: BulletData, direction: Vector2, override: BulletOverride = null):
+func bind(data: BulletData, direction: Vector2):
 	is_ready = false
 	_grazed = false
 	match data.faction:
@@ -45,14 +45,10 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		_:
 			z_index = LayerConfig.ENEMY_BULLET
 
-	var effective_dir = direction
-	if override and override.angle_offset != 0.0:
-		effective_dir = direction.rotated(override.angle_offset)
-
 	sprite.texture = data.texture
 	faction = data.faction
 	tint_mode = data.tint_mode
-	damage = override.damage if override and override.damage >= 0 else data.damage
+	damage = data.damage
 	
 	# 自机弹 2 倍大，敌弹 1 倍
 	scale = Vector2(2, 2) if faction == FACTION_PLAYER else Vector2.ONE
@@ -64,7 +60,7 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 		if mem < 50.0:
 			var red := remap(mem, 0.0, 50.0, 1.0, 0.0)
 			sprite.modulate = sprite.modulate.lerp(Color.RED, red * 0.5)
-	can_be_canceled = override.can_be_canceled if override and override.override_cancel else data.can_be_canceled
+	can_be_canceled = data.can_be_canceled
 	hit_effect = data.hit_effect
 
 	hitbox_shape = data.hitbox_shape
@@ -73,11 +69,8 @@ func bind(data: BulletData, direction: Vector2, override: BulletOverride = null)
 	hitbox_size = data.hitbox_size
 	hitbox_rotation = data.hitbox_rotation
 
-	var speed = data.velocity.length()
-	if override and override.speed_mult > 0.0:
-		speed *= override.speed_mult
-	velocity = effective_dir.normalized() * speed
-	self.rotation = effective_dir.angle()
+	velocity = direction.normalized() * data.velocity.length()
+	self.rotation = direction.angle()
 
 	if coroutine_movement and is_instance_valid(coroutine_movement):
 		coroutine_movement.stop()

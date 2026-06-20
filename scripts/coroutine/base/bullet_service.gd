@@ -4,15 +4,13 @@ extends RefCounted
 
 var active: bool = true
 
-func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2, sfx: AudioStream = null, speed_mult: float = 1.0) -> void:
+func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2, sfx: AudioStream = null) -> void:
 	if not active: return
 	if count <= 0: return
 	if sfx:
 		AudioManager.play_sfx(sfx, -8.0)
-	var ov := BulletOverride.new()
-	ov.speed_mult = speed_mult
 	if count == 1:
-		BulletManager.shoot_enemy_bullet(bullet_data, at, base_dir, ov)
+		BulletManager.shoot_enemy_bullet(bullet_data, at, base_dir)
 		return
 	var step: float
 	if spread_angle >= TAU - 0.001:
@@ -22,7 +20,7 @@ func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base
 	for i in count:
 		var angle_offset := -spread_angle / 2.0 + step * i
 		var dir := base_dir.rotated(angle_offset)
-		BulletManager.shoot_enemy_bullet(bullet_data, at, dir, ov)
+		BulletManager.shoot_enemy_bullet(bullet_data, at, dir)
 
 
 func fire_growing_laser(data: Resource, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0) -> CurvedLaser:
