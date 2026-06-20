@@ -24,5 +24,5 @@ func get_by_stage(stage_id: int) -> Array[StageData]:
 
 
 ## 符卡练习：遍历所有关卡的所有 BossData
-func for_each_boss(callback: Callable) -> void:
+func for_each_boss(_callback: Callable) -> void:
 	pass
