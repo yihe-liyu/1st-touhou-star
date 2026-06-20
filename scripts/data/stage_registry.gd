@@ -9,7 +9,7 @@ class_name StageRegistry
 ## 按 (stage_id, difficulty) 查找
 func find(stage_id: int, difficulty: int) -> StageData:
 	for s in stages:
-		if s.stage_id == stage_id and (s.difficulty == difficulty or s.difficulty == -1):
+		if s.stage_id == stage_id and (s.difficulty & difficulty or s.difficulty == -1):
 			return s
 	return null
 

@@ -5,7 +5,8 @@ class_name SpellRecord
 enum Character { REIMU, MARISA }
 const CHAR_NAMES := ["博丽灵梦", "雾雨魔理沙"]
 
-enum Difficulty { EASY, NORMAL, HARD, LUNATIC, EXTRA }
+enum Difficulty { EASY=1, NORMAL=2, HARD=4, LUNATIC=8, EXTRA=16 }
+const DIFF_VALUES := [1, 2, 4, 8, 16]
 const DIFF_NAMES := ["Easy", "Normal", "Hard", "Lunatic", "Extra"]
 
 enum PhaseType { NONSPELL, SPELL }

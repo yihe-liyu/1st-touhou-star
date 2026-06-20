@@ -15,6 +15,12 @@ var _char_index: int = 0
 var _input_ready: bool = false
 
 const DIFF_NAMES = SpellRecord.DIFF_NAMES
+const DIFF_VALUES = SpellRecord.DIFF_VALUES
+
+func diff_name(v: int) -> String:
+	var idx := DIFF_VALUES.find(v)
+	return DIFF_NAMES[idx] if idx >= 0 else "?"
+
 const CHAR_NAMES = SpellRecord.CHAR_NAMES
 var _stages: Array[int] = []
 # 每个 phase: {uid, type, num, name, diffs: {diff: SpellRecord}}
@@ -152,10 +158,11 @@ func _build_diff_list() -> void:
 	if _phase_index >= _phases.size(): return
 	var info = _phases[_phase_index]
 
-	for d in range(SpellRecord.DIFF_NAMES.size()):
-		if not info["diffs"].has(d): continue
+	for d in range(SpellRecord.DIFF_VALUES.size()):
+		var diff_val := SpellRecord.DIFF_VALUES[d]
+		if not info["diffs"].has(diff_val): continue
 
-		var r: SpellRecord = info["diffs"][d]
+		var r: SpellRecord = info["diffs"][diff_val]
 		var vbox := VBoxContainer.new()
 		var nl := Label.new()
 		nl.text = r.spell_name if r.spell_name != "" else "-"
@@ -440,7 +447,7 @@ func _start_practice() -> void:
 	var boss_data: BossData = result["boss"]
 	var phase_idx: int = result["phase_idx"]
 
-	print("练习: ", r.spell_name, " 难度: ", DIFF_NAMES[diff])
+	print("练习: ", r.spell_name, " 难度: ", diff_name(diff))
 	GameState.start_practice(boss_data, phase_idx, result["stage_id"])
 	AudioManager.stop_bgm()
 	_on_leave()

@@ -79,7 +79,7 @@ func debug_fill_spells() -> void:
 	for sd in _get_all_stages():
 		for boss in sd.bosses:
 			if sd.difficulty == -1:
-				for d in 3:
+				for d in [1, 2, 4, 8]:
 					_fill_from_boss(boss, sd.stage_id, d)
 			else:
 				_fill_from_boss(boss, sd.stage_id, sd.difficulty)
