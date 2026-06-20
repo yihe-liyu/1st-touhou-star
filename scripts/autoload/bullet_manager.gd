@@ -28,7 +28,7 @@ func _ready():
 	_physics = PhysicsClass.new()
 	_physics.setup(_pool)
 	_lasers = LaserClass.new()
-	_lasers.setup(self, _physics)
+	_lasers.setup(self, _physics, _pool)
 	_death_clear = DeathClearClass.new()
 	_death_clear.setup(_pool, _lasers)
 	

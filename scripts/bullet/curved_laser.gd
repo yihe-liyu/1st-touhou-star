@@ -79,6 +79,17 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	_spawn_fog()
 
 
+func sample_curve(dist: float) -> Vector2:
+	return _sample_curve(dist)
+
+
+func sample_dir(dist: float) -> Vector2:
+	var delta := 5.0
+	var a := _sample_curve(dist - delta)
+	var b := _sample_curve(dist + delta)
+	return (b - a).normalized()
+
+
 func _calc_curve_length() -> float:
 	var total := 0.0
 	var count := guide_curve.get_point_count()
@@ -298,7 +309,8 @@ func _build_segments() -> Array[Dictionary]:
 	return _segments_cache
 
 
-# ── 步进 ──
+func visible_segments() -> Array[Dictionary]:
+	return _build_segments()
 
 func step(delta: float):
 	if phase == DEAD:

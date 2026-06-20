@@ -9,11 +9,16 @@ var _active_lasers: Array[CurvedLaser] = []
 var _pool_index: int = 0
 var _parent
 var _physics
+var _bullet_pool: BulletPool
+
+# 胶囊体子弹映射：{laser: [Bullet, ...]}
+var _capsule_map: Dictionary = {}
 
 
-func setup(p_parent, p_physics) -> void:
+func setup(p_parent, p_physics, p_bullet_pool: BulletPool) -> void:
 	_parent = p_parent
 	_physics = p_physics
+	_bullet_pool = p_bullet_pool
 	_init_pool()
 
 
@@ -44,6 +49,7 @@ func fire(data: CurvedLaserData, origin: Vector2, guide_curve: Curve2D, rot_spee
 		return null
 	laser.init(data, origin, guide_curve, rot_speed)
 	_active_lasers.append(laser)
+	_capsule_map[laser] = []
 	return laser
 
 
@@ -53,6 +59,11 @@ func clear() -> void:
 		laser.line.visible = false
 		for sl in laser._seg_lines:
 			sl.visible = false
+		# 回收激光的胶囊体子弹
+		var bullets: Array = _capsule_map.get(laser, [])
+		for b in bullets:
+			_bullet_pool.return_bullet(b)
+		_capsule_map.erase(laser)
 	_active_lasers.clear()
 
 
@@ -61,34 +72,75 @@ func get_active() -> Array:
 
 
 func step(delta: float) -> void:
-	var player_pos := Vector2.ZERO
 	var player := GameState.player
-	var has_player := false
-	if player and is_instance_valid(player):
-		player_pos = player.global_position
-		has_player = true
 	
-	var hit := false
 	for laser in _active_lasers:
 		if laser.phase == CurvedLaser.DEAD:
 			continue
 		
 		laser.step(delta)
 		
-		if laser.phase == CurvedLaser.ALIVE and has_player and not hit:
-			if laser.is_hitting_player(player_pos):
-				hit = true
-			elif laser.is_hitting_player(player_pos, player.graze_radius):
-				var dist: float = laser.find_closest_dist(player_pos)
-				if not laser.is_grazed(dist):
-					var in_hole := false
-					for h in laser.holes:
-						if dist >= (h.start_dist as float) and dist <= (h.end_dist as float):
-							in_hole = true
-							break
-					if not in_hole:
-						laser.mark_grazed(dist)
-						_physics.on_graze()
+		if laser.phase != CurvedLaser.ALIVE:
+			# 激光淡出/死亡，回收它的胶囊体
+			_recycle_capsules(laser)
+			continue
+		
+		_update_capsules(laser)
+
+
+func _capsule_step(step_px: float = 20.0) -> float:
+	return step_px
+
+
+func _update_capsules(laser: CurvedLaser) -> void:
+	var segs: Array = laser.visible_segments()
+	var bullets: Array = _capsule_map.get(laser)
+	if bullets == null:
+		return
 	
-	if hit and player.has_method("miss"):
-		player.miss()
+	# 计算需要的总采样数
+	var total_needed := 0
+	var samples_per_seg: Array[int] = []
+	for seg in segs:
+		var seg_len: float = (seg.end_dist as float) - (seg.start_dist as float)
+		var n := maxi(int(seg_len / _capsule_step()), 3)
+		samples_per_seg.append(n)
+		total_needed += n
+	
+	# 回收多余的
+	while bullets.size() > total_needed:
+		_bullet_pool.return_bullet(bullets.pop_back())
+	
+	# 补充不足的
+	while bullets.size() < total_needed:
+		var b := _bullet_pool.request_bullet()
+		if b:
+			bullets.append(b)
+	
+	# 更新位置
+	var idx := 0
+	for si in segs.size():
+		var seg = segs[si]
+		var seg_len: float = (seg.end_dist as float) - (seg.start_dist as float)
+		var n := samples_per_seg[si]
+		for i in n:
+			var t: float = float(i) / float(n - 1) if n > 1 else 0.0
+			var dist: float = (seg.start_dist as float) + seg_len * t
+			var pos: Vector2 = laser.sample_curve(dist)
+			var dir: Vector2 = laser.sample_dir(dist)
+			var b: Bullet = bullets[idx]
+			b.global_position = pos
+			b.rotation = dir.angle()
+			b.hitbox_shape = BulletData.HitboxShape.CAPSULE
+			b.hitbox_radius = laser.data.hitbox_width
+			b.hitbox_length = seg_len / float(n - 1) if n > 1 else seg_len
+			b.hitbox_offset = Vector2.ZERO
+			b.faction = Bullet.FACTION_ENEMY
+			idx += 1
+
+
+func _recycle_capsules(laser: CurvedLaser) -> void:
+	var bullets: Array = _capsule_map.get(laser, [])
+	for b in bullets:
+		_bullet_pool.return_bullet(b)
+	_capsule_map.erase(laser)
