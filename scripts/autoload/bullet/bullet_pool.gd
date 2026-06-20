@@ -34,31 +34,39 @@ func init_pool() -> void:
 
 
 func shoot(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
-	var bullet: Bullet
-	
-	if bullet_pool.is_empty():
-		var total := active_bullets.size() + bullet_pool.size()
-		if total >= MAX_TOTAL:
-			# active_bullets 只 append/erase，头元素永远最老
-			if active_bullets.size() > 0:
-				return_bullet(active_bullets[0])
-			else:
-				return null
-		else:
-			bullet = bullet_scene.instantiate()
-			if use_multi_mesh:
-				bullet.get_node("Sprite2D").visible = false
-			_parent.add_child(bullet)
-	else:
-		bullet = bullet_pool.pop_back()
-	
+	var bullet := _request_bullet()
+	if not bullet: return null
 	bullet.bind(data, direction, override)
 	bullet.global_position = pos
 	bullet.visible = true
 	bullet.process_mode = Node.PROCESS_MODE_INHERIT
 	active_bullets.append(bullet)
-	
 	return bullet
+
+
+func request_bullet() -> Bullet:
+	var bullet := _request_bullet()
+	if not bullet: return null
+	bullet.visible = true
+	bullet.process_mode = Node.PROCESS_MODE_INHERIT
+	active_bullets.append(bullet)
+	return bullet
+
+
+func _request_bullet() -> Bullet:
+	if bullet_pool.is_empty():
+		var total := active_bullets.size() + bullet_pool.size()
+		if total >= MAX_TOTAL:
+			if active_bullets.size() > 0:
+				return_bullet(active_bullets[0])
+				return bullet_pool.pop_back() if not bullet_pool.is_empty() else null
+			return null
+		var b := bullet_scene.instantiate()
+		if use_multi_mesh:
+			b.get_node("Sprite2D").visible = false
+		_parent.add_child(b)
+		return b
+	return bullet_pool.pop_back()
 
 
 func shoot_player(data: BulletData, pos: Vector2, direction: Vector2, override: BulletOverride = null):
