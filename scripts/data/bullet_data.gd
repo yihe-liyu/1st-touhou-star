@@ -45,10 +45,15 @@ var movement_script: Script
 ## ---- 构造链方法 ----
 func tex(key: String) -> BulletData:
 	texture = AssetRegistry.get_bullet_tex(key)
-	var r := AssetRegistry.get_bullet_hitbox(key)
-	hitbox_shape = HitboxShape.CIRCLE
-	hitbox_radius = r
-	# 弹雾纹理用专门的弹雾贴图
+	var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
+	var shape: String = cfg.get("shape", "circle")
+	var sz: float = cfg.get("size", 4.0)
+	if shape == "circle":
+		hitbox_shape = HitboxShape.CIRCLE
+		hitbox_radius = sz
+	else:
+		hitbox_shape = HitboxShape.RECTANGLE
+		hitbox_size = Vector2(sz, sz)
 	fog_texture = AssetRegistry.get_bullet_tex("弹雾")
 	return self
 
