@@ -6,26 +6,14 @@ const enemy_visuals := {
 	"death":  preload("res://data/enemy_visual/death_effect.tscn"),
 }
 
-var _bullet_configs: Dictionary
-var bullet_configs: Dictionary:
-	get:
-		if _bullet_configs.is_empty():
-			_bullet_configs = _build_bullet_configs()
-		return _bullet_configs
-
 const FOG_TEXTURE: Texture2D = preload("res://assets/Textures/bullet/弹雾.png")
 
-func _build_bullet_configs() -> Dictionary:
-	return {
-		"小玉":   {"tex": preload("res://assets/Textures/bullet/小玉.png"),
-				  "hitbox": {"circle": 4.0, "offset": Vector2(0, 0)}},
-		"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"),
-				  "hitbox": {"circle": 4.0, "offset": Vector2(0, 0)}},
-		"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"),
-				  "hitbox": {"circle": 6.0, "offset": Vector2(0, 0)}},
-		"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"),
-				  "hitbox": {"circle": 8.0, "offset": Vector2(0, 0)}},
-	}
+const bullet_configs := {
+	"小玉":   {"tex": preload("res://assets/Textures/bullet/小玉.png"),   "hitbox": {"circle": 4.0, "offset": {"x": 0, "y": 0}}},
+	"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"), "hitbox": {"circle": 4.0, "offset": {"x": 0, "y": 0}}},
+	"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"),   "hitbox": {"circle": 6.0, "offset": {"x": 0, "y": 0}}},
+	"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"),   "hitbox": {"circle": 8.0, "offset": {"x": 0, "y": 0}}},
+}
 
 const sounds := {
 	"shoot":    preload("res://assets/Sound/bullet01.wav"),
