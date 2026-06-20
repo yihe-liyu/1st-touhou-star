@@ -46,9 +46,9 @@ var movement_script: Script
 func tex(key: String) -> BulletData:
 	texture = AssetRegistry.get_bullet_tex(key)
 	var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
-	if cfg.has("圆"):
+	if cfg.has("circle"):
 		hitbox_shape = HitboxShape.CIRCLE
-		hitbox_radius = cfg["圆"]
+		hitbox_radius = cfg["circle"]
 	elif cfg.has("矩形"):
 		hitbox_shape = HitboxShape.RECTANGLE
 		var r: Dictionary = cfg["矩形"]

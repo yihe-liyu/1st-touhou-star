@@ -15,11 +15,11 @@ var bullet_configs: Dictionary:
 
 func _build_bullet_configs() -> Dictionary:
 	return {
-		"小玉":   {"tex": preload("res://assets/Textures/bullet/小玉.png"), "圆": 4.0},
-		"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"), "圆": 4.0},
-		"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"), "圆": 6.0},
-		"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"), "圆": 8.0},
-		"弹雾":   {"tex": preload("res://assets/Textures/bullet/弹雾.png"), "圆": 10.0},
+		"小玉":   {"tex": preload("res://assets/Textures/bullet/小玉.png"), "circle": 4.0},
+		"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"), "circle": 4.0},
+		"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"), "circle": 6.0},
+		"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"), "circle": 8.0},
+		"弹雾":   {"tex": preload("res://assets/Textures/bullet/弹雾.png"), "circle": 10.0},
 	}
 
 const sounds := {
