@@ -21,10 +21,11 @@ const sounds := {
 	"player_die": preload("res://assets/Sound/player_dead.wav"),
 	"graze":    preload("res://assets/Sound/graze.wav"),
 	"item":     preload("res://assets/Sound/item.wav"),
+	"bgm1":     preload("res://assets/Music/THq01_02.夜间漫步.mp3"),
 }
 
 const ui_textures := {
-	"logo": preload("res://assets/Textures/front/logo/logo1.png"),
+	"logo1": preload("res://assets/Textures/front/logo/logo1.png"),
 }
 
 const patterns := {

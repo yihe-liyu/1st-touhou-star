@@ -9,6 +9,10 @@ func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) ->
 	if not active: return null
 	return StageManager.spawn_enemy(data, position, auto_start)
 
+## 字典式生成：spawn("s_red", move_cfg, shoot_cfg, pos)
+func spawn(visual_key: String, move_cfg: Dictionary, shoot_cfg: Dictionary, pos: Vector2, opts: Dictionary = {}) -> Enemy:
+	return EnemyFactory.new().spawn(ctx, visual_key, move_cfg, shoot_cfg, pos, opts)
+
 func spawn_boss(data: BossData, position: Vector2) -> void:
 	if not active: return
 	StageManager.spawn_boss(data, position, false, ctx)

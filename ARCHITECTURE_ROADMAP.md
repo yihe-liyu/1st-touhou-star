@@ -1,184 +1,99 @@
-# 🎨 内容创作管线 · 最终方案
+# 🎮 全系统图景 v3
 
-> 基于提问的务实设计——不引入新资源类，不改变 Timeline 写法。
-
----
-
-## 核心原则
-
-- ✅ 保持 Timeline 写代码（你喜欢）
-- ✅ 一个关卡 = 一个 stage 脚本
-- ✅ 一个敌人 = 一个 EnemyData .tres + 难度脚本映射
-- ✅ 不新建 WaveData / StageAsset 资源类
+> 2026-06-20 · 敌人/Bullet/EnemyData 全消计划
 
 ---
 
-## 一、消灭复制粘贴
-
-### 旧（3 个脚本）
+## 一、资源层（只剩这些文件）
 
 ```
-stage01_easy.gd   ─┐
-stage01_normal.gd  ├─ 除了 const ENEMY01 不同，其他一模一样
-stage01_hard.gd   ─┘
+AssetRegistry (autoload)
+  ├── enemy_visuals    {"s_red": .tscn, "death": .tscn}
+  ├── bullet_textures  {"小玉": .png, "点弹": .png, ...}
+  ├── sounds           {"shoot": .wav, "item": .wav, ...}
+  ├── ui_textures      {"logo": .png}
+  └── patterns         {"aimed": .gd, "move_down": .gd}
 
-enemy_easy01.tres    ─┐
-enemy_normal01.tres   ├─ 除了 create_script 引用不同
-enemy_hard01.tres    ─┘
+patterns/               ← 通用弹幕/移动模板，参数化
+  ├── aimed_burst.gd    (count, spread, interval, bullet配置)
+  ├── move_down.gd      (target_y, duration)
+  └── ...               (circle.gd, move_patrol.gd, etc.)
+
+BossData / PhaseData    ← 保留 .tres（太复杂，不适合字典）
+StageData               ← 保留 .tres（关卡注册用）
+DecorLayer              ← 保留 .tres（背景装饰）
 ```
 
-### 新（1 + 1）
+## 二、运行时层
 
 ```
-stage01.gd           ← 一个脚本管所有难度
+StageContext
+  ├── bullets:  BulletService    → shoot_spread(cfg, count, spread, dir, pos, sfx)
+  │                                  cfg = {tex: "小玉", speed: 400, color: RED}
+  │
+  ├── enemies:  EnemyService     → spawn(visual, move_cfg, shoot_cfg, pos, opts)
+  │                                  spawn_boss(boss_data, pos)
+  │
+  ├── decor:    DecorManager     → add_layer / batch_spawn
+  ├── clock:    ClockService     → wait / frames
+  ├── player:   PlayerService   → position
+  ├── dialogue: DialogueService  → play / show
+  └── items:    ItemService      → spawn
 
-enemy01.tres         ← 一个配置管所有难度
-  ├── visual:  s_red.tscn
-  ├── hp:      150
-  ├── scripts: {
-  │     0: { create: create_easy,   move: move01 },
-  │     1: { create: create_normal, move: move01 },
-  │     2: { create: create_hard,   move: move02 }
-  │   }
-  └── death_effect: death_effect.tscn
+EnemyFactory                       ← 纯工具类，不存状态
+  ├── make_bullet(cfg)            → 造子弹配置
+  ├── make_move(cfg)              → new + 设字段 + start
+  ├── make_shoot(cfg)             → new + 设字段 + start
+  └── assemble(v, m, s, pos, opts) → 拼 Enemy 节点
 ```
 
-### stage 脚本示例
+## 三、关卡脚本
 
 ```gdscript
 extends StageScript
 
-const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy01.tres")
-
-func start_stage(p_ctx: StageContext):
-    ctx = p_ctx
-    var diff := GameState.selected_difficulty
+func start_stage(ctx):
     var tl := start_timeline()
     
-    # 难度差异：波次数量
-    var wave_counts := [6, 8, 12]
-    var hp_mult := [0.7, 1.0, 1.5]
+    # —— 没有 const preload ——
+    # —— 没有 enemy .tres ——
+    # —— 没有 bullet .tres ——
     
-    tl.at(0.0).do(func():
-        AudioManager.play_bgm(preload("res://assets/Music/..."), 0.0)
-    )
+    var bgm  := AssetRegistry.sounds["bgm1"]
+    var logo := AssetRegistry.ui_textures["logo"]
+    var vis  := AssetRegistry.enemy_visuals["s_red"]
+    var tex  := AssetRegistry.bullet_textures["小玉"]
     
-    tl.at(1.0).every(0.5).times(wave_counts[diff]).do(func():
-        var e := ctx.enemies.spawn_enemy(ENEMY01, Vector2(x, 0), false)
-        e.move_script.target_y = 150 + i * 60
-        e.start()
-        x += 100; i += 1
-    )
+    var bullet_cfg := { tex: tex, speed: 400, color: Color.RED }
+    var move_cfg   := { type: "move_down", target_y: 300, duration: 1.5 }
+    var shoot_cfg  := { type: "aimed", bullet: bullet_cfg, count: 3, spread: 15, every: 0.8, sfx: "shoot" }
     
-    # 只有 Hard 有额外敌波
-    if diff >= 2:
-        tl.at(5.0).every(0.3).times(6).do(func(): ...)
+    tl.at(0.0).do(func(): AudioManager.play_bgm(bgm, 0.0))
     
-    super.start_stage(p_ctx)
-```
-
-**收益**：改波次 = 改 1 个文件。难度差异 = 数组/if。
-
----
-
-## 二、EnemyData 脚本分离
-
-### EnemyData 新字段
-
-```gdscript
-class_name EnemyData
-extends Resource
-
-@export var scripts: Dictionary = {}  # {0: {create: Script, move: Script}, 1: ...}
-```
-
-如果 `scripts` 非空，`spawn_enemy` 自动按难度选脚本。否则回退到旧 `create_script`/`move_script` 字段。
-
-### 实现
-
-```gdscript
-# Enemy._apply_enemy_data
-func _apply_enemy_data(data: EnemyData):
-    var diff := GameState.selected_difficulty
-    var s := data.scripts.get(diff, {})
-    
-    var create := s.get("create", data.create_script)
-    var move := s.get("move", data.move_script)
-    
-    if create: ...
-    if move: ...
-```
-
-**旧 `.tres` 不破坏**——没填 `scripts` 时走旧字段。
-
----
-
-## 三、StageScript 辅助基类
-
-不用建 `StageAsset`、`WaveData`，但加几个便捷方法：
-
-```gdscript
-class_name StageScript
-extends CoroutineRunner
-
-## 按难度取数组值
-func diff_pick(arr: Array) -> Variant:
-    return arr[GameState.selected_difficulty]
-
-## 按难度取字典值（带默认）
-func diff_get(dict: Dictionary, key: String, default = null):
-    return dict.get(GameState.selected_difficulty, {}).get(key, default)
-```
-
-关卡里：
-
-```gdscript
-var counts := [6, 8, 12]
-tl.at(1.0).every(0.5).times(diff_pick(counts))
-```
-
----
-
-## 四、弹幕和移动脚本的难度感知
-
-### CreateScript 里访问难度
-
-```gdscript
-func start_creating(p_ctx: StageContext):
-    ctx = p_ctx
-    var diff := GameState.selected_difficulty
-    var mult := [0.8, 1.0, 1.3][diff]
-    
-    tl.at(0.0).every(0.5).do(func():
-        ctx.bullets.shoot_spread(BULLET, count, spread, dir, pos, SFX, mult)
+    tl.at(1.0).every(0.5).times(diff_pick([6, 8, 12])).do(func():
+        ctx.enemies.spawn(vis, move_cfg, shoot_cfg, Vector2(x, 0))
     )
 ```
 
-或者直接用 `EnemyData.scripts` 字典切换不同脚本——弹幕脚本本身不感知难度，选哪个脚本由 enemy .tres 决定。
+## 四、删掉的
+
+| 文件类型 | 数量 | 替换 |
+|----------|------|------|
+| `enemy*.tres` | 全部 | `{visual, hp, drop}` 字典 |
+| `bullet*.tres` | 全部 | `{tex, speed, color}` 字典 |
+| `enemy_*01.gd` (CreateScript) | 全部 | `patterns/aimed_burst.gd` + 字典参数 |
+| `enemy_*01.gd` (MoveScript) | 全部 | `patterns/move_down.gd` + 字典参数 |
+
+## 五、不改的
+
+```
+BossData / PhaseData  ← .tres（对话、多阶段、背景切换太复杂）
+StageData             ← .tres（stage_registry 用）
+DecorLayer            ← .tres（背景装饰配置）
+Timeline              ← 核心引擎
+协程系统               ← 核心引擎
+```
 
 ---
 
-## 五、实施清单
-
-| # | 任务 | 工期 |
-|---|------|------|
-| 1 | `EnemyData.scripts` 字典字段 + `spawn_enemy` 按难度选脚本 | 30min |
-| 2 | `StageScript.diff_pick()` / `diff_get()` 辅助方法 | 15min |
-| 3 | 合并 `stage01_easy/normal/hard` → `stage01.gd` | 20min |
-| 4 | 合并 `enemy_easy/normal/hard` → `enemy01.tres` + scripts 字典 | 15min |
-| 5 | 删旧文件 | 5min |
-
----
-
-## 六、不做
-
-- ❌ WaveData / StageAsset 资源类
-- ❌ 弹幕函数库
-- ❌ .tres 表格替代 Timeline 代码
-- ❌ 难度参数自动注入 CreateScript
-
-**你说了 Timeline 代码写得爽，就保持。只解决复制粘贴。**
-
----
-
-> ♥️ 轻量、务实、不引入新概念。开始？
+> 核心思想：**杂鱼 = 字典 + patterns。Boss = .tres。**
