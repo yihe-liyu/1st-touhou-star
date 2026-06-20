@@ -1,57 +1,53 @@
 extends Resource
 class_name CurvedLaserData
-# 曲线激光配置 —— 梭形生长型激光
-#
-# 激光形状： ◇═══════◆═══════◇
-#           尾端细   中间粗   头端细
-#
-# 生命周期：头一直向前飞 → 出屏或超时 → 淡出消失
 
-# ═══════════════════════════════════════════
-# 生长 & 运动
-# ═══════════════════════════════════════════
-
-## 头部前进速度（像素/秒），越大激光飞得越快
-@export var grow_speed: float = 600.0
-
-## 尾巴离头部多远（像素），决定激光可见段长度
-## 比如 head 在 1000px 处，tail 在 1000-300=700px 处
-@export var tail_distance: float = 300.0
-
-# ═══════════════════════════════════════════
-# 视觉
-# ═══════════════════════════════════════════
-
+## 头部前进速度（像素/秒）
+var grow_speed: float = 600.0
+## 尾巴离头部多远（像素）
+var tail_distance: float = 300.0
 ## 梭形中间最粗处的宽度（像素）
-@export var mid_width: float = 20.0
+var mid_width: float = 20.0
+## 梭形两端细尖的宽度（像素）
+var end_width: float = 3.0
+## 激光颜色
+var laser_color: Color = Color(1.0, 0.2, 0.1, 1.0)
+## 光晕强度，0=无光晕
+var glow_intensity: float = 0.6
+## 发射点弹雾贴图
+var spawn_fog_texture: Texture2D
+## 判定宽度（半值）
+var hitbox_width: float = 6.0
+## 判定伤害（每秒）
+var damage_per_second: float = 1.0
+## 最大存活秒数，0=不限
+var max_lifetime: float = 8.0
 
-## 梭形两端细尖的宽度（像素），mid_width:end_width 的比例决定"锥度"
-## 比如 20:3 → 从 20px 渐缩到 3px
-@export var end_width: float = 3.0
+## ---- 构造链 ----
+func speed(v: float) -> CurvedLaserData:
+	grow_speed = v
+	return self
 
-## 激光颜色（alpha 会被运行时覆盖，只设 RGB）
-@export var laser_color: Color = Color(1.0, 0.2, 0.1, 1.0)
+func tail(d: float) -> CurvedLaserData:
+	tail_distance = d
+	return self
 
-## 光晕强度，0=无光晕, 1=强光晕
-@export var glow_intensity: float = 0.6
+func width(mid: float, end: float = -1) -> CurvedLaserData:
+	mid_width = mid
+	if end >= 0: end_width = end
+	return self
 
-## 发射点弹雾贴图（null=无弹雾），激光射出时在根部冒一团雾
-@export var spawn_fog_texture: Texture2D
+func color(c: Color) -> CurvedLaserData:
+	laser_color = c
+	return self
 
-# ═══════════════════════════════════════════
-# 判定
-# ═══════════════════════════════════════════
+func glow(v: float) -> CurvedLaserData:
+	glow_intensity = v
+	return self
 
-## 激活时每秒造成伤害
-@export var damage_per_second: float = 1.0
+func hitbox(w: float) -> CurvedLaserData:
+	hitbox_width = w
+	return self
 
-## 判定宽度（半值），判定比视觉窄一些避免"被空气打中"
-@export var hitbox_width: float = 6.0
-
-# ═══════════════════════════════════════════
-# 生命周期
-# ═══════════════════════════════════════════
-
-## 最大存活秒数，0=不限（只靠出屏消失）
-## 设一个兜底值防止激光永远不消失
-@export var max_lifetime: float = 8.0
+func lifetime(t: float) -> CurvedLaserData:
+	max_lifetime = t
+	return self

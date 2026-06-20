@@ -3,10 +3,11 @@ class_name LaserSystem
 extends RefCounted
 
 const MAX_LASERS := 64
+const POOL_SIZE := 32
 
-var _active_lasers: Array = []
-var _parent
-var _physics
+var _pool: Array[CurvedLaser] = []
+var _active_lasers: Array[CurvedLaser] = []
+var _pool_index: int = 0
 
 
 func _init() -> void:
@@ -16,21 +17,36 @@ func _init() -> void:
 func setup(p_parent, p_physics) -> void:
 	_parent = p_parent
 	_physics = p_physics
+	_init_pool()
 
 
-func fire(data: Resource, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0) -> CurvedLaser:
-	for l in _active_lasers:
-		if l.phase == CurvedLaser.DEAD:
-			l.init(data, origin, guide_curve, rot_speed)
-			return l
-	
-	if _active_lasers.size() >= MAX_LASERS:
-		push_warning("LaserSystem: max lasers reached (%d)" % MAX_LASERS)
+func _init_pool() -> void:
+	_pool.resize(POOL_SIZE)
+	for i in POOL_SIZE:
+		var laser := CurvedLaser.new()
+		laser.name = &"LaserPool_%d" % i
+		_parent.add_child(laser)
+		laser.phase = CurvedLaser.DEAD
+		laser.line.visible = false
+		_pool[i] = laser
+
+
+func _get_laser() -> CurvedLaser:
+	for i in POOL_SIZE:
+		var idx := (_pool_index + i) % POOL_SIZE
+		if _pool[idx].phase == CurvedLaser.DEAD:
+			_pool_index = (idx + 1) % POOL_SIZE
+			return _pool[idx]
+	# 全部在用——覆盖最早发射的那条
+	var reuse := _active_lasers.front()
+	_active_lasers.erase(reuse)
+	return reuse
+
+
+func fire(data: CurvedLaserData, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0) -> CurvedLaser:
+	var laser := _get_laser()
+	if not laser:
 		return null
-	
-	var laser = CurvedLaser.new()
-	laser.name = "CurvedLaser_%d" % _active_lasers.size()
-	_parent.add_child(laser)
 	laser.init(data, origin, guide_curve, rot_speed)
 	_active_lasers.append(laser)
 	return laser
@@ -42,6 +58,7 @@ func clear() -> void:
 		laser.line.visible = false
 		for sl in laser._seg_lines:
 			sl.visible = false
+	_active_lasers.clear()
 
 
 func get_active() -> Array:

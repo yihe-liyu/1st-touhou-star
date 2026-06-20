@@ -21,5 +21,3 @@ func get_by_stage(stage_id: int) -> Array[StageData]:
 		if s.stage_id == stage_id:
 			result.append(s)
 	return result
-
-
