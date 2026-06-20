@@ -38,6 +38,10 @@ var hitbox_radius: float = 4.0
 var hitbox_size: Vector2 = Vector2(8, 8)
 ## [仅矩形] 相对子弹朝向的额外旋转（弧度）
 var hitbox_rotation: float = 0.0
+## 是否在生成前播放弹雾特效（一张贴图渐渐缩小）
+var spawn_fog: bool = false
+## 弹雾贴图（白色底图，用 tint 染色）
+var fog_texture: Texture2D
 ## 移动逻辑脚本。留空则默认直线飞行
 var movement_script: Script
 
