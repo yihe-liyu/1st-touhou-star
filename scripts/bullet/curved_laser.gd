@@ -32,6 +32,10 @@ var rotation_speed: float = 0.0
 var origin_point: Vector2
 var elapsed_angle: float = 0.0
 
+# —— 缓存 ——
+var _segments_cache: Array[Dictionary] = []
+var _cache_dirty: bool = true
+
 # 节点
 var line: Line2D
 var _seg_lines: Array[Line2D] = []  # 分段落 Line2D 池
@@ -68,6 +72,7 @@ func init(p_data: CurvedLaserData, p_origin: Vector2, p_curve: Curve2D,
 	phase = ALIVE
 	elapsed_angle = 0.0
 	_fade_age = 0.0
+	_cache_dirty = true
 
 	_setup_line()
 	_apply_phase()
@@ -182,6 +187,7 @@ func add_hole(h_start: float, h_end: float) -> void:
 	
 	holes.append({start_dist = h_start, end_dist = h_end})
 	_merge_holes()
+	_cache_dirty = true
 
 
 func _merge_holes() -> void:
@@ -273,18 +279,23 @@ func find_closest_dist(player_pos: Vector2) -> float:
 
 func _build_segments() -> Array[Dictionary]:
 	## 返回 [{start_dist, end_dist}, ...] 不包含孔洞的可见区间
-	if holes.is_empty():
-		return [{start_dist = tail_dist, end_dist = head_dist}]
+	if not _cache_dirty:
+		return _segments_cache
 	
-	var segs: Array[Dictionary] = []
-	var cur := tail_dist
-	for h in holes:
-		if h.start_dist > cur:
-			segs.append({start_dist = cur, end_dist = h.start_dist})
-		cur = maxf(cur, h.end_dist)
-	if cur < head_dist:
-		segs.append({start_dist = cur, end_dist = head_dist})
-	return segs
+	if holes.is_empty():
+		_segments_cache = [{start_dist = tail_dist, end_dist = head_dist}]
+	else:
+		_segments_cache.clear()
+		var cur := tail_dist
+		for h in holes:
+			if h.start_dist > cur:
+				_segments_cache.append({start_dist = cur, end_dist = h.start_dist})
+			cur = maxf(cur, h.end_dist)
+		if cur < head_dist:
+			_segments_cache.append({start_dist = cur, end_dist = head_dist})
+	
+	_cache_dirty = false
+	return _segments_cache
 
 
 # ── 步进 ──
@@ -309,6 +320,7 @@ func step(delta: float):
 			if tail_shift > 0.0:
 				_shift_holes(tail_shift)
 				_shift_grazed(tail_shift)
+			_cache_dirty = true
 			_toggle_fog(tail_dist <= 0.0)
 			if _fog_sprite and _fog_sprite.visible:
 				_fog_sprite.rotation += delta * 18.0
