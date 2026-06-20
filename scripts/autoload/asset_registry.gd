@@ -28,11 +28,6 @@ const ui_textures := {
 	"logo1": preload("res://assets/Textures/front/logo/logo1.png"),
 }
 
-const patterns := {
-	"aimed":    preload("res://data/patterns/aimed_burst.gd"),
-	"move_down": preload("res://data/patterns/move_down.gd"),
-}
-
 const enemies := {
 	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
 }
