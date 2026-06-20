@@ -23,16 +23,6 @@ func start_stage(p_ctx: StageContext):
 		#_spawn_offset_x -= 100
 		#_spawn_i += 1
 	#)
-	
-	# 激光测试
-	tl.at(2.0).do(func():
-		var data := CurvedLaserData.new().speed(50).tail(800).width(20, 3).color(Color.RED).hitbox(6).lifetime(0)
-		var curve := Curve2D.new()
-		curve.add_point(Vector2(448, -50))
-		curve.add_point(Vector2(448, 650))
-		ctx.bullets.fire_growing_laser(data, Vector2(448, -50), curve)
-	)
-	
 	#tl.at(3.9).do(func(): _spawn_i = 0)
 	#tl.at(4.0).every(0.1).times(6).do(func():
 		#ctx.enemies.spawn("red_soldier",

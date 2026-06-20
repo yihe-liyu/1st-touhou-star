@@ -2,11 +2,9 @@
 
 [ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://40gibb6sxa5f" path="res://data/stages/stage01/background/stage01_background.tscn" id="2"]
-[ext_resource type="Script" uid="uid://be7pe6gf4etpl" path="res://scripts/data/boss_data.gd" id="2_vi60d"]
 [ext_resource type="Script" uid="uid://bvylga103rn86" path="res://data/stages/stage01/stage_script/stage01.gd" id="3"]
 
 [resource]
 script = ExtResource("1")
-difficulty = 1
 create_script = ExtResource("3")
 background_scene = ExtResource("2")
