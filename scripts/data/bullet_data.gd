@@ -9,12 +9,10 @@ enum TintMode {MULTIPLY, BLEND}
 ## 子弹贴图（白色/浅灰底图，用 tint 染色）
 var texture: Texture2D
 
-@export_group("Tint")
 ## MULTIPLY=乘法叠加, BLEND=灰度混合（白色保持不变）
 var tint_mode: TintMode = TintMode.MULTIPLY
 ## 贴图染色
 var tint: Color = Color.WHITE
-@export_group("", "")
 
 ## 基础伤害值
 var damage: int = 10
@@ -27,7 +25,6 @@ var faction: Faction = Faction.PLAYER
 ## 是否可被 Bomb 消除（敌弹通常为 true）
 var can_be_canceled: bool = false
 
-@export_group("Hitbox")
 ## 判定形状：圆形 / 矩形
 var hitbox_shape: HitboxShape = HitboxShape.CIRCLE
 ## 判定中心相对于子弹原点的偏移
@@ -51,9 +48,8 @@ func tex(key: String) -> BulletData:
 	var r := AssetRegistry.get_bullet_hitbox(key)
 	hitbox_shape = HitboxShape.CIRCLE
 	hitbox_radius = r
-	# 弹雾纹理跟子弹纹理走
-	if texture:
-		fog_texture = texture
+	# 弹雾纹理用专门的弹雾贴图
+	fog_texture = AssetRegistry.get_bullet_tex("弹雾")
 	return self
 
 func speed(v: float) -> BulletData:
