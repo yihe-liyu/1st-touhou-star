@@ -55,8 +55,8 @@ func tex(key: String) -> BulletData:
 		var r: Dictionary = hb["rect"]
 		hitbox_size = Vector2(r.get("w", 48), r.get("h", 24))
 		hitbox_rotation = r.get("rotation", 0.0)
-	var off := hb.get("offset", {})
-	hitbox_offset = Vector2(off.get("x", 0), off.get("y", 0)) if off is Dictionary else off
+	var off: Dictionary = hb.get("offset", {"x": 0, "y": 0})
+	hitbox_offset = Vector2(off.get("x", 0), off.get("y", 0))
 	fog_texture = AssetRegistry.FOG_TEXTURE
 	return self
 
