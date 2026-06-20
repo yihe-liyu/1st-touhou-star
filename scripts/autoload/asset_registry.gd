@@ -6,12 +6,12 @@ const enemy_visuals := {
 	"death":  preload("res://data/enemy_visual/death_effect.tscn"),
 }
 
-const bullet_configs := {
-	"小玉":   {tex: preload("res://assets/Textures/bullet/小玉.png"), hitbox: [4.0]},
-	"小光玉": {tex: preload("res://assets/Textures/bullet/小光玉.png"), hitbox: [4.0]},
-	"点弹":   {tex: preload("res://assets/Textures/bullet/点弹.png"), hitbox: [6.0]},
-	"棱弹":   {tex: preload("res://assets/Textures/bullet/棱弹.png"), hitbox: [8.0]},
-	"弹雾":   {tex: preload("res://assets/Textures/bullet/弹雾.png"), hitbox: [10.0]},
+var bullet_configs := {
+	"小玉":   {"tex": preload("res://assets/Textures/bullet/小玉.png"), "hitbox": [4.0]},
+	"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"), "hitbox": [4.0]},
+	"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"), "hitbox": [6.0]},
+	"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"), "hitbox": [8.0]},
+	"弹雾":   {"tex": preload("res://assets/Textures/bullet/弹雾.png"), "hitbox": [10.0]},
 }
 
 const sounds := {
@@ -32,11 +32,11 @@ const enemies := {
 	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
 }
 
-static func get_bullet_tex(key: String) -> Texture2D:
+func get_bullet_tex(key: String) -> Texture2D:
 	var cfg: Dictionary = bullet_configs.get(key, {})
 	return cfg.get("tex")
 
-static func get_bullet_hitbox(key: String) -> float:
+func get_bullet_hitbox(key: String) -> float:
 	var cfg: Dictionary = bullet_configs.get(key, {})
 	var hb: Array = cfg.get("hitbox", [])
 	return hb[0] if hb.size() > 0 else 4.0
