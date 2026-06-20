@@ -13,12 +13,6 @@ const bullet_configs := {
 	"棱弹":   {tex: preload("res://assets/Textures/bullet/棱弹.png"), hitbox: [8.0]},
 	"弹雾":   {tex: preload("res://assets/Textures/bullet/弹雾.png"), hitbox: [10.0]},
 }
-	"小玉":    preload("res://assets/Textures/bullet/小玉.png"),
-	"小光玉":  preload("res://assets/Textures/bullet/小光玉.png"),
-	"点弹":    preload("res://assets/Textures/bullet/点弹.png"),
-	"棱弹":    preload("res://assets/Textures/bullet/棱弹.png"),
-	"弹雾":    preload("res://assets/Textures/bullet/弹雾.png"),
-}
 
 const sounds := {
 	"shoot":    preload("res://assets/Sound/bullet01.wav"),
