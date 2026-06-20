@@ -123,44 +123,42 @@ func _check_rect(bullet: Bullet, target: Node2D) -> bool:
 
 
 func _check_capsule(bullet: Bullet, target: Node2D) -> bool:
-	var a := bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
-	var dir := Vector2.RIGHT.rotated(bullet.rotation)
-	var b := a + dir * bullet.hitbox_length
-	var target_center := target.global_position
-	var target_radius := target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
-	var threshold := bullet.hitbox_radius + target_radius
+	var a: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
+	var dir: Vector2 = Vector2.RIGHT.rotated(bullet.rotation)
+	var b: Vector2 = a + dir * bullet.hitbox_length
+	var target_center: Vector2 = target.global_position
+	var target_radius: float = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
+	var threshold: float = bullet.hitbox_radius + target_radius
 	
-	# 点到线段最近距离
-	var ab := b - a
-	var ap := target_center - a
-	var len_sq := ab.length_squared()
+	var ab: Vector2 = b - a
+	var ap: Vector2 = target_center - a
+	var len_sq: float = ab.length_squared()
 	if len_sq < 0.0001:
 		return ap.length_squared() < threshold * threshold
-	var t := clampf(ap.dot(ab) / len_sq, 0.0, 1.0)
-	var closest := a + ab * t
+	var t: float = clampf(ap.dot(ab) / len_sq, 0.0, 1.0)
+	var closest: Vector2 = a + ab * t
 	return closest.distance_squared_to(target_center) < threshold * threshold
 
 
 # ── 擦弹 ──
 
 func _grazes_player(bullet: Bullet, player: Player) -> bool:
-	var center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
+	var center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
 	
 	if bullet.hitbox_shape == BulletData.HitboxShape.CAPSULE:
-		# 胶囊体擦弹：点到线段距离
-		var dir := Vector2.RIGHT.rotated(bullet.rotation)
-		var a := center
-		var b := a + dir * bullet.hitbox_length
-		var ab := b - a
-		var ap := player.global_position - a
-		var len_sq := ab.length_squared()
+		var dir: Vector2 = Vector2.RIGHT.rotated(bullet.rotation)
+		var a: Vector2 = center
+		var b: Vector2 = a + dir * bullet.hitbox_length
+		var ab: Vector2 = b - a
+		var ap: Vector2 = player.global_position - a
+		var len_sq: float = ab.length_squared()
 		if len_sq < 0.0001:
 			return ap.length_squared() < (bullet.hitbox_radius + player.graze_radius) ** 2
-		var t := clampf(ap.dot(ab) / len_sq, 0.0, 1.0)
-		var closest := a + ab * t
+		var t: float = clampf(ap.dot(ab) / len_sq, 0.0, 1.0)
+		var closest: Vector2 = a + ab * t
 		return closest.distance_squared_to(player.global_position) < (bullet.hitbox_radius + player.graze_radius) ** 2
 	
-	var total_radius = bullet.hitbox_radius + player.graze_radius
+	var total_radius: float = bullet.hitbox_radius + player.graze_radius
 	return center.distance_squared_to(player.global_position) < total_radius * total_radius
 
 
