@@ -7,11 +7,11 @@ const enemy_visuals := {
 }
 
 const bullet_textures := {
-	"小玉":    "res://assets/Textures/bullet/小玉.png",
-	"小光玉":  "res://assets/Textures/bullet/小光玉.png",
-	"点弹":    "res://assets/Textures/bullet/点弹.png",
-	"棱弹":    "res://assets/Textures/bullet/棱弹.png",
-	"弹雾":    "res://assets/Textures/bullet/弹雾.png",
+	"小玉":    preload("res://assets/Textures/bullet/小玉.png"),
+	"小光玉":  preload("res://assets/Textures/bullet/小光玉.png"),
+	"点弹":    preload("res://assets/Textures/bullet/点弹.png"),
+	"棱弹":    preload("res://assets/Textures/bullet/棱弹.png"),
+	"弹雾":    preload("res://assets/Textures/bullet/弹雾.png"),
 }
 
 const sounds := {
@@ -31,10 +31,3 @@ const ui_textures := {
 const enemies := {
 	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
 }
-
-func bullet(tex_key: String, speed: int, color: Color = Color.WHITE) -> BulletData:
-	var b := BulletData.new()
-	b.texture = load(bullet_textures.get(tex_key, ""))
-	b.velocity = Vector2(0, speed)
-	b.tint = color
-	return b

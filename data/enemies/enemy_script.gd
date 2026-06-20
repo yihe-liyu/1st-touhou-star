@@ -23,7 +23,10 @@ func start() -> void:
 	run(_on_step.bind(ctx))
 
 func make_bullet(tex_key: String, speed: int, color: Color) -> BulletData:
-	var b := AssetRegistry.bullet(tex_key, speed, color)
+	var b := BulletData.new()
+	b.texture = AssetRegistry.bullet_textures.get(tex_key)
+	b.velocity = Vector2(0, speed)
+	b.tint = color
 	b.faction = BulletData.Faction.ENEMY
 	b.can_be_canceled = true
 	return b
