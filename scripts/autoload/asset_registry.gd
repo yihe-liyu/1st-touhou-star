@@ -6,7 +6,13 @@ const enemy_visuals := {
 	"death":  preload("res://data/enemy_visual/death_effect.tscn"),
 }
 
-const bullet_textures := {
+const bullet_configs := {
+	"小玉":   {tex: preload("res://assets/Textures/bullet/小玉.png"), hitbox: [4.0]},
+	"小光玉": {tex: preload("res://assets/Textures/bullet/小光玉.png"), hitbox: [4.0]},
+	"点弹":   {tex: preload("res://assets/Textures/bullet/点弹.png"), hitbox: [6.0]},
+	"棱弹":   {tex: preload("res://assets/Textures/bullet/棱弹.png"), hitbox: [8.0]},
+	"弹雾":   {tex: preload("res://assets/Textures/bullet/弹雾.png"), hitbox: [10.0]},
+}
 	"小玉":    preload("res://assets/Textures/bullet/小玉.png"),
 	"小光玉":  preload("res://assets/Textures/bullet/小光玉.png"),
 	"点弹":    preload("res://assets/Textures/bullet/点弹.png"),
