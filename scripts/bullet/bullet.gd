@@ -21,7 +21,6 @@ var hitbox_size: Vector2 = Vector2(8, 8)
 var hitbox_rotation: float = 0.0
 
 # 运行时状态
-var coroutine_movement: CoroutineScript
 var is_ready: bool = false
 
 # 额外变量
@@ -72,10 +71,6 @@ func bind(data: BulletData, direction: Vector2):
 	velocity = direction.normalized() * data.velocity.length()
 	self.rotation = direction.angle()
 
-	if coroutine_movement and is_instance_valid(coroutine_movement):
-		coroutine_movement.stop()
-		coroutine_movement.queue_free()
-		coroutine_movement = null
 	for child in get_children():
 		if child is CoroutineScript:
 			child.stop()
@@ -92,16 +87,15 @@ func bind(data: BulletData, direction: Vector2):
 		is_ready = true
 		sprite.visible = true
 
-	# 只有自定义移动脚本才用协程；普通线性移动走 _physics_process
-	if data.movement_script:
-		_start_movement(data)
+	# 自定义移动脚本不再通过 BulletData 配置（已删除），所有子弹走线性移动
+	pass
 
 func _on_fog_ready():
 	sprite.visible = true  # 雾结束，显示子弹
 	is_ready = true
 
 func _physics_process(_delta):
-	if not is_ready or coroutine_movement:
+	if not is_ready:
 		return
 	self.global_position += velocity / Engine.physics_ticks_per_second
 

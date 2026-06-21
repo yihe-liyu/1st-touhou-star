@@ -6,7 +6,7 @@ var visual_scene: PackedScene   ## 外观场景
 var max_hp: int = 100           ## 最大生命
 var hitbox_radius: float = 8.0  ## 判定半径（像素）
 var score_value: int = 100      ## 击破分数
-var death_effect: PackedScene   ## 死亡特效
+var death_effect: PackedScene = preload("res://data/enemy_visual/death_effect.tscn")  ## 死亡特效
 var boss_data: BossData         ## Boss 数据
 
 var item_power: int = 0         ## 掉落P道具数
