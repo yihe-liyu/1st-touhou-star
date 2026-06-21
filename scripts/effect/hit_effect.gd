@@ -4,8 +4,6 @@ class_name HitEffect
 #
 # 用法（池化）：
 #   HitEffectPool.play(scene, pos, vel, tint)
-#
-# 用法（手动）：
 #   effect.activate(pos, vel, tint)
 #   # 播完后自动 invisible + _on_finish()
 

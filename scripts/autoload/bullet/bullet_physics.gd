@@ -141,4 +141,4 @@ func on_graze() -> void:
 # ── 击中特效 ──
 
 func _spawn_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> void:
-	HitEffectPool.spawn(effect_scene, pos, velocity, tint)
+	HitEffectPool.play(effect_scene, pos, velocity, tint)

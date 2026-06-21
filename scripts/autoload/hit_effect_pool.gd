@@ -7,16 +7,7 @@ var _pools: Dictionary = {}  # PackedScene → Array[HitEffect]
 var _return_method: Callable
 
 
-## 直接实例化（不用池），挂到 World 节点
-func spawn(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> HitEffect:
-	return play(scene, pos, vel, tint)
-
-
-func _ready() -> void:
-	process_mode = PROCESS_MODE_ALWAYS
-	_return_method = _recycle
-
-
+## 从池中取一个特效实例播放，挂到 World 节点
 func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> HitEffect:
 	var effect := _acquire(scene)
 	if not effect:
@@ -36,25 +27,32 @@ func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: C
 	return effect
 
 
+## 从池中取一个实例：优先复用不可见的，没有则新建
 func _acquire(scene: PackedScene) -> HitEffect:
 	var arr: Array = _pools.get(scene, [])
 	
-	# 清理失效引用，找可复用实例
-	var i := 0
-	while i < arr.size():
-		var eff = arr[i]
+	for i in arr.size():
+		var eff: HitEffect = arr[i] as HitEffect
 		if not is_instance_valid(eff):
-			arr.remove_at(i)
+			arr[i] = null
 			continue
 		if not eff.visible:
 			return eff
-		i += 1
 	
 	var instance := scene.instantiate()
 	instance.visible = false
-	arr.append(instance)
+	var idx := arr.find(null)
+	if idx >= 0:
+		arr[idx] = instance
+	else:
+		arr.append(instance)
 	_pools[scene] = arr
 	return instance
+
+
+func _ready() -> void:
+	process_mode = PROCESS_MODE_ALWAYS
+	_return_method = _recycle
 
 
 func clear_all_pool() -> void:
@@ -63,6 +61,7 @@ func clear_all_pool() -> void:
 			if is_instance_valid(eff):
 				eff.queue_free()
 	_pools.clear()
+
 
 func _recycle(effect: HitEffect) -> void:
 	effect.visible = false
