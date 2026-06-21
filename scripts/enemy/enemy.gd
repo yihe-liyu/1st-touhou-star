@@ -3,7 +3,7 @@ extends Area2D
 class_name Enemy
 
 ## 敌人配置数据（生命、判定、弹幕模式等）
-@export var enemy_data: EnemyData
+var enemy_data: EnemyData
 
 var _visual: Node2D          # 外观实例（可能不是 AnimatedSprite2D）
 var max_hp: int

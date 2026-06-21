@@ -31,14 +31,6 @@ const sounds := {
 	"bgm1":     preload("res://assets/Music/THq01_02.夜间漫步.mp3"),
 }
 
-const ui_textures := {
-	"logo1": preload("res://assets/Textures/front/logo/logo1.png"),
-}
-
-const enemies := {
-	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
-}
-
 func get_bullet_tex(key: String) -> Texture2D:
 	var cfg: Dictionary = bullet_configs.get(key, {})
 	return cfg.get("tex")
