@@ -21,7 +21,7 @@ var hitbox_size: Vector2 = Vector2(8, 8)
 var hitbox_rotation: float = 0.0
 
 # 运行时状态
-var coroutine_movement: CoroutineScript
+var coroutine_script: CoroutineScript
 var is_ready: bool = false
 
 # 额外变量
@@ -72,10 +72,10 @@ func bind(data: BulletData, direction: Vector2):
 	velocity = direction.normalized() * data.velocity.length()
 	self.rotation = direction.angle()
 
-	if coroutine_movement and is_instance_valid(coroutine_movement):
-		coroutine_movement.stop()
-		coroutine_movement.queue_free()
-		coroutine_movement = null
+	if coroutine_script and is_instance_valid(coroutine_script):
+		coroutine_script.stop()
+		coroutine_script.queue_free()
+		coroutine_script = null
 	for child in get_children():
 		if child is CoroutineScript:
 			child.stop()
@@ -93,23 +93,23 @@ func bind(data: BulletData, direction: Vector2):
 		sprite.visible = true
 
 	# 只有自定义移动脚本才用协程；普通线性移动走 _physics_process
-	if data.coroutine:
-		_start_movement(data)
+	if data.coroutine_script:
+		_start_coroutine(data)
 
 func _on_fog_ready():
 	sprite.visible = true  # 雾结束，显示子弹
 	is_ready = true
 
 func _physics_process(_delta):
-	if not is_ready or coroutine_movement:
+	if not is_ready or coroutine_script:
 		return
 	self.global_position += velocity / Engine.physics_ticks_per_second
 
-func _start_movement(data: BulletData):
-	coroutine_movement = data.coroutine_script.new()
-	assert(coroutine_movement is CoroutineScript, "Bullet: coroutine must be a CoroutineScript")
-	add_child(coroutine_movement)
-	coroutine_movement.start(StageContext.new(coroutine_movement), self)
+func _start_coroutine(data: BulletData):
+	coroutine_script = data.coroutine_script.new()
+	assert(coroutine_script is CoroutineScript, "Bullet: coroutine must be a CoroutineScript")
+	add_child(coroutine_script)
+	coroutine_script.start(StageContext.new(coroutine_script), self)
 
 func batch_texture() -> Texture2D:
 	return sprite.texture

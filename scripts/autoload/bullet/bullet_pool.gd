@@ -69,10 +69,10 @@ func _request_bullet() -> Bullet:
 func _return_to_pool(bullet: Bullet) -> void:
 	if not is_instance_valid(bullet) or bullet.is_queued_for_deletion():
 		return
-	if bullet.coroutine_movement and is_instance_valid(bullet.coroutine_movement):
-		bullet.coroutine_movement.stop()
-		bullet.coroutine_movement.queue_free()
-		bullet.coroutine_movement = null
+	if bullet.coroutine_script and is_instance_valid(bullet.coroutine_script):
+		bullet.coroutine_script.stop()
+		bullet.coroutine_script.queue_free()
+		bullet.coroutine_script = null
 	for child in bullet.get_children():
 		if child is CoroutineScript:
 			child.stop()

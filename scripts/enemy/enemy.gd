@@ -37,7 +37,6 @@ func _process(_delta: float) -> void:
 
 func _apply_enemy_data(data: EnemyData):
 	max_hp = data.max_hp
-	hitbox_radius = data.hitbox_radius
 	score_value = data.score_value
 	death_effect = data.death_effect
 	hp = max_hp
@@ -46,6 +45,9 @@ func _apply_enemy_data(data: EnemyData):
 	if data.visual_scene:
 		_visual = data.visual_scene.instantiate()
 		add_child(_visual)
+		hitbox_radius = _visual.hitbox_radius
+	if data.hitbox_radius > 0:
+		hitbox_radius = data.hitbox_radius
 	
 	# 碰撞形状
 	var cs := $CollisionShape2D if has_node("CollisionShape2D") else CollisionShape2D.new()
