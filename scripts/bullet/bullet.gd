@@ -93,7 +93,7 @@ func bind(data: BulletData, direction: Vector2):
 		sprite.visible = true
 
 	# 只有自定义移动脚本才用协程；普通线性移动走 _physics_process
-	if data.movement_script:
+	if data.coroutine:
 		_start_movement(data)
 
 func _on_fog_ready():
@@ -106,8 +106,8 @@ func _physics_process(_delta):
 	self.global_position += velocity / Engine.physics_ticks_per_second
 
 func _start_movement(data: BulletData):
-	coroutine_movement = data.movement_script.new()
-	assert(coroutine_movement is CoroutineScript, "Bullet: movement_script must be a CoroutineScript")
+	coroutine_movement = data.coroutine.new()
+	assert(coroutine_movement is CoroutineScript, "Bullet: coroutine must be a CoroutineScript")
 	add_child(coroutine_movement)
 	coroutine_movement.start(StageContext.new(coroutine_movement), self)
 
