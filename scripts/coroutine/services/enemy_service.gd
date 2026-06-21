@@ -8,8 +8,12 @@ var ctx: StageContext
 const ENEMY_SCENE = preload("res://scenes/enemy.tscn")
 
 
-func spawn(key: String, pos: Vector2) -> SpawnConfig:
-	return SpawnConfig.new(self, key, pos, ctx)
+func spawn(key: String, pos: Vector2) -> EnemyData:
+	## 返回 EnemyData 构造链，调 .spawn() 终结
+	var ed := EnemyData.new()
+	ed.death_effect = AssetRegistry.enemy_visuals.get("death")
+	ed._spawn_meta = {"key": key, "pos": pos, "svc": self}
+	return ed
 
 func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) -> Enemy:
 	if not active: return null
@@ -23,18 +27,13 @@ func all_defeated() -> bool:
 	return GameState.active_enemies.is_empty()
 
 
-func _spawn(key: String, pos: Vector2, p_ctx: StageContext, config: Dictionary, params: Dictionary) -> Enemy:
+func _do_spawn(ed: EnemyData, pos: Vector2, key: String, params: Dictionary) -> Enemy:
 	if not active: return null
 	var script: Script = AssetRegistry.enemies.get(key)
 	if not script: return null
 	
 	var enemy := ENEMY_SCENE.instantiate()
 	enemy.global_position = pos
-	
-	var ed := EnemyData.new()
-	for k in config:
-		ed.set(k, config[k])
-	ed.death_effect = AssetRegistry.enemy_visuals.get("death")
 	enemy.enemy_data = ed
 	
 	var cs: CoroutineScript = script.new()
@@ -49,37 +48,7 @@ func _spawn(key: String, pos: Vector2, p_ctx: StageContext, config: Dictionary, 
 	if cs.has_method("setup_custom"):
 		cs.setup_custom(params)
 	enemy.add_child(cs)
-	cs.start(p_ctx, enemy)
+	cs.start(ctx, enemy)
 	
 	StageManager.add_enemy_to_scene(enemy)
 	return enemy
-
-
-class SpawnConfig:
-	extends RefCounted
-	## .hp(200).power(2).param("bullet_speed", 400).spawn()
-	
-	var _svc: EnemyService
-	var _key: String
-	var _pos: Vector2
-	var _ctx: StageContext
-	var _config: Dictionary = {}
-	var _params: Dictionary = {}
-	
-	func _init(svc: EnemyService, key: String, pos: Vector2, p_ctx: StageContext):
-		_svc = svc; _key = key; _pos = pos; _ctx = p_ctx
-	
-	func hp(v: int) -> SpawnConfig:         _config["max_hp"] = v; return self
-	func hitbox(v: float) -> SpawnConfig:   _config["hitbox_radius"] = v; return self
-	func power(v: int) -> SpawnConfig:      _config["item_power"] = v; return self
-	func point(v: int) -> SpawnConfig:      _config["item_point"] = v; return self
-	func life(v: int) -> SpawnConfig:       _config["item_life"] = v; return self
-	func bomb(v: int) -> SpawnConfig:       _config["item_bomb"] = v; return self
-	func life_full(v: int) -> SpawnConfig:  _config["item_life_full"] = v; return self
-	func bomb_full(v: int) -> SpawnConfig:  _config["item_bomb_full"] = v; return self
-	func scatter(v: float) -> SpawnConfig:  _config["item_scatter"] = v; return self
-	func param(k: String, v) -> SpawnConfig: _params[k] = v; return self
-	
-	func spawn() -> Enemy:
-		if not _svc.active: return null
-		return _svc._spawn(_key, _pos, _ctx, _config, _params)
