@@ -45,4 +45,4 @@ func spawn() -> Enemy:
 	var key: String = _spawn_meta.get("key", "")
 	var pos: Vector2 = _spawn_meta.get("pos", Vector2.ZERO)
 	var params: Dictionary = _spawn_meta.get("params", {})
-	return svc._do_spawn(self, pos, key, params)
+	return svc.spawn(key, pos, params)
