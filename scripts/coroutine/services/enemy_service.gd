@@ -59,27 +59,27 @@ class SpawnConfig:
 	extends RefCounted
 	## .hp(200).power(2).param("bullet_speed", 400).spawn()
 	
-	var _s: EnemyService
-	var _k: String
+	var _svc: EnemyService
+	var _key: String
 	var _pos: Vector2
 	var _ctx: StageContext
-	var _c: Dictionary = {}
-	var _p: Dictionary = {}
+	var _config: Dictionary = {}
+	var _params: Dictionary = {}
 	
 	func _init(svc: EnemyService, key: String, pos: Vector2, p_ctx: StageContext):
-		_s = svc; _k = key; _pos = pos; _ctx = p_ctx
+		_svc = svc; _key = key; _pos = pos; _ctx = p_ctx
 	
-	func hp(v: int) -> SpawnConfig:         _c["max_hp"] = v; return self
-	func hitbox(v: float) -> SpawnConfig:   _c["hitbox_radius"] = v; return self
-	func power(v: int) -> SpawnConfig:      _c["item_power"] = v; return self
-	func point(v: int) -> SpawnConfig:      _c["item_point"] = v; return self
-	func life(v: int) -> SpawnConfig:       _c["item_life"] = v; return self
-	func bomb(v: int) -> SpawnConfig:       _c["item_bomb"] = v; return self
-	func life_full(v: int) -> SpawnConfig:  _c["item_life_full"] = v; return self
-	func bomb_full(v: int) -> SpawnConfig:  _c["item_bomb_full"] = v; return self
-	func scatter(v: float) -> SpawnConfig:  _c["item_scatter"] = v; return self
-	func param(k: String, v) -> SpawnConfig: _p[k] = v; return self
+	func hp(v: int) -> SpawnConfig:         _config["max_hp"] = v; return self
+	func hitbox(v: float) -> SpawnConfig:   _config["hitbox_radius"] = v; return self
+	func power(v: int) -> SpawnConfig:      _config["item_power"] = v; return self
+	func point(v: int) -> SpawnConfig:      _config["item_point"] = v; return self
+	func life(v: int) -> SpawnConfig:       _config["item_life"] = v; return self
+	func bomb(v: int) -> SpawnConfig:       _config["item_bomb"] = v; return self
+	func life_full(v: int) -> SpawnConfig:  _config["item_life_full"] = v; return self
+	func bomb_full(v: int) -> SpawnConfig:  _config["item_bomb_full"] = v; return self
+	func scatter(v: float) -> SpawnConfig:  _config["item_scatter"] = v; return self
+	func param(k: String, v) -> SpawnConfig: _params[k] = v; return self
 	
 	func spawn() -> Enemy:
-		if not _s.active: return null
-		return _s._spawn(_k, _pos, _ctx, _c, _p)
+		if not _svc.active: return null
+		return _svc._spawn(_key, _pos, _ctx, _config, _params)

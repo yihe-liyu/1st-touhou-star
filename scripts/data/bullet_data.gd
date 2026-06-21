@@ -6,7 +6,7 @@ enum Faction {PLAYER, ENEMY, BOMB}
 enum HitboxShape {CIRCLE, RECTANGLE}
 enum TintMode {MULTIPLY, BLEND}
 
-var texture: Texture2D                                ## 子弹贴图（白色/浅灰底图，用 tint 染色）
+var texture: Texture2D                               ## 子弹贴图（白色/浅灰底图，用 tint 染色）
 var tint_mode: TintMode = TintMode.MULTIPLY          ## MULTIPLY=乘法叠加, BLEND=灰度混合
 var tint: Color = Color.WHITE                        ## 贴图染色
 var damage: int = 10                                 ## 基础伤害
@@ -16,9 +16,9 @@ var faction: Faction = Faction.PLAYER                ## 阵营
 var can_be_canceled: bool = false                    ## 是否可被 Bomb 消除
 var hitbox_shape: HitboxShape = HitboxShape.CIRCLE   ## 判定形状
 var hitbox_offset: Vector2 = Vector2.ZERO            ## 判定偏移
+var hitbox_rotation: float = 0.0                     ## 判定旋转（弧度）
 var hitbox_radius: float = 4.0                       ## 判定半径
 var hitbox_size: Vector2 = Vector2(8, 8)             ## 矩形判定尺寸
-var hitbox_rotation: float = 0.0                     ## 矩形额外旋转（弧度）
 var spawn_fog: bool = false                          ## 是否播弹雾特效
 var fog_texture: Texture2D                           ## 弹雾贴图
 
