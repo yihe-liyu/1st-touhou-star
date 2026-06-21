@@ -11,7 +11,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	var tl := start_timeline()
 	
 	var bgm: AudioStream = AssetRegistry.sounds.get("bgm1", preload("res://assets/Music/THq01_02.夜间漫步.mp3"))
-	var logo_img: Texture2D = preload("res://assets/Textures/front/logo/logo1.png")
+	var logo_tex: Texture2D = preload("res://assets/Textures/front/logo/logo1.png")
 	
 	tl.at(0.0).do(func():
 		ctx.audio.play_bgm(bgm)
@@ -36,7 +36,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var layer := CanvasLayer.new()
 		layer.layer = 32
 		var logo := TextureRect.new()
-		logo.texture = logo_img
+		logo.texture = logo_tex
 		logo.global_position = Vector2(448 - (logo.texture.get_size().x / 2), 280)
 		logo.modulate.a = 0.0
 		layer.add_child(logo)

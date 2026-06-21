@@ -8,10 +8,14 @@ var ctx: StageContext
 const ENEMY_SCENE = preload("res://scenes/enemy.tscn")
 
 
+const _SCRIPTS := {
+	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
+}
+
 func spawn(key: String, pos: Vector2) -> EnemyData:
 	## 返回 EnemyData 构造链，最后 .spawn() 生成
 	var ed := EnemyData.new()
-	ed._spawn_meta = {"key": key, "pos": pos, "svc": self}
+	ed._spawn_meta = {"key": key, "pos": pos, "svc": self, "_scripts": _SCRIPTS}
 	return ed
 
 func spawn_boss(data: BossData, position: Vector2) -> void:

@@ -21,10 +21,6 @@ var item_scatter: float = 50.0  ## 掉落散布范围（像素）
 
 const _ENEMY_SCENE = preload("res://scenes/enemy.tscn")
 
-const _ENEMY_SCRIPTS := {
-	"red_soldier": preload("res://data/enemies/red_soldier.gd"),
-}
-
 var _spawn_meta: Dictionary = {}
 
 func hp(v: int) -> EnemyData:         max_hp = v; return self
@@ -51,7 +47,7 @@ func spawn() -> Enemy:
 	var pos: Vector2 = _spawn_meta.get("pos", Vector2.ZERO)
 	var params: Dictionary = _spawn_meta.get("params", {})
 	
-	var script: Script = _ENEMY_SCRIPTS.get(key)
+	var script: Script = _spawn_meta.get("_scripts", {}).get(key)
 	if not script: return null
 	
 	var enemy := _ENEMY_SCENE.instantiate()
