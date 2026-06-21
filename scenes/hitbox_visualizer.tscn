@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bgh32t8me0k46"]
+
+[ext_resource type="Script" uid="uid://ct3ls64vfs0n5" path="res://scenes/hitbox_visualizer.gd" id="1_2yxms"]
+[ext_resource type="Texture2D" uid="uid://dtgkspln4wmk3" path="res://assets/Textures/player/reimu_option_bullet2.png" id="2_uxhlu"]
+
+[node name="HitboxVisualizer" type="Node2D" unique_id=1039914008]
+script = ExtResource("1_2yxms")
+hitbox_radius = 12.0
+hitbox_size = Vector2(120, 24)
+show_texture = ExtResource("2_uxhlu")

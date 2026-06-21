@@ -1,9 +1,6 @@
 extends PlayerShootScript
 class_name ReimuShoot
 
-const MAIN_BULLET = preload("res://data/player_data/bullet/reimu_main.tres")
-const OPTION_BULLET_UNFOCUSED = preload("res://data/player_data/bullet/reimu_option01.tres")
-const OPTION_BULLET_FOCUSED = preload("res://data/player_data/bullet/reimu_option02.tres")
 const OPTION_VISUAL = preload("res://scripts/coroutine/player/ov_reimu.gd")
 
 const MAIN_INTERVAL: int = 3
@@ -30,16 +27,26 @@ func _option_setup() -> Dictionary:
 
 
 func _main_shoot(_ctx: StageContext, player: Player) -> float:
-	ctx.bullets.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
-	ctx.bullets.shoot_spread(MAIN_BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(20, 0))
+	var b := BulletData.new().tex("reimu_main").speed(3000).player()
+	b.damage = 6
+	b.hit_effect = preload("res://scenes/effect/hit_effect_reimu.tscn")
+	ctx.bullets.shoot_spread(b, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
+	ctx.bullets.shoot_spread(b, 1, 0.0, Vector2.UP, player.global_position + Vector2(20, 0))
 	return ctx.clock.wait_frames(MAIN_INTERVAL)
 
 
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
 	if Input.is_action_pressed("focus"):
-		_shoot_options(ctx, OPTION_BULLET_FOCUSED, 1, 0.0, Vector2.UP, Vector2(-7, 0))
-		_shoot_options(ctx, OPTION_BULLET_FOCUSED, 1, 0.0, Vector2.UP, Vector2(7, 0))
+		var b := BulletData.new().tex("reimu_opt2").speed(3500).player()
+		b.damage = 2
+		b.hit_effect = preload("res://scenes/effect/hit_effect_reimu_option02.tscn")
+		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2(-7, 0))
+		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2(7, 0))
 		return ctx.clock.wait_frames(4)
 	else:
-		_shoot_options(ctx, OPTION_BULLET_UNFOCUSED, 1, 0.0, Vector2.UP, Vector2.ZERO)
+		var b := BulletData.new().tex("reimu_opt1").speed(500).player()
+		b.damage = 5
+		b.hit_effect = preload("res://scenes/effect/hit_effect_reimu_option01.tscn")
+		b.movement_script = preload("res://scripts/coroutine/player/move_homing.gd")
+		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2.ZERO)
 		return ctx.clock.wait_frames(8)

@@ -76,11 +76,11 @@ func tick(delta: float) -> bool:
 	_elapsed += delta
 	
 	for ev in _events:
-		if ev.fired and ev.repeat_every <= 0:
+		if ev.fired and ev.repeat_every < 0:
 			continue
 		if _elapsed >= ev.time:
 			ev.execute()
-			if ev.repeat_every > 0:
+			if ev.repeat_every >= 0:
 				ev.time += ev.repeat_every
 				ev.fired_count += 1
 				if ev.repeat_times > 0 and ev.fired_count >= ev.repeat_times:
