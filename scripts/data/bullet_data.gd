@@ -21,6 +21,7 @@ var hitbox_radius: float = 4.0                       ## 判定半径
 var hitbox_size: Vector2 = Vector2(8, 8)             ## 矩形判定尺寸
 var spawn_fog: bool = false                          ## 是否播弹雾特效
 var fog_texture: Texture2D                           ## 弹雾贴图
+var movement_script: Script                          ## 移动逻辑脚本（如诱导跟踪）
 
 ## ---- 构造链方法 ----
 func tex(key: String) -> BulletData:
