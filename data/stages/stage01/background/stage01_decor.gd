@@ -1,4 +1,4 @@
-extends BackgroundScript
+extends CoroutineScript
 ## Stage01 背景演出 —— 时间线版
 
 @onready var bg: StageBackground = $".."
@@ -7,7 +7,7 @@ extends BackgroundScript
 const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
 
-func _on_init(_ctx: StageContext) -> void:
+func _ready() -> void:
 	if bg.world_environment:
 		var env := bg.world_environment.environment
 		env.fog_light_color = Color.BLACK
@@ -15,12 +15,15 @@ func _on_init(_ctx: StageContext) -> void:
 	if bg.camera:
 		bg.camera.fov = 55.0
 
-	_ctx.decor.add_layer(OAK_LAYER)
-	_ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 
-
-func start_background(p_ctx: StageContext):
+func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
+	if p_target:
+		target = p_target
+	
+	ctx.decor.add_layer(OAK_LAYER)
+	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
+	
 	var tl := start_timeline()
 
 	# ① 雾散光来 (0→6s, tween 12s)
@@ -47,7 +50,7 @@ func start_background(p_ctx: StageContext):
 		ctx.decor.spawn("橡树", Vector3(x, 8.0, z), Vector2.ZERO, ground)
 	)
 
-	super.start_background(p_ctx)
+	super.start(ctx, target)
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):

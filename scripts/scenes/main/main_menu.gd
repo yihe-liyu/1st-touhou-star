@@ -15,10 +15,10 @@ func _ready() -> void:
 	_nav_enabled = false  # 等 Logo 播完再启用
 
 	# 锁定项
-	_container.get_node("Label1").set_meta("locked", true)
+	_container.get_node("Extra Start").set_meta("locked", true)
 
 	if GameState.spell_book.records.is_empty():
-		_container.get_node("Label3").set_meta("locked", true)
+		_container.get_node("Spell Practice").set_meta("locked", true)
 
 	refresh_colors()
 
@@ -156,6 +156,6 @@ func _activate_title() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_toggle"):
-		GameState.debug_fill_spells()
-		_container.get_node("Label3").remove_meta("locked")
+		# TODO: debug_fill_spells 已移除 — 从 stage_registry 自动填充
+		_container.get_node("Spell Practice").remove_meta("locked")
 		refresh_colors()

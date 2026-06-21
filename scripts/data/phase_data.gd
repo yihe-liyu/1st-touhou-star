@@ -1,4 +1,5 @@
 # PhaseData.gd
+## 一个战斗阶段（非符/符卡）的配置：血量、时限、脚本、掉落
 extends Resource
 class_name PhaseData
 

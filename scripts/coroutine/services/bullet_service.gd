@@ -1,0 +1,61 @@
+class_name BulletService
+## 子弹服务 —— ctx.bullets 下的弹幕/激光 API
+extends RefCounted
+
+var active: bool = true
+
+
+## 扇形散弹
+func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2, sfx: AudioStream = null) -> void:
+	if not active or count <= 0:
+		return
+	if sfx:
+		AudioManager.play_sfx(sfx, -8.0)
+	if count == 1:
+		BulletManager.shoot_enemy_bullet(bullet_data, at, base_dir)
+		return
+	var step := spread_angle / (count - 1) if spread_angle < TAU - 0.001 else spread_angle / count
+	for i in count:
+		var dir := base_dir.rotated(-spread_angle / 2.0 + step * i)
+		BulletManager.shoot_enemy_bullet(bullet_data, at, dir)
+
+
+# ── 激光 ──
+
+## 沿 Curve2D 生长的激光
+func fire_growing_laser(curve: Curve2D, color: Color, speed: float = 600.0, tail: float = 300.0, lifetime: float = 8.0, tex: Texture2D = null) -> Laser:
+	if not active: return null
+	return BulletManager.fire_growing_laser(curve, color, speed, tail, lifetime, tex)
+
+## 两点间直线激光（瞬间全开）
+func fire_line_laser(a: Vector2, b: Vector2, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> Laser:
+	if not active: return null
+	return BulletManager.fire_line_laser(a, b, color, lifetime, tex)
+
+## 固定路径激光（沿 Curve2D 瞬间全开）
+func fire_fixed_laser(curve: Curve2D, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> Laser:
+	if not active: return null
+	return BulletManager.fire_fixed_laser(curve, color, lifetime, tex)
+
+## 自机导向激光
+func fire_homing_laser(origin: Vector2, player_pos: Vector2, color: Color, bend: float = 100.0, length: float = 500.0, lifetime: float = 5.0) -> Laser:
+	if not active or player_pos == Vector2.ZERO:
+		return null
+	var dir := (player_pos - origin).normalized()
+	var end := origin + dir * length
+	var mid := (origin + end) / 2.0
+	var ctrl := mid + dir.orthogonal() * bend
+	return fire_growing_laser(_bezier_curve(origin, ctrl, end), color, length / 0.5, length * 0.6, lifetime)
+
+func clear_all_lasers() -> void:
+	BulletManager.clear_all_lasers()
+
+
+func _bezier_curve(p0: Vector2, p1: Vector2, p2: Vector2) -> Curve2D:
+	const SAMPLES := 60
+	var curve := Curve2D.new()
+	for i in SAMPLES + 1:
+		var t := float(i) / SAMPLES
+		var u := 1.0 - t
+		curve.add_point(u * u * p0 + 2 * u * t * p1 + t * t * p2)
+	return curve

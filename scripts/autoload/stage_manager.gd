@@ -1,4 +1,5 @@
 extends Node
+## 关卡生命周期管理：加载/停止关卡，生成敌人/Boss
 
 const ENEMY_SCENE = preload("res://scenes/enemy.tscn")
 const BossClass = preload("res://scripts/enemy/boss.gd")
@@ -10,7 +11,7 @@ signal all_enemies_defeated()
 var current_stage: StageData
 var current_background: StageBackground
 var _stage_active: bool = false
-var _stage_script: StageScript
+var _stage_script: CoroutineScript
 
 func load_stage(data: StageData):
 	if _stage_active:
@@ -26,20 +27,19 @@ func load_stage(data: StageData):
 	_stage_active = true
 
 	var stage_script = data.create_script.new()
-	assert(stage_script is StageScript, "StageManager: create_script must be a StageScript")
+	assert(stage_script is CoroutineScript, "StageManager: create_script must be a CoroutineScript")
 	add_child(stage_script)
 	_stage_script = stage_script
 	stage_script.finished.connect(_on_stage_finished)
 
 	var ctx := StageContext.new(stage_script)
-	stage_script.start_stage(ctx)
+	stage_script.start(ctx)
 
-	# 自动启动背景场景里挂的所有 BackgroundScript
+	# 自动启动背景场景里挂的所有协程脚本
 	if current_background:
 		for child in current_background.get_children():
-			if child is BackgroundScript:
-				var bg_ctx := StageContext.new(child)
-				child.start_background(bg_ctx)
+			if child is CoroutineScript:
+				child.start(StageContext.new(child))
 
 	stage_started.emit()
 

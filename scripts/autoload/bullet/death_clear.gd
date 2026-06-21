@@ -1,16 +1,12 @@
-# DeathClear — 死亡清弹圈 + 激光切割
+# DeathClear — 死亡清弹圈（子弹清除 + 激光淡出）
 class_name DeathClear
 extends RefCounted
 
-const LASER_CHECK_STEP := 5.0
+const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
 var _death_clears: Array[Dictionary] = []
 var _pool
 var _laser_system
-
-
-func _init() -> void:
-	pass
 
 
 func setup(p_pool, p_laser_sys) -> void:
@@ -53,38 +49,15 @@ func process(delta: float) -> void:
 			if not is_instance_valid(bullet) or bullet.faction != 1 or not bullet.is_ready:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
-				if bullet.hit_effect:
-					HitEffectPool.play(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
+				HitEffectPool.play(_CLEAR_EFFECT, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
-		
-		# 切穿激光
+
+		# 生长型激光头部碰到消弹圈时：头部停止前进，尾部追上后消失
 		for laser in _laser_system.get_active():
-			if laser.phase != CurvedLaser.ALIVE:
+			if laser._dead or laser._fading or laser.mode != 2:
 				continue
-			var visible_len := (laser.head_dist as float) - (laser.tail_dist as float)
-			if visible_len <= 0:
-				continue
-			_cut(laser, center, radius, LASER_CHECK_STEP)
+			var head_pos: Vector2 = laser._sample_curve(laser.head_dist)
+			if head_pos.distance_squared_to(center) <= radius_sq:
+				laser._cut_head()
 
-
-func _cut(laser, circle_center: Vector2, radius: float, check_step: float) -> void:
-	var visible_len := (laser.head_dist as float) - (laser.tail_dist as float)
-	var samples := maxi(int(visible_len / check_step), 4)
-	
-	var cutting := false
-	var cut_start := 0.0
-	
-	for i in range(samples):
-		var dist: float = (laser.tail_dist as float) + visible_len * float(i) / float(samples - 1)
-		var point: Vector2 = laser._sample_curve(dist)
-		var inside: bool = point.distance_squared_to(circle_center) <= radius * radius
 		
-		if inside and not cutting:
-			cutting = true
-			cut_start = dist
-		elif not inside and cutting:
-			cutting = false
-			laser.add_hole(cut_start, dist)
-	
-	if cutting:
-		laser.add_hole(cut_start, laser.head_dist)

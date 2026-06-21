@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://dwow23k0q5p5d"]
+
+[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="1_lls5d"]
+[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="2_4fnre"]
+
+[sub_resource type="Resource" id="Resource_lls5d"]
+script = ExtResource("1_lls5d")
+uid = 1
+phase_type = 1
+phase_number = 0
+difficulty = 0
+spell_name = "哇符「哇哇哇」"
+
+[sub_resource type="Resource" id="Resource_4fnre"]
+script = ExtResource("1_lls5d")
+uid = 1
+phase_type = 1
+phase_number = 0
+spell_name = "哇符「哇哇哇」"
+
+[sub_resource type="Resource" id="Resource_8qneb"]
+script = ExtResource("1_lls5d")
+uid = 1
+phase_type = 1
+phase_number = 0
+difficulty = 2
+spell_name = "哇符「哇哇哇」"
+
+[sub_resource type="Resource" id="Resource_8upsx"]
+script = ExtResource("1_lls5d")
+uid = 1
+phase_type = 1
+phase_number = 0
+difficulty = 3
+spell_name = "哇符「哇哇哇」"
+
+[sub_resource type="Resource" id="Resource_ndrql"]
+script = ExtResource("1_lls5d")
+uid = 1
+phase_type = 1
+phase_number = 0
+difficulty = 4
+spell_name = "哇符「哇哇哇」"
+
+[resource]
+script = ExtResource("2_4fnre")
+records = Array[ExtResource("1_lls5d")]([SubResource("Resource_lls5d"), SubResource("Resource_4fnre"), SubResource("Resource_8qneb"), SubResource("Resource_8upsx"), SubResource("Resource_ndrql")])

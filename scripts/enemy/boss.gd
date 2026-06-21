@@ -20,6 +20,7 @@ var _stage_id: int = 1
 var _in_gap: bool = false
 var _spell_count: int = 0
 var _non_count: int = 0
+var _pid: PhaseIdentity
 
 func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
@@ -80,13 +81,8 @@ func _next_phase() -> void:
 		_non_count += 1
 	
 	# 见到就记（练习解锁，不计 attempt）
-	var character: int = GameState.selected_character
-	var stage_id: int = _stage_id
-	var is_spell := _current_phase.uid != 0
-	var phase_type: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
-	var phase_num: int = _spell_count if is_spell else _non_count
-	var difficulty: int = GameState.selected_difficulty
-	GameState.unlock_spell(character, stage_id, phase_type, phase_num, difficulty, _phase_index + 1, SpellRecord.get_phase_uid(boss_data, _phase_index, _stage_id), _current_phase.name)
+	_pid = PhaseIdentity.from_phase(_current_phase, _stage_id, _phase_index, _spell_count, _non_count)
+	GameState.unlock_spell(_pid)
 	
 	if _current_phase.name != "":
 		GameEvents.phase_start.emit(_current_phase)
@@ -106,11 +102,11 @@ func _begin_phase() -> void:
 	if _current_phase.move_script:
 		_move = _current_phase.move_script.new()
 		add_child(_move)
-		_move.start_moving(_ctx, self)
+		_move.start(_ctx, self)
 	if _current_phase.shoot_script:
 		_shoot = _current_phase.shoot_script.new()
 		add_child(_shoot)
-		_shoot.start_creating(_ctx)
+		_shoot.start(_ctx)
 
 func _process(delta: float) -> void:
 	if not _current_phase: return
@@ -143,18 +139,10 @@ func _on_phase_clear(captured: bool) -> void:
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
 	# 更新收取统计
-	var character: int = GameState.selected_character
-	var stage_id: int = _stage_id
-	var is_spell := _current_phase.uid != 0
-	var phase_type: int = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
-	var phase_num: int = _spell_count if is_spell else _non_count
-	var difficulty: int = GameState.selected_difficulty
-	var sp_uid: int = SpellRecord.get_phase_uid(boss_data, _phase_index, _stage_id)
-	
 	if GameState.is_practice_mode:
-		GameState.record_practice(sp_uid, character, difficulty, captured)
+		GameState.record_practice(_pid, captured)
 	else:
-		GameState.record_spell(character, stage_id, phase_type, phase_num, difficulty, captured, _bonus, _elapsed, _phase_index + 1, sp_uid, _current_phase.name)
+		GameState.record_spell(_pid, captured, _bonus, _elapsed)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

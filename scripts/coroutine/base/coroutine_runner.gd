@@ -2,6 +2,11 @@ extends Node
 class_name CoroutineRunner
 ## 协程调度器 —— 所有任务在 _physics_process 里步进
 ##
+## 为什么用这个代替 Tween/Timer？
+## 1. 暂停不追帧：_clock 只在 _physics_process 中累加，tree.paused 时自动冻结
+## 2. Replay 可复现：_clock 从 0 开始，可通过外部设置 _clock 实现快进
+## 3. 复杂时序：run_parallel 支持多任务并行，返回值约定可表达等待/条件
+##
 ## 每个任务是一个 callable，每帧被调用，返回值约定：
 ##   float/int > 0  → 等待这么秒后再次调用
 ##   true           → 下帧立即再次调用（等价于等待 0 帧）

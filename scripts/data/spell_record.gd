@@ -16,8 +16,9 @@ static func make_non_uid(stage_id: int, phase_idx: int) -> int:
 	return -(stage_id * 100 + phase_idx + 1)
 
 ## 从 boss 数据获取 phase 的 uid（真 uid 或合成 uid）
-static func get_phase_uid(boss: BossData, phase_idx: int, stage_id: int) -> int:
-	var phase := boss.phases[phase_idx]
+static func get_phase_uid(boss: BossData, phase_idx: int, stage_id: int, phase: PhaseData = null) -> int:
+	if not phase:
+		phase = boss.phases[phase_idx]
 	if phase.uid != 0:
 		return phase.uid
 	return make_non_uid(stage_id, phase_idx)

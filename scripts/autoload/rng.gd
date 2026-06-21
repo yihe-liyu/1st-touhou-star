@@ -1,4 +1,5 @@
 extends Node
+## 可复现随机数（replay 基础）。所有随机数必须走 RNG，不要用全局 randf()/randi()。
 
 var _rng = RandomNumberGenerator.new()
 

@@ -13,6 +13,7 @@ const bullet_configs := {
 	"小光玉": {"tex": preload("res://assets/Textures/bullet/小光玉.png"), "hitbox": {"circle": 4.0, "offset": {"x": 0, "y": 0}}},
 	"点弹":   {"tex": preload("res://assets/Textures/bullet/点弹.png"),   "hitbox": {"circle": 6.0, "offset": {"x": 0, "y": 0}}},
 	"棱弹":   {"tex": preload("res://assets/Textures/bullet/棱弹.png"),   "hitbox": {"circle": 8.0, "offset": {"x": 0, "y": 0}}},
+	"鳞弹":   {"tex": preload("res://assets/Textures/bullet/鳞弹.png"),   "hitbox": {"circle": 8.0, "offset": {"x": 0, "y": 0}}},
 	
 	# 自机弹
 	"reimu_main":     {"tex": preload("res://assets/Textures/player/reimu_main_bullet.png"),     "hitbox": {"rect": {"w": 48, "h": 24}, "offset": {"x": 0, "y": 0}}},

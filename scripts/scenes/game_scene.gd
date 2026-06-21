@@ -48,12 +48,17 @@ func _start_practice_game() -> void:
 	_practice_runner.run(func(): return true)
 	var ctx := StageContext.new(_practice_runner)
 
-	var full_data: BossData = GameState.practice_boss_data
+	var card: CardDef = GameState.practice_card
+	if not card:
+		push_error("GameScene: practice_card 未设置")
+		return
+
+	# 用 CardDef + PhaseData 直接构建练习用 Boss
+	var phase := card.phase_data
 	var single := BossData.new()
-	single.boss_name = full_data.boss_name
-	single.visual = full_data.visual
-	single.score_value = full_data.score_value
-	single.phases = [full_data.phases[GameState.practice_phase_index]]
+	single.boss_name = card.name
+	single.visual = card.boss_scene
+	single.phases = [phase]
 
 	StageManager.spawn_boss(single, Vector2(448, 240), false, ctx)
 	GameEvents.boss_defeated.connect(_on_practice_cleared)

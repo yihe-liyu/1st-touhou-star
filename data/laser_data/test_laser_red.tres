@@ -1,6 +1,0 @@
-[gd_resource type="Resource" script_class="CurvedLaserData" format=3 uid="uid://ctuhlhfsed3li"]
-
-[ext_resource type="Script" uid="uid://c5pgwn4s2lnfd" path="res://scripts/data/curved_laser_data.gd" id="1_data"]
-
-[resource]
-script = ExtResource("1_data")

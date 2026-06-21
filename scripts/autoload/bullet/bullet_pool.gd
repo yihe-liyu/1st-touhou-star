@@ -74,7 +74,7 @@ func _return_to_pool(bullet: Bullet) -> void:
 		bullet.coroutine_movement.queue_free()
 		bullet.coroutine_movement = null
 	for child in bullet.get_children():
-		if child is MoveScript:
+		if child is CoroutineScript:
 			child.stop()
 			child.queue_free()
 	bullet.visible = false

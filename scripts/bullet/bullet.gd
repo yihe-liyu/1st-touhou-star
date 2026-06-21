@@ -21,7 +21,7 @@ var hitbox_size: Vector2 = Vector2(8, 8)
 var hitbox_rotation: float = 0.0
 
 # 运行时状态
-var coroutine_movement: MoveScript
+var coroutine_movement: CoroutineScript
 var is_ready: bool = false
 
 # 额外变量
@@ -77,7 +77,7 @@ func bind(data: BulletData, direction: Vector2):
 		coroutine_movement.queue_free()
 		coroutine_movement = null
 	for child in get_children():
-		if child is MoveScript:
+		if child is CoroutineScript:
 			child.stop()
 			child.queue_free()
 
@@ -107,10 +107,9 @@ func _physics_process(_delta):
 
 func _start_movement(data: BulletData):
 	coroutine_movement = data.movement_script.new()
-	assert(coroutine_movement is MoveScript, "Bullet: movement_script must be a MoveScript")
+	assert(coroutine_movement is CoroutineScript, "Bullet: movement_script must be a CoroutineScript")
 	add_child(coroutine_movement)
-	var ctx := StageContext.new(coroutine_movement)
-	coroutine_movement.start_moving(ctx, self)
+	coroutine_movement.start(StageContext.new(coroutine_movement), self)
 
 func batch_texture() -> Texture2D:
 	return sprite.texture

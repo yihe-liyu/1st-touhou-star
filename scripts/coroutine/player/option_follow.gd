@@ -1,4 +1,4 @@
-extends MoveScript
+extends CoroutineScript
 class_name OptionFollow
 
 var leader: Node2D
@@ -9,14 +9,15 @@ const FOLLOW_SPEED: float = 13.39
 
 var _lerp_factor: float
 
-func start_moving(p_ctx: StageContext, p_target: Node2D):
+func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
-	target = p_target
+	if p_target:
+		target = p_target
 	var delta := 1.0 / Engine.physics_ticks_per_second
 	_lerp_factor = 1.0 - exp(-FOLLOW_SPEED * delta)
-	run(_on_step.bind(ctx))
+	super.start(ctx, target)
 
-func _on_step(_ctx: StageContext) -> Variant:
+func _tick(_ctx: StageContext) -> Variant:
 	if not ctx.active() or not is_instance_valid(leader) or not is_instance_valid(target):
 		return false
 	var goal := leader.global_position + offset

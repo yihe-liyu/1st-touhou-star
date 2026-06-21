@@ -1,4 +1,5 @@
 extends CanvasLayer
+## Miss 时全屏圆形特效（Shader 实现），最多 8 圈同时显示
 
 const MAX_CIRCLES := 8
 

@@ -2,8 +2,7 @@
 extends Resource
 class_name StageRegistry
 
-## 所有关卡资源（所有难度 × 所有关卡）
-@export var stages: Array[StageData] = []
+@export var stages: Array[StageData] = []  ## 所有关卡（含所有难度）
 
 
 ## 按 (stage_id, difficulty) 查找

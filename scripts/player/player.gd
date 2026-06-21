@@ -170,5 +170,7 @@ func miss() -> void:
 		is_invincible = true
 		_invincible_timer = 3.0
 	else:
-		# 残机为 0 → Game Over
+		# 残机为 0 → Game Over，给短暂无敌防止每帧连续触发
+		is_invincible = true
+		_invincible_timer = 3.0
 		GameEvents.player_death.emit()

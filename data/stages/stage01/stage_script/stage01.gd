@@ -1,18 +1,20 @@
-extends StageScript
+extends CoroutineScript
 ## 第一面——全难度共享
 
 var _spawn_offset_x = 300
 var _spawn_i = 0
 
-func start_stage(p_ctx: StageContext):
+func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
+	if p_target:
+		target = p_target
 	var tl := start_timeline()
 	
 	var bgm: AudioStream = AssetRegistry.sounds.get("bgm1", preload("res://assets/Music/THq01_02.夜间漫步.mp3"))
 	var logo_img: Texture2D = AssetRegistry.ui_textures["logo1"]
 	
 	tl.at(0.0).do(func():
-		AudioManager.play_bgm(bgm, 0.0)
+		ctx.audio.play_bgm(bgm)
 	)
 
 	tl.at(1.0).every(0.1).times(6).do(func():
@@ -50,4 +52,4 @@ func start_stage(p_ctx: StageContext):
 		t.tween_callback(layer.queue_free)
 	)
 
-	super.start_stage(p_ctx)
+	super.start(ctx, target)

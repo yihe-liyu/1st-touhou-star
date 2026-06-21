@@ -82,8 +82,14 @@ func return_bullet(bullet):
 
 # ═══ 激光 API（委托给 lasers）═══
 
-func fire_laser(data, origin: Vector2, guide_curve: Curve2D, rot_speed: float = 0.0):
-	return _lasers.fire(data, origin, guide_curve, rot_speed)
+func fire_growing_laser(curve: Curve2D, color: Color, speed: float, tail: float, lifetime: float, tex: Texture2D = null) -> Laser:
+	return _lasers.fire_growing(curve, color, speed, tail, lifetime, tex)
+
+func fire_line_laser(a: Vector2, b: Vector2, color: Color, lifetime: float, tex: Texture2D = null) -> Laser:
+	return _lasers.fire_line(a, b, color, lifetime, tex)
+
+func fire_fixed_laser(curve: Curve2D, color: Color, lifetime: float, tex: Texture2D = null) -> Laser:
+	return _lasers.fire_fixed_path(curve, color, lifetime, tex)
 
 func clear_all_lasers() -> void:
 	_lasers.clear()

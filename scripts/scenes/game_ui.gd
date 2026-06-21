@@ -101,95 +101,97 @@ func _ready() -> void:
 func _play_entry_animation() -> void:
 	for i in _entry_queue.size():
 		var node := _entry_queue[i]
+		_reset_entry_node(node)
 		
-		# 判断节点类型
-		var is_memory := node.name in ["MemoryValue", "MemoryNumber"] or node == _memory_rect
-		var is_separator := node is UISeparator
-		var is_title := node.name == "Title"
-		var is_diff := node.name == "diffculty"
-		var is_fragment := node.has_meta("is_fragment")
-		if is_title:
-			# Title Logo：挂 Shader，初始隐藏
-			var logo_shader := preload("res://gdshader/logo_entrance.gdshader")
-			var mat := ShaderMaterial.new()
-			mat.shader = logo_shader
-			mat.set_shader_parameter("progress", 0.0)
-			mat.set_shader_parameter("alpha_mult", 0.0)
-			node.material = mat
-			node.modulate.a = 1.0
-		elif is_separator:
-			# 分隔条：初始长度为 0，从中间向两端生长
-			node.progress = 0.0
-			node.modulate.a = 0.0
-		elif is_diff:
-			# 难度 UI：居中，初始极小 + 透明
-			node.position = Vector2(448, 480)
-			node.scale = Vector2(0.01, 0.01)
-			node.modulate.a = 0.0
-		elif not is_memory and not is_fragment:
-			# 其他元素：偏右 + 透明
-			node.position.x += 30
-			node.modulate.a = 0.0
-		else:
-			# Memory：原地渐显
-			if node == _memory_rect:
-				node.material = node.material.duplicate()
-				node.material.set_shader_parameter("alpha_mult", 0.0)
-			else:
-				node.modulate.a = 0.0
-		
-		# 逐个延迟播放入场 tween
 		var tw := create_tween()
 		tw.tween_interval(i * ENTRY_INTERVAL)
-		tw.tween_callback(func():
-			if not is_instance_valid(node):
-				return
-			var t := create_tween().set_parallel(true)
-			if is_title:
-				t.set_trans(Tween.TRANS_CUBIC)
-				t.set_ease(Tween.EASE_OUT)
-				t.tween_property(node.material, "shader_parameter/progress", 1.0, 1.5)
-				t.tween_property(node.material, "shader_parameter/alpha_mult", 1.0, 0.8)
-			elif is_diff:
-				# 难度 UI：从中心弹跳到 3 倍 → 移动到原位并缩到 1 倍
-				node.modulate.a = 1.0
-				var pop := create_tween().set_parallel(true)
-				pop.set_trans(Tween.TRANS_BACK)
-				pop.set_ease(Tween.EASE_OUT)
-				pop.tween_property(node, "scale", Vector2(3, 3), 0.4)
-				t.tween_callback(func():
-					var t2 := create_tween().set_parallel(true)
-					t2.set_trans(Tween.TRANS_CUBIC)
-					t2.set_ease(Tween.EASE_OUT)
-					t2.tween_property(node, "position", Vector2(1056, 64), 0.5)
-					t2.tween_property(node, "scale", Vector2(1, 1), 0.5)
-				).set_delay(0.5)
-			elif is_separator:
-				t.set_trans(Tween.TRANS_CUBIC)
-				t.set_ease(Tween.EASE_OUT)
-				t.tween_property(node, "progress", 1.0, ENTRY_DURATION)
-				t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
-			elif not is_memory and not is_fragment:
-				t.set_trans(Tween.TRANS_CUBIC)
-				t.set_ease(Tween.EASE_OUT)
-				t.tween_property(node, "position:x", node.position.x - 30, ENTRY_DURATION)
-				t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
-			else:
-				if node == _memory_rect:
-					t.tween_property(node.material, "shader_parameter/alpha_mult", 1.0, ENTRY_DURATION * 0.7)
-				else:
-					t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
-		)
+		tw.tween_callback(_play_entry_tween.bind(node))
 	
 	# 所有入场动画完成后通知 GameScene
-	# 总时长 = 串行 stagger + 最长动画缓冲
-	# Title logo 排第一, 入场 1.5s → 1.5 = 最长单元素时长
 	var total := _entry_queue.size() * ENTRY_INTERVAL + 1.5
 	var done := create_tween()
 	done.tween_interval(total + 0.1)
-	done.tween_callback(func():
-		entry_finished.emit()
-	)
+	done.tween_callback(func(): entry_finished.emit())
+
+
+## 将入场节点设为初始隐藏状态
+func _reset_entry_node(node: Node) -> void:
+	if node.name == "Title":
+		var mat := ShaderMaterial.new()
+		mat.shader = preload("res://gdshader/logo_entrance.gdshader")
+		mat.set_shader_parameter("progress", 0.0)
+		mat.set_shader_parameter("alpha_mult", 0.0)
+		node.material = mat
+		node.modulate.a = 1.0
+	elif node is UISeparator:
+		node.progress = 0.0
+		node.modulate.a = 0.0
+	elif node.name == "diffculty":
+		node.position = Vector2(448, 480)
+		node.scale = Vector2(0.01, 0.01)
+		node.modulate.a = 0.0
+	elif node.name in ["MemoryValue", "MemoryNumber"]:
+		node.modulate.a = 0.0
+	elif node == _memory_rect:
+		node.material = node.material.duplicate()
+		node.material.set_shader_parameter("alpha_mult", 0.0)
+	elif node.has_meta("is_fragment"):
+		pass  # 碎片用 frag_init 已初始化
+	else:
+		node.position.x += 30
+		node.modulate.a = 0.0
+
+
+## 播放单个节点的入场动画
+func _play_entry_tween(node: Node) -> void:
+	if not is_instance_valid(node):
+		return
+	
+	if node.name == "Title":
+		var t := create_tween().set_parallel(true)
+		t.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		t.tween_property(node.material, "shader_parameter/progress", 1.0, 1.5)
+		t.tween_property(node.material, "shader_parameter/alpha_mult", 1.0, 0.8)
+	
+	elif node.name == "diffculty":
+		node.modulate.a = 1.0
+		var pop := create_tween().set_parallel(true)
+		pop.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		pop.tween_property(node, "scale", Vector2(3, 3), 0.4)
+		pop.tween_callback(_play_diff_move.bind(node)).set_delay(0.5)
+	
+	elif node is UISeparator:
+		var t := create_tween().set_parallel(true)
+		t.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		t.tween_property(node, "progress", 1.0, ENTRY_DURATION)
+		t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
+	
+	elif node.name in ["MemoryValue", "MemoryNumber"]:
+		var t := create_tween()
+		t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
+	
+	elif node == _memory_rect:
+		var t := create_tween()
+		t.tween_property(node.material, "shader_parameter/alpha_mult", 1.0, ENTRY_DURATION * 0.7)
+	
+	elif node.has_meta("is_fragment"):
+		var t := create_tween()
+		t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
+	
+	else:
+		# 普通标签：左滑 + 渐显
+		var t := create_tween().set_parallel(true)
+		t.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		t.tween_property(node, "position:x", node.position.x - 30, ENTRY_DURATION)
+		t.tween_property(node, "modulate:a", 1.0, ENTRY_DURATION * 0.7)
+
+
+## 难度入场第二阶段：弹跳后移动到右上角并缩回
+func _play_diff_move(node: Node) -> void:
+	var t := create_tween().set_parallel(true)
+	t.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t.tween_property(node, "position", Vector2(1056, 64), 0.5)
+	t.tween_property(node, "scale", Vector2(1, 1), 0.5)
 
 
 func _make_number_sprite_on(p_name: String, parent: Node, pos: Vector2, tex: Texture2D = null, dcount: int = 8) -> Node2D:
@@ -292,7 +294,7 @@ func _update_fragments() -> void:
 			at.region = Rect2(0, 0, fw_spell, spell_h)
 
 
-## 各难度的贴图切片，在 Inspector 中拖入
+## 各难度的贴图切片（Easy/Normal/Hard/Lunatic/Extra），在 Inspector 中拖入
 @export var difficulty_textures: Array[Texture2D]
 
 

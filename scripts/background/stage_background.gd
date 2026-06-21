@@ -120,18 +120,6 @@ func move_camera(target_pos: Vector3, duration: float, ease_type: int = Tween.EA
 	tween.set_ease(ease_type).set_trans(trans_type)
 	tween.tween_property(camera, "position", target_pos, duration)
 
-## 后处理 — 亮度/对比/饱和
-func tween_post_processing(brightness: float = 1.0, contrast: float = 1.0, saturation: float = 1.0, duration: float = 1.0, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
-	if not world_environment:
-		return
-	var env := world_environment.environment
-	env.adjustment_enabled = true
-	var tween = create_tween().set_parallel(true)
-	tween.set_ease(ease_type).set_trans(trans_type)
-	tween.tween_property(env, "adjustment_brightness", brightness, duration)
-	tween.tween_property(env, "adjustment_contrast", contrast, duration)
-	tween.tween_property(env, "adjustment_saturation", saturation, duration)
-
 ## 真加速推镜 — 持续加速推进 direction 方向, 总时长 duration 秒, 加速度 accel (m/s²)
 func camera_rush(direction: Vector3, duration: float, accel: float = 2.0):
 	if not camera:
@@ -151,9 +139,8 @@ func camera_rush(direction: Vector3, duration: float, accel: float = 2.0):
 	# tween.tween_property(camera, "transform", Transform3D(camera.transform.basis, origin), 0.5)
 
 func _on_setup():
-	for child in get_children():
-		if child is BackgroundScript:
-			child._on_init(StageContext.new(child))
+	# 子 CoroutineScript 由 StageManager 统一 start()
+	pass
 
 func _on_update(_delta: float, _t: float):
 	pass

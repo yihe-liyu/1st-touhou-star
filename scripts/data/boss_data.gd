@@ -1,4 +1,5 @@
 # BossData.gd
+## Boss 定义：名称 + 视觉场景 + 阶段（非符+符卡）列表
 extends Resource
 class_name BossData
 

@@ -69,52 +69,52 @@ grow_vertical = 2
 size_flags_horizontal = 0
 theme_override_constants/separation = 0
 
-[node name="Label0" type="Label" parent="Container" unique_id=673846519]
+[node name="Game Start" type="Label" parent="Container" unique_id=673846519]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Game Start"
 
-[node name="Label1" type="Label" parent="Container" unique_id=438045707]
+[node name="Extra Start" type="Label" parent="Container" unique_id=438045707]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Extra Start"
 
-[node name="Label2" type="Label" parent="Container" unique_id=934445451]
+[node name="Stage Practice" type="Label" parent="Container" unique_id=934445451]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Stage Practice"
 
-[node name="Label3" type="Label" parent="Container" unique_id=1931024101]
+[node name="Spell Practice" type="Label" parent="Container" unique_id=1931024101]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Spell Practice"
 
-[node name="Label4" type="Label" parent="Container" unique_id=925478070]
+[node name="Replay" type="Label" parent="Container" unique_id=925478070]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Replay"
 
-[node name="Label5" type="Label" parent="Container" unique_id=1759991204]
+[node name="Player Data" type="Label" parent="Container" unique_id=1759991204]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Player Data"
 
-[node name="Label6" type="Label" parent="Container" unique_id=13935825]
+[node name="Music Room" type="Label" parent="Container" unique_id=13935825]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Music Room"
 
-[node name="Label7" type="Label" parent="Container" unique_id=1332553438]
+[node name="Option" type="Label" parent="Container" unique_id=1332553438]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Option"
 
-[node name="Label8" type="Label" parent="Container" unique_id=1439585973]
+[node name="Manual" type="Label" parent="Container" unique_id=1439585973]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Manual"
 
-[node name="Label9" type="Label" parent="Container" unique_id=1281928443]
+[node name="Quit" type="Label" parent="Container" unique_id=1281928443]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Quit"

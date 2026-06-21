@@ -2,12 +2,10 @@
 class_name BulletPhysics
 extends RefCounted
 
+const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
+
 var _pool
 var _graze_sfx_played: bool = false
-
-
-func _init() -> void:
-	pass
 
 
 func setup(p_pool) -> void:
@@ -69,8 +67,7 @@ func _enemy_vs_player(bullet: Bullet) -> void:
 		if GameState.memory_value >= 50.0:
 			var chance := remap(GameState.memory_value, 50.0, 100.0, 0.05, 0.30)
 			if RNG.randf() < chance:
-				if bullet.hit_effect:
-					_spawn_effect(bullet.hit_effect, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
+				HitEffectPool.play(_CLEAR_EFFECT, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 
 

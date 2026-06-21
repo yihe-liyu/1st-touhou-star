@@ -99,73 +99,74 @@ func _clear_announce() -> void:
 
 # ═══ 符卡名入场动画 ═══
 
+const ANNOUNCE_FADE := 0.5
+const ANNOUNCE_INITIAL_SCALE := 3.0
+const ANNOUNCE_SHRINK := 0.6
+
+
 func _play_spell_announce(spell_name: String) -> void:
 	_clear_announce()
+	_announce_label = _make_announce_label(spell_name)
+	$Control.add_child(_announce_label)
 	
+	var size: Vector2 = $Control.size
+	var center: Vector2 = size * 0.5
+	var label_size := _announce_label.get_minimum_size()
+	
+	_announce_label.scale = Vector2(ANNOUNCE_INITIAL_SCALE, ANNOUNCE_INITIAL_SCALE)
+	_announce_label.position = center - label_size * ANNOUNCE_INITIAL_SCALE / 2.0
+	
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(_announce_label, "modulate:a", 1.0, ANNOUNCE_FADE)
+	tw.tween_property(_announce_label, "scale", Vector2(ANNOUNCE_SHRINK, ANNOUNCE_SHRINK), ANNOUNCE_FADE).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(_announce_label, "position", center - label_size * ANNOUNCE_SHRINK / 2.0, ANNOUNCE_FADE).set_trans(Tween.TRANS_QUAD)
+	tw.set_parallel(false)
+	tw.tween_interval(0.2)
+	tw.tween_property(_announce_label, "position", size - label_size * ANNOUNCE_SHRINK, 1.0).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(_announce_label, "position", Vector2(size.x - (label_size * ANNOUNCE_SHRINK).x, 0), 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_callback(_add_info_labels)
+
+
+func _make_announce_label(text: String) -> Label:
 	var label := Label.new()
-	_announce_label = label
-	label.text = spell_name
+	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 48)
 	label.modulate.a = 0.0
-	$Control.add_child(label)
-	
-	var size: Vector2 = $Control.size
-	var center := Vector2(size.x * 0.5, size.y * 0.5)
-	var label_size: Vector2 = label.get_minimum_size()
-	
-	# 1. 屏幕中央大字(scale=3)淡入+缩小
-	label.scale = Vector2(3.0, 3.0)
-	label.position = center - label_size * 3.0 / 2.0
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(label, "modulate:a", 1.0, 0.5)
-	tween.tween_property(label, "scale", Vector2(0.6, 0.6), 0.5).set_trans(Tween.TRANS_QUAD)
-	tween.tween_property(label, "position", center - label_size * 0.6 / 2.0, 0.5).set_trans(Tween.TRANS_QUAD)
-	tween.set_parallel(false)
-	
-	tween.tween_interval(0.2)
-	
-	# 2. 下移(scale→1)
-	tween.tween_property(label, "position", size - label_size * 0.6, 1.0).set_trans(Tween.TRANS_QUAD)
-	
-	# 3. 加速/减速飞向右上
-	var top_right := Vector2(size.x - (label_size * 0.6).x, 0)
-	tween.tween_property(label, "position", top_right, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	
-	# 4. Bonus(左下) / 收取率(右下)
-	tween.tween_callback(_add_info_labels)
+	return label
+
 
 func _add_info_labels() -> void:
-	if not _announce_label: return
+	if not _announce_label:
+		return
 	var parent := _announce_label
 	var label_h := parent.get_minimum_size().y
 	
-	# Bonus — 左下
-	_bonus_label = Label.new()
-	_bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_bonus_label.add_theme_font_size_override("font_size", 32)
-	_bonus_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
-	parent.add_child(_bonus_label)
+	_bonus_label = _make_sub_label(HORIZONTAL_ALIGNMENT_LEFT, Color(1, 0.9, 0.3))
 	_bonus_label.position = Vector2(0, label_h)
+	parent.add_child(_bonus_label)
 	
-	# 收取率 — 右下
-	_capture_label = Label.new()
-	_capture_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_capture_label.add_theme_font_size_override("font_size", 32)
-	_capture_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-	parent.add_child(_capture_label)
+	_capture_label = _make_sub_label(HORIZONTAL_ALIGNMENT_RIGHT, Color(0.5, 0.8, 0.5))
 	_capture_label.position = Vector2(parent.get_minimum_size().x * 0.6, label_h)
+	parent.add_child(_capture_label)
 	_update_capture_text()
+
+
+func _make_sub_label(align: HorizontalAlignment, color: Color) -> Label:
+	var label := Label.new()
+	label.horizontal_alignment = align
+	label.add_theme_font_size_override("font_size", 32)
+	label.add_theme_color_override("font_color", color)
+	return label
 
 func _update_capture_text() -> void:
 	if not _capture_label or not _boss_ref: return
-	var phase := _boss_ref.current_phase()
-	if not phase: return
-	var sp_uid: int = SpellRecord.get_phase_uid(_boss_ref.boss_data, _boss_ref._phase_index, _boss_ref._stage_id)
+	var pid := _boss_ref._pid
+	if not pid: return
 	var book: SpellRecordBook = GameState.spell_book
-	var rec: SpellRecord = book.get_record(sp_uid, GameState.selected_character, GameState.selected_difficulty)
+	var rec: SpellRecord = book.get_record(pid.uid, pid.character, pid.difficulty)
 	if rec:
 		if GameState.is_practice_mode:
 			_capture_label.text = "%02d/%02d" % [rec.practice_captures, rec.practice_attempts]

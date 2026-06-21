@@ -118,7 +118,7 @@ func _sync_options(leader: Node2D, _ctx: StageContext) -> void:
 		follow.name = "Follow"
 		follow.leader = leader
 		opt.add_child(follow)
-		follow.start_moving(ctx, opt)
+		follow.start(ctx, opt)
 
 		_options.append(opt)
 

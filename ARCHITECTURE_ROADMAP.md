@@ -1,99 +1,79 @@
 # 🎮 全系统图景 v3
 
-> 2026-06-20 · 敌人/Bullet/EnemyData 全消计划
+> 2026-06-21 · 代码打磨全部完成 · SPEC v1.2 已对齐
 
 ---
 
-## 一、资源层（只剩这些文件）
+## 核心设计
+
+**所有协程脚本 = CoroutineScript（auto_stop + target 参数化）。Boss = .tres。**
+
+---
+
+## 资源层
 
 ```
-AssetRegistry (autoload)
-  ├── enemy_visuals    {"s_red": .tscn, "death": .tscn}
-  ├── bullet_textures  {"小玉": .png, "点弹": .png, ...}
-  ├── sounds           {"shoot": .wav, "item": .wav, ...}
-  ├── ui_textures      {"logo": .png}
-  └── patterns         {"aimed": .gd, "move_down": .gd}
+AssetRegistry (autoload) — 所有资源中心注册
+├── enemy_visuals          {"s_red": .tscn, "death": .tscn}
+├── bullet_configs         {"小玉": {tex, hitbox}, ...}
+├── sounds                 {"shoot": .wav, "item": .wav, ...}
+├── ui_textures            {"logo1": .png}
+└── enemies                {"red_soldier": .gd}
 
-patterns/               ← 通用弹幕/移动模板，参数化
-  ├── aimed_burst.gd    (count, spread, interval, bullet配置)
-  ├── move_down.gd      (target_y, duration)
-  └── ...               (circle.gd, move_patrol.gd, etc.)
-
-BossData / PhaseData    ← 保留 .tres（太复杂，不适合字典）
-StageData               ← 保留 .tres（关卡注册用）
-DecorLayer              ← 保留 .tres（背景装饰）
+BossData / PhaseData       ← .tres
+StageData                  ← .tres
+DecorLayer                 ← .tres
+CardDef / CardRegistry     ← .tres（练习模式）
 ```
 
-## 二、运行时层
+## 运行时层
 
 ```
-StageContext
-  ├── bullets:  BulletService    → shoot_spread(cfg, count, spread, dir, pos, sfx)
-  │                                  cfg = {tex: "小玉", speed: 400, color: RED}
-  │
-  ├── enemies:  EnemyService     → spawn(visual, move_cfg, shoot_cfg, pos, opts)
-  │                                  spawn_boss(boss_data, pos)
-  │
-  ├── decor:    DecorManager     → add_layer / batch_spawn
-  ├── clock:    ClockService     → wait / frames
-  ├── player:   PlayerService   → position
-  ├── dialogue: DialogueService  → play / show
-  └── items:    ItemService      → spawn
-
-EnemyFactory                       ← 纯工具类，不存状态
-  ├── make_bullet(cfg)            → 造子弹配置
-  ├── make_move(cfg)              → new + 设字段 + start
-  ├── make_shoot(cfg)             → new + 设字段 + start
-  └── assemble(v, m, s, pos, opts) → 拼 Enemy 节点
+StageContext — 协程唯一入口
+├── clock      ClockService     → wait / wait_frames
+├── bullets    BulletService   → shoot_spread / fire_*_laser
+├── enemies    EnemyService    → spawn / spawn_boss / all_defeated
+├── player     PlayerService   → get_player / get_position
+├── dialogue   DialogueService → play / show
+├── items      ItemService     → spawn
+├── audio      AudioService    → play_bgm / play_sfx / stop_bgm
+└── decor      DecorManager    → add_layer / spawn / batch_spawn
 ```
 
-## 三、关卡脚本
+## 关卡脚本风格
 
 ```gdscript
-extends StageScript
+extends CoroutineScript
 
-func start_stage(ctx):
+func start(ctx, target = null):
     var tl := start_timeline()
-    
-    # —— 没有 const preload ——
-    # —— 没有 enemy .tres ——
-    # —— 没有 bullet .tres ——
-    
-    var bgm  := AssetRegistry.sounds["bgm1"]
-    var logo := AssetRegistry.ui_textures["logo"]
-    var vis  := AssetRegistry.enemy_visuals["s_red"]
-    var tex  := AssetRegistry.bullet_textures["小玉"]
-    
-    var bullet_cfg := { tex: tex, speed: 400, color: Color.RED }
-    var move_cfg   := { type: "move_down", target_y: 300, duration: 1.5 }
-    var shoot_cfg  := { type: "aimed", bullet: bullet_cfg, count: 3, spread: 15, every: 0.8, sfx: "shoot" }
-    
-    tl.at(0.0).do(func(): AudioManager.play_bgm(bgm, 0.0))
-    
-    tl.at(1.0).every(0.5).times(diff_pick([6, 8, 12])).do(func():
-        ctx.enemies.spawn(vis, move_cfg, shoot_cfg, Vector2(x, 0))
+    tl.at(0.0).do(func(): ctx.audio.play_bgm(bgm))
+    tl.at(1.0).every(0.5).times(6).do(func():
+        ctx.enemies.spawn("red_soldier", pos, {target_y: 200})
     )
 ```
 
-## 四、删掉的
+## 架构变更记录
 
-| 文件类型 | 数量 | 替换 |
-|----------|------|------|
-| `enemy*.tres` | 全部 | `{visual, hp, drop}` 字典 |
-| `bullet*.tres` | 全部 | `{tex, speed, color}` 字典 |
-| `enemy_*01.gd` (CreateScript) | 全部 | `patterns/aimed_burst.gd` + 字典参数 |
-| `enemy_*01.gd` (MoveScript) | 全部 | `patterns/move_down.gd` + 字典参数 |
+| 变更 | 状态 |
+|------|------|
+| SPEC.md v1.2（系统规格文档化）| ✅ |
+| `StageAPI` → `StageContext`（含 8 个 Service）| ✅ |
+| `CoroutineScript` 统一协程脚本（替代 5 个基类）| ✅ |
+| `BulletData` 构造链 `.tex().speed().enemy()` | ✅ |
+| `Laser` 激光系统（3 种模式 + 贴图 + 碰撞 + 擦弹）| ✅ |
+| `CardDef`/`CardRegistry`/`PhaseIdentity` 符卡系统 | ✅ |
+| `MenuNav` 统一菜单导航 | ✅ |
+| `MissEffectManager` / Memory 值系统 | ✅ |
+| 子弹池 POOL_SIZE=4000 | ✅ |
+| 练习模式（符卡/关卡）| ✅ |
+| 代码风格规则（snake_case / class_name / 注释约定）| ✅ |
+| 目录整理（coroutine 拆 services+timeline / data/registry/）| ✅ |
+| 废弃代码清理（9 文件删除 + 1 改名）| ✅ |
 
-## 五、不改的
+## 代码风格规则
 
-```
-BossData / PhaseData  ← .tres（对话、多阶段、背景切换太复杂）
-StageData             ← .tres（stage_registry 用）
-DecorLayer            ← .tres（背景装饰配置）
-Timeline              ← 核心引擎
-协程系统               ← 核心引擎
-```
-
----
-
-> 核心思想：**杂鱼 = 字典 + patterns。Boss = .tres。**
+- **文件名**：核心实体（boss/bullet/enemy/item/player/rng/timeline）可短名，其余 `详细的_snake_case.gd`
+- **class_name**：永远是 PascalCase
+- **注释**：新文件统一 `## 类描述` + `@export` 行内 `##`；旧文件随改随补
+- **章节分割**：超过 50 行的文件建议加 `# ═══`

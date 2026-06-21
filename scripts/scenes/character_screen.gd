@@ -8,9 +8,10 @@ func _on_enter() -> void:
 		_nav_index = GameState.selected_character
 
 	# 难度徽章
-	var diff_names := ["Easy", "Normal", "Hard", "Lunatic"]
+	var diff_names := ["Easy", "Normal", "Hard", "Lunatic", "Extra"]
 	var badge: Label = $"DifficultyBadge"
-	badge.text = diff_names[GameState.selected_difficulty] + " 难度"
+	var diff_idx := clampi(GameState.selected_difficulty, 0, diff_names.size() - 1)
+	badge.text = diff_names[diff_idx] + " 难度"
 
 	# 黑底直接 50%
 	$"Overlay".modulate.a = 1.0

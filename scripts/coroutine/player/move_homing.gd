@@ -1,4 +1,4 @@
-extends MoveScript
+extends CoroutineScript
 class_name MoveHoming
 
 ## 诱导角度每秒（弧度）
@@ -17,13 +17,14 @@ var proximity_boost: float = 150.0
 var _elapsed: float = 0.0
 
 
-func start_moving(p_ctx: StageContext, p_target: Node2D):
+func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
-	target = p_target
+	if p_target:
+		target = p_target
 	_elapsed = 0.0
 
 	var tl := start_timeline()
-	var base_speed: float = target.velocity.length()
+	var base_speed: float = target.velocity.length() if target else 500.0
 	var top_speed: float = max_speed if max_speed > 0.0 else base_speed
 
 	# 每帧：加速 + 转向目标方向 + 推进
@@ -44,13 +45,7 @@ func start_moving(p_ctx: StageContext, p_target: Node2D):
 		target.rotation = target.velocity.angle()
 	)
 
-	run(_on_step.bind(ctx))
-
-
-func _on_step(_ctx: StageContext) -> Variant:
-	if _tl:
-		_tl.tick(get_physics_process_delta_time())
-	return true
+	super.start(ctx, target)
 
 
 ## 加速进度 [0, 1]

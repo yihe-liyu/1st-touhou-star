@@ -1,4 +1,5 @@
 extends Resource
+## 关卡定义：id + 难度 + 脚本 + 背景
 class_name StageData
 
 enum Difficulty { EASY, NORMAL, HARD, LUNATIC, EXTRA }
