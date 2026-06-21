@@ -1,6 +1,8 @@
 extends CoroutineScript
 ## 第一面——全难度共享
 
+const RED_SOLDIER = preload("res://data/enemies/red_soldier.gd")
+
 var _spawn_offset_x = 300
 var _spawn_i = 0
 
@@ -18,7 +20,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	)
 
 	tl.at(1.0).every(0.1).times(6).do(func():
-		ctx.enemies.spawn("red_soldier", Vector2(448 + _spawn_offset_x, 0)).hp(100).hbox(32)\
+		ctx.enemies.spawn(RED_SOLDIER, Vector2(448 + _spawn_offset_x, 0)).hp(100)
 			.param("target_y", 150 + _spawn_i * 60).param("bullet_speed", 400).spawn()
 		_spawn_offset_x -= 100
 		_spawn_i += 1
@@ -26,7 +28,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	
 	tl.at(3.9).do(func(): _spawn_i = 0)
 	tl.at(4.0).every(0.1).times(6).do(func():
-		ctx.enemies.spawn("red_soldier", Vector2(448 + _spawn_offset_x, 0)).hp(100).hbox(32)\
+		ctx.enemies.spawn(RED_SOLDIER, Vector2(448 + _spawn_offset_x, 0)).hp(100)
 			.param("target_y", 150 + _spawn_i * 60).param("bullet_speed", 400).spawn()
 		_spawn_offset_x += 100
 		_spawn_i += 1

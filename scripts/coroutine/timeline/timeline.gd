@@ -49,8 +49,8 @@ func do(cb: Callable) -> Timeline:
 func spawn_wave(data: BulletData, count: int, spread: float, dir: Vector2, at_pos: Vector2) -> Timeline:
 	return do(func(): ctx.bullets.shoot_spread(data, count, spread, dir, at_pos))
 
-func spawn_enemy(key: String, pos: Vector2) -> Timeline:
-	return do(func(): ctx.enemies.spawn(key, pos).spawn())
+func spawn_enemy(script: Script, pos: Vector2) -> Timeline:
+	return do(func(): ctx.enemies.spawn(script, pos).spawn())
 
 func spawn_boss(data: BossData, pos: Vector2) -> Timeline:
 	return do(func(): ctx.enemies.spawn_boss(data, pos))

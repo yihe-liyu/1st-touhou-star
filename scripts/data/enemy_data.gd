@@ -47,7 +47,7 @@ func spawn() -> Enemy:
 	var pos: Vector2 = _spawn_meta.get("pos", Vector2.ZERO)
 	var params: Dictionary = _spawn_meta.get("params", {})
 	
-	var script: Script = EnemyService.SCRIPTS.get(key)
+	var script: Script = _spawn_meta.get("script")
 	if not script: return null
 	
 	var enemy := _ENEMY_SCENE.instantiate()
