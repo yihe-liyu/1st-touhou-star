@@ -1,5 +1,5 @@
 class_name EnemyService
-## 敌人生成服务——通过 AssetRegistry 按名称生成，或直接 spawn_enemy/spawn_boss
+## 敌人生成服务
 extends RefCounted
 
 var active: bool = true
@@ -8,11 +8,22 @@ var ctx: StageContext
 const ENEMY_SCENE = preload("res://scenes/enemy.tscn")
 
 
+func spawn(key: String, pos: Vector2) -> SpawnConfig:
+	return SpawnConfig.new(self, key, pos, ctx)
+
 func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) -> Enemy:
 	if not active: return null
 	return StageManager.spawn_enemy(data, position, auto_start)
 
-func spawn(key: String, pos: Vector2, params: Dictionary = {}) -> Enemy:
+func spawn_boss(data: BossData, position: Vector2) -> void:
+	if not active: return
+	StageManager.spawn_boss(data, position, false, ctx)
+
+func all_defeated() -> bool:
+	return GameState.active_enemies.is_empty()
+
+
+func _spawn(key: String, pos: Vector2, p_ctx: StageContext, config: Dictionary, params: Dictionary) -> Enemy:
 	if not active: return null
 	var script: Script = AssetRegistry.enemies.get(key)
 	if not script: return null
@@ -21,33 +32,54 @@ func spawn(key: String, pos: Vector2, params: Dictionary = {}) -> Enemy:
 	enemy.global_position = pos
 	
 	var ed := EnemyData.new()
-	ed.max_hp = params.get("hp", 100)
-	ed.hitbox_radius = params.get("hitbox", 8.0)
-	ed.item_power = params.get("drop_power", 1)
-	ed.item_point = params.get("drop_point", 2)
+	for k in config:
+		ed.set(k, config[k])
 	ed.death_effect = AssetRegistry.enemy_visuals.get("death")
 	enemy.enemy_data = ed
 	
 	var cs: CoroutineScript = script.new()
 	if not cs:
-		push_warning("EnemyService.spawn: script %s is not a CoroutineScript" % key)
+		push_warning("EnemyService.spawn: %s is not a CoroutineScript" % key)
 		enemy.queue_free()
 		return null
 	
 	cs.target = enemy
 	for k in params:
-		if k in cs:
-			cs.set(k, params[k])
-	
+		cs.set(k, params[k])
+	if cs.has_method("setup_custom"):
+		cs.setup_custom(params)
 	enemy.add_child(cs)
-	cs.start(ctx, enemy)
+	cs.start(p_ctx, enemy)
 	
 	StageManager.add_enemy_to_scene(enemy)
 	return enemy
 
-func spawn_boss(data: BossData, position: Vector2) -> void:
-	if not active: return
-	StageManager.spawn_boss(data, position, false, ctx)
 
-func all_defeated() -> bool:
-	return GameState.active_enemies.is_empty()
+class SpawnConfig:
+	extends RefCounted
+	## .hp(200).power(2).param("bullet_speed", 400).spawn()
+	
+	var _s: EnemyService
+	var _k: String
+	var _pos: Vector2
+	var _ctx: StageContext
+	var _c: Dictionary = {}
+	var _p: Dictionary = {}
+	
+	func _init(svc: EnemyService, key: String, pos: Vector2, p_ctx: StageContext):
+		_s = svc; _k = key; _pos = pos; _ctx = p_ctx
+	
+	func hp(v: int) -> SpawnConfig:         _c["max_hp"] = v; return self
+	func hitbox(v: float) -> SpawnConfig:   _c["hitbox_radius"] = v; return self
+	func power(v: int) -> SpawnConfig:      _c["item_power"] = v; return self
+	func point(v: int) -> SpawnConfig:      _c["item_point"] = v; return self
+	func life(v: int) -> SpawnConfig:       _c["item_life"] = v; return self
+	func bomb(v: int) -> SpawnConfig:       _c["item_bomb"] = v; return self
+	func life_full(v: int) -> SpawnConfig:  _c["item_life_full"] = v; return self
+	func bomb_full(v: int) -> SpawnConfig:  _c["item_bomb_full"] = v; return self
+	func scatter(v: float) -> SpawnConfig:  _c["item_scatter"] = v; return self
+	func param(k: String, v) -> SpawnConfig: _p[k] = v; return self
+	
+	func spawn() -> Enemy:
+		if not _s.active: return null
+		return _s._spawn(_k, _pos, _ctx, _c, _p)

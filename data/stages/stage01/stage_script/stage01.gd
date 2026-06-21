@@ -19,9 +19,8 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	tl.at(1.0).every(0.1).times(6).do(func():
 		ctx.enemies.spawn("red_soldier",
-			Vector2(448 + _spawn_offset_x, 0),
-			{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
-		)
+			Vector2(448 + _spawn_offset_x, 0)
+		).param("target_y", 150 + _spawn_i * 60).param("bullet_speed", 400).spawn()
 		_spawn_offset_x -= 100
 		_spawn_i += 1
 	)
@@ -29,9 +28,8 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	tl.at(3.9).do(func(): _spawn_i = 0)
 	tl.at(4.0).every(0.1).times(6).do(func():
 		ctx.enemies.spawn("red_soldier",
-			Vector2(448 + _spawn_offset_x, 0),
-			{"target_y": 150 + _spawn_i * 60, "bullet_speed": 400, "bullet_count": 3}
-		)
+			Vector2(448 + _spawn_offset_x, 0)
+		).param("target_y", 150 + _spawn_i * 60).param("bullet_speed", 400).spawn()
 		_spawn_offset_x += 100
 		_spawn_i += 1
 	)
