@@ -12,10 +12,6 @@ var score_value: int
 var death_effect: PackedScene
 var hp: int
 
-var _create_script: CoroutineScript
-var _ms: CoroutineScript
-var move_script: CoroutineScript:
-	get: return _ms
 var _last_pos: Vector2
 
 
@@ -57,23 +53,10 @@ func _apply_enemy_data(data: EnemyData):
 		add_child(cs)
 	if cs.shape is CircleShape2D:
 		cs.shape.radius = hitbox_radius
-	
-	if data.create_script:
-		_create_script = data.create_script.new()
-		assert(_create_script is CoroutineScript, "Enemy: create_script must be a CoroutineScript")
-		add_child(_create_script)
-	
-	if data.move_script:
-		_ms = data.move_script.new()
-		assert(_ms is CoroutineScript, "Enemy: move_script must be a CoroutineScript")
-		add_child(_ms)
 
 
 func start() -> void:
-	if _create_script:
-		_create_script.start(StageContext.new(_create_script))
-	if _ms:
-		_ms.start(StageContext.new(_ms), self)
+	pass
 
 
 func take_damage(damage: int):
@@ -92,12 +75,6 @@ func die():
 		HitEffectPool.play(death_effect, global_position)
 	
 	GameEvents.enemy_killed.emit(score_value, global_position)
-	
-	if _create_script and is_instance_valid(_create_script):
-		_create_script.stop()
-	if _ms and is_instance_valid(_ms):
-		_ms.stop()
-	
 	queue_free()
 
 func _drop_item() -> void:
