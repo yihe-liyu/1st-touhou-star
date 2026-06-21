@@ -99,11 +99,5 @@ func _physics_process(_delta):
 		return
 	self.global_position += velocity / Engine.physics_ticks_per_second
 
-func _start_movement(data: BulletData):
-	coroutine_movement = data.movement_script.new()
-	assert(coroutine_movement is CoroutineScript, "Bullet: movement_script must be a CoroutineScript")
-	add_child(coroutine_movement)
-	coroutine_movement.start(StageContext.new(coroutine_movement), self)
-
 func batch_texture() -> Texture2D:
 	return sprite.texture
