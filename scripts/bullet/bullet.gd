@@ -106,7 +106,7 @@ func _physics_process(_delta):
 	self.global_position += velocity / Engine.physics_ticks_per_second
 
 func _start_movement(data: BulletData):
-	coroutine_movement = data.coroutine.new()
+	coroutine_movement = data.coroutine_script.new()
 	assert(coroutine_movement is CoroutineScript, "Bullet: coroutine must be a CoroutineScript")
 	add_child(coroutine_movement)
 	coroutine_movement.start(StageContext.new(coroutine_movement), self)

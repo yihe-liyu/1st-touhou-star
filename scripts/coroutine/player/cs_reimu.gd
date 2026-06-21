@@ -47,6 +47,6 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		var b := BulletData.new().tex("reimu_opt1").speed(500).player()
 		b.damage = 5
 		b.hit_effect = preload("res://scenes/effect/hit_effect_reimu_option01.tscn")
-		b.coroutine = preload("res://scripts/coroutine/player/move_homing.gd")
+		b.coroutine_script = preload("res://scripts/coroutine/player/move_homing.gd")
 		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2.ZERO)
 		return ctx.clock.wait_frames(8)
