@@ -19,6 +19,8 @@ var item_scatter: float = 50.0  ## 掉落散布范围（像素）
 
 ## ── 构造链 ──
 
+const _ENEMY_SCENE = preload("res://scenes/enemy.tscn")
+
 var _spawn_meta: Dictionary = {}
 
 func hp(v: int) -> EnemyData:         max_hp = v; return self
@@ -39,10 +41,32 @@ func param(k: String, v) -> EnemyData:
 
 func spawn() -> Enemy:
 	var svc: EnemyService = _spawn_meta.get("svc")
-	if not svc:
-		push_error("EnemyData.spawn(): missing svc in _spawn_meta")
+	if not svc or not svc.active:
 		return null
 	var key: String = _spawn_meta.get("key", "")
 	var pos: Vector2 = _spawn_meta.get("pos", Vector2.ZERO)
 	var params: Dictionary = _spawn_meta.get("params", {})
-	return svc.spawn(key, pos, params)
+	
+	var script: Script = AssetRegistry.enemies.get(key)
+	if not script: return null
+	
+	var enemy := _ENEMY_SCENE.instantiate()
+	enemy.global_position = pos
+	enemy.enemy_data = self
+	
+	var cs: CoroutineScript = script.new()
+	if not cs:
+		push_warning("EnemyData.spawn(): %s is not a CoroutineScript" % key)
+		enemy.queue_free()
+		return null
+	
+	cs.target = enemy
+	for k in params:
+		cs.set(k, params[k])
+	if cs.has_method("setup_custom"):
+		cs.setup_custom(params)
+	enemy.add_child(cs)
+	cs.start(svc.ctx, enemy)
+	
+	StageManager.add_enemy_to_scene(enemy)
+	return enemy
