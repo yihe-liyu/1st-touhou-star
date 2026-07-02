@@ -2,13 +2,18 @@
 
 [ext_resource type="Script" uid="uid://bsyp2yh3va1v3" path="res://scripts/data/card_def.gd" id="1_1ks2g"]
 [ext_resource type="Script" uid="uid://k8vh122rrpib" path="res://scripts/data/card_registry.gd" id="2_hk77p"]
+[ext_resource type="PackedScene" uid="uid://cp4ehhqxgt7x4" path="res://data/enemy_visual/boss/stage01/kamorui.tscn" id="2_hyye6"]
+[ext_resource type="Resource" uid="uid://c3x1nl4wb0g4t" path="res://data/stages/stage01/phase/E_01.tres" id="3_54xe6"]
 
-[sub_resource type="Resource" id="Resource_kslju"]
+[sub_resource type="Resource" id="Resource_i6til"]
 script = ExtResource("1_1ks2g")
-uid = 1
-name = "哇符「哇哇哇」"
+name = "卡摩瑞的非符一"
 stage_id = 1
+phase_data = ExtResource("3_54xe6")
+boss_scene = ExtResource("2_hyye6")
+difficulty = 0
+metadata/_custom_type_script = "uid://bsyp2yh3va1v3"
 
 [resource]
 script = ExtResource("2_hk77p")
-cards = Array[ExtResource("1_1ks2g")]([SubResource("Resource_kslju")])
+cards = Array[ExtResource("1_1ks2g")]([SubResource("Resource_i6til")])

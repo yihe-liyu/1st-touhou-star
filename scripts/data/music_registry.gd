@@ -1,0 +1,41 @@
+# MusicRegistry.gd — 音乐注册表
+extends Resource
+class_name MusicRegistry
+
+## 全音乐记录
+@export var records: Array[MusicRecord] = []
+
+
+func get_by_id(music_id: int) -> MusicRecord:
+	for r in records:
+		if r.music_id == music_id:
+			return r
+	return null
+
+
+func get_unlocked() -> Array[MusicRecord]:
+	var result: Array[MusicRecord] = []
+	for r in records:
+		if r.unlocked:
+			result.append(r)
+	return result
+
+
+func unlock(music_id: int) -> void:
+	var r := get_by_id(music_id)
+	if r:
+		r.unlocked = true
+
+
+func is_unlocked(music_id: int) -> bool:
+	var r := get_by_id(music_id)
+	return r != null and r.unlocked
+
+
+## 通过音频路径解锁（返回是否找到了匹配项）
+func unlock_by_path(audio_path: String) -> bool:
+	for r in records:
+		if r.audio_path == audio_path:
+			r.unlocked = true
+			return true
+	return false

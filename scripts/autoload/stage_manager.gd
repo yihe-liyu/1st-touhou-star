@@ -33,6 +33,7 @@ func load_stage(data: StageData):
 	stage_script.finished.connect(_on_stage_finished)
 
 	var ctx := StageContext.new(stage_script)
+	EnemyData.setup_ctx(ctx)
 	stage_script.start(ctx)
 
 	# 自动启动背景场景里挂的所有协程脚本

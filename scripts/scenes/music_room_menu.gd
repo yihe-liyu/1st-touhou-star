@@ -1,28 +1,249 @@
-# MusicRoomMenu.gd — 音乐室菜单（占位）
-extends BasePage
+# MusicRoomMenu.gd — 音乐室（左右分栏：列表 + 评语）
+extends NavPage
+
+const MUSIC_REGISTRY_PATH := "res://data/registry/music_registry.tres"
+const GOLD_COLOR := Color(1.0, 0.85, 0.2)
+const LOCKED_TEXT := "？？？？？？？？？"
+
+var _music_registry: MusicRegistry
+var _music_records: Array[MusicRecord]
+
+# 标题贴图
+@onready var _title_texture: TextureRect = $"TitleTexture"
+
+# 右栏 UI
+@onready var _comment_text: Label = $"RightPanel/CommentText"
+
+# 试听播放器
+var _preview_player: AudioStreamPlayer
+var _playing_id: int = -1
+
+# 左栏每项的控件引用
+var _list_labels: Array[Label] = []
 
 
-func _on_enter() -> void:
-	var ov: ColorRect = $"Overlay"
-	ov.modulate.a = 0.0
-	var tex: TextureRect = $"TitleTexture"
-	tex.modulate.a = 0.0
-	var tw := create_tween().set_parallel(true)
-	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property(ov, "modulate:a", 1.0, 0.5)
-	tw.tween_property(tex, "modulate:a", 1.0, 0.5)
+func _ready() -> void:
+	# 进入音乐室时停掉外部 BGM
+	AudioManager.stop_bgm()
+	
+	# 加载音乐注册表
+	if ResourceLoader.exists(MUSIC_REGISTRY_PATH):
+		_music_registry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
+	else:
+		_music_registry = MusicRegistry.new()
+		ResourceSaver.save(_music_registry, MUSIC_REGISTRY_PATH)
+	
+	_music_records = _music_registry.records
+	
+	# 创建预览播放器
+	_preview_player = AudioStreamPlayer.new()
+	_preview_player.bus = _find_bus("BGM")
+	add_child(_preview_player)
+	_preview_player.finished.connect(_on_preview_finished)
+	
+	# 标题渐显
+	_title_texture.modulate.a = 0.0
+	var tw_title := create_tween()
+	tw_title.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw_title.tween_property(_title_texture, "modulate:a", 1.0, 0.6)
+	
+	# 重建左栏列表
+	_rebuild_list()
 
 
-func _on_leave() -> void:
-	var tw := create_tween().set_parallel(true)
-	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property($"Overlay", "modulate:a", 0.0, 0.5)
-	tw.tween_property($"TitleTexture", "modulate:a", 0.0, 0.5)
-	tw.tween_callback(queue_free)
+func _rebuild_list() -> void:
+	var list_container: VBoxContainer = $"LeftPanel/ListContainer"
+	# 清空旧项
+	for child in list_container.get_children():
+		child.queue_free()
+	_list_labels.clear()
+	_nav_items.clear()
+	
+	for i in _music_records.size():
+		var record := _music_records[i]
+		var label := Label.new()
+		label.add_theme_font_size_override("font_size", 32)
+		label.name = "Track_%d" % record.music_id
+		
+		# 未解锁的标记为 locked，入场动画自动用 locked_color
+		if not record.unlocked:
+			label.set_meta("locked", true)
+		
+		list_container.add_child(label)
+		_list_labels.append(label)
+		_nav_items.append(label)
+	
+	if not _nav_items.is_empty():
+		_nav_index = _find_first_unlocked()
+		if _nav_index < 0:
+			_nav_index = 0
+	
+	# 统一刷外观
+	_update_list_colors()
+	_update_display(_nav_index)
 
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		get_viewport().set_input_as_handled()
-		sfx_back()
-		go_back()
+func _on_item_selected(index: int) -> void:
+	if index < 0 or index >= _music_records.size():
+		return
+	
+	var record := _music_records[index]
+	if not record.unlocked:
+		return
+	
+	if _playing_id == record.music_id:
+		# 正在播放 → 停止
+		_stop_preview()
+	else:
+		# 播放选中曲
+		_play_preview(record)
+
+
+func _on_cancel() -> void:
+	_stop_preview()
+	# 退出音乐室，恢复主菜单 BGM
+	AudioManager.play_bgm(preload("res://assets/Music/THq01_01.无缘故之回.mp3"))
+	go_back()
+
+
+# ═══ 试听控制 ═══
+
+func _play_preview(record: MusicRecord) -> void:
+	_stop_preview()
+	
+	# 确保外部 BGM 也停掉
+	AudioManager.stop_bgm()
+	
+	var stream := ResourceLoader.load(record.audio_path)
+	if not stream:
+		return
+	
+	_preview_player.stream = stream
+	_preview_player.play()
+	_playing_id = record.music_id
+	
+	# 解锁（在音乐室试听也算听过）
+	if not record.unlocked:
+		record.unlocked = true
+		ResourceSaver.save(_music_registry, MUSIC_REGISTRY_PATH)
+		_rebuild_list()
+		# 保持选中项
+		if _nav_index >= 0 and _nav_index < _nav_items.size():
+			_select(_nav_index)
+	
+	_update_list_colors()
+	_update_display(_nav_index)
+
+
+func _stop_preview() -> void:
+	_preview_player.stop()
+	_preview_player.stream = null
+	_playing_id = -1
+	_update_list_colors()
+	_update_display(_nav_index)
+
+
+func _on_preview_finished() -> void:
+	_playing_id = -1
+	_update_list_colors()
+	_update_display(_nav_index)
+
+
+# ═══ 显示更新 ═══
+
+func _update_display(_index: int) -> void:
+	# 只有在播放时才显示乐评，且靠上显示
+	if _playing_id < 0:
+		_comment_text.text = ""
+		return
+	
+	var record := _music_registry.get_by_id(_playing_id)
+	if record and record.unlocked:
+		_comment_text.text = record.comment
+		_comment_text.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	else:
+		_comment_text.text = ""
+
+
+func _update_list_colors() -> void:
+	for i in _music_records.size():
+		var record := _music_records[i]
+		var label := _list_labels[i]
+		if not record.unlocked:
+			label.modulate = locked_color
+			label.text = "NO.%02d  %s" % [record.music_id, LOCKED_TEXT]
+		else:
+			if _playing_id == record.music_id:
+				label.text = "NO.%02d  %s  ♪" % [record.music_id, record.title]
+			else:
+				label.text = "NO.%02d  %s" % [record.music_id, record.title]
+			
+			if _playing_id == record.music_id:
+				label.modulate = GOLD_COLOR
+			elif i == _nav_index:
+				label.modulate = highlight_color
+			else:
+				label.modulate = normal_color
+
+
+# 覆写导航选择更新
+func _select(index: int) -> void:
+	if index < 0 or index >= _nav_items.size():
+		return
+	
+	# 旧项停止脉冲
+	var prev := _nav_index
+	if prev >= 0 and prev < _nav_items.size():
+		_stop_pulse()
+	
+	# 新项
+	_nav_index = index
+	_start_pulse(_nav_items[index])
+	
+	# 颜色全部交给 _update_list_colors 统一处理
+	_update_list_colors()
+	_update_display(index)
+
+
+# ═══ 输入处理（仅上下导航） ═══
+
+func _process(_delta: float) -> void:
+	if not _nav_enabled or _nav_items.is_empty():
+		return
+	
+	var now := Time.get_ticks_msec() / 1000.0
+	
+	if Input.is_action_just_pressed("ui_accept"):
+		if now - _last_accept_time >= accept_cooldown:
+			_last_accept_time = now
+			accept_current()
+		return
+	
+	if Input.is_action_just_pressed("ui_cancel"):
+		if now - _last_accept_time >= accept_cooldown:
+			_last_accept_time = now
+			sfx_back()
+			_on_cancel()
+		return
+	
+	if Input.is_action_just_pressed("ui_up"):
+		_last_nav_time = now
+		navigate(-1)
+	elif Input.is_action_just_pressed("ui_down"):
+		_last_nav_time = now
+		navigate(1)
+
+
+# ═══ 工具 ═══
+
+func _find_bus(bus_name: String) -> StringName:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx >= 0:
+		return StringName(bus_name)
+	return &"Master"
+
+
+func _exit_tree() -> void:
+	_stop_preview()
+	if _preview_player and is_instance_valid(_preview_player):
+		_preview_player.queue_free()

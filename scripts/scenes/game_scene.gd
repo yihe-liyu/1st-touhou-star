@@ -73,8 +73,9 @@ func _resolve_stage_data() -> StageData:
 
 func _load_background(scene: PackedScene) -> void:
 	if not scene: return
-	if _background_instance:
+	if _background_instance and is_instance_valid(_background_instance):
 		_background_instance.queue_free()
+		_background_instance = null
 	_background_instance = scene.instantiate()
 	if _background_instance is StageBackground:
 		StageManager.current_background = _background_instance

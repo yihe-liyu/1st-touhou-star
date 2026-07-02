@@ -54,6 +54,8 @@ func _init_players() -> void:
 
 # ═══ BGM ═══
 
+const MUSIC_REGISTRY_PATH := "res://data/registry/music_registry.tres"
+
 ## 播 BGM（覆盖当前播放）。播放前无间隔、无渐弱。
 func play_bgm(stream: AudioStream, _gap_unused: float = 0.0) -> void:
 	if not _bgm_player or not is_instance_valid(_bgm_player):
@@ -65,6 +67,24 @@ func play_bgm(stream: AudioStream, _gap_unused: float = 0.0) -> void:
 	_bgm_player.stream = stream
 	_bgm_player.volume_db = _to_db(bgm_volume * master_volume)
 	_bgm_player.play()
+	
+	# 音乐解锁：如果该音频有关联的音乐记录，解锁之
+	_unlock_music_by_stream(stream)
+
+
+## 根据 AudioStream 查找对应的音乐记录并解锁
+func _unlock_music_by_stream(stream: AudioStream) -> void:
+	if not ResourceLoader.exists(MUSIC_REGISTRY_PATH):
+		return
+	var registry: MusicRegistry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
+	if not registry:
+		return
+	# 通过音频资源路径匹配
+	var path := stream.resource_path
+	if path.is_empty():
+		return
+	if registry.unlock_by_path(path):
+		ResourceSaver.save(registry, MUSIC_REGISTRY_PATH)
 
 
 ## 停止 BGM（无渐弱）
@@ -142,5 +162,5 @@ func _find_bus(bus_name: String) -> StringName:
 func _on_game_state_changed(_old: int, new: int) -> void:
 	if not _bgm_player:
 		return
-	_bgm_player.stream_paused = (new == GameManager.AppState.PAUSED)
+	_bgm_player.stream_paused = (new == GameManager.AppState.PAUSED or new == GameManager.AppState.TRANSITIONING)
 	# SFX 在 tree.paused 下自动静音，无需额外处理

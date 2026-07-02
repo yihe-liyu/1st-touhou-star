@@ -4,7 +4,6 @@ extends RefCounted
 
 var clock: ClockService
 var bullets: BulletService
-var enemies: EnemyService
 var player: PlayerService
 var dialogue: DialogueService
 var items: ItemService
@@ -17,8 +16,6 @@ func _init(p_runner: CoroutineRunner) -> void:
 	runner = p_runner
 	clock = ClockService.new()
 	bullets = BulletService.new()
-	enemies = EnemyService.new()
-	enemies.ctx = self
 	player = PlayerService.new()
 	dialogue = DialogueService.new()
 	dialogue.ctx = self

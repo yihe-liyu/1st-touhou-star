@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cy6khntunjs65"]
 
 [ext_resource type="Texture2D" uid="uid://cfu1kcl2wy1eu" path="res://assets/Textures/effect/etbreak.png" id="1_kk808"]
-[ext_resource type="Script" uid="uid://che3mwj672kwo" path="res://data/enemy_visual/death_effect.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://che3mwj672kwo" path="res://scripts/enemy/death_effect.gd" id="2_script"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6e7oh"]
 atlas = ExtResource("1_kk808")

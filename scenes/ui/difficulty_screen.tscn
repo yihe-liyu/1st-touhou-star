@@ -2,6 +2,18 @@
 
 [ext_resource type="Script" uid="uid://bc2004avmc2ec" path="res://scripts/scenes/difficulty_screen.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://27ddm7ctg1ir" path="res://assets/Textures/title/rank.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://eim0jof7iqn1" path="res://assets/Textures/title/rank_easy.png" id="3"]
+[ext_resource type="Shader" uid="uid://c17bthoyory18" path="res://gdshader/center_bar.gdshader" id="3cxh6"]
+[ext_resource type="Texture2D" uid="uid://dmvpc337ack23" path="res://assets/Textures/title/rank_normal.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://cd1s2pbgrvl26" path="res://assets/Textures/title/rank_hard.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://dqtwwbgn46ca3" path="res://assets/Textures/title/rank_lunatic.png" id="6"]
+
+[sub_resource type="ShaderMaterial" id="2"]
+resource_local_to_scene = true
+shader = ExtResource("3cxh6")
+shader_parameter/bar_width = 0.3
+shader_parameter/fade_width = 0.15
+shader_parameter/opacity = 0.5
 
 [node name="DifficultyScreen" type="Control" unique_id=1370806118]
 layout_mode = 3
@@ -21,50 +33,104 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.5)
 
+[node name="CenterBar" type="ColorRect" parent="." unique_id=1811418679]
+material = SubResource("2")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -288.0
+offset_top = -125.0
+offset_right = 288.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
 [node name="TitleTexture" type="TextureRect" parent="." unique_id=850403446]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -129.0
-offset_top = 100.0
+offset_top = 75.0
 offset_right = 129.0
-offset_bottom = 202.0
+offset_bottom = 177.0
 grow_horizontal = 2
 texture = ExtResource("2")
 stretch_mode = 5
 
-[node name="Container" type="VBoxContainer" parent="." unique_id=1410330871]
-layout_mode = 0
+[node name="Container" type="Control" parent="." unique_id=1410330871]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Easy" type="TextureRect" parent="Container" unique_id=1490409126]
+layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 0.3
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 0.7
-offset_left = -120.0
-offset_right = 120.0
-theme_override_constants/separation = 18
-alignment = 1
+anchor_bottom = 0.5
+offset_left = -134.0
+offset_top = -78.0
+offset_right = 134.0
+offset_bottom = 78.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3")
+stretch_mode = 5
 
-[node name="Easy" type="Label" parent="Container" unique_id=1490409126]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Easy"
-horizontal_alignment = 1
+[node name="Normal" type="TextureRect" parent="Container" unique_id=905974972]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -134.0
+offset_top = -77.5
+offset_right = 134.0
+offset_bottom = 77.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4")
+stretch_mode = 5
 
-[node name="Normal" type="Label" parent="Container" unique_id=905974972]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Normal"
-horizontal_alignment = 1
+[node name="Hard" type="TextureRect" parent="Container" unique_id=1801437873]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -134.0
+offset_top = -78.0
+offset_right = 134.0
+offset_bottom = 78.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5")
+stretch_mode = 5
 
-[node name="Hard" type="Label" parent="Container" unique_id=1801437873]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Hard"
-horizontal_alignment = 1
-
-[node name="Lunatic" type="Label" parent="Container" unique_id=1467455267]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Lunatic"
-horizontal_alignment = 1
+[node name="Lunatic" type="TextureRect" parent="Container" unique_id=1467455267]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -131.0
+offset_top = -78.0
+offset_right = 131.0
+offset_bottom = 78.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("6")
+stretch_mode = 5

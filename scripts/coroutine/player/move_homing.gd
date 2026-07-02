@@ -10,7 +10,7 @@ var min_speed: float = 500.0
 ## 最高速度（0 表示保持初始速度）
 var max_speed: float = 2000.0
 ## 诱导持续多久（秒），0 表示直到离开场景
-var homing_duration: float = 1.5
+var homing_duration: float = 2.0
 ## 距离越近转弯越激进——值越大，远距离诱导越强
 var proximity_boost: float = 150.0
 

@@ -45,7 +45,6 @@ func _apply_enemy_data(data: EnemyData):
 	if data.visual_scene:
 		_visual = data.visual_scene.instantiate()
 		add_child(_visual)
-		hitbox_radius = _visual.hitbox_radius
 	if data.hitbox_radius > 0:
 		hitbox_radius = data.hitbox_radius
 	

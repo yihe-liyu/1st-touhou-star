@@ -27,14 +27,14 @@ func _setup() -> void:
 	rotation = RNG.randf_range(0.0, TAU)
 	
 	var mat := sprite.material as ShaderMaterial
-	mat.set_shader_parameter("fog_tint:a", 1.0)
+	mat.set_shader_parameter("fog_tint:a", 0.75)
 	
 	_tween = create_tween()
 	_tween.set_parallel(true)
 	_tween.set_trans(Tween.TRANS_CUBIC)
 	_tween.set_ease(Tween.EASE_IN)
-	_tween.tween_property(sprite, "scale", Vector2(0.2, 0.2), 0.35)
-	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.35)
+	_tween.tween_property(sprite, "scale", Vector2(0.2, 0.2), 0.2)
+	_tween.tween_method(_set_alpha.bind(mat), 1.0, 0.0, 0.2)
 	_tween.chain().tween_callback(_finish)
 
 

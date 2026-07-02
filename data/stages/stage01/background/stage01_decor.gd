@@ -8,10 +8,14 @@ const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
 
 func _ready() -> void:
-	if bg.world_environment:
-		var env := bg.world_environment.environment
-		env.fog_light_color = Color.BLACK
-		env.fog_density = 0.5
+	_reset_environment()
+
+
+func _reset_environment() -> void:
+	if not bg.world_environment: return
+	var env := bg.world_environment.environment
+	env.fog_light_color = Color.BLACK
+	env.fog_density = 0.5
 	if bg.camera:
 		bg.camera.fov = 55.0
 
@@ -21,6 +25,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	if p_target:
 		target = p_target
 	
+	_reset_environment()
 	ctx.decor.add_layer(OAK_LAYER)
 	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 	
@@ -40,7 +45,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	# ③ 地面加速 (10s)
 	tl.at(10.0).do(func():
 		var t := bg.create_tween()
-		t.tween_method(_camera_accel, 1.0, 7.0, 16).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		t.tween_method(_camera_accel, 1.0, 7.0, 32).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	)
 
 	# ④ 每 4 帧喷一棵树（持续）

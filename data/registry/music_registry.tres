@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="MusicRegistry" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/music_record.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/music_registry.gd" id="2"]
+
+[sub_resource type="Resource" id="MusicRecord_01"]
+script = ExtResource("1")
+music_id = 1
+title = "无缘故之回"
+comment = "无缘故之回
+标题曲
+较为平平的音乐，即使有一些高昂，那也是无缘故的。
+毕竟，从未谋面，自然没有回忆；没有回忆，那么所谓“回”也自然是无缘故的了。
+一面之缘的感情的起伏又有多少真实呢。"
+audio_path = "res://assets/Music/THq01_01.无缘故之回.mp3"
+unlocked = true
+
+[sub_resource type="Resource" id="MusicRecord_02"]
+script = ExtResource("1")
+music_id = 2
+title = "夜间漫步"
+comment = "夜间漫步
+１面道中的音乐
+哎呀，明明是日食，却还取名为“夜间”漫步，但那也只是因为天太黑了呢。
+于是就这样，主要是漫步的感觉了，夜不夜间的不是重点了，反正人类也不是能够每时每刻都生活在光明里的吧。
+总之异变就是这样的不是吗？
+"
+audio_path = "res://assets/Music/THq01_02.夜间漫步.mp3"
+unlocked = true
+
+[sub_resource type="Resource" id="Resource_n7uf7"]
+script = ExtResource("1")
+music_id = 3
+title = "洞窟蝙蝠"
+comment = "洞窟蝙蝠
+卡摩瑞的主题曲"
+metadata/_custom_type_script = "uid://be08pe8s61ass"
+
+[sub_resource type="Resource" id="MusicRecord_03"]
+script = ExtResource("1")
+music_id = 7
+title = "就在那里的不思议宇宙"
+comment = "就在那里的不思议宇宙
+３Ｂ面道中的音乐
+改自《东方绀珠传》的三面道中音乐——《飞翔于宇宙的不可思议巫女》"
+audio_path = "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3"
+unlocked = true
+
+[sub_resource type="Resource" id="MusicRecord_04"]
+script = ExtResource("1")
+music_id = 12
+title = "不尽记忆的天空"
+comment = "不尽记忆的天空
+５面道中的音乐
+"
+audio_path = "res://assets/Music/THq01_12.不尽记忆的天空.mp3"
+unlocked = true
+
+[resource]
+script = ExtResource("2")
+records = Array[ExtResource("1")]([SubResource("MusicRecord_01"), SubResource("MusicRecord_02"), SubResource("Resource_n7uf7"), SubResource("MusicRecord_03"), SubResource("MusicRecord_04")])

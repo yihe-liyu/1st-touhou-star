@@ -48,7 +48,7 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 				continue
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(ceilf(bullet.damage * bonus))
-			GameState.reduce_memory(GameState.MEMORY_HIT_BY_BULLET)
+			GameState.add_memory(GameState.MEMORY_HIT_BY_BULLET)
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
 			return

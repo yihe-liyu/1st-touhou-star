@@ -1,6 +1,6 @@
-# 📐 东方星 STG 引擎 — 系统规格书
-## 版本 1.2 · 2026-06-21
-## 基于源码逆向提炼 + 架构路线图 v3 对齐
+# 📐 东方星 STG 引擎 — 系统规格书（代码真实现状）
+## 版本 2.0 · 2026-06-24
+## 基于实际代码逆向整理
 
 ---
 
@@ -16,8 +16,7 @@
 │  AssetRegistry  LayerConfig            │
 ├─────────────────────────────────────────┤
 │             协程（业务逻辑）             │
-│  StageScript  CreateScript  MoveScript  │
-│  BackgroundScript  PlayerShootScript   │
+│  CoroutineScript  Timeline             │
 │  ← 全部通过 StageContext 访问系统       │
 ├─────────────────────────────────────────┤
 │               Scene 层                  │
@@ -29,22 +28,24 @@
 │  Player  Enemy  Boss  Bullet           │
 │  Laser  Item  ItemPool                │
 │  EnemyVisual  HitEffect                │
-│  BackgroundPlane/Cylinder/Object       │
+│  BackgroundStage  BackgroundPlane      │
+│  BackgroundCylinder  DecorManager      │
 ├─────────────────────────────────────────┤
 │             数据层                       │
 │  StageData  PhaseData  BossData        │
 │  EnemyData  BulletData  PlayerData     │
 │  StageRegistry                         │
-│  SpellRecord, SpellRecordBook          │
-│  CardDef, CardRegistry                 │
+│  SpellRecord  SpellRecordBook          │
+│  CardDef  CardRegistry                 │
+│  CharacterProfile  DialogueData        │
 └─────────────────────────────────────────┘
 ```
 
 ### 数据流向规则
 ```
-协程 → StageContext → 系统 → 实体
-  │                   │
-  └─ 只读 GameState ──┘
+CoroutineScript → StageContext → 系统 → 实体
+      │                   │
+      └─ 只读 GameState ──┘
 
 实体 → 系统（碰撞/回收）→ GameState（改状态）
                         → GameEvents（通知 UI）
@@ -54,50 +55,54 @@
 
 ## 2. 系统清单
 
-### 2.1 GameManager
+### 2.1 GameManager — Autoload 单例
 | 项目 | 内容 |
 |------|------|
 | **职责** | 应用级状态机 + 模块门面 |
-| **状态** | `MENU → PLAYING → PAUSED → TRANSITIONING` |
-| **子模块** | SceneTransition, MenuNav（替代旧的 MenuHost/MenuStack/PauseControl） |
-| **暴露** | `change_scene(path)`, `push_page(path)`, `pop_page()`, `push_overlay_menu(menu)`, `pop_overlay_menu(menu)` |
+| **状态** | `enum AppState {MENU, PLAYING, PAUSED, TRANSITIONING}` |
+| **子模块** | SceneTransition, MenuNav |
+| **暴露** | `change_scene(path, target_state)`, `push_page(path)`, `pop_page()`, `push_overlay_menu(menu)`, `pop_overlay_menu(menu)`, `pause_game()`, `resume_game()`, `toggle_pause()` |
 | **输入** | `_process` 拦截 ui_pause 推暂停覆盖层；覆盖层开着时不处理 |
-| **禁止** | 任何系统不得直接写 AppState（走 `_set_state`）|
-| **场景切换** | `change_scene()` → TRANSITIONING → await SceneTransition → 更新 `current_scene_path` → PLAYING |
+| **状态规则** | 通过 `_set_state()` 修改，发出 `game_state_changed` 信号 |
+| **场景切换** | `change_scene()` → `_set_state(TRANSITIONING)` → 清页面+覆盖层 → await SceneTransition → 更新 `current_scene_path` → `_set_state(target_state)` |
 | **菜单导航** | 所有页面 push/pop 统一走 MenuNav（普通页面 + 覆盖层两层栈） |
 | **页面契约** | 页面必须有 `finished(result: Dictionary)` 信号；推荐继承 `BasePage` / `NavPage` |
+| **输入映射** | `_ensure_input_actions()` 自动添加 Z/X/ESC/Enter/Space/方向键到 InputMap |
 
-### 2.2 GameState
+### 2.2 GameState — Autoload 单例
 | 项目 | 内容 |
 |------|------|
 | **职责** | 全局游戏数据 **唯一真源** |
-| **拥有** | score, lives, bomb_count, power_raw, max_point, memory_value, graze_count, difficulty, character |
-| **附加** | active_enemies（引用列表）, player（弱引用）, spell_book, stage_registry, high_scores |
-| **练习模式** | `is_practice_mode`, `is_stage_practice`, `practice_boss_data`, `practice_phase_index` |
-| **读写规则** | 系统通过方法读写（`add_score()`, `add_power()`, `add_memory()`, `collect_life_fragment()`），不直接改属性 |
-| **禁止** | 协程/实体直接改 `GameState.current_score` |
+| **拥有** | `current_score`, `lives(bound 0~8)`, `bomb_count(bound 0~8)`, `power_raw(bound 0~300)`, `max_point`, `memory_value(bound 0~100)`, `graze_count`, `selected_difficulty`, `selected_character`, `current_stage_id` |
+| **附加** | `active_enemies(Array)`, `player(Player弱引用)`, `spell_book`, `stage_registry`, `high_scores(Dictionary)` |
+| **练习模式** | `is_practice_mode`, `is_stage_practice`, `practice_card(CardDef)`, `practice_stage_id`, `practice_background(PackedScene)` |
+| **读写规则** | 系统通过方法读写（`add_score()`, `add_power()`, `collect_life_fragment()`），不直接改属性 |
+| **禁止** | 协程/实体直接改 `current_score` / `lives` / `power_raw` |
 | **reset_all()** | 关卡开始时调用，清零运行时数据；`reset_practice()` 设置满P/0命 |
-| **memory** | 运行在 `_process`（仅在 PLAYING 时启用），每秒恢复 `MEMORY_REGEN=0.05`；影响自机弹伤害倍率（0~50时最多1.15x）和擦弹消弹概率（50~100时0.05~0.30） |
+| **memory 系统** | `_process` 每秒恢复 `MEMORY_REGEN=0.05`（仅 PLAYING 时）；影响自机弹染色和伤害 |
+| **符卡簿** | `_load_spell_book()` 从 `spell_records.tres` 加载；`unlock_spell(pid)` 见到即记；`record_spell(pid, captured, score, elapsed)` 记录尝试；`record_practice(pid, captured)` 记录练习 |
+| **High Score** | 通过 ConfigFile 持久化到 `user://save_data.cfg`；`save_high_score(stage_id, score)` |
+| **关卡数据查找** | `_find_stage_data(stage_id)` → 先查 `stage_registry`，回退扫目录 |
 
-### 2.3 StageManager
+### 2.3 StageManager — Autoload 单例
 | 项目 | 内容 |
 |------|------|
 | **职责** | 关卡生命周期 + 敌人生成门面 |
-| **流程** | `load_stage(data)` → reset_all → 创建 StageScript → start_stage(ctx) → 自动启动 BackgroundScript |
-| **背景** | `current_background` 由 GameScene 设置 `StageManager.current_background = instance` |
-| **停止** | `stop_stage()` 清敌人、清弹幕、清 BackgroundScript |
-| **敌人** | `spawn_enemy(data, pos)` → 挂到 `World` 下；`spawn_boss(data, pos)` → 走 Boss 类 |
-| **禁止** | 不要在协程外直接调用 spawn_enemy |
+| **流程** | `load_stage(data)` → `GameState.reset_all()` → 创建 CoroutineScript → StageContext → `stage_script.start(ctx)` → 自动启动背景上的 CoroutineScript |
+| **背景** | `current_background` 由 GameScene 设置 |
+| **停止** | `stop_stage()` 清敌人、清弹幕、清背景引用 |
+| **敌人生成** | `spawn_enemy(data, pos)` → instantiate `enemy.tscn` → 挂到 World 下 → `enemy.start()`；`spawn_boss(data, pos, defer, ctx)` → Boss 类 |
+| **子弹生成** | `spawn_bullet(data, pos, dir)` → 委托 BulletManager |
+| **添加节点** | `_add_enemy_to_scene(node)` → 查找当前 Scene 的 World 节点作为父节点 |
 
-### 2.4 BulletManager
+### 2.4 BulletManager — Autoload Node2D
 | 项目 | 内容 |
 |------|------|
-| **职责** | 子弹/激光门面，挂载为 Node2D 实体 |
+| **职责** | 子弹/激光门面 |
 | **子模块** | BulletPool, BulletPhysics, LaserSystem, DeathClear |
-| **每帧** | `_physics_process`: 死亡清弹 → 激光步进+碰撞 → 子弹碰撞 → 出屏回收 |
-| **暂停** | 场景切换或 `processing_paused` 时跳过 `_physics_process` |
-| **多网格** | 可选 `use_multi_mesh`，通过 BulletMultiMesh 批量渲染 |
-| **禁止** | 直接访问 `_pool.active_bullets`（用 API 方法）|
+| **每帧** | `_physics_process`: DeathClear.process → LaserSystem.step → BulletPhysics.process_collisions → 出屏回收 |
+| **多网格** | `use_multi_mesh`（默认 true），通过 BulletMultiMesh 批量渲染 |
+| **暂停** | `_processing_paused` 时跳过 `_physics_process` |
 
 #### 2.4.1 BulletPool
 - 池大小 `POOL_SIZE=4000`，硬上限 `MAX_TOTAL=5000`
@@ -107,133 +112,467 @@
 - `is_offscreen()` 使用 90px 边距扩展判定
 
 #### 2.4.2 BulletPhysics
-- 每帧遍历 `active_bullets`，按 faction 分流：
-  - PLAYER → 对敌伤害（记忆值<50时伤害倍率 1.05~1.15）
-  - ENEMY → 玩家碰撞（miss）/ 擦弹（记忆>50时有消弹概率 0.05~0.30）
-  - BOMB → 对敌伤害
-- 命中检测：圆形（半径和） / 矩形（OBB 最近点）
+- 每帧遍历 `active_bullets`，按 faction 分流
+- 命中检测：圆形（半径和）/ 矩形（OBB 最近点）
 - 擦弹：`on_graze()` → graze+1, score+10, memory+0.15
 
 #### 2.4.3 LaserSystem
-- 池大小 32，`fire_*()` 返回 Laser 引用
-- 每帧 `step()`：激光更新 → 玩家碰撞检测 + 擦弹
+- 池大小 32
+- `step(delta)`：激光更新 → 玩家碰撞检测 + 擦弹
 - `clear()` 让所有激光立即淡出
 
 #### 2.4.4 DeathClear
 - 每帧膨胀圈内消除敌弹
-- 消弹圈碰到的激光直接淡出（不再切割打孔）
-- Miss 时 `start_death_clear(pos, 2048, 3.0)`
+- `start_death_clear(pos, max_radius, duration, start_radius)`
 
-### 2.5 AudioManager
+### 2.5 AudioManager — Autoload 单例
 | 项目 | 内容 |
 |------|------|
-| **职责** | BGM 双路（A/B 交叉渐出预留） + SFX 8 路池 |
-| **BGM** | `play_bgm(stream, gap=0.3)` — 同流不重复 |
-| **SFX** | `play_sfx(stream, vol_db)` → 同帧同流不重复（_played_this_frame 过滤） |
-| **音量** | `master_volume`, `bgm_volume`, `sfx_volume`（线性值 → db 转换） |
-| **暂停** | 自动 stream_paused = true/false |
-| **禁止** | BGM 不要在 `PLAYING` 外播放 |
+| **BGM** | 单路 AudioStreamPlayer；`play_bgm(stream, gap=0.0)` — 同流不重复，无 crossfade |
+| **SFX** | 8 路池；`play_sfx(stream, vol_db)` → 同帧同流去重（`_played_this_frame`），全忙时踢最老的 |
+| **音量** | `master_volume`, `bgm_volume`, `sfx_volume`（线性 0~1 → dB 转换）|
+| **暂停** | 监听 `game_state_changed` → BGM `stream_paused = true/false`（SFX 由 tree.paused 自动处理） |
+| **stop_bgm()** | 直接停止，无渐弱 |
 
-### 2.6 RNG
+### 2.6 RNG — Autoload 单例
 | 项目 | 内容 |
 |------|------|
 | **职责** | 可复现随机数（replay 基础）|
 | **所有随机数必须走 RNG** | `RNG.randf()`, `RNG.randi()`, `RNG.randf_range()`, `RNG.randfn()` |
-| **禁止** | 全局 `randf()` `randi()` — 直接用会破坏 replay |
+| **禁止** | 全局 `randf()` `randi()` |
 
-### 2.7 HitEffectPool
+### 2.7 HitEffectPool — Autoload 单例
 | 项目 | 内容 |
 |------|------|
 | **职责** | 命中特效对象池，按 PackedScene 分池（每场景 8 实例上限）|
-| **play()** | 从池取 → reparent 到 World → 激活+旋转 |
-| **_recycle()** | 实例用完自动调用（`return_method`）→ visible=false |
+| **play(scene, pos)** | 从池取 → reparent 到 World → 激活 |
 | **clear_all_pool()** | 清空所有池实例 |
 
-### 2.8 MissEffectManager
+### 2.8 MissEffectManager — Autoload CanvasLayer
 | 项目 | 内容 |
 |------|------|
-| **职责** | 全屏圆形 Miss 特效（CanvasLayer, ShaderMaterial）|
-| **add_circle()** | 最多 8 圈同时；支持延迟、起始半径 |
+| **职责** | 全屏圆形 Miss 特效（ShaderMaterial）|
+| **容量** | 最多 8 圈同时显示 |
+| **add_circle(world_pos, duration, max_radius, start_radius, start_delay)** | 添加一个 Miss 圈 |
 | **每帧** | `_process` 更新 shader uniform（位置/半径/alpha）→ 过期移除 |
+| **clear_all()** | 清空所有 |
 
 ### 2.9 Item 系统
 
-#### Item
+#### Item — Area2D (class_name Item)
 | 项目 | 内容 |
 |------|------|
-| **类型** | `POWER / POINT / LIFE_FRAGMENT / BOMB_FRAGMENT / LIFE_FULL / BOMB_FULL` |
-| **节点** | `Area2D`（碰撞层 32, 掩码=Player）|
-| **运动** | 上抛 ↑180 → 重力 ↓240/s² → 终端 ↓180 |
-| **收集** | 碰撞 Player / 靠近 128px（focus×1.5） / 玩家 y<256 → 飞向玩家 800px/s |
-| **_dead** | 收集/回收前设 true，回调入口检查 |
+| **类型枚举** | `enum Type {POWER, POINT, LIFE_FRAGMENT, BOMB_FRAGMENT, LIFE_FULL, BOMB_FULL}` |
+| **节点** | Area2D + Sprite2D + CollisionShape2D(Circle) |
+| **运动** | 上抛初速(0, -180)px/s → 重力 240px/s² → 终端 180px/s |
+| **收集** | 碰撞 Player / 靠近自机 128px（focus 时 192px）/ 自机 y<256px → 自动飞向自机 800px/s |
+| **出屏** | y > 960 → `_recycle()` |
+| **dead 锁** | `_dead` 标志在所有回调入口检查 |
 
-#### ItemPool
+#### ItemPool — Node
 | 项目 | 内容 |
 |------|------|
 | **池容量** | 64 个 |
 | **模式** | 常驻 tree（World/ItemPool），`spawn()/recycle()` 无 queue_free |
 | **recycle()** | 已在池中跳过，`_pool` 满时 queue_free |
+| **生成** | GameScene._ready 时创建并挂到 World 下 |
 
-#### 掉落配置 (EnemyData)
+#### 掉落配置 (EnemyData / PhaseData)
 | 项目 | 内容 |
 |------|------|
 | `item_power/point/life/bomb` | 各掉几个 |
 | `item_life_full/bomb_full` | 完整残机/Bomb 个数 |
-| `item_scatter` | 生成位置随机散布 |
+| `item_scatter` | 生成位置随机散布范围（默认 50px）|
 
 #### 得分逻辑
 | 项目 | 内容 |
 |------|------|
 | **Point** | `GameState.add_max_point()`: +max_point 分, max_point+=10 |
-| **Power** | `GameState.add_power(1)` → power_raw+1 |
-| **碎片** | `collect_life_fragment()` / `collect_bomb_fragment()`: 5碎片→1完整 |
-| **完整** | `collect_life_full()` / `collect_bomb_full()`: 内部调 5×fragment |
-| **上限** | lives≤8, bomb_count≤8, power_raw≤300（对应火力 1.00~4.00）|
+| **Power** | `GameState.add_power(1)`: power_raw+1，上限 300（4.00 火力）|
+| **碎片** | `collect_life_fragment()`/`collect_bomb_fragment()`: 5碎片→1完整 |
+| **完整** | `collect_life_full()`/`collect_bomb_full()`: 内部调 5×fragment |
+| **上限** | lives≤8, bomb_count≤8 |
 
-### 2.10 CoroutineRunner（基类）
+### 2.10 CoroutineRunner — Node (class_name)
 | 项目 | 内容 |
 |------|------|
 | **机制** | `run(callable)` → `_physics_process` 每帧调 callable |
-| **返回值** | `> 0` 等待秒数 / `true` 下帧 / `false/null` 结束 |
+| **返回值约定** | `float/int > 0` → 等待秒数 / `true` → 下帧再调 / `false/null` → 结束 |
+| **计时** | `_clock` 累积 `_physics_process` 的 delta，tree.paused 时自动冻结 |
 | **stop()** | 清全部任务，发 `cancelled` 信号 |
-| **注意** | `run()` 内部调 `stop()` — 子类覆写 `stop()` 时注意初始态不被意外触发 |
 | **run_parallel()** | 追加并行任务，不停止已有 |
+| **信号** | `finished()` — 所有任务结束；`cancelled()` — 被 stop |
+| **Task** | 内部 RefCounted 类，存 callable + wake_time |
 
-### 2.11 StageContext
+### 2.11 StageContext — RefCounted (class_name)
 | 项目 | 内容 |
 |------|------|
-| **职责** | 协程与系统的唯一桥梁（替代旧的 StageAPI 类）|
-| **持有** | WeakRef + `runner` 引用 |
-| **子服务** | `clock`, `bullets`, `enemies`, `player`, `dialogue`, `items`, `decor` |
-| **active()** | runner 存在且 is_running |
-| **方法** | `clock.wait(seconds)`, `bullets.shoot_spread()`, `bullets.fire_*_laser()`, `enemies.spawn()`, `enemies.spawn_boss()`, `player.get_player()`, `play_dialogue()`, `spawn_item()`, `get_decor()`, `get_field_rect()` |
-| **安全** | 所有方法开头检查 `active()` |
+| **职责** | 协程与系统的唯一桥梁 |
+| **持有** | `runner: CoroutineRunner`（弱引用通过 is_instance_valid 检查）|
+| **子服务** | `clock`, `bullets`, `player`, `dialogue`, `items`, `audio` |
+| **active()** | runner 存在且 `is_running` |
 
-### 2.12 AssetRegistry
+**ClockService**
+| 方法 | 说明 |
+|------|------|
+| `wait(seconds)` | 返回 seconds，CoroutineRunner 等待 |
+| `wait_frames(count)` | 返回帧等效秒数 |
+
+**BulletService**
+| 方法 | 说明 |
+|------|------|
+| `shoot_spread(data, count, spread_angle, base_dir, at, sfx)` | 扇形散弹 |
+| `fire_growing_laser(curve, color, speed, tail, lifetime, tex)` | 曲线生长激光 |
+| `fire_line_laser(a, b, color, lifetime, tex)` | 两点直线激光 |
+| `fire_fixed_laser(curve, color, lifetime, tex)` | 固定路径瞬间全开 |
+| `fire_homing_laser(origin, player_pos, color, bend, length, lifetime)` | 自机导向激光（内部构造贝塞尔曲线） |
+| `clear_all_lasers()` | 清激光 |
+
+**PlayerService**
+| 方法 | 说明 |
+|------|------|
+| `get_player()` | 返回 Player 或 null |
+| `get_position()` | 返回玩家位置 Vector2 |
+
+**DialogueService**
+| 方法 | 说明 |
+|------|------|
+| `play(lines)` | 播放对话（暂停协程，等完成后继续）|
+| `show(char_name, text, pos, portrait)` | 快捷单句对话 |
+
+**ItemService**
+| 方法 | 说明 |
+|------|------|
+| `spawn(type, position)` | 在 World/ItemPool 下生成道具 |
+
+**AudioService**
+| 方法 | 说明 |
+|------|------|
+| `play_bgm(stream, gap)` | 播 BGM |
+| `stop_bgm()` | 停 BGM |
+| `play_sfx(stream, vol_db)` | 播音效 |
+
+```
+便捷属性:
+  ctx.decor               → get_decor() 懒加载 DecorManager
+  ctx.get_field_rect()    → runner 所在 Viewport 的可见区域
+  ctx.play_dialogue(lines)→ dialogue.play 的快捷方式
+  ctx.dialogue_show(...)  → 快捷单句对话
+  ctx.spawn_item(type, pos) → items.spawn 的快捷方式
+```
+
+### 2.12 AssetRegistry — Autoload 单例
 | 项目 | 内容 |
 |------|------|
-| **职责** | 全项目资源注册表，一处改全局生效 |
-| **拥有** | `enemy_visuals`, `bullet_configs`, `sounds`, `ui_textures`, `enemies` 字典 |
-| **子弹配置** | `bullet_configs` 包含贴图 + 判定盒信息；构造链通过 `BulletData.tex(key)` 查找 |
-| **敌人脚本** | `enemies` 字典存 EnemyScript 类引用 |
+| **职责** | 资源注册表 |
+| **拥有** | `enemy_visuals(Dictionary)`, `bullet_configs(Dictionary)`, `sounds(Dictionary)`, `ui_textures(Dictionary)`, `enemies(Dictionary)` |
+| **子弹配置** | `bullet_configs` 含贴图+判定盒信息；`BulletData.tex(key)` 通过此查找 |
+| **敌人视觉** | `enemy_visuals` 存 PackedScene（蓝色/红色/绿色/黄色妖精、玉等）|
 
-### 2.13 LayerConfig
+### 2.13 LayerConfig — Autoload 单例
 | 项目 | 内容 |
 |------|------|
 | **职责** | 全局 z_index 常量 |
 | **值** | `PLAYER_BULLET=-10`, `ITEM=-5`, `PLAYER=0`, `ENEMY=5`, `ENEMY_BULLET=10`, `BOSS=15`, `BOSS_HP_RING=20`, `BOMB=100`, `GAME_UI=1000`, `OVERLAY=2000`, `DEBUG=9999` |
 
+### 2.14 GameEvents — Autoload 单例
+| 信号 | 说明 |
+|------|------|
+| `enemy_killed(score, pos)` | 敌人被击破 |
+| `player_death()` | 残机为 0，Game Over |
+| `boss_spawned(boss)` | Boss 生成 |
+| `boss_defeated(boss)` | Boss 被击败 |
+| `phase_start(phase_data)` | 阶段开始（非符/符卡）|
+| `phase_end(captured, bonus)` | 阶段结束 |
+| `phase_bonus_tick(bonus)` | 奖励分每帧递减 |
+
 ---
 
-## 3. 生命周期
+## 3. CoroutineScript — 协程脚本统一基类
 
-### 3.1 应用级
+### 3.1 概述
+项目中**所有协程脚本**统一使用 `CoroutineScript`（继承 `CoroutineRunner`），不再区分 `StageScript / CreateScript / MoveScript / PlayerShootScript / EnemyScript`。
+
+| 属性 | 类型 | 默认 | 说明 |
+|------|------|------|------|
+| `ctx` | StageContext | null | 运行时上下文，start 时设置 |
+| `target` | Node2D | null | 要控制的节点（可选）|
+| `auto_stop` | bool | false | true=Timeline 播完自动结束；false=持续运行 |
+| `_tl` | Timeline | null | 绑定 Timeline，由 `start_timeline()` 创建 |
+
+| 方法 | 说明 |
+|------|------|
+| `start(ctx, target=null)` | 启动协程，每帧调 `_tick(ctx)` |
+| `start_timeline()` | 创建并返回 Timeline 构建器 |
+| `_tick(ctx)` → Variant | 每帧回调；默认走 Timeline；覆写实现自定义逻辑 |
+| `diff_pick(arr)` | 根据当前难度从数组取值 |
+| `diff_get(dict, key, default)` | 根据当前难度从字典取值 |
+
+### 3.2 使用模式
+
+**敌人弹幕脚本（原 CreateScript）：**
+```gdscript
+extends CoroutineScript
+
+func _tick(ctx):
+    ctx.bullets.shoot_spread(bullet, 3, 0.3, Vector2.DOWN, target.global_position)
+    return ctx.clock.wait(0.5)
+# auto_stop = true
+```
+
+**敌人移动脚本（原 MoveScript）：**
+```gdscript
+extends CoroutineScript
+
+var target_y: float = 300
+
+func _tick(ctx):
+    target.global_position.y = move_toward(target.global_position.y, target_y, 100 * get_physics_process_delta_time())
+    if abs(target.global_position.y - target_y) < 1:
+        return false
+    return true
+# auto_stop = true
+```
+
+**自机射击脚本：**
+```gdscript
+extends CoroutineScript
+
+func _tick(ctx):
+    if Input.is_action_pressed("shoot"):
+        var p := ctx.player.get_player()
+        if p: ctx.bullets.shoot_spread(main_shot, 1, 0, Vector2.UP, p.muzzle.global_position)
+    return ctx.clock.wait(0.1)
+# auto_stop = false
+```
+
+**关卡时间线脚本（原 StageScript）：**
+```gdscript
+extends CoroutineScript
+
+func _tick(ctx):
+    if not _tl: _tl = start_timeline()
+    return _tl.tick(get_physics_process_delta_time())
+# auto_stop = true，播完关卡结束
+```
+
+---
+
+## 4. Timeline — 声明式时间线
+
+```gdscript
+var tl := Timeline.new(ctx)
+tl.at(0.0).do(cb)                  — 单次定时
+tl.at(2.0).every(1.5).times(4).do(cb)  — 重复定时
+tl.at(5.0).spawn_wave(data, count, spread, dir, pos)  — 弹幕波
+tl.at(10.0).spawn_enemy(script, pos)
+tl.at(12.0).spawn_boss(data, pos)
+tl.at(13.0).play_bgm(stream)
+tl.at(14.0).play_dialogue(data)
+tl.loop()                          — 循环模式（最后一个事件触发时重置）
+```
+
+| 方法 | 说明 |
+|------|------|
+| `at(t)` | 设置时间点 |
+| `every(interval)` | 设置重复间隔 |
+| `times(n)` | 设置重复次数 |
+| `do(cb)` | 添加回调事件 |
+| `spawn_wave(data, count, spread, dir, at_pos)` | 快捷散弹 |
+| `spawn_enemy(script, pos)` | 快捷生成敌人（通过 EnemyData 构造链）|
+| `spawn_boss(data, pos)` | 快捷生成 Boss |
+| `play_bgm(stream)` | 快捷播 BGM |
+| `play_dialogue(data)` | 快捷播对话 |
+| `tick(delta)` → bool | 每帧调用，返回是否还有未触发事件 |
+| `pause() / resume()` | 暂停/恢复 |
+| `reset()` | 重置到初始 |
+| `seek(time)` | 跳到指定时间 |
+| `loop()` | 循环模式 |
+
+---
+
+## 5. 实体层
+
+### 5.1 Player — Area2D (class_name Player)
+| 项目 | 内容 |
+|------|------|
+| **移动** | `input_vector` + `normal_speed`/`focus_speed`（像素/秒）；`update_move(delta)` 含对角归一化 + clamp 边界 |
+| **边界** | x 在 [64+24, 832-24]，y 在 [32+32, 928-32] |
+| **判定** | `hitbox_radius=5px`（`HitPointDisplay` 显示受击点）；`graze_radius=40px` |
+| **动画** | 状态机：`IDLE ↔ LEFTING ↔ LEFT ↔ RIGHTING ↔ RIGHT`；`LEFTING/RIGHTING` 为一次性过渡动画 |
+| **射击** | `_shoot_script: PlayerShootScript`（通过 `PlayerData.shoot_script` 指定）；灵梦用 `cs_reimu.gd`，魔理沙用 `cs_marisa.gd`；通过 `_reinit_shoot()` 切换角色 |
+| **无敌** | `is_invincible` + `_invincible_timer` 倒计时（`_physics_process` 递减，不用 await）|
+| **Miss** | 5 个 MissEffect 圈 + DeathClear(2048, 3.0s) + `memory+=25` + lives-1 + 无敌 3s；lives==0 → `GameEvents.player_death.emit()` |
+
+### 5.2 Enemy — Area2D (class_name Enemy)
+| 属性 | 说明 |
+|------|------|
+| `enemy_data: EnemyData` | 配置数据 |
+| `max_hp / hp` | 生命值 |
+| `hitbox_radius` | 判定半径 |
+| `score_value` | 击破分数 |
+| `death_effect` | 死亡特效 PackedScene |
+| `_visual: Node2D` | 外观实例 |
+
+| 方法 | 说明 |
+|------|------|
+| `_apply_enemy_data(data)` | 应用配置 + CollisionShape2D |
+| `start()` | 子类覆写 |
+| `take_damage(int)` | 扣血，hp<=0 自动 `die()` |
+| `die()` | 播死亡音效+特效 → 掉落Item → `enemy_killed` 信号 → queue_free |
+| `_drop_item()` | 从配置读取各类型掉落数，通过 ItemPool.spawn 生成 |
+
+### 5.3 EnemyVisual — AnimatedSprite2D (class_name)
+| 项目 | 内容 |
+|------|------|
+| **职责** | 根据父节点移动速度自动切换动画 |
+| **动画状态** | `IDLE`(loop) ↔ `RIGHTING`(一次性) ↔ `RIGHT`(loop) |
+| **速度阈值** | `MOVE_THRESHOLD=30px/s`；防抖 `IDLE_HOLD=0.2s` |
+| **翻向** | `flip_h` 由 x 方向自动控制 |
+
+### 5.4 Boss — Area2D (class_name Boss)
+| 项目 | 内容 |
+|------|------|
+| **数据** | `boss_data: BossData`（名称 + 视觉场景 + PhaseData 列表）|
+| **阶段** | `_phase_index` 递增；`_next_phase()` → HP 从 0 涨到满（1 秒 Tween）→ `_begin_phase()` |
+| **碰撞** | Area2D，碰撞层 4，掩码 2 |
+| **HP 环** | 子节点 `BossHpRing` |
+| **每帧** | `_process`: `_elapsed` 累积 + `_bonus` 递减 tick + 超时检测 |
+| **符卡** | `unlock_spell(pid)` 见到即记；`record_spell(pid, captured, bonus, elapsed)` 记录尝试 |
+| **时间** | `_elapsed >= time_limit` → `_on_phase_clear(is_timeout_only)` |
+| **阶段间间隔** | 2 秒 gap（`create_timer(2.0)`）|
+| **`_die_boss()`** | 清状态 + `boss_defeated` 信号 + queue_free |
+| **练习模式** | 不掉落 Item |
+
+### 5.5 Bullet — Node2D (class_name Bullet)
+| 项目 | 内容 |
+|------|------|
+| **属性** | `faction(0/1/2)`, `damage`, `velocity`, `can_be_canceled`, `hit_effect` |
+| **判定** | `hitbox_shape(CIRCLE/RECTANGLE)`, `hitbox_radius`, `hitbox_size`, `hitbox_offset` |
+| **运行时** | `is_ready`, `_grazed`, `coroutine_script`, `extra(Dictionary)` |
+| **bind(data, dir)** | 从池复用初始化：设贴图/染色/速度/雾 → `_on_fog_ready` 设 `is_ready=true` |
+| **物理** | 无协程时 `_physics_process` 中 `position += velocity / ticks_per_second` |
+| **雾** | `BulletFog` 子节点；`spawn_fog=true` 时播雾，雾结束才显示子弹 |
+| **染色** | 自机弹根据 `memory_value` 染色（<50 时偏红）|
+
+### 5.6 Laser — Node2D (class_name Laser)
+| 项目 | 内容 |
+|------|------|
+| **类型** | 实际代码中 `fire_growing_laser / fire_line_laser / fire_fixed_laser / fire_homing_laser` 四种 |
+| **状态** | `ALIVE → FADE(0.15s) → DEAD` |
+| **碰撞** | 沿曲线采样做线段最近点检测 |
+
+### 5.7 BackgroundStage — Node (class_name StageBackground)
+| 项目 | 内容 |
+|------|------|
+| **子类** | `BackgroundPlane`（着色器平面）、`BackgroundCylinder`（圆柱环绕）|
+| **装饰** | `DecorManager` + `DecorLayer`（MultiMesh 批量渲染）|
+| **着色器** | `background_plane.gdshader`, `background_cylinder.gdshader`, `water_flow.gdshader`, `ground.gdshader` |
+
+---
+
+## 6. 数据类
+
+### 6.1 BulletData — Resource (class_name)
+| 字段 | 类型 | 默认 | 说明 |
+|------|------|------|------|
+| texture | Texture2D | null | 子弹贴图 |
+| tint_mode | TintMode | MULTIPLY | 染色模式 |
+| tint | Color | WHITE | 贴图染色 |
+| damage | int | 10 | 基础伤害 |
+| velocity | Vector2 | UP | 速度向量 |
+| hit_effect | PackedScene | null | 击中特效 |
+| faction | Faction | PLAYER | 阵营(PLAYER/ENEMY/BOMB) |
+| can_be_canceled | bool | false | 可被 Bomb 消除 |
+| hitbox_shape | HitboxShape | CIRCLE | 判定形状 |
+| hitbox_offset/radius/size/rotation | | | 判定参数 |
+| spawn_fog | bool | false | 是否播弹雾 |
+| fog_texture | Texture2D | null | 弹雾贴图 |
+| coroutine_script | Script | null | 移动协程脚本 |
+
+构造链方法：`.tex(key).speed(v).dir(x,y).color(c).enemy().player().blend(b)`
+
+### 6.2 EnemyData — Resource (class_name)
+| 字段 | 说明 |
+|------|------|
+| `visual_scene` | 外观 PackedScene |
+| `max_hp / hitbox_radius / score_value` | 基础属性 |
+| `death_effect` | 死亡特效（默认 `death_effect.tscn`）|
+| `boss_data` | 可选的 BossData |
+| `item_power/point/life/bomb/life_full/bomb_full` | 掉落配置 |
+| `item_scatter` | 散布范围 |
+
+构造链方法 + 预设模板：`red_little_fairy()`, `blue_middle_fairy()`, `white_huge_fairy()`, `red_YY_jade()` 等 14 种。
+
+`spawn()` 方法：通过 CoroutineScript 在敌人上挂载协程。
+
+### 6.3 PhaseData — Resource (class_name, @export)
+| 字段 | 说明 |
+|------|------|
+| name | 符卡名（空串=非符）|
+| uid | 全局唯一符卡编号（0=非符）|
+| bonus/time_limit/hp | 奖励分/时限/血量 |
+| is_timeout_only | 时符 |
+| move_script/shoot_script | 移动/弹幕 CoroutineScript |
+| background | 可选换背景 PackedScene |
+| item_* | 掉落配置 |
+
+### 6.4 BossData — Resource (class_name)
+| 字段 | 说明 |
+|------|------|
+| boss_name | 名称 |
+| visual | 视觉 PackedScene |
+| phases | PhaseData 数组 |
+| score_value | 击破分数 |
+
+构造链：`.name(v).look(v).phase(p).score(v)`
+
+### 6.5 StageData — Resource (class_name, @export)
+| 字段 | 说明 |
+|------|------|
+| stage_id | 关卡编号 |
+| difficulty | 难度枚举(EASY/NORMAL/HARD/LUNATIC/EXTRA) |
+| create_script | 关卡 CoroutineScript |
+| background_scene | 背景 PackedScene |
+
+### 6.6 PlayerData — Resource (class_name, @export)
+| 字段 | 说明 |
+|------|------|
+| focus_speed / normal_speed | 低速/常速 像素/秒 |
+| animation | SpriteFrames |
+| shoot_script | 射击 CoroutineScript |
+
+### 6.7 SpellRecord / SpellRecordBook
+| 项目 | 内容 |
+|------|------|
+| SpellRecord | uid, character, stage, phase_type, phase_number, difficulty, spell_name, attempts, captures, practice_attempts, practice_captures, best_score, best_time |
+| SpellRecordBook | 主键 (uid, character, difficulty) |
+
+### 6.8 CardDef / CardRegistry
+| 项目 | 内容 |
+|------|------|
+| CardDef | 符卡定义（含 phase_data, boss_scene, background_scene, stage_id）|
+| CardRegistry | 符卡注册表（供练习菜单使用）|
+
+### 6.9 CharacterProfile / DialogueData / DialogueLine / DialogueBubble
+| 项目 | 内容 |
+|------|------|
+| CharacterProfile | char_name, portraits(Dictionary) |
+| DialogueData | lines(Array[DialogueLine]) |
+| DialogueLine | bubbles(Array[DialogueBubble]) |
+| DialogueBubble | speaker(CharacterProfile), text, portrait_pos |
+
+---
+
+## 7. 生命周期
+
+### 7.1 应用级
 ```
 Boot
-  └→ MainMenu（MENU 状态，播标题 BGM）
+  └→ MainMenu（MENU 状态）
        ├→ [Start] → DifficultyScreen
        │              └→ CharacterScreen
-       │                   └→ stop_bgm() → change_scene("game_scene")
+       │                   └→ stop_bgm() → GameManager.change_scene("game_scene")
        ├→ [Stage Practice] → StagePracticeMenu
        │              └→ (直接跳 GameScene, is_stage_practice=true)
        ├→ [Spell Practice] → SpellPracticeMenu
@@ -242,71 +581,70 @@ Boot
        └→ [Quit]
 ```
 
-### 3.2 关卡级（GameScene）
+### 7.2 关卡级（GameScene）
 ```
 GameScene._ready()
-  ├ 1. GameManager._set_state(PLAYING)     ← 尽早允许暂停
-  ├ 2. ItemPool 创建并挂到 World
+  ├ 1. GameManager._set_state(PLAYING)
+  ├ 2. 创建 ItemPool → 挂到 World
   ├ 3. 根据 is_practice_mode 分流:
-  │     普通: 解析 StageData → _load_background → StageManager.load_stage(data)
-  │     练习: _load_background(缓存的 practice_background) → 直接 spawn_boss(单 phase)
-  ├ 4. _setup_player() (引入角色数据 + 射击脚本)
-  ├ 5. 连接 GameEvents + GameManager 信号
-  └ 6. 自动开始（StageScript → start_stage → Timeline 驱动）
+  │     普通: _resolve_stage_data() → _load_background → StageManager.load_stage(data)
+  │     练习: _load_background(practice_background) → CoroutineRunner → spawn_boss(单 phase)
+  ├ 4. _setup_player()（从 PlayerData 加载角色数据+射击脚本）
+  └ 5. 自动开始（StageScript → CoroutineScript._tick → Timeline 驱动）
 
 关卡运行中:
-  GameUI HUD 每帧更新（score/power/max_point/graze/memory/碎片）
-  StageScript._on_step() → Timeline.tick() 驱动波次
+  GameUI HUD 每帧更新
+  BulletManager._physics_process 驱动子弹/激光/碰撞
 
 暂停:
-  Input.is_action_just_pressed("ui_pause")
-  → GameManager.pause_game()
+  Input "ui_pause" → GameManager.pause_game()
     → MenuNav.push_overlay("pause_menu")
-      → _set_state(PAUSED)
-      → tree.paused = true（AudioManager 自动 stream_paused）
-      → CoroutineRunner 冻结（_physics_process 不跑）
-      → Background._process 不跑
-      → Tween 默认暂停
-      → _add_blur()（SubViewport 区域着色器模糊）
+    → _set_state(PAUSED)
+    → tree.paused = true（AudioManager 自动 stream_paused）
+    → _add_blur()（SubViewport 区域 ColorRect 着色器模糊）
 
 恢复:
   MenuNav.pop_overlay() → tree.paused = false
   → _set_state(PLAYING)
-  → 移除 blur
+  → _remove_blur()
 
 Miss:
-  Player → BulletManager.start_death_clear(pos, 2048, 3.0)
-    → DeathClear 圈膨胀 + 激光淡出
-    → MissEffectManager 6 个 CircleShader 圈
+  Player → BulletManager.start_death_clear(pos, 2048, 3.0, 30.0)
+    → DeathClear 圈膨胀
+    → MissEffectManager 多圈 Shader
     → GameState.add_memory(25.0)
     → GameState.lives -= 1
     → is_invincible = true（3 秒倒计时，_physics_process 自动倒数）
     → lives == 0 → GameEvents.player_death.emit()
-      → await 2 秒 → game_over_menu 覆盖层
+      → await 2 秒 → GameManager.push_overlay_menu(game_over_menu)
 
 关卡通关:
-  stage_cleared → 非练习: current_stage_id += 1, reload_current_scene
-  → 关卡练习: 跳回主菜单
+  StageManager.stage_cleared 信号
+  → is_stage_practice: 跳回主菜单
+  → 非练习: current_stage_id += 1, reload_current_scene
 
 场景切换:
-  GameManager.change_scene(path)
+  GameManager.change_scene(path, target_state)
     → _set_state(TRANSITIONING)
-    → 清 MenuStack + 覆盖层
+    → 清页面+覆盖层
     → SceneTransition:
-        pause tree → fade_out → clear_all → change_scene_to_file
-        → process_frame → fade_in → unpause
+        await fade_out → change_scene_to_file
+        → await process_frame → fade_in
     → _set_state(target_state)
+    → scene_entered.emit()
 
 GameScene._exit_tree():
   BulletManager.clear_all()
   → HitEffectPool.clear_all_pool()
-  → 清理 background_instance（queue_free）
-  → 清理 practice_runner
+  → 清理 _background_instance
+  → 清理 _practice_runner
   → StageManager.stop_stage()
   → GameState.end_practice()
-```
 
-### 3.3 协程任务生命周期
+---
+
+## 8. 协程任务生命周期
+
 ```
 CoroutineRunner
   ├ run(callable) → stop() (清旧) → 新任务
@@ -314,8 +652,8 @@ CoroutineRunner
   │
   ├ _physics_process(delta):
   │   _clock += delta
-  │   for task in _tasks (倒序):
-  │     if wake_time > _clock: skip
+  │   for i in range(_tasks.size()-1, -1, -1):
+  │     if task.wake_time > _clock: skip
   │     result = task.callable.call()
   │     if result is float/int > 0: wake_time = _clock + result
   │     elif result == true: pass（下帧再调）
@@ -324,58 +662,57 @@ CoroutineRunner
   └ 所有任务结束 → finished.emit()
 ```
 
-### 3.4 Timeline（声明式替代状态机）
+---
+
+## 9. 子弹生命周期
+
 ```
-tl := Timeline.new(ctx)
-tl.at(0.0).do(cb)              — 单次定时
-tl.at(2.0).every(1.5).times(4).do(cb)  — 重复定时
-tl.at(5.0).spawn_enemy(data, pos)      — 快捷方法
-tl.at(10.0).spawn_boss(data, pos)
-tl.at(12.0).play_bgm(path)
-tl.loop()                      — 循环模式
+发射:
+  BulletPool.shoot(data, pos, dir)
+    ├ 池中有 → pop
+    ├ 池空 → instantiate（有上限 MAX_TOTAL=5000）
+    └ bind(data, dir)
+        ├ sprite.texture = data.texture
+        ├ faction = data.faction
+        ├ velocity = dir.normalized() × data.velocity.length()
+        ├ 如果 spawn_fog → 雾播放 → _on_fog_ready → is_ready=true
+        ├ 否则 is_ready=true
+        └ 如果 coroutine_script → 启动协程
 
-tick(delta) → bool (还有未触发事件)
-```
+每帧:
+  ├ 没有协程的：position += velocity / physics_ticks_per_second
+  └ 有协程的：由 CoroutineScript 协程控制
 
-### 3.5 敌人生命周期
-```
-StageScript → ctx.enemies.spawn_enemy(data, pos)
-  → StageManager.spawn_enemy → ENEMY_SCENE.instantiate()
-  → Enemy._ready()
-    ├ GameState.active_enemies.append(self)
-    └ _apply_enemy_data(data)
-        ├ visual_scene.instantiate() → add_child
-        ├ CreateScript.new() → add_child → start_creating(ctx)
-        └ MoveScript.new() → add_child → start_moving(ctx, self)
-  → start() 启动协程
+回收:
+  ├ 碰撞命中 → return_bullet
+  ├ 出屏 → return_bullet
+  ├ DeathClear 圈内 → return_bullet
+  └ clear_all → 全部 return_bullet
 
-Enemy 运行:
-  EnemyVisual._process 检测 speed → 切动画（IDLE ↔ RIGHTING ↔ RIGHT，含防抖 0.2s）
-  CreateScript+MoveScript 协程运行中
-  碰撞检测 → take_damage → hp <= 0 → die()
-
-Enemy.die():
-  ├ active_enemies.erase(self)
-  ├ AudioManager.play_sfx(enemy_die)
-  ├ _drop_item() → ItemPool.spawn（从 EnemyData 配置）
-  ├ HitEffectPool.play(death_effect)
-  ├ GameEvents.enemy_killed.emit(score, pos)
-  ├ stop create + move 协程
-  └ queue_free()
+return_bullet:
+  ├ 停协程 + queue_free
+  ├ fog.visible=false, texture=null, 断信号
+  ├ visible=false, process_mode=DISABLED
+  ├ 从 active_bullets 移除
+  └ 入池（或 free 如果池满 4000）
 ```
 
-### 3.6 Boss 生命周期
+---
+
+## 10. Boss 生命周期
+
 ```
 Boss.setup(data, ctx) → 环形血条 + 碰撞形状 + 信号连接
-Boss.start_boss() → active_enemies 注册 + 发射 boss_spawned 信号
+Boss.start_boss(defer) → active_enemies 注册 + boss_spawned 信号
 
 NextPhase:
   ├ phase_index++
   ├ HP 从 0 → phase.hp (1 秒 Tween)
-  ├ unlock_spell() → 符卡簿记录（见到即记）
-  ├ 如果是符卡 → GameEvents.phase_start
+  ├ unlock_spell(pid) → 符卡簿记录（见到即记）
+  ├ 如果是符卡 → GameEvents.phase_start.emit()
   ├ _begin_phase() → 启动 move/shoot 协程
   ├ 非 is_timeout_only → invincible=false
+  └ 时符 → invincible=true, hp=999999
 
 每帧:
   ├ _elapsed += delta
@@ -383,8 +720,8 @@ NextPhase:
   └ 超时 → _on_phase_clear(!is_timeout_only)
 
 PhaseClear:
-  ├ 停 move/shoot 协程
-  ├ 记录 attempt（普通模式）/ practice（练习模式）
+  ├ 停 move/shoot 协程 + queue_free
+  ├ record_spell（普通模式）/ record_practice（练习模式）
   ├ score += bonus（如果收取）
   ├ _drop_items()（练习不掉落）
   ├ 2 秒 gap → _next_phase（或 _die_boss）
@@ -395,356 +732,238 @@ DieBoss:
   └ queue_free
 ```
 
-### 3.7 子弹生命周期
-```
-发射:
-  BulletPool.shoot(data, pos, dir)
-    ├ 池中有 → pop
-    ├ 池空 → instantiate（有上限）
-    └ bind(data, dir)
-        ├ sprite.texture = data.texture
-        ├ faction = data.faction
-        ├ velocity = dir.normalized() × data.velocity.length()
-        ├ 如果 spawn_fog → 雾播放 → _on_fog_ready → is_ready=true
-        ├ 否则 is_ready=true
-        └ 如果 movement_script → 启动协程
+---
 
-每帧:
-  ├ 没有协程的：position += velocity / physics_ticks_per_second
-  └ 有协程的：由 MoveScript 协程控制
+## 11. Item 生命周期
 
-回收:
-  ├ 碰撞命中 → return_bullet
-  ├ 出屏 → return_bullet
-  ├ DeathClear 圈内 → return_bullet
-  └ clear_all → 全部 return_bullet
-
-return_bullet:
-  ├ 停协程（bullet.coroutine_movement + 子 MoveScript）+ queue_free
-  ├ fog.visible=false, texture=null, 断信号
-  ├ visible=false, process_mode=DISABLED
-  ├ 从 active_bullets 移除
-  └ 入池（或 free 如果池满 4000）
-```
-
-### 3.8 Item 生命周期
 ```
 ItemPool.spawn(pos, type)
   → _pool.pop_back() 或 instantiate（无上限）
   → Item.setup(type, pos)
     ├ _dead=false, _auto_collect=false
-    ├ _velocity=(0,-180) 上抛
-    └ 设贴图（power / point / life 等）
+    ├ _velocity=(0,-180) 上抛初速
+    └ 设贴图（power/point/life_part/spell_part/life_full/spell_full）
 
 Item._physics_process(delta):
   if _dead: return
-  ├ 玩家 y<256 或距离<128px（focus×1.5）→ _auto_collect=true
+  ├ 玩家 y<256 或距离<128px（focus×1.5=192px）→ _auto_collect=true
   ├ auto_collect: 飞向玩家 800px/s
   ├ else: 重力加速 → vy=min(vy+240*dt, 180)
   └ y>960 → _recycle()
 
 Item collect (area_entered → Player):
-  → collect(): _dead=true, visible=false, physics=false
-  → AudioManager.play_sfx(item)
+  → collect(): _dead=true, visible=false, set_physics_process(false)
+  → AudioManager.play_sfx(item.wav)
   → 计分/加碎片/加命
   → _recycle()
 
 ItemPool.recycle(item):
-  → 已在池中跳过 → visible=false, physics=false → 入池
+  → 已在池中跳过 → _pool.append(item)
+  → 池满（64）→ queue_free
 ```
 
 ---
 
-## 4. 数据所有权
+## 12. 数据所有权
 
 | 数据 | 所有者 | 写入者 | 读取者 |
 |------|--------|--------|--------|
-| score | GameState | GameState.add_score(), add_max_point() | GameUI |
+| score | GameState | add_score(), add_max_point() | GameUI |
 | lives | GameState | Player.miss(), collect_life_*() | GameUI |
-| bomb_count | GameState | collect_bomb_*() | GameUI, Player |
-| power_raw | GameState | GameState.add_power(), on_miss_power_penalty() | Player shoot calc, GameUI |
-| memory_value | GameState | GameState._process(regen), add_memory(), reduce_memory() | bullet tint, bullet_physics damage |
+| bomb_count | GameState | collect_bomb_*() | GameUI |
+| power_raw | GameState | add_power(), on_miss_power_penalty() | Player shoot calc, GameUI |
+| memory_value | GameState | _process(regen), add_memory(), reduce_memory() | bullet tint, bullet_physics damage |
 | graze_count | GameState | bullet_physics.on_graze() | GameUI |
-| max_point | GameState | GameState.add_max_point() | Item, GameUI |
+| max_point | GameState | add_max_point() | Item, GameUI |
 | difficulty | GameState | DifficultyScreen | 各处 |
 | character | GameState | CharacterScreen | GameScene._setup_player() |
-| active_enemies | GameState | Enemy._ready/_exit, Boss, BulletPhysics | StageContext, all_defeated() |
-| active_bullets | BulletPool | BulletPool.shoot/return_bullet | BulletPhysics, BulletMultiMesh |
-| active_lasers | LaserSystem | LaserSystem.fire_*/clear | LaserSystem.step |
-| item_pool | World/ItemPool | ItemPool.spawn/recycle | Enemy._drop_item, Boss._drop_items |
-| current_stage | StageManager | StageManager.load/stop_stage | 各处只读 |
-| current_background | StageManager | GameScene._load_background | StageContext.spawn_decor |
-| spell_book | GameState | record_spell/record_practice | SpellPracticeMenu |
+| active_enemies | GameState | Enemy._ready/_exit_tree, Boss | StageContext |
+| active_bullets | BulletPool | shoot/return_bullet | BulletPhysics, BulletMultiMesh |
+| active_lasers | LaserSystem | fire_*/clear | LaserSystem.step |
+| item_pool | World/ItemPool | spawn/recycle | Enemy._drop_item, Boss._drop_items |
+| current_stage | StageManager | load/stop_stage | 各处只读 |
+| current_background | StageManager | GameScene._load_background | StageContext.get_decor() |
+| spell_book | GameState | unlock_spell(), record_spell() | SpellPracticeMenu |
 | player | GameState | GameScene._setup_player() | PlayerService, Item |
 
 ---
 
-## 5. 协程脚本体系
+## 13. 状态机
 
-### 5.1 StageScript（关卡脚本）
-> 继承 `CoroutineRunner`
-
-| 项目 | 内容 |
-|------|------|
-| **入口** | `start_stage(ctx)` → `run(_on_step.bind(ctx))` |
-| **主循环** | `_on_step(ctx)` → `Timeline.tick(delta)` |
-| **便捷方法** | `start_timeline()`, `diff_pick(arr)`, `diff_get(dict, key, default)` |
-| **数据** | `ctx: StageContext`, `_tl: Timeline` |
-
-### 5.2 CreateScript（弹幕脚本）
-> 继承 `CoroutineRunner`
-
-| 项目 | 内容 |
-|------|------|
-| **入口** | `start_creating(ctx)` → `run(_on_step.bind(ctx))` |
-| **主循环** | `_on_step(ctx)` → `Timeline.tick(delta)` |
-| **便捷方法** | `start_timeline()`, `diff_pick(arr)` |
-
-### 5.3 MoveScript（移动脚本）
-> 继承 `CoroutineRunner`
-
-| 项目 | 内容 |
-|------|------|
-| **入口** | `start_moving(ctx, target)` → `run(_on_step.bind(ctx))` |
-| **主循环** | `_on_step(ctx)` → `Timeline.tick(delta)` |
-| **target** | Node2D 引用（Enemy 或 Bullet 自身）|
-| **便捷方法** | `start_timeline()`, `diff_pick(arr)` |
-
-### 5.4 BackgroundScript（背景协程）
-> 继承 `CoroutineRunner`
-
-| 项目 | 内容 |
-|------|------|
-| **入口** | `start_background(ctx)` → `run(_on_step.bind(ctx))` |
-| **初始化** | `_on_init(ctx)` — 场景加载后立即调用，协程未启动 |
-| **禁止** | `_on_init` 里用 `api.seconds/frames`（协程未启动）|
-| **便捷方法** | `start_timeline()`, `diff_pick(arr)` |
-
-### 5.5 PlayerShootScript / CSPlayer（自机射击脚本）
-> 继承 `CoroutineRunner`
-
-| 项目 | 内容 |
-|------|------|
-| **入口** | `start_shooting(ctx)` → `run(_on_step.bind(ctx))` |
-| **实例** | `cs_reimu.gd`, `cs_marisa.gd` 分别在角色 PlayerData 中指定 |
-
-### 5.6 EnemyScript（一体化敌人脚本）
-> 继承 `CoroutineRunner`
-
-| 项目 | 内容 |
-|------|------|
-| **入口** | `setup(enemy, ctx)` → `start()` → `run(_on_step.bind(ctx))` |
-| **职责** | 一文件 = 外观 + 移动 + 弹幕（通过 Timeline 组织）|
-| **使用** | `AssetRegistry.enemies["red_soldier"]` — 被 EnemyService.spawn(key) 调用 |
-
----
-
-## 6. 数据类
-
-### 6.1 BulletData
-| 项目 | 内容 |
-|------|------|
-| **类型** | Resource, class_name BulletData |
-| **关键字段** | texture, tint, damage, velocity, hit_effect, faction, can_be_canceled, hitbox_shape/radius/size, spawn_fog, fog_texture, movement_script |
-| **构造链** | `.tex(key).speed(v).dir(x,y).color(c).enemy().player().blend(b)` |
-| **判定** | `HitboxShape.CIRCLE` / `RECTANGLE` |
-| **tint_mode** | `MULTIPLY`（默认）/ `BLEND`（白色保持不变）|
-
-### 6.2 EnemyData
-| 项目 | 内容 |
-|------|------|
-| **类型** | Resource, class_name EnemyData |
-| **关键字段** | visual_scene, max_hp, hitbox_radius, score_value, death_effect, create_script, move_script, boss_data |
-| **掉落** | item_power, item_point, item_life, item_bomb, item_life_full, item_bomb_full, item_scatter |
-
-### 6.3 PhaseData
-| 项目 | 内容 |
-|------|------|
-| **类型** | Resource, class_name PhaseData |
-| **关键字段** | name, uid, bonus, time_limit, hp, is_timeout_only, move_script, shoot_script, background |
-| **uid 规则** | 正数=真符卡全局唯一，0=非符不记入符卡簿 |
-| **掉落** | 同上 item_* |
-
-### 6.4 BossData
-| 项目 | 内容 |
-|------|------|
-| **类型** | Resource, class_name BossData |
-| **关键字段** | boss_name, visual(PackedScene), phases(Array[PhaseData]), score_value |
-
-### 6.5 StageData
-| 项目 | 内容 |
-|------|------|
-| **类型** | Resource, class_name StageData |
-| **关键字段** | stage_id, difficulty(EASY~EXTRA), create_script, background_scene |
-| **注意** | 已经不挂 boss 数组，通过 StageScript 内部 Timeline 管理 |
-
-### 6.6 Laser（激光实体）
-| 项目 | 内容 |
-|------|------|
-| **类型** | Node2D, class_name Laser |
-| **模式** | `LINE`（两点直线）、`GROWING`（曲线生长）、`FIXED_PATH`（曲线瞬间全开）|
-| **关键字段** | laser_color, mid_width, end_width, hitbox_width, glow_intensity, max_lifetime, grow_speed, tail_distance |
-| **碰撞** | 沿曲线采样 20 点做线段最近点距离检测，阈值 = hitbox_width + 5px |
-
-### 6.7 PlayerData
-| 项目 | 内容 |
-|------|------|
-| **类型** | Resource, class_name PlayerData |
-| **关键字段** | focus_speed, normal_speed, animation(SpriteFrames), shoot_script(Script) |
-
-### 6.8 StageRegistry
-| 项目 | 内容 |
-|------|------|
-| **类型** | Resource, class_name StageRegistry |
-| **字段** | stages(Array[StageData]) |
-| **方法** | `find(stage_id, difficulty)`, `get_by_stage(stage_id)` |
-
-### 6.9 SpellRecord / SpellRecordBook
-| 项目 | 内容 |
-|------|------|
-| **SpellRecord** | uid, character, stage, phase_type, phase_number, difficulty, spell_name, attempts, captures, practice_attempts, practice_captures, best_score, best_time |
-| **SpellRecordBook** | 主键 (uid, character, difficulty) |
-| **uid 生成** | `SpellRecord.get_phase_uid(boss, phase_idx, stage_id)` — 真 uid 或 合成非符 uid |
-| **非符 uid** | `make_non_uid(stage, phase_idx)` → `-(stage*100 + phase_idx + 1)` |
-
----
-
-## 7. StageContext — 协程唯一入口
-
-### 7.1 子服务
-
-**ClockService**
-| 项目 | 内容 |
-|------|------|
-| `wait(seconds)` | 返回 seconds，CoroutineRunner 自动等待后再次调用 |
-| `wait_frames(count)` | 返回帧等效秒数 |
-
-**BulletService**
-| 项目 | 内容 |
-|------|------|
-| `shoot_spread(data, count, spread_angle, base_dir, at, sfx)` | 扇形散弹 |
-| `fire_growing_laser(curve, color, speed, tail, lifetime)` | 曲线生长激光 |
-| `fire_line_laser(a, b, color, lifetime)` | 两点间直线激光 |
-| `fire_fixed_laser(curve, color, lifetime)` | 固定路径瞬间全开 |
-| `fire_homing_laser(origin, player_pos, color, bend, length, lifetime)` | 自机导向激光 |
-| `clear_all_lasers()` | 清除所有激光 |
-
-**EnemyService**
-| 项目 | 内容 |
-|------|------|
-| `spawn_enemy(data, pos)` | 通过 StageManager 生成普通敌人 |
-| `spawn(key, pos, params)` | 通过 AssetRegistry 查找 EnemyScript 生成 |
-| `spawn_boss(data, pos)` | 生成 Boss |
-| `all_defeated()` | active_enemies 为空 |
-
-**PlayerService**
-| 项目 | 内容 |
-|------|------|
-| `get_player()` | 返回 Player 或 null |
-| `get_position()` | 返回玩家位置 Vector2 |
-
-**DialogueService**
-| 项目 | 内容 |
-|------|------|
-| `play(lines)` | 播放对话（暂停协程，等完成后继续）|
-| `show(char_name, text, pos, portrait)` | 快捷单句对话 |
-
-**ItemService**
-| 项目 | 内容 |
-|------|------|
-| `spawn(type, position)` | 生成道具 |
-
-**DecorManager**
-| 项目 | 内容 |
-|------|------|
-| `add_layer(layer)` | 添加一个装饰层（DECOR_LAYER + MultiMesh）|
-| `spawn(layer_name, pos, tex_scale, follow, lifetime)` | 生成单个装饰 |
-| `batch_spawn(layer_name, count, x_range, z_range, follow, lifetime)` | 批量生成 |
-| `clear_layer(layer_name)` | 清空该层 |
-| `fade_out_layer(layer_name, duration)` | 淡出并清空 |
-
-### 7.2 使用模式
+### 13.1 GameManager.AppState
 ```
-var bullet := BulletData.new().tex("小玉").color(Color.RED).enemy()
-bullet.velocity = Vector2(0, 400)
+MENU ──→ PLAYING ──→ PAUSED
+  ↑        │  ↑         │
+  └────────┘  └─────────┘
+      (ESC/返回)  (ESC 暂停/恢复)
 
-var move_cfg := { type: "move_down", target_y: 300, duration: 1.5 }
+TRANSITIONING = 短暂态，场景切换时
+```
 
-# 在 Timeline 中使用
-tl.at(1.0).every(0.5).times(3).do(func():
-    ctx.enemies.spawn("red_soldier", Vector2(randf_range(200, 700), 0))
-)
+### 13.2 EnemyVisual 动画状态
+```
+IDLE ──speed≥30──────→ RIGHTING ──播完──→ RIGHT
+  ↑                        │               │
+  └──speed<30 持续 0.2s────┘───────────────┘
+flip_h 由 x 方向自动控制
+```
+
+### 13.3 Player 动画状态
+```
+IDLE ──press L/R──→ LEFTING/RIGHTING ──播完──→ LEFT/RIGHT
+  ↑                      │                        │
+  └──release─────────────┘────────────────────────┘
+```
 
 ---
 
-## 8. API 契约
+## 14. 命名 & 文件公约
 
-### 8.1 StageContext — 协程唯一入口
+| 类别 | 约定 | 例 |
+|------|------|-----|
+| 类名 | PascalCase | `BulletData`, `CoroutineRunner` |
+| 文件名 | snake_case | `bullet_data.gd`, `coroutine_runner.gd` |
+| 私有成员 | `_prefix` | `_pool`, `_tween` |
+| 公共成员 | no prefix | `active_bullets` |
+| 信号 | snake_case | `stage_cleared` |
+| 信号回调 | `_on_` + 信号名 | `_on_enemy_killed` |
+| @export 变量 | snake_case, 写注释 | `@export var focus_speed: int ## 低速移动速度` |
+| 常量 | UPPER_SNAKE | `POOL_SIZE`, `FACTION_ENEMY` |
+| 枚举 | PascalCase | `Type.POWER`, `HitboxShape.CIRCLE` |
+
+### 变量名避讳
+```
+❌ range    → ✅ patrol_range / amplitude  (遮蔽内置 range())
+❌ dir      → ✅ direction (在 Timeline Event 中作为参数名时注意)
+```
+
+### 文件路径结构
+```
+scripts/
+├── autoload/              # Autoload 层
+│   ├── bullet/            # 子弹子模块（BulletPool, BulletPhysics, LaserSystem, DeathClear）
+│   └── game/              # 游戏模块（SceneTransition, MenuNav）
+├── background/            # 背景系统
+│   ├── background_plane.gd
+│   ├── background_cylinder.gd
+│   ├── stage_background.gd (基类)
+│   ├── decor_layer.gd
+│   └── decor_manager.gd
+├── bullet/                # 子弹实体
+│   ├── bullet.gd
+│   ├── bullet_fog.gd
+│   ├── bullet_multi_mesh.gd
+│   └── laser.gd
+├── components/            # 组件
+│   ├── number_sprite.gd
+│   ├── ui_separator.gd
+│   └── rect_outline.gd
+├── coroutine/             # 协程系统
+│   ├── base/
+│   │   ├── coroutine_runner.gd       # CoroutineRunner 基类
+│   │   └── coroutine_script.gd       # CoroutineScript 统一脚本
+│   ├── player/
+│   │   ├── base/
+│   │   │   ├── cs_player.gd          # PlayerShootScript 基类
+│   │   │   └── option_visual.gd
+│   │   ├── cs_reimu.gd
+│   │   ├── cs_marisa.gd
+│   │   ├── option_follow.gd
+│   │   ├── ov_reimu.gd
+│   │   └── move_homing.gd
+│   ├── services/
+│   │   ├── stage_context.gd          # StageContext
+│   │   ├── clock_service.gd
+│   │   ├── bullet_service.gd
+│   │   ├── player_service.gd
+│   │   ├── dialogue_service.gd
+│   │   ├── item_service.gd
+│   │   └── audio_service.gd
+│   └── timeline/
+│       ├── timeline.gd
+│       └── timeline_event.gd
+├── data/                  # 数据 Resource 类
+├── debug/
+├── effect/
+├── enemy/
+├── item/
+├── player/
+└── scenes/
+
+data/
+├── dialogue/
+│   └── profile/
+├── enemy_visual/          # 14种敌人视觉 .tscn
+├── phase_data/            # 示例符卡配置 .tres
+├── player_data/           # 角色数据 .tres + 子弹 .tres + 动画 .tres
+├── registry/              # spell_records.tres, spell_registry.tres, stage_registry.tres
+└── stages/
+    └── stage01/
+        ├── background/    # 背景场景+装饰+着色器
+        ├── coroutine_script/  # 4个弹幕脚本
+        ├── stage_data/    # 4个难度 StageData .tres
+        └── stage_script/  # 关卡脚本
+```
+
+---
+
+## 15. API 契约
+
+### 15.1 StageContext — 协程唯一入口
 ```
 ✅ 可以做的:
-  ctx.clock.wait(2.0)          — 等待 2 秒后再次调用（返回 >0 秒数）
-  ctx.clock.wait_frames(5)     — 等待 5 物理帧
-  ctx.bullets.shoot_spread(data, count, spread, dir, pos)
-  ctx.bullets.fire_straight_laser(data, origin, dir, len)
-  ctx.bullets.fire_homing_laser(data, origin, bend, len, player_pos)
-  ctx.enemies.spawn_enemy(data, pos)
-  ctx.enemies.spawn(key, pos, params)     — 通过 AssetRegistry 按名称生成
-  ctx.enemies.spawn_boss(data, pos)
-  ctx.enemies.all_defeated()
-  ctx.player.get_player()      — 返回 Player 或 null
-  ctx.player.get_position()    — 返回 Vector2
+  ctx.clock.wait(2.0)              — 等待 2 秒后再次调用（返回 >0 秒数）
+  ctx.clock.wait_frames(5)         — 等待 5 物理帧
+  ctx.bullets.shoot_spread(data, count, spread, dir, at, sfx)
+  ctx.bullets.fire_growing_laser(curve, color, speed, tail, lifetime, tex)
+  ctx.bullets.fire_line_laser(a, b, color, lifetime, tex)
+  ctx.bullets.fire_fixed_laser(curve, color, lifetime, tex)
+  ctx.bullets.fire_homing_laser(origin, player_pos, color, bend, length, lifetime)
+  ctx.bullets.clear_all_lasers()
+  ctx.player.get_player()           — 返回 Player 或 null
+  ctx.player.get_position()         — 返回 Vector2
   ctx.spawn_item(type, pos)
   ctx.play_dialogue(lines)
   ctx.dialogue_show(char, text, pos, portrait)
-  ctx.get_decor()              — 获取 DecorManager
-  ctx.get_field_rect()         — 游戏区域 Rect2
-  ctx.active()                 — 协程是否还在跑
+  ctx.get_decor()                   — 获取 DecorManager
+  ctx.get_field_rect()              — 游戏区域 Rect2
+  ctx.active()                      — 协程是否还在跑
+  ctx.audio.play_bgm(stream, gap)
+  ctx.audio.stop_bgm()
+  ctx.audio.play_sfx(stream, vol_db)
 
 ❌ 禁止的:
-  ctx.clock.wait(0) 或负数    — 用 return true（下帧立即调）
-  协程内 await                — 会撕裂调度器
-  直接写 GameState 属性        — 用方法
-  直接调 BulletManager 方法   — 走 ctx
+  ctx.clock.wait(0) 或负数           — 用 return true（下帧立即调）
+  协程内 await                       — 会撕裂调度器
+  直接写 GameState 属性              — 用方法
+  直接调 BulletManager 方法（除 StageManager.spawn_bullet）  — 走 ctx
 ```
 
-### 8.2 CoroutineRunner 子类约定
+### 15.2 CoroutineScript 使用约定
 ```
-CreateScript:
-  start_creating(ctx) → run(_on_step)
-  职责: 敌人弹幕模式（持续发射）
+start(ctx, target=null):
+  启动协程，_tick 每帧被调用
+  target 可选，设为要控制的节点（Enemy/Bullet自身）
 
-MoveScript:
-  start_moving(ctx, target) → run(_on_step)
-  职责: 目标位置控制（Tween/直接）
-  target: Node2D 引用
-  覆写 stop() 时: if not is_running: return（防 run() 误触）
+_tick(ctx) → Variant:
+  返回值遵循 CoroutineRunner 约定：
+    float/int > 0  → 等待这么秒后再次调用
+    true           → 下帧立即再次调用
+    false / null   → 结束
+  默认实现：走 Timeline.tick()
+  如果 auto_stop=true 且 Timeline 播完 → 返回 false 自动结束
 
-StageScript:
-  start_stage(ctx) → run(_on_step)
-  职责: 关卡脚本（出生波次、BGM、Boss 触发）
-  finished 信号挂 StageManager._on_stage_finished
-
-BackgroundScript:
-  start_background(ctx) → run(_on_step)
-  职责: 背景装饰物生成、相机动画
-  _on_init(ctx) → 同步初始化（设置初始参数）
-  注意: _on_init 时协程未启动，不要 await/clock.wait/clock.wait_frames
-
-PlayerShootScript (CSPlayer):
-  start_shooting(ctx) → run(_on_step)
-  职责: 自机射击弹幕
-
-EnemyScript:
-  setup(enemy, ctx) → start() → run(_on_step)
-  职责: 一文件包含外观、移动、弹幕
+覆写 stop() 时:
+  注意 run() 内部会调 stop()，不要在 stop() 中做业务逻辑
+  如需清理，用 if not is_running: return 保护
 ```
 
-### 8.3 实体 API
+### 15.3 实体 API
 ```
 Enemy:
   take_damage(int)  → 扣血, hp<=0 自动 die
   die()             → 清状态 + 特效 + emit + queue_free
-  ⚠️ 不在外部调 die()（take_damage 自动处理）
+  EnemyData.spawn() → 构造链生成并挂载到场景
 
 Boss:
   take_damage(int)  → 扣血（invincible 时跳过）, hp<=0 自动清 phase
@@ -754,175 +973,40 @@ Boss:
   start_boss(defer) → 注册并开始
 
 Bullet:
-  bind(data, dir, override)  → 池复用初始化
+  bind(data, dir)   → 池复用初始化
   ⚠️ 不在外部调 -- 池管理
 
 Player:
   miss()            → 被弹处理
   ⚠️ miss() 不能 await（由碰撞回调同步调用）
-  ⚠️ miss() 内无敌计时用 _invincible_timer 倒计时（_physics_process 自动减）
+  ⚠️ 无敌计时用 _invincible_timer 倒计时（_physics_process 自动减）
 
 Item:
   setup(type, pos)  → 池复用初始化
-  collect()         → 收集逻辑（内部调用，不外部触发）
-  ⚠️ Item 不外部实例化，走 ItemPool.spawn()
+  collect()         → 收集逻辑
+  ⚠️ 不外部实例化，走 ItemPool.spawn()
 
 ItemPool:
   spawn(pos, type)  → 生成 item（池复用优先，不限上限）
-  recycle(item)     → 回收入池（内部调用，不外部触发）
-  ⚠️ 不 queue_free，常驻 tree
+  recycle(item)     → 回收入池
 ```
 
-### 8.4 禁止操作清单
+### 15.4 禁止操作清单
 ```
-❌ 任何脚本直接用 global randf() / randi()
+❌ 任何脚本直接用全局 randf() / randi()
 ❌ 任何脚本直接写 GameState.current_score / lives / power_raw
 ❌ 协程内使用 await
 ❌ 碰撞回调/物理回调内 await
 ❌ ctx.active()==false 时调用 StageContext 方法
-❌ 直接 instantiate 子弹（走 BulletManager/BulletPool）
+❌ 直接 instantiate 子弹（走 BulletManager）
 ❌ Enemy/Boss.die() 外部调用
 ❌ 场景切换期间读 current_scene 子节点
-❌ BackgroundScript._on_init 里用 clock.wait/clock.wait_frames
-❌ MoveScript.stop() 中做业务逻辑（run() 内部会调 stop()）
-❌ 直接修改 missing 子文件/资源的 .uid 文件（由 Godot 维护）
+❌ 直接修改 .uid 文件（由 Godot 维护）
 ```
 
 ---
 
-## 9. 状态机
-
-### 9.1 GameManager.AppState
-```
-MENU ──→ PLAYING ──→ PAUSED
-  ↑        │  ↑         │
-  └────────┘  └─────────┘
-      (ESC/返回)  (ESC 暂停/恢复)
-
-TRANSITIONING = 短暂态, 场景切换时
-```
-
-### 9.2 代码中检查状态
-```gdscript
-# 只在游戏中跑的代码
-if GameManager.current_state != GameManager.AppState.PLAYING:
-    return
-```
-
-### 9.3 EnemyVisual 动画状态
-```
-IDLE ──speed>=30──────→ RIGHTING ──播完──→ RIGHT
-  ↑                        │               │
-  └──speed<30 持续 0.2s────┘───────────────┘
-```
-
-### 9.4 Player 动画状态
-```
-IDLE ──press L/R──→ LEFTING/RIGHTING ──播完──→ LEFT/RIGHT
-  ↑                      │                        │
-  └──release─────────────┘────────────────────────┘
-```
-
-### 9.5 Laser 状态
-```
-ALIVE ──出屏/超时──→ FADE ──0.15s──→ DEAD
-```
-
-### 9.6 敌人脚本（EnemyScript）一体化模式
-EnemyScript 将外观 + 移动 + 弹幕放在一个文件里，通过 Timeline 组织。
-```
-extends EnemyScript
-## 红杂鱼:向下减速 + 自机狙散射
-
-var target_y: float = 300
-var bullet_speed: int = 400
-var bullet_count: int = 3
-var bullet_spread: float = 0.2
-
-func setup(_enemy: Enemy, _ctx: StageContext) -> void:
-    super(_enemy, _ctx)
-    # 外观
-    enemy.add_child(AssetRegistry.enemy_visuals["s_red"].instantiate())
-    # 移动
-    enemy.create_tween().tween_property(enemy, "global_position",
-        Vector2(enemy.global_position.x, target_y), 1.5)
-    # 弹幕
-    var bullet := BulletData.new().tex("小玉").color(Color.RED).enemy()
-    bullet.velocity = Vector2(0, bullet_speed)
-
-    var tl := start_timeline()
-    tl.at(0.0).every(shoot_interval).do(func():
-        var p := ctx.player.get_player()
-        if not p: return
-        var dir := (p.global_position - enemy.global_position).normalized()
-        ctx.bullets.shoot_spread(bullet, bullet_count, bullet_spread, dir,
-            enemy.global_position)
-    )
-    start()
-```
-
----
-
-## 10. 命名 & 文件公约
-
-| 类别 | 约定 | 例 |
-|------|------|-----|
-| 类名 | PascalCase | `MoveStage1Enemy1` |
-| 文件名 | snake_case | `move_stage1_enemy1.gd` |
-| 私有成员 | `_prefix` | `_pool`, `_tween` |
-| 公共成员 | no prefix | `active_bullets` |
-| 信号 | snake_case | `stage_cleared` |
-| 信号回调 | `_on_` + 信号名 | `_on_enemy_killed` |
-| @export 变量 | snake_case, 写注释 | `@export var patrol_range: float ## 摆幅` |
-| 常量 | UPPER_SNAKE | `POOL_SIZE`, `FACTION_ENEMY` |
-| 枚举 | PascalCase | `Phase.ENTRANCE` |
-
-### 变量名避讳
-```
-❌ range    → ✅ patrol_range / amplitude  (遮蔽内置 range())
-❌ dir      → ✅ direction
-```
-
-### 文件路径结构
-```
-scripts/
-├── autoload/              # Autoload 层（GameState, AudioManager, ...）
-│   ├── bullet/            # 子弹子模块（BulletPool, BulletPhysics, LaserSystem, DeathClear）
-│   └── game/              # 游戏模块（SceneTransition, MenuNav）
-├── background/            # 背景系统
-├── bullet/                # 子弹实体（Bullet, CurvedLaser, BulletFog, BulletMultiMesh）
-├── components/            # 组件（NumberSprite, UISeparator, RectOutline）
-├── coroutine/             # 协程系统
-│   ├── base/              # 基础类（CoroutineRunner, StageContext, Timeline, 各 Service）
-│   └── player/            # 自机脚本（CSPlayer, CSReimu, CSMarisa, OptionFollow, ...）
-├── data/                  # 数据 Resource 类
-├── debug/                 # 调试工具
-├── effect/                # 特效脚本
-├── enemy/                 # 敌人实体
-├── item/                  # Item 实体
-├── player/                # Player 实体
-└── scenes/                # 场景 UI 脚本
-
-data/
-├── dialogue/              # 对话资源
-├── enemies/               # EnemyScript 脚本 + 基类
-├── enemy_visual/          # 敌人视觉场景
-├── laser_data/            # 激光配置 .tres
-├── phase_data/            # PhaseData .tres
-├── player_data/           # 角色数据 .tres
-├── stages/                # 关卡资源
-│   └── stage01/           # 第一面
-│       ├── background/    # 背景场景+脚本
-│       └── stage_data/    # StageData .tres（各难度）
-│       └── stage_script/  # StageScript .gd
-├── spell_records.tres     # 符卡记录持久化
-├── stage_registry.tres    # 关卡注册表
-└── spell_regidtry.tres    # (旧) 符卡注册表
-```
-
----
-
-## 11. 检查清单（新功能/修改前）
+## 16. 检查清单（新功能/修改前）
 
 ```
 □ 随机数走了 RNG 吗？
@@ -931,10 +1015,9 @@ data/
 □ 协程里没有 await 吗？
 □ 新 node 挂到了正确的父节点吗（World / BulletManager / current_background）？
 □ 新 StageContext 方法检查了 active() 吗？
-□ MoveScript.stop() 里加了 `if not is_running: return` 吗？
 □ 新 @export 写了注释吗？
 □ 新功能需要考虑暂停时的行为吗？
-□ 释放资源了吗（tween, timer, signal disconnect）？
+□ 释放资源了吗（tween, coroutine_script, signal disconnect）？
 □ Bullet fog 的信号连接在回收时正确断开吗？
 □ Item 的 _dead 标志在所有回调入口检查了吗？
 □ Boss phase 切换时 move/shoot 协程正确 stop+queue_free 了吗？
@@ -942,20 +1025,44 @@ data/
 
 ---
 
-## 12. 差异对照：SPEC v1.1 → v1.2
+## 17. 当前项目状态
 
-| 项目 | v1.1 (旧) | v1.2 (新) |
-|------|-----------|-----------|
-| **入口** | StageAPI（独立类） | StageContext（含子 Service）+ Timeline |
-| **敌人脚本** | CreateScript + MoveScript 分离 | EnemyScript 一体化（可选） |
-| **子弹构造** | .tres 预加载 | BulletData 构造链 `.tex().speed().enemy()` |
-| **菜单导航** | MenuStack + SubPageStack + PauseControl | MenuNav 统一栈（页面 + 覆盖层） |
-| **Boss 数据** | StageData 挂 boss 数组 | Boss 由 StageScript Timeline 手动 spawn |
-| **子弹池** | 简单池 | POOL_SIZE=4000, MAX_TOTAL=5000, 雾信号清理 |
-| **CurvedLaser** | 简单激光 | 孔洞切割 + MultiSegment + 擦弹分域 |
-| **练习模式** | 无 | is_practice_mode + is_stage_practice + 单 phase |
-| **Miss 特效** | 无 | MissEffectManager（Shader 圆圈） |
-| **Memory 系统** | 无 | 记忆值影响自机弹伤害倍率 + 擦弹消弹概率 |
-| **Timeline** | 无 | 声明式替代 state machine |
-| **Boss 练习掉落** | 练习也掉落 | 练习模式不掉落 |
-| **SpellRecord** | 简单记录 | 含 practice 统计 + 多角色/多难度 |
+### ✅ 已实现
+- 引擎核心（Autoload 系统全部 12 个模块）
+- 弹幕引擎（子弹池 4000/5000、物理、3种激光、死亡清除、MultiMesh）
+- 敌人系统（Enemy + Boss + 14种外观）
+- 玩家系统（灵梦+魔理沙、含射击脚本、Option）
+- 协程框架（CoroutineRunner + CoroutineScript + Timeline）
+- 道具系统（6种、对象池、自动收集）
+- 特效系统（命中、Miss全屏圈、死亡清除）
+- 背景系统（平面/圆柱着色素、装饰物）
+- 音频系统（BGM1路+SFX8路、同帧去重）
+- UI系统（主菜单/难度/角色/暂停/GameOver/Option/音乐室/回放/练习 全菜单）
+- 着色器 14 个
+- 数据类全部 Resource
+- Stage 1 关卡雏形（背景+4个弹幕脚本+4个难度配置）
+
+### ⏳ 待完善
+- **关卡内容**：只有 Stage 1 有数据，缺少 2~6 面
+- **Boss 战**：框架就绪，但缺少实际 Boss 配置（只有 2 个示例符卡）
+- **美术资源**：SVG 素材尚未导入 Godot，目前使用占位图
+- **BGM 集成**：音乐文件已导入但关卡/菜单尚未完整串联
+
+---
+
+## 附录：v1.2 → v2.0 差异说明
+
+| 项目 | v1.2 (旧) | v2.0 (新/代码真实) |
+|------|-----------|-------------------|
+| **协程脚本** | StageScript/CreateScript/MoveScript/BackgroundScript/PlayerShootScript/EnemyScript 6 种分别 | CoroutineScript 统一（1 个类，auto_stop 控制行为）|
+| **StageContext 子服务** | 有 EnemyService（缺失）| 实际没有 EnemyService，敌人通过 EnemyData.spawn() 和 StageManager.spawn_* 生成 |
+| **EnemyScript 一体化** | 有独立设计 | 实际不存在独立 EnemyScript 基类，用 CoroutineScript + EnemyData.spawn() 替代 |
+| **BulletManager** | 无 homing_laser | 有 fire_homing_laser（通过贝塞尔曲线 + growing_laser 实现）|
+| **AudioManager** | 双路 BGM 交叉渐出 | 实际单路，无 crossfade，gap 参数无用 |
+| **Boss HP 增长** | 未详述 | HP 从 0 Tween 到满（1秒），时符 hp=999999 |
+| **Item 物理** | 未详述 | 重力 240/s²，终端 180/s，上抛初速 -180px/s |
+| **MissEffectManager** | 未详述 | 8 圈上限，Shader 实现，支持延迟/起始半径 |
+| **DialogueService** | 未详述 | 通过暂停/恢复 CoroutineRunner.is_running 实现等待 |
+| **Timeline** | 有 seek() | 有 seek() |
+| **CardDef/CardRegistry** | 未提及 | 实际存在，用于练习模式 |
+}
