@@ -1,7 +1,19 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://dp82bs06yakm"]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3]
 
-[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1"]
-[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="1_nyj52"]
+[ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="1_nyj52"]
+
+[sub_resource type="Resource" id="Resource_nyj52"]
+script = ExtResource("1_nyj52")
+phase_index = 0
+difficulty = 3
+name = "卡摩瑞的非符1"
+attempts = 2
+captures = 2
+practice_attempts = 1
+practice_captures = 1
+best_time = 7.3636363636362105
 
 [resource]
 script = ExtResource("1")
+records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52")])

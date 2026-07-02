@@ -289,6 +289,7 @@ func collect_bomb_full() -> void:
 
 func reset_all():
 	current_score = 0
+	max_point = 10000
 	graze_count = 0
 	power_raw = 0
 	lives = 2
