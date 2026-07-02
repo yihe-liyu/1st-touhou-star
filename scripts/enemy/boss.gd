@@ -6,7 +6,7 @@ const HPRingClass = preload("res://scripts/scenes/boss_hp_ring.gd")
 
 var boss_data: BossData
 var hp: int = 0
-var hitbox_radius: float = 24.0
+var hitbox_radius: float
 
 var _ctx: StageContext
 var _phase_index: int = -1
@@ -41,6 +41,7 @@ func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	ring.setup(self)
 	add_child(ring)
 	
+	hitbox_radius = data.hitbox_radius
 	var shape := CircleShape2D.new()
 	shape.radius = hitbox_radius
 	var col := CollisionShape2D.new()

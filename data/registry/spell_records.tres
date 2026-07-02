@@ -10,9 +10,9 @@ difficulty = 3
 name = "卡摩瑞的非符1"
 attempts = 2
 captures = 2
-practice_attempts = 1
-practice_captures = 1
-best_time = 7.3636363636362105
+practice_attempts = 2
+practice_captures = 2
+best_time = 7.363636363636211
 
 [resource]
 script = ExtResource("1")
