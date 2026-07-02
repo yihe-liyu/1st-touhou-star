@@ -4,7 +4,8 @@
 
 [resource]
 script = ExtResource("1_i6til")
-name = "卡摩瑞的非符一"
+name = "卡摩瑞的非符1"
+hp = 2500
 item_power = 25
 item_point = 25
 metadata/_custom_type_script = "uid://70htyyc4o2hu"

@@ -11,30 +11,31 @@ const DIFF_NAMES := ["Easy", "Normal", "Hard", "Lunatic", "Extra"]
 
 enum PhaseType { NONSPELL, SPELL }
 
-## 给非符卡生成合成 uid（stage*100 + phase_idx + 1 取负）
-static func make_non_uid(stage_id: int, phase_idx: int) -> int:
-	return -(stage_id * 100 + phase_idx + 1)
-
-## 从 boss 数据获取 phase 的 uid（真 uid 或合成 uid）
-static func get_phase_uid(boss: BossData, phase_idx: int, stage_id: int, phase: PhaseData = null) -> int:
-	if not phase:
-		phase = boss.phases[phase_idx]
-	if phase.uid != 0:
-		return phase.uid
-	return make_non_uid(stage_id, phase_idx)
-
-## 符卡 uid（唯一标识，非符卡由系统生成负号区分）
+## 展示用编号（如 "No.001"），纯装饰，不参与查重
 @export var uid: int = 0
+## 角色 0=Reimu 1=Marisa
 @export var character: int = 0
+## 关卡编号
 @export var stage: int = 1
+## 在该关卡 phases 数组中的索引（唯一标识 phase）
+@export var phase_index: int = -1
+## 非符/符卡
 @export var phase_type: int = 0
+## 第几张非符/第几张符卡（展示用）
 @export var phase_number: int = 1
+## 难度
 @export var difficulty: int = 1
-@export var spell_name: String = ""
-@export var phase_order: int = 1
+## 符卡名（非符也存）
+@export var name: String = ""
+## 尝试次数（普通模式）
 @export var attempts: int = 0
+## 收取次数（普通模式）
 @export var captures: int = 0
+## 练习尝试次数
 @export var practice_attempts: int = 0
+## 练习收取次数
 @export var practice_captures: int = 0
+## 最高分
 @export var best_score: int = 0
+## 最快时间
 @export var best_time: float = 0.0

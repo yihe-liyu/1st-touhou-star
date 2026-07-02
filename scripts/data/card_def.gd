@@ -8,7 +8,8 @@ class_name CardDef
 @export var uid: int = 0                 ## 展示用编号（0=不显示 "No.xxx"）
 @export var name: String                 ## 显示名，如 "非符1" / "梦幻「幻想风穴」"
 @export var stage_id: int                ## 所属关卡
-@export var order: int = 1               ## 在该关卡内的显示顺序
+## 在该关卡内的显示顺序（从 0 开始，与 BossData.phases 数组索引对齐）
+@export var order: int = 0               ## 在该关卡内的显示顺序
 @export var phase_data: PhaseData        ## 战斗配置（血量/脚本/时限/颜色/掉落等）
 @export var boss_scene: PackedScene      ## Boss 外观场景
 @export var background_scene: PackedScene ## 练习背景场景

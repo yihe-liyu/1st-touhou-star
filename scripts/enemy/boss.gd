@@ -16,7 +16,7 @@ var _elapsed: float = 0.0
 var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
-var _stage_id: int = 1
+var _stage_id: int
 var _in_gap: bool = false
 var _spell_count: int = 0
 var _non_count: int = 0
@@ -33,6 +33,8 @@ func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	
 	if GameState.is_practice_mode:
 		_stage_id = GameState.practice_stage_id
+	else:
+		_stage_id = GameState.current_stage_id
 	
 	# 环形血条
 	var ring := HPRingClass.new()
@@ -80,9 +82,9 @@ func _next_phase() -> void:
 	else:
 		_non_count += 1
 	
-	# 见到就记（练习解锁，不计 attempt）
 	_pid = PhaseIdentity.from_phase(_current_phase, _stage_id, _phase_index, _spell_count, _non_count)
-	GameState.unlock_spell(_pid)
+	if not GameState.is_practice_mode:
+		GameState.unlock_spell(_pid)
 	
 	if _current_phase.name != "":
 		GameEvents.phase_start.emit(_current_phase)

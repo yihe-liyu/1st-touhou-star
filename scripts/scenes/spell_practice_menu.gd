@@ -64,66 +64,88 @@ func _on_leave() -> void:
 	tw.tween_callback(queue_free)
 
 
-# ═══ 从 CardRegistry 生成 ═══
+# ═══ 从符卡记录生成 ═══
+# 只显示已有记录的卡片，记录数据由实际游玩时填入
 
 func _build_data() -> void:
 	_stages.clear()
 	_phases.clear()
 
 	if not _registry or _registry.cards.is_empty():
-		_stages = []
 		return
 
-	_stages = _registry.get_stage_ids()
+	var book: SpellRecordBook = GameState.spell_book
+	var seen_stages: Dictionary = {}
+	var phase_keys: Array[Dictionary] = []
 
-	if not _stages.is_empty():
-		_stage_index = 0
-		_change_stage(0)
+	for rec in book.records:
+		if rec.character != _char_index:
+			continue
+		if not phase_keys.any(func(p): return p.stage == rec.stage and p.phase_index == rec.phase_index):
+			phase_keys.append({stage = rec.stage, phase_index = rec.phase_index})
+		seen_stages[rec.stage] = true
+
+	for s in seen_stages.keys():
+		_stages.append(s)
+	_stages.sort()
+
+	if _stages.is_empty():
+		return
+
+	_stage_index = 0
+	_change_stage(0)
+
+
+func _find_card(stage: int, phase_index: int) -> CardDef:
+	if not _registry: return null
+	for card in _registry.cards:
+		if card.stage_id == stage and card.order == phase_index + 1:
+			return card
+	return null
 
 
 func _change_stage(idx: int) -> void:
 	_stage_index = idx
 	_phases.clear()
 
-	if _stages.is_empty() or not _registry:
+	if _stages.is_empty():
 		return
 
 	var st_num: int = _stages[idx]
-	var cards := _registry.get_by_stage(st_num)
 	var book: SpellRecordBook = GameState.spell_book
+	var seen_indices: Array[int] = []
 
-	var spell_seq := 0
-	var non_seq := 0
-
-	for card in cards:
-		# 角色过滤
-		if card.character >= 0 and card.character != _char_index:
+	for rec in book.records:
+		if rec.stage != st_num or rec.character != _char_index:
 			continue
+		if rec.phase_index not in seen_indices:
+			seen_indices.append(rec.phase_index)
 
-		var is_spell := card.phase_data and card.phase_data.uid != 0
-		if not card.phase_data:
-			push_warning("SpellPractice: CardDef uid=%d name=\"%s\" 缺少 phase_data" % [card.uid, card.name])
-		if not card.boss_scene:
-			push_warning("SpellPractice: CardDef uid=%d name=\"%s\" 缺少 boss_scene" % [card.uid, card.name])
-		if not card.background_scene:
-			push_warning("SpellPractice: CardDef uid=%d name=\"%s\" 缺少 background_scene （练习背景将为空）" % [card.uid, card.name])
-		if card.order <= 0:
-			push_warning("SpellPractice: CardDef uid=%d name=\"%s\" order 为 %d，应为 >0" % [card.uid, card.name, card.order])
+	seen_indices.sort()
 
-		if is_spell:
-			spell_seq += 1
-		else:
-			non_seq += 1
+	for phase_idx in seen_indices:
+		var card := _find_card(st_num, phase_idx)
+		var is_spell := card and card.phase_data and card.phase_data.uid != 0
 
-		var label := "符卡%d" % spell_seq if is_spell else "非符%d" % non_seq
+		var spell_seq := 0
+		var non_seq := 0
+		for prev_idx in seen_indices:
+			if prev_idx >= phase_idx: break
+			var prev_card := _find_card(st_num, prev_idx)
+			if prev_card and prev_card.phase_data and prev_card.phase_data.uid != 0:
+				spell_seq += 1
+			else:
+				non_seq += 1
 
-		var info := {card = card, diffs = {}, label = label}
-		var diff_keys := DIFF_VALUES if card.difficulty < 0 else [card.difficulty]
+		var seq := spell_seq + 1 if is_spell else non_seq + 1
+		var label := "符卡%d" % seq if is_spell else "非符%d" % seq
 
-		for d in diff_keys:
-			var rec: SpellRecord = GameState.ensure_record(card.uid, _char_index, d,
-				st_num, card.name, card.order)
-			info["diffs"][d] = rec
+		var info := {card = card, phase_index = phase_idx, diffs = {}, label = label}
+
+		# 取出这个 phase 在这角色下所有难度的记录
+		for rec in book.records:
+			if rec.stage == st_num and rec.phase_index == phase_idx and rec.character == _char_index:
+				info["diffs"][rec.difficulty] = rec
 
 		_phases.append(info)
 
@@ -136,7 +158,7 @@ func _build_lists() -> void:
 	_clear(_stage_box)
 	if _stages.is_empty():
 		var lbl := Label.new()
-		lbl.text = "No cards registered"
+		lbl.text = "No records"
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.add_theme_font_size_override("font_size", 28)
 		_stage_box.add_child(lbl)
@@ -167,8 +189,9 @@ func _build_diff_list() -> void:
 	for d in diffs:
 		var r: SpellRecord = info["diffs"][d]
 		var vbox := VBoxContainer.new()
+
 		var nl := Label.new()
-		nl.text = r.spell_name if r.spell_name != "" else "-"
+		nl.text = r.name if r.name != "" else "-"
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.add_theme_font_size_override("font_size", 30)
 		vbox.add_child(nl)
@@ -437,10 +460,14 @@ func _start_practice() -> void:
 	var diff: int = diffs[_diff_index]
 	var card: CardDef = info["card"]
 
+	if not card:
+		push_warning("SpellPractice: 找不到 card phase_index=%d" % info["phase_index"])
+		return
+
 	GameState.selected_difficulty = diff
 	GameState.selected_character = _char_index
 
-	print("练习: ", card.name, " 难度: ", diff_name(diff))
+	print("练习: %s 难度: %s" % [card.name, diff_name(diff)])
 	GameState.start_practice(card, _char_index, diff)
 	AudioManager.stop_bgm()
 	_on_leave()

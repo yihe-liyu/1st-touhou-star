@@ -1,30 +1,7 @@
-[gd_resource type="Resource" script_class="SpellRecordBook" format=3]
+[gd_resource type="Resource" script_class="SpellRecordBook" format=3 uid="uid://dp82bs06yakm"]
 
-[ext_resource type="Script" path="res://scripts/data/spell_record.gd" id="1_lls5d"]
-[ext_resource type="Script" path="res://scripts/data/spell_record_book.gd" id="2_4fnre"]
-
-[sub_resource type="Resource" id="Resource_nyj52"]
-script = ExtResource("1_lls5d")
-uid = -101
-spell_name = "卡摩瑞的非符一"
-attempts = 2
-captures = 2
-best_time = 4.799999999999924
-
-[sub_resource type="Resource" id="Resource_acmwy"]
-script = ExtResource("1_lls5d")
-phase_type = 1
-phase_number = 0
-difficulty = 0
-spell_name = "卡摩瑞的非符一"
-
-[sub_resource type="Resource" id="Resource_6vhrn"]
-script = ExtResource("1_lls5d")
-uid = -101
-difficulty = 0
-practice_attempts = 2
-practice_captures = 2
+[ext_resource type="Script" uid="uid://b6oycllauu4gd" path="res://scripts/data/spell_record_book.gd" id="1"]
+[ext_resource type="Script" uid="uid://bphbnlbdvkqg6" path="res://scripts/data/spell_record.gd" id="1_nyj52"]
 
 [resource]
-script = ExtResource("2_4fnre")
-records = Array[ExtResource("1_lls5d")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn")])
+script = ExtResource("1")

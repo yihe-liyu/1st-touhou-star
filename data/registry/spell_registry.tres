@@ -7,8 +7,9 @@
 
 [sub_resource type="Resource" id="Resource_i6til"]
 script = ExtResource("1_1ks2g")
-name = "卡摩瑞的非符一"
+name = "卡摩瑞的非符1"
 stage_id = 1
+order = 1
 phase_data = ExtResource("3_54xe6")
 boss_scene = ExtResource("2_hyye6")
 difficulty = 0

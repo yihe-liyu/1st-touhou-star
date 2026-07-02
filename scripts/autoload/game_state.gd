@@ -3,7 +3,6 @@ extends Node
 ## 全局游戏数据唯一真源
 
 const BossScript = preload("res://scripts/enemy/boss.gd")
-const SpellBookClass = preload("res://scripts/data/spell_record_book.gd")
 const SPELL_BOOK_PATH := "res://data/registry/spell_records.tres"
 const REGISTRY_PATH := "res://data/registry/stage_registry.tres"
 const SAVE_PATH: String = "user://save_data.cfg"
@@ -119,10 +118,7 @@ func get_all_stages() -> Array[StageData]:
 # ══════════════════════════════════════════════
 
 func _load_spell_book() -> void:
-	if ResourceLoader.exists(SPELL_BOOK_PATH):
-		spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
-	else:
-		spell_book = SpellBookClass.new()
+	spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
 	if ResourceLoader.exists(REGISTRY_PATH):
 		stage_registry = ResourceLoader.load(REGISTRY_PATH)
 
@@ -131,36 +127,25 @@ func _save_spell_book() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
 
 
-## 确保一条符卡记录存在（不覆盖已有数据），用于练习菜单预创建占位
-func ensure_record(uid: int, character: int, difficulty: int, p_stage: int, p_name: String, order: int) -> SpellRecord:
-	var r: SpellRecord = spell_book.get_record(uid, character, difficulty)
-	if r:
-		return r
-	r = spell_book.get_or_create(uid, character, difficulty,
-		p_stage, SpellRecord.PhaseType.SPELL, 0, order, p_name)
-	_save_spell_book()
-	return r
-
-
 ## 注册一张符卡（见到即记，不计 attempt）
 func unlock_spell(pid: PhaseIdentity) -> void:
-	spell_book.get_or_create(pid.uid, pid.character, pid.difficulty,
-		pid.stage_id, pid.phase_type, pid.phase_num, pid.phase_order, pid.name)
+	spell_book.get_or_create(pid.stage_id, pid.phase_index, pid.character, pid.difficulty,
+		pid.uid, pid.phase_type, pid.phase_number, pid.name)
 	_save_spell_book()
 
 
 ## 记录一次符卡尝试（普通模式）
 func record_spell(pid: PhaseIdentity, captured: bool, score: int, elapsed: float) -> void:
-	spell_book.record_attempt(pid.uid, pid.character, pid.difficulty, captured, score, elapsed, {
-		"stage": pid.stage_id, "phase_type": pid.phase_type, "phase_num": pid.phase_num,
-		"order": pid.phase_order, "name": pid.name,
+	spell_book.record_attempt(pid.stage_id, pid.phase_index, pid.character, pid.difficulty,
+		captured, score, elapsed, {
+		"uid": pid.uid, "phase_type": pid.phase_type, "phase_number": pid.phase_number, "name": pid.name,
 	})
 	_save_spell_book()
 
 
 ## 记录一次练习尝试
 func record_practice(pid: PhaseIdentity, captured: bool) -> void:
-	spell_book.record_practice(pid.uid, pid.character, pid.difficulty, captured)
+	spell_book.record_practice(pid.stage_id, pid.phase_index, pid.character, pid.difficulty, captured)
 	_save_spell_book()
 
 # ══════════════════════════════════════════════
@@ -311,8 +296,6 @@ func reset_all():
 	bomb_count = 3
 	bomb_fragments = 0
 	memory_value = 50.0
-	if not is_stage_practice:
-		current_stage_id = 1
 	is_practice_mode = false
 
 

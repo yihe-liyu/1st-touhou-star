@@ -6,14 +6,6 @@ class_name CardRegistry
 @export var cards: Array[CardDef] = []
 
 
-## 按 uid 查找
-func find_by_uid(uid: int) -> CardDef:
-	for c in cards:
-		if c.uid == uid:
-			return c
-	return null
-
-
 ## 按关卡获取所有符卡（按 order 排序）
 func get_by_stage(stage_id: int) -> Array[CardDef]:
 	var result: Array[CardDef] = []

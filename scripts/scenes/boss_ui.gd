@@ -166,7 +166,7 @@ func _update_capture_text() -> void:
 	var pid := _boss_ref._pid
 	if not pid: return
 	var book: SpellRecordBook = GameState.spell_book
-	var rec: SpellRecord = book.get_record(pid.uid, pid.character, pid.difficulty)
+	var rec: SpellRecord = book.get_record(pid.stage_id, pid.phase_index, pid.character, pid.difficulty)
 	if rec:
 		if GameState.is_practice_mode:
 			_capture_label.text = "%02d/%02d" % [rec.practice_captures, rec.practice_attempts]
