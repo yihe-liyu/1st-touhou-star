@@ -49,7 +49,7 @@ func push(page_path: String) -> Node:
 	# 加载 & 添加新页面
 	var page: Node = _load_page(page_path)
 	_page_stack.append(page)
-	var host: CanvasLayer = _find_or_create_host()
+	var host: Control = _find_or_create_host()
 	host.add_child(page)
 	_connect_signals(page)
 	page.visible = true
