@@ -26,9 +26,9 @@ func _init(p_runner: CoroutineRunner) -> void:
 ## 装饰物管理器（树附着，懒加载）
 func get_decor() -> DecorManager:
 	if _decor_mgr: return _decor_mgr
-	var bg := StageManager.current_background
+	var bg: StageBackground = StageManager.current_background
 	if not bg: return null
-	var mgr := bg.get_node_or_null("DecorManager") as DecorManager
+	var mgr: DecorManager = bg.get_node_or_null("DecorManager") as DecorManager
 	if not mgr:
 		mgr = DecorManager.new()
 		mgr.name = "DecorManager"

@@ -111,7 +111,7 @@ func _setup_player() -> void:
 
 func _on_player_death():
 	await get_tree().create_timer(2.0).timeout
-	var menu = GAME_OVER_MENU.instantiate()
+	var menu: Control = GAME_OVER_MENU.instantiate()
 	menu.title_text = "Game Over"
 	GameManager.push_overlay_menu(menu)
 

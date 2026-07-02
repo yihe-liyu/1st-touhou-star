@@ -5,8 +5,8 @@ extends RefCounted
 const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
 var _death_clears: Array[Dictionary] = []
-var _pool
-var _laser_system
+var _pool: BulletPool
+var _laser_system: LaserSystem
 
 
 func setup(p_pool, p_laser_sys) -> void:

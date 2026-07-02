@@ -103,7 +103,7 @@ func get_camera_offset() -> Vector3:
 func rotate_camera(target_rot: Vector3, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
 	if not camera:
 		return
-	var tween = create_tween()
+	var tween: Tween = create_tween()
 	tween.set_ease(ease_type).set_trans(trans_type)
 	tween.tween_property(camera, "rotation", target_rot, duration)
 
@@ -116,7 +116,7 @@ func pan_camera(offset: Vector3, duration: float, ease_type: int = Tween.EASE_IN
 func move_camera(target_pos: Vector3, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
 	if not camera:
 		return
-	var tween = create_tween()
+	var tween: Tween = create_tween()
 	tween.set_ease(ease_type).set_trans(trans_type)
 	tween.tween_property(camera, "position", target_pos, duration)
 

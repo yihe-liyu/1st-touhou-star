@@ -7,10 +7,10 @@ const PhysicsClass = preload("res://scripts/autoload/bullet/bullet_physics.gd")
 const LaserClass = preload("res://scripts/autoload/bullet/laser_system.gd")
 const DeathClearClass = preload("res://scripts/autoload/bullet/death_clear.gd")
 
-var _pool
-var _physics
-var _lasers
-var _death_clear
+var _pool: BulletPool
+var _physics: BulletPhysics
+var _lasers: LaserSystem
+var _death_clear: DeathClear
 
 ## 暴露给 bullet_multi_mesh 等需要直接遍历子弹的地方
 var active_bullets: Array:

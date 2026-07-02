@@ -14,8 +14,8 @@ func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: C
 		return null
 	
 	var current: Node = Engine.get_main_loop().current_scene
-	var world := current.get_node_or_null("World") if current else null
-	var target := world if world else current
+	var world: Node = current.get_node_or_null("World") if current else null
+	var target: Node = world if world else current
 	if effect.get_parent() != target:
 		if effect.get_parent():
 			effect.reparent(target)
@@ -39,7 +39,7 @@ func _acquire(scene: PackedScene) -> HitEffect:
 		if not eff.visible:
 			return eff
 	
-	var instance := scene.instantiate()
+	var instance: Node = scene.instantiate()
 	instance.visible = false
 	var idx := arr.find(null)
 	if idx >= 0:

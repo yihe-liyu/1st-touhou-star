@@ -4,7 +4,7 @@ extends RefCounted
 
 const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
-var _pool
+var _pool: BulletPool
 var _graze_sfx_played: bool = false
 
 
@@ -18,7 +18,7 @@ func reset_frame() -> void:
 
 func process_collisions() -> void:
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
-		var bullet = _pool.active_bullets[i]
+		var bullet: Bullet = _pool.active_bullets[i]
 		if bullet.is_ready:
 			_resolve(bullet)
 
@@ -55,7 +55,7 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 
 
 func _enemy_vs_player(bullet: Bullet) -> void:
-	var player = GameState.player
+	var player: Player = GameState.player
 	if not is_instance_valid(player) or player.is_invincible:
 		return
 	if _hit_target(bullet, player):
@@ -96,21 +96,21 @@ func _hit_target(bullet: Bullet, target: Node2D) -> bool:
 
 
 func _check_circle(bullet: Bullet, target: Node2D) -> bool:
-	var center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
-	var target_center = target.global_position
-	var target_radius = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
-	var total_radius = bullet.hitbox_radius + target_radius
+	var center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
+	var target_center: Vector2 = target.global_position
+	var target_radius: float = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
+	var total_radius: float = bullet.hitbox_radius + target_radius
 	return center.distance_squared_to(target_center) < total_radius * total_radius
 
 
 func _check_rect(bullet: Bullet, target: Node2D) -> bool:
-	var box_center = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
-	var half = bullet.hitbox_size / 2.0
-	var angle = bullet.rotation + deg_to_rad(bullet.hitbox_rotation)
-	var target_center = target.global_position
-	var target_radius = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
-	var local_target = (target_center - box_center).rotated(-angle)
-	var closest = Vector2(
+	var box_center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
+	var half: Vector2 = bullet.hitbox_size / 2.0
+	var angle: float = bullet.rotation + deg_to_rad(bullet.hitbox_rotation)
+	var target_center: Vector2 = target.global_position
+	var target_radius: float = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
+	var local_target: Vector2 = (target_center - box_center).rotated(-angle)
+	var closest: Vector2 = Vector2(
 		clamp(local_target.x, -half.x, half.x),
 		clamp(local_target.y, -half.y, half.y)
 	)

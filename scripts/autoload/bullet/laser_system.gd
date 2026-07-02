@@ -8,8 +8,8 @@ var _pool: Array[Laser] = []
 var _active_lasers: Array[Laser] = []
 var _pool_index: int = 0
 var _graze_cooldown: int = 0
-var _parent
-var _physics
+var _parent: Node
+var _physics: BulletPhysics
 
 
 func setup(p_parent, p_physics) -> void:
@@ -74,9 +74,9 @@ func get_active() -> Array:
 
 
 func step(_delta: float) -> void:
-	var player := GameState.player
-	var has_player := is_instance_valid(player) and not player.is_invincible
-	var missed := false
+	var player: Player = GameState.player
+	var has_player: bool = is_instance_valid(player) and not player.is_invincible
+	var missed: bool = false
 	for i in range(_active_lasers.size() - 1, -1, -1):
 		var laser: Laser = _active_lasers[i]
 

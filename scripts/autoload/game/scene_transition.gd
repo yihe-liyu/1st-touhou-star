@@ -54,7 +54,7 @@ func change_scene(path: String, current_scene_path: String, on_scene_left: Calla
 func _fade_out(duration: float = FADE_DURATION):
 	_transition_rect.modulate.a = 0.0
 	_transition_rect.visible = true
-	var tween = _transition_rect.create_tween()
+	var tween: Tween = _transition_rect.create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(_transition_rect, "modulate:a", 1.0, duration)
 	await tween.finished
@@ -62,7 +62,7 @@ func _fade_out(duration: float = FADE_DURATION):
 
 func _fade_in(duration: float = FADE_DURATION):
 	_transition_rect.modulate.a = 1.0
-	var tween = _transition_rect.create_tween()
+	var tween: Tween = _transition_rect.create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(_transition_rect, "modulate:a", 0.0, duration)
 	await tween.finished

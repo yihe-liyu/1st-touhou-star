@@ -7,11 +7,11 @@ const MAX_TOTAL: int = 5000  # 硬上限,超限回收最老子弹
 
 var use_multi_mesh: bool = true
 
-var bullet_scene = preload("res://scenes/bullet.tscn")
+var bullet_scene: PackedScene = preload("res://scenes/bullet.tscn")
 var active_bullets: Array = []
 var bullet_pool: Array = []
 
-var _parent  # 用于 add_child 和 get_viewport
+var _parent: Node  ## 用于 add_child 和 get_viewport
 
 
 func _init() -> void:
@@ -100,8 +100,8 @@ func clear() -> void:
 
 
 func is_offscreen(pos: Vector2) -> bool:
-	var r = _parent.get_viewport().get_visible_rect()
-	var margin = 90.0
+	var r: Rect2 = _parent.get_viewport().get_visible_rect()
+	var margin: float = 90.0
 	return pos.x < -margin or \
 		   pos.x > r.size.x + margin or \
 		   pos.y < -margin or \

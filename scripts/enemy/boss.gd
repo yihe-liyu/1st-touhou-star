@@ -8,7 +8,7 @@ var boss_data: BossData
 var hp: int = 0
 var hitbox_radius: float = 24.0
 
-var _ctx  ## StageContext
+var _ctx: StageContext
 var _phase_index: int = -1
 var _current_phase: PhaseData
 var _bonus: int = 0

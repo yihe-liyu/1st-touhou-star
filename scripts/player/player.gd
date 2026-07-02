@@ -99,8 +99,8 @@ func update_hitbox_display() -> void:
 	else:
 		hitpoint_display.hide_hitpoint()
 
-func update_move(delta) -> void:
-	var move_input = input_vector
+func update_move(delta: float) -> void:
+	var move_input: Vector2 = input_vector
 	# 归一化对角线速度，使斜向移动速度不增加
 	if move_input.length() > 1.0: move_input = move_input.normalized()
 
@@ -113,8 +113,8 @@ func update_move(delta) -> void:
 	position.y = clamp(position.y, FRONT_UP + MIN_MARGIN * 4, FRONT_DOWN - MIN_MARGIN * 4)
 
 func update_animation() -> void:
-	var pressing_left = input_vector.x < -0.1
-	var pressing_right = input_vector.x > 0.1
+	var pressing_left: bool = input_vector.x < -0.1
+	var pressing_right: bool = input_vector.x > 0.1
 
 	if (pressing_left and pressing_right) or (not pressing_left and not pressing_right):
 		change_state(IDLE)
@@ -150,7 +150,7 @@ func miss() -> void:
 		return
 	
 	AudioManager.play_sfx(preload("res://assets/Sound/player_dead.wav"), -6.0)
-	var pos = global_position
+	var pos: Vector2 = global_position
 	MissEffectManager.add_circle(pos, 2.5, 1280)
 	MissEffectManager.add_circle(pos + Vector2(100, 0), 2.5, 1280)
 	MissEffectManager.add_circle(pos + Vector2(-100, 0), 2.5, 1280)

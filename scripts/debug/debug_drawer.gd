@@ -5,8 +5,8 @@ extends Node2D
 var draw_enabled: bool = false
 
 # 缓存节点引用，避免每帧字符串路径查找
-@onready var bullet_manager = get_node_or_null("/root/BulletManager")
-@onready var game_state = get_node_or_null("/root/GameState")
+@onready var bullet_manager: BulletManager = get_node_or_null("/root/BulletManager")
+@onready var game_state: GameState = get_node_or_null("/root/GameState")
 
 func _ready():
 	set_process(false)  # 默认不开启 _process
@@ -102,7 +102,7 @@ func _draw():
 		)   
 
 func _get_rotated_rect_corners(center: Vector2, half: Vector2, angle: float) -> PackedVector2Array:
-	var corners = PackedVector2Array()
+	var corners: PackedVector2Array = PackedVector2Array()
 	corners.append(center + Vector2(-half.x, -half.y).rotated(angle))
 	corners.append(center + Vector2(half.x, -half.y).rotated(angle))
 	corners.append(center + Vector2(half.x, half.y).rotated(angle))

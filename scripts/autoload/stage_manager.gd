@@ -26,7 +26,7 @@ func load_stage(data: StageData):
 	current_stage = data
 	_stage_active = true
 
-	var stage_script = data.create_script.new()
+	var stage_script: CoroutineScript = data.create_script.new()
 	assert(stage_script is CoroutineScript, "StageManager: create_script must be a CoroutineScript")
 	add_child(stage_script)
 	_stage_script = stage_script
@@ -65,7 +65,7 @@ func _on_stage_finished():
 	GameState.save_high_score(current_stage.stage_id, GameState.current_score)
 
 func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) -> Enemy:
-	var enemy = ENEMY_SCENE.instantiate()
+	var enemy: Enemy = ENEMY_SCENE.instantiate()
 	enemy.enemy_data = data
 	enemy.global_position = position
 	_add_enemy_to_scene(enemy)
@@ -88,7 +88,7 @@ func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bu
 	return BulletManager.shoot_enemy_bullet(data, position, direction)
 
 func _add_enemy_to_scene(node: Node2D):
-	var parent = get_tree().current_scene
+	var parent: Node = get_tree().current_scene
 	if parent:
 		var world = parent.get_node_or_null("World")
 		if world:

@@ -44,7 +44,7 @@ func _process(_delta):
 # ═══ 状态 ═══
 
 func _set_state(new_state: AppState):
-	var old = current_state
+	var old: int = current_state
 	if old == new_state:
 		return
 	current_state = new_state
@@ -65,7 +65,7 @@ func change_scene(path: String, target_state: AppState = AppState.PLAYING):
 	_nav.clear_pages()
 	_nav.clear_overlays()
 
-	var new_path = await _transition.change_scene(path, current_scene_path, scene_left.emit, scene_entered.emit)
+	var new_path: String = await _transition.change_scene(path, current_scene_path, scene_left.emit, scene_entered.emit)
 	previous_scene_path = current_scene_path
 	current_scene_path = new_path
 

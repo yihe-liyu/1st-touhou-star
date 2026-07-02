@@ -182,15 +182,15 @@ func _build_diff_list() -> void:
 	if _phase_index >= _phases.size():
 		return
 
-	var info = _phases[_phase_index]
+	var info: Dictionary = _phases[_phase_index]
 	var diffs: Array = info["diffs"].keys()
 	diffs.sort()
 
 	for d in diffs:
 		var r: SpellRecord = info["diffs"][d]
-		var vbox := VBoxContainer.new()
+		var vbox: VBoxContainer = VBoxContainer.new()
 
-		var nl := Label.new()
+		var nl: Label = Label.new()
 		nl.text = r.name if r.name != "" else "-"
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.add_theme_font_size_override("font_size", 30)
@@ -453,7 +453,7 @@ func _get_highlighted_item() -> Control:
 
 func _start_practice() -> void:
 	if _phase_index >= _phases.size(): return
-	var info = _phases[_phase_index]
+	var info: Dictionary = _phases[_phase_index]
 	if info["diffs"].is_empty(): return
 	var diffs: Array = info["diffs"].keys()
 	diffs.sort()

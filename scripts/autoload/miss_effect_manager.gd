@@ -55,8 +55,8 @@ func clear_all() -> void:
 
 
 func _update_shader() -> void:
-	var view_size := _view_size
-	var canvas := get_viewport().get_canvas_transform()
+	var view_size: Vector2 = _view_size
+	var canvas: Transform2D = get_viewport().get_canvas_transform()
 	
 	for i in MAX_CIRCLES:
 		var pf: String = _prefixes[i]

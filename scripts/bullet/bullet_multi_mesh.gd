@@ -72,7 +72,7 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: 
 		return existing
 
 	# ── 处理 AtlasTexture → 用图集 + UV 偏移 ──
-	var use_tex = tex
+	var use_tex: Texture2D = tex
 	var use_region := Vector4(0.0, 0.0, 1.0, 1.0)
 	if tex is AtlasTexture:
 		var atex = tex as AtlasTexture
@@ -87,27 +87,27 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: 
 		)
 
 	# ── 创建 MultiMesh ──
-	var mm = MultiMesh.new()
+	var mm: MultiMesh = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_2D
 	mm.use_colors = true
 	mm.instance_count = max(min_size, 64)
 
 	# ── 创建 2D 四边形网格 ──
 	# 尺寸匹配纹理像素大小
-	var tex_size = use_tex.get_size()
-	var quad_w = tex_size.x
-	var quad_h = tex_size.y
+	var tex_size: Vector2 = use_tex.get_size()
+	var quad_w: float = tex_size.x
+	var quad_h: float = tex_size.y
 	if tex is AtlasTexture:
 		var r = (tex as AtlasTexture).region
 		quad_w = r.size.x
 		quad_h = r.size.y
 
-	var mesh = QuadMesh.new()
+	var mesh: QuadMesh = QuadMesh.new()
 	mesh.size = Vector2(quad_w, quad_h)
 
 	# ── 材质（用 shader 文件，不要运行时拼字符串）──
-	var shader = preload("res://gdshader/bullet_batch.gdshader")
-	var mat = ShaderMaterial.new()
+	var shader: Shader = preload("res://gdshader/bullet_batch.gdshader")
+	var mat: ShaderMaterial = ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter("tex", use_tex)
 	mat.set_shader_parameter("region", use_region)
@@ -115,7 +115,7 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: 
 	mm.mesh = mesh
 
 	# ── MultiMeshInstance2D ──
-	var mmi = MultiMeshInstance2D.new()
+	var mmi: MultiMeshInstance2D = MultiMeshInstance2D.new()
 	mmi.multimesh = mm
 	mmi.material = mat
 	match faction:
@@ -127,6 +127,6 @@ func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: 
 			mmi.z_index = LayerConfig.BOMB
 	add_child(mmi)
 
-	var entry = {mmi = mmi, mm = mm, mesh = mesh}
+	var entry: Dictionary = {mmi = mmi, mm = mm, mesh = mesh}
 	_groups[key] = entry
 	return entry

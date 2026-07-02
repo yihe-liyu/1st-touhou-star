@@ -30,7 +30,7 @@ var stage_registry: StageRegistry
 # 符卡簿
 # ══════════════════════════════════════════════
 
-var spell_book
+var spell_book: SpellRecordBook
 
 
 func _ready():
@@ -166,7 +166,7 @@ func load_save_data():
 
 
 func save_high_score(stage_id: int, score: int):
-	var prev = get_high_score(stage_id)
+	var prev: int = get_high_score(stage_id)
 	if score <= prev:
 		return
 	high_scores[stage_id] = score

@@ -1,7 +1,7 @@
 # CharacterScreen.gd — 角色选择子页面
 extends NavPage
 
-@onready var badge = $DifficultyBadge
+@onready var badge: TextureRect = $DifficultyBadge
 
 const FLY_DURATION: float = 0.5
 ## 难度页面中选项的大小
