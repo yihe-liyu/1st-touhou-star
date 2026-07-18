@@ -75,13 +75,17 @@ func _return_to_pool(bullet: Bullet) -> void:
 		return
 	if bullet.coroutine_script and is_instance_valid(bullet.coroutine_script):
 		bullet.coroutine_script.stop()
+		bullet.remove_child(bullet.coroutine_script)
 		bullet.coroutine_script.queue_free()
 		bullet.coroutine_script = null
 	for child in bullet.get_children():
 		if child is CoroutineScript:
 			child.stop()
+			bullet.remove_child(child)
 			child.queue_free()
 	bullet.visible = false
+	bullet.is_ready = false  # 池回收重置
+	bullet.velocity = Vector2.ZERO  # 防止残留速度
 	bullet.process_mode = Node.PROCESS_MODE_DISABLED
 	bullet.fog.visible = false
 	bullet.fog.texture = null

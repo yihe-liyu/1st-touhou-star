@@ -142,7 +142,105 @@ bosses = [
 
 ---
 
-## 六、协程脚本（CoroutineScript 统一架构）
+## 六、难度差分（Phase 编排 + UID 管理）
+
+### 核心理念
+
+不同难度的 Boss 战可能有**完全不同**的符卡编排，每张符卡有独立 UID：
+
+```
+Easy:    非符1
+Normal:  非符1 → 符卡「？？？」(uid=101)
+Hard:    非符1 → 符卡「更深」(uid=102)
+Lunatic: 非符1 → 符卡「更深」(uid=102) → 符卡「最终」(uid=103)
+```
+
+关卡脚本里用 `diff_pick` 选择难度对应的 Phase 数组，`.tres` 文件跨难度复用：
+
+```gdscript
+// stage01.gd — 关卡脚本里
+extends CoroutineScript
+
+const PHASES = [
+    [  # Easy
+        preload("res://data/stages/stage01/phase/E_01.tres"),
+    ],
+    [  # Normal
+        preload("res://data/stages/stage01/phase/E_01.tres"),
+        preload("res://data/stages/stage01/phase/E_spell_01.tres"),   // uid=101
+    ],
+    [  # Hard
+        preload("res://data/stages/stage01/phase/E_01.tres"),
+        preload("res://data/stages/stage01/phase/E_spell_02.tres"),   // uid=102
+    ],
+    [  # Lunatic
+        preload("res://data/stages/stage01/phase/E_01.tres"),
+        preload("res://data/stages/stage01/phase/E_spell_02.tres"),   // uid=102
+        preload("res://data/stages/stage01/phase/E_spell_03.tres"),   // uid=103
+    ],
+]
+
+func start(p_ctx: StageContext, p_target: Node2D = null):
+    ctx = p_ctx
+    var kamorui = BossData.new().name("卡摩瑞").look(BOSS_POINT)
+    for p in diff_pick(PHASES):
+        kamorui.phase(p)
+    
+    var tl := start_timeline()
+    tl.at(35).spawn_boss(kamorui, Vector2(448, 250))
+    super.start(ctx, target)
+```
+
+### PhaseData 文件结构
+
+```
+data/stages/stage01/phase/
+├── E_01.tres              ← 非符1，各难度共用
+├── E_spell_01.tres         ← uid=101，Normal 专属
+├── E_spell_02.tres         ← uid=102，Hard + Lunatic 共用
+└── E_spell_03.tres         ← uid=103，Lunatic 专属
+```
+
+### UID 规则
+
+| 规则 | 说明 |
+|------|------|
+| 全局唯一 | 同一张符卡在不同难度出现时 UID 相同 |
+| 非符 = 0 | uid=0 不记入符卡簿 |
+| 号段预留 | 建议 1 面 100-199, 2 面 200-299... |
+| 角色无关 | 灵梦和魔理沙共用同一 UID，SpellRecordBook 主键自动区分 |
+
+### diff_pick 的三种用途
+
+| 用途 | 示例 |
+|------|------|
+| 选弹幕数量 | `diff_pick([10, 14, 20, 20])` — 子弹发数 |
+| 选弹幕脚本 | `diff_pick(SCRIPTS)` — 完全不同逻辑时用 |
+| **选 Phase 列表** | `diff_pick(PHASES)` — 不同符卡编排 |
+
+三种可以混用！一个 Boss 的不同 Phase 之间互不影响。
+
+### Boss 出场特效
+
+```gdscript
+// Timeline 中：defer=true 让 Boss 生成但不开始战斗
+tl.at(34).do(func():
+    MissEffectManager.add_circle(Vector2(448, 250), 2.0, 600, 60.0)
+)
+tl.at(35).do(func():
+    var boss = StageManager.spawn_boss(kamorui, Vector2(448, -100), true, ctx)
+    var tw := create_tween()
+    tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.tween_property(boss, "global_position:y", 250, 2.0)
+    tw.tween_callback(boss.begin_battle)  // 降落完毕 → 开战
+)
+```
+
+> ⚠️ `defer=true` 时 Boss 无碰撞、无血条、子弹穿过、诱导不追踪。`begin_battle()` 后一切激活。
+
+---
+
+## 七、协程脚本（CoroutineScript 统一架构）
 
 > ⭐ 所有协程脚本统一继承 `CoroutineScript`（`scripts/coroutine/base/coroutine_script.gd`）
 
@@ -161,7 +259,7 @@ return true                  # 下物理帧立即再次调用
 return false                 # 结束协程
 ```
 
-### 6.1 关卡脚本（原 StageScript）
+### 7.1 关卡脚本
 
 **职责**：控制关卡流程 — 生成敌人波次、播放 BGM、触发 Boss。
 
@@ -171,7 +269,6 @@ extends CoroutineScript
 func _tick(ctx: StageContext):
     if not _tl: _tl = start_timeline()
     return _tl.tick(get_physics_process_delta_time())
-# auto_stop = true（关卡播完即止）
 ```
 
 **核心 API**（通过 `StageContext` 调用）：
@@ -180,14 +277,13 @@ func _tick(ctx: StageContext):
 ctx.clock.wait(2.0)                              # 等待
 ctx.bullets.shoot_spread(data, count, spread, dir, pos)  # 扇形弹幕
 ctx.player.get_position()                         # 自机位置
-ctx.enemies.spawn(data, pos)                      # 生成敌人
 ctx.audio.play_bgm(stream)                        # 播放 BGM
 ctx.play_dialogue(lines)                          # 对话
 ```
 
-### 6.2 弹幕脚本（原 CreateScript）
+### 7.2 弹幕脚本
 
-**职责**：定义弹幕模式。`auto_stop = true`，在 PhaseData 的 `shoot_script` 里引用。
+**职责**：定义弹幕模式。在 PhaseData 的 `shoot_script` 里引用。
 
 ```gdscript
 extends CoroutineScript
@@ -197,9 +293,9 @@ func _tick(ctx: StageContext):
     return ctx.clock.wait(0.5)
 ```
 
-### 6.3 移动脚本（原 MoveScript）
+### 7.3 移动脚本
 
-**职责**：控制敌机/Boss 的移动路径。`auto_stop = true`。
+**职责**：控制敌机/Boss 的移动路径。
 
 ```gdscript
 extends CoroutineScript
@@ -211,7 +307,7 @@ func _tick(ctx: StageContext):
     return abs(target.global_position.y - target_y) < 1
 ```
 
-### 6.4 使用 Timeline（声明式替代方案）
+### 7.4 使用 Timeline
 
 ```gdscript
 func _tick(ctx: StageContext):
@@ -225,7 +321,7 @@ func _tick(ctx: StageContext):
 
 ---
 
-## 七、挂到游戏
+## 八、挂到游戏
 
 关卡通过 `StageManager.load_stage(data)` 加载。流程：
 
@@ -235,7 +331,7 @@ func _tick(ctx: StageContext):
 
 ---
 
-## 八、符卡练习
+## 九、符卡练习
 
 ### 自动生成记录
 
@@ -254,7 +350,7 @@ func _tick(ctx: StageContext):
 
 ---
 
-## 九、菜单页面
+## 十、菜单页面
 
 ### 基类体系
 
@@ -295,7 +391,7 @@ BasePage          — 生命周期 + 遮罩淡入淡出 + 内容滑入
 
 ---
 
-## 十、对话系统
+## 十一、对话系统
 
 ### 对话数据
 
@@ -323,7 +419,7 @@ ctx.dialogue_show("灵梦", "这是测试文本", Vector2(100, 200))
 
 ---
 
-## 十一、常见问题
+## 十二、常见问题
 
 | 问题 | 解决 |
 |------|------|

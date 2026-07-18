@@ -123,7 +123,7 @@ func _begin_phase() -> void:
 	if _current_phase.shoot_script:
 		_shoot = _current_phase.shoot_script.new()
 		add_child(_shoot)
-		_shoot.start(_ctx)
+		_shoot.start(_ctx, self)
 
 func _process(delta: float) -> void:
 	if not _current_phase: return

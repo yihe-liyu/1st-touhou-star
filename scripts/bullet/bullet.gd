@@ -6,6 +6,8 @@ const FACTION_PLAYER: int = 0
 const FACTION_ENEMY: int = 1
 const FACTION_BOMB: int = 2
 
+const DEFAULT_MOVE = preload("res://scripts/coroutine/player/linear_move.gd")
+
 # 基础属性
 var damage: int = 10
 var velocity: Vector2 = Vector2.UP
@@ -32,9 +34,38 @@ var tint_mode: int = 0
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var fog: BulletFog = $Fog
 
+
+## 彻底重置所有运行时状态（池回收 + bind 复用时调用）
+func _reset_state() -> void:
+	is_ready = false
+	_grazed = false
+	visible = false
+	process_mode = Node.PROCESS_MODE_DISABLED
+	# 停旧协程
+	if coroutine_script and is_instance_valid(coroutine_script):
+		coroutine_script.stop()
+		coroutine_script.queue_free()
+		coroutine_script = null
+	for child in get_children():
+		if child is CoroutineScript:
+			child.stop()
+			child.queue_free()
+	# 清雾
+	fog.visible = false
+	fog.texture = null
+	if fog.fog_finished.is_connected(_on_fog_ready):
+		fog.fog_finished.disconnect(_on_fog_ready)
+
+
 func bind(data: BulletData, direction: Vector2):
 	is_ready = false
 	_grazed = false
+	# 清理上次残留的子协程
+	for child in get_children():
+		if child is CoroutineScript:
+			child.stop()
+			remove_child(child)
+			child.queue_free()
 	match data.faction:
 		FACTION_ENEMY:
 			z_index = LayerConfig.ENEMY_BULLET
@@ -72,15 +103,6 @@ func bind(data: BulletData, direction: Vector2):
 	velocity = direction.normalized() * data.velocity.length()
 	self.rotation = direction.angle()
 
-	if coroutine_script and is_instance_valid(coroutine_script):
-		coroutine_script.stop()
-		coroutine_script.queue_free()
-		coroutine_script = null
-	for child in get_children():
-		if child is CoroutineScript:
-			child.stop()
-			child.queue_free()
-
 	if data.spawn_fog:
 		sprite.visible = false  # 雾消失前隐藏子弹
 		if fog.fog_finished.is_connected(_on_fog_ready):
@@ -92,9 +114,17 @@ func bind(data: BulletData, direction: Vector2):
 		is_ready = true
 		sprite.visible = true
 
-	# 只有自定义移动脚本才用协程；普通线性移动走 _physics_process
+	# 挂载移动协程：优先用自定义脚本，否则用默认直线移动
 	if data.coroutine_script:
 		_start_coroutine(data)
+	else:
+		var move := DEFAULT_MOVE.new()
+		add_child(move)
+		move.start(StageContext.new(move), self)
+	
+	# 确保可以移动
+	process_mode = Node.PROCESS_MODE_INHERIT
+	is_ready = true
 
 func _on_fog_ready():
 	sprite.visible = true  # 雾结束，显示子弹

@@ -261,11 +261,12 @@ func _add_life() -> void:
 		lives += 1
 
 
-## 被弹扣除残机，返回是否还有命
+## 被弹扣除残机，返回本次是否存活（减之前有命即可）
 func lose_life() -> bool:
-	if lives > 0:
+	var had_life := lives > 0
+	if had_life:
 		lives -= 1
-	return lives > 0
+	return had_life
 
 
 func collect_life_full() -> void:

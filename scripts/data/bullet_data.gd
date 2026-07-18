@@ -70,3 +70,7 @@ func player() -> BulletData:
 	can_be_canceled = false
 	damage = 10
 	return self
+
+func behavior(v: Script) -> BulletData:
+	coroutine_script = v
+	return self
