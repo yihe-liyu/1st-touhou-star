@@ -149,6 +149,17 @@ func _fade_all_out(content: Control, content_dur: float = 0.15, overlay_dur: flo
 		tw.tween_callback(cb)
 
 
+## 覆盖层退场：遮罩淡出 + 内容缩小淡出 → queue_free
+## 调用前需自行关闭导航（_nav_enabled=false, _stop_pulse()）
+func _overlay_leave(content: Control) -> void:
+	var tw := create_tween().set_parallel(true)
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_fade_overlay_out(0.15)
+	tw.tween_property(content, "modulate", Color(1, 1, 1, 0), 0.12)
+	tw.tween_property(content, "scale", Vector2(0.95, 0.95), 0.12)
+	tw.tween_callback(queue_free)
+
+
 # ═══ 音效快捷 ═══
 
 func sfx_nav() -> void:

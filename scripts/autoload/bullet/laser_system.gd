@@ -65,8 +65,8 @@ func fire_growing(curve: Curve2D, color: Color, speed: float, tail: float, lifet
 func clear() -> void:
 	for laser in _active_lasers:
 		laser._dead = true
-		laser.queue_free()
 	_active_lasers.clear()
+	# 激光回到池中（_dead=true 的会被 _get_laser 复用）
 
 
 func get_active() -> Array:
@@ -91,7 +91,7 @@ func step(_delta: float) -> void:
 				player.miss()
 			elif _graze_cooldown <= 0 and laser.is_grazing_player(pos, player.graze_radius):
 				_graze_cooldown = 3
-				if _physics and _physics.has_method("on_graze"):
+				if _physics:
 					_physics.on_graze()
 
 	if _graze_cooldown > 0:

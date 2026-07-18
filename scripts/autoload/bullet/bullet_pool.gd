@@ -59,6 +59,10 @@ func _request_bullet() -> Bullet:
 			b.process_mode = Node.PROCESS_MODE_DISABLED
 			return b
 	
+	# 硬上限：避免无限制创建新子弹
+	if bullet_pool.size() + active_bullets.size() >= MAX_TOTAL:
+		return null
+	
 	var nb := bullet_scene.instantiate()
 	if use_multi_mesh:
 		nb.get_node("Sprite2D").visible = false

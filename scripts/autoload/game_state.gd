@@ -261,6 +261,13 @@ func _add_life() -> void:
 		lives += 1
 
 
+## 被弹扣除残机，返回是否还有命
+func lose_life() -> bool:
+	if lives > 0:
+		lives -= 1
+	return lives > 0
+
+
 func collect_life_full() -> void:
 	for _i in range(5):
 		collect_life_fragment()

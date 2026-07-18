@@ -23,14 +23,7 @@ func _on_enter() -> void:
 func _on_leave() -> void:
 	_nav_enabled = false
 	_stop_pulse()
-
-	# 遮罩淡出 + 内容消隐 + 缩放
-	var tw := create_tween().set_parallel(true)
-	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_fade_overlay_out(0.15)
-	tw.tween_property(_container, "modulate", Color(1, 1, 1, 0), 0.12)
-	tw.tween_property(_container, "scale", Vector2(0.95, 0.95), 0.12)
-	tw.tween_callback(queue_free)
+	_overlay_leave(_container)
 
 
 func _on_item_selected(index: int) -> void:

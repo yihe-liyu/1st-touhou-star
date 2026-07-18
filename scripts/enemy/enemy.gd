@@ -31,7 +31,8 @@ func _on_tree_exited():
 
 
 func _process(_delta: float) -> void:
-	# 记录位置供子类或 visual_scene 使用
+	if is_queued_for_deletion():
+		return
 	_last_pos = global_position
 
 
@@ -61,6 +62,8 @@ func start() -> void:
 
 
 func take_damage(damage: int):
+	if is_queued_for_deletion():
+		return
 	hp -= damage
 	if hp <= 0: die()
 

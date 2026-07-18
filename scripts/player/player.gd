@@ -164,8 +164,7 @@ func miss() -> void:
 	GameState.add_memory(GameState.MEMORY_MISS)
 	
 	# 残机扣除
-	if GameState.lives > 0:
-		GameState.lives -= 1
+	if GameState.lose_life():
 		# 无敌：倒计时 3 秒，_physics_process 自动倒数（不 await，不挂起调用链）
 		is_invincible = true
 		_invincible_timer = 3.0
