@@ -57,7 +57,7 @@ func start(ctx, target = null):
 
 | 变更 | 状态 |
 |------|------|
-| SPEC.md v1.2（系统规格文档化）| ✅ |
+| SPEC.md v2.0（系统规格文档化）| ✅ |
 | `StageAPI` → `StageContext`（含 8 个 Service）| ✅ |
 | `CoroutineScript` 统一协程脚本（替代 5 个基类）| ✅ |
 | `BulletData` 构造链 `.tex().speed().enemy()` | ✅ |
@@ -70,6 +70,18 @@ func start(ctx, target = null):
 | 代码风格规则（snake_case / class_name / 注释约定）| ✅ |
 | 目录整理（coroutine 拆 services+timeline / data/registry/）| ✅ |
 | 废弃代码清理（9 文件删除 + 1 改名）| ✅ |
+| `BubblePanel` 从 `dialogue_box.gd` 分离为独立文件 | ✅ |
+| 文档更新（CONTENT_GUIDE v2.0 对齐 CoroutineScript 架构）| ✅ |
+
+### 🔮 计划中的架构改进
+
+| 改进 | 优先级 | 说明 |
+|------|--------|------|
+| **MenuLogic 拆分** | 中 | NavPage 中「导航逻辑」与「视觉呈现」分离为两个类。`DifficultyScreen` 覆写了 NavPage 90% 的方法，说明基类视觉假设不适用所有菜单。抽 `MenuLogic`（纯逻辑 RefCounted）后，NavPage 和自定义菜单各持有一个实例。**触发时机**：出现第三个需要大量覆写 NavPage 的菜单时。 |
+| 子弹池硬上限检查 | 高 | `_request_bullet()` 缺少 MAX_TOTAL=5000 的上限检查 |
+| 激光池 clear() 修复 | 高 | `LaserSystem.clear()` 不应 queue_free 池对象 |
+| Enemy/Item queue_free 守卫 | 中 | `die()` 后同帧内可能被回调触发，需加 `is_queued_for_deletion()` 检查 |
+| PauseMenu/GameOverMenu `_on_leave` 去重 | 低 | 出现第三个覆盖层菜单时抽 `OverlayPage` 基类 |
 
 ## 代码风格规则
 

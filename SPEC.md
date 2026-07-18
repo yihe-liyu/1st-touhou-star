@@ -562,6 +562,17 @@ tl.loop()                          — 循环模式（最后一个事件触发�
 | DialogueLine | bubbles(Array[DialogueBubble]) |
 | DialogueBubble | speaker(CharacterProfile), text, portrait_pos |
 
+#### 对话气泡（BubblePanel）
+
+气泡渲染由独立的 `BubblePanel`（`scripts/scenes/bubble_panel.gd`）负责，与 `DialogueBox` 分离。
+
+| 功能 | 说明 |
+|------|------|
+| 工厂方法 | `BubblePanel.create(text)` 创建白色圆角气泡 |
+| BBCode 解析 | `[shake=N]` 抖动 N 秒；原生 `[color]` 支持 |
+| 抖动特效 | `panel.shake(parent)` 在父节点上执行抖动 |
+| 扩展点 | 预留了 `typewriter()` 逐字打印接口 |
+
 ---
 
 ## 7. 生命周期
@@ -1038,6 +1049,8 @@ ItemPool:
 - 背景系统（平面/圆柱着色素、装饰物）
 - 音频系统（BGM1路+SFX8路、同帧去重）
 - UI系统（主菜单/难度/角色/暂停/GameOver/Option/音乐室/回放/练习 全菜单）
+- 菜单框架（BasePage + NavPage + MenuNav 页面栈）
+- 对话系统（DialogueBox + 独立 BubblePanel + 立绘管理 + 表情切换）
 - 着色器 14 个
 - 数据类全部 Resource
 - Stage 1 关卡雏形（背景+4个弹幕脚本+4个难度配置）
@@ -1047,6 +1060,20 @@ ItemPool:
 - **Boss 战**：框架就绪，但缺少实际 Boss 配置（只有 2 个示例符卡）
 - **美术资源**：SVG 素材尚未导入 Godot，目前使用占位图
 - **BGM 集成**：音乐文件已导入但关卡/菜单尚未完整串联
+
+### 🐛 已知技术债务
+| 问题 | 位置 | 严重度 |
+|------|------|--------|
+| 子弹池缺少 MAX_TOTAL 硬上限 | `bullet_pool.gd:_request_bullet()` | 中 |
+| 激光池 clear() queue_free 池对象 | `laser_system.gd:clear()` | 高 |
+| Enemy.die() 后缺少 queue_free 守卫 | `enemy.gd` | 低 |
+| Player.miss() 直接改 GameState.lives | `player.gd:miss()` | 低 |
+| DifficultyScreen 覆写 NavPage 90% 方法 | `difficulty_screen.gd` | 设计 |
+| PauseMenu/GameOverMenu _on_leave 重复 | 两处 | 低 |
+
+### 🔮 架构改进方向
+- **MenuLogic 拆分**：NavPage 的导航逻辑（选项收集/锁定跳过/冷却）与视觉呈现（modulate颜色/scale脉冲）分离，让自定义菜单只复用逻辑部分。（触发时机：第三个需要大量覆写 NavPage 的菜单出现时）
+- **EffectService**：统一特效入口（屏幕震动、Boss出场特效等），协程通过 `ctx.effects` 调用
 
 ---
 

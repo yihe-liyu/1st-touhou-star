@@ -1,6 +1,6 @@
 # 🛠️ 东方星 STG 引擎 — 内容制作流程
 
-> 版本：2026-06-17 · 基于菜单重构 + uid 架构
+> 版本：2026-07-18 · v2.0 对齐 CoroutineScript 统一架构
 
 ---
 
@@ -9,14 +9,17 @@
 ```
 创建资源文件 (.tres)          编写协程脚本 (.gd)
         ↓                            ↓
-  PhaseData ─→ BossData       StageScript / CreateScript / MoveScript
-                  ↓                            ↓
-             StageData  ←──────────────────────┘
+  PhaseData ─→ BossData        CoroutineScript（统一脚本）
+                  ↓                    ↓
+             StageData  ←──────────────┘
                   ↓
-              挂到场景 (GameScene.tscn 的 stage_data)
+          StageManager.load_stage()
                   ↓
-              F1 生成符卡记录（调试用）
+             自动运行
 ```
+
+> ⚠️ **v2.0 重要变更**：不再有 StageScript / CreateScript / MoveScript 之分，全部统一为 `CoroutineScript`。
+> 用 `auto_stop` 控制行为（true=播完即止，false=持续运行），用 `target` 指定控制目标。
 
 ---
 
@@ -27,9 +30,9 @@
 | 1 | `PhaseData` | `data/phase_data/` | 单个 phase 的配置（符卡/非符） |
 | 2 | `BossData` | `data/boss_data/` | 一个 Boss 的所有 phase 列表 |
 | 3 | `StageData` | `data/stages/` | 一个关卡（含难度），绑定背景+Boss+脚本 |
-| 4 | `StageScript` | `scripts/coroutine/stages/` | 关卡脚本（敌人波次/BGM 等） |
-| 5 | `CreateScript` | `scripts/coroutine/examples/` | 敌机弹幕脚本 |
-| 6 | `MoveScript` | `scripts/coroutine/stages/` | 敌机移动脚本 |
+| 4 | `StageScript` | `scripts/coroutine/` | 关卡脚本（敌人波次/BGM 等）— **也是 CoroutineScript** |
+| 5 | 弹幕脚本 | `scripts/coroutine/` | 敌机弹幕逻辑 — **CoroutineScript, auto_stop=true** |
+| 6 | 移动脚本 | `scripts/coroutine/` | 敌机/Boss 移动路径 — **CoroutineScript, auto_stop=true** |
 
 ---
 
@@ -44,8 +47,8 @@
 | `hp` | int | 血量 |
 | `time_limit` | float | 时限（秒） |
 | `bonus` | int | 击破奖励分 |
-| `move_script` | Script | 移动脚本（Boss 移动模式） |
-| `shoot_script` | Script | 弹幕脚本（`.gd` 文件，继承 CreateScript） |
+| `move_script` | Script | 移动脚本（继承 CoroutineScript） |
+| `shoot_script` | Script | 弹幕脚本（继承 CoroutineScript） |
 | `item_power` | int | 击破掉落 P 点 |
 | `item_point` | int | 击破掉落蓝点 |
 | `item_life` / `item_bomb` | int | 碎片掉率 |
@@ -61,8 +64,8 @@ uid = 101
 hp = 3000
 time_limit = 60.0
 bonus = 5000000
-shoot_script = preload("res://scripts/coroutine/examples/boss_ex_shoot.gd")
-move_script = preload("res://scripts/coroutine/stages/move_patrol.gd")
+shoot_script = preload("res://scripts/coroutine/boss_ex_shoot.gd")
+move_script = preload("res://scripts/coroutine/move_patrol.gd")
 ```
 
 **uid 规则**：正数=真符卡，全局唯一。不同难度的同名符卡用不同 uid。非符 uid=0。
@@ -139,53 +142,96 @@ bosses = [
 
 ---
 
-## 六、协程脚本
+## 六、协程脚本（CoroutineScript 统一架构）
 
-### 6.1 StageScript（关卡脚本）
+> ⭐ 所有协程脚本统一继承 `CoroutineScript`（`scripts/coroutine/base/coroutine_script.gd`）
 
-> 继承 `scripts/coroutine/base/stage_script.gd`
+### 核心概念
+
+| 属性 | 类型 | 默认 | 说明 |
+|------|------|------|------|
+| `auto_stop` | bool | false | true=Timeline 播完自动结束；false=持续运行 |
+| `target` | Node2D | null | 要控制的节点（敌人/Boss） |
+| `_tl` | Timeline | null | 声明式时间线（start_timeline() 创建） |
+
+### 返回值约定
+```gdscript
+return ctx.clock.wait(2.0)  # 等待 2 秒后再次调用
+return true                  # 下物理帧立即再次调用
+return false                 # 结束协程
+```
+
+### 6.1 关卡脚本（原 StageScript）
 
 **职责**：控制关卡流程 — 生成敌人波次、播放 BGM、触发 Boss。
 
-**核心 API**（通过 `StageAPI` 调用）：
-
 ```gdscript
-# 等待：返回 >0 秒数或 true（下帧）
-return api.seconds(2.0)
-return true
+extends CoroutineScript
 
-# 生成敌人
-api.spawn_enemy(data, pos)
-
-# 发射弹幕
-api.shoot_spread(bullet_data, count, angle, dir, pos)
-
-# 获得玩家位置
-var player = api.get_player()
-
-# 检查是否清场
-if api.all_defeated(): return false  # 结束关卡
+func _tick(ctx: StageContext):
+    if not _tl: _tl = start_timeline()
+    return _tl.tick(get_physics_process_delta_time())
+# auto_stop = true（关卡播完即止）
 ```
 
-### 6.2 CreateScript（弹幕脚本）
+**核心 API**（通过 `StageContext` 调用）：
 
-> 继承 `scripts/coroutine/base/create_script.gd`
+```gdscript
+ctx.clock.wait(2.0)                              # 等待
+ctx.bullets.shoot_spread(data, count, spread, dir, pos)  # 扇形弹幕
+ctx.player.get_position()                         # 自机位置
+ctx.enemies.spawn(data, pos)                      # 生成敌人
+ctx.audio.play_bgm(stream)                        # 播放 BGM
+ctx.play_dialogue(lines)                          # 对话
+```
 
-**职责**：定义弹幕模式。在 PhaseData 的 `shoot_script` 里引用。
+### 6.2 弹幕脚本（原 CreateScript）
 
-### 6.3 MoveScript（移动脚本）
+**职责**：定义弹幕模式。`auto_stop = true`，在 PhaseData 的 `shoot_script` 里引用。
 
-> 继承 `scripts/coroutine/base/move_script.gd`
+```gdscript
+extends CoroutineScript
 
-**职责**：控制敌机/Boss 的移动路径。在 EnemyData 或 PhaseData 的 `move_script` 里引用。
+func _tick(ctx: StageContext):
+    ctx.bullets.shoot_spread(bullet, 3, 0.3, Vector2.DOWN, target.global_position)
+    return ctx.clock.wait(0.5)
+```
+
+### 6.3 移动脚本（原 MoveScript）
+
+**职责**：控制敌机/Boss 的移动路径。`auto_stop = true`。
+
+```gdscript
+extends CoroutineScript
+
+var target_y: float = 300
+
+func _tick(ctx: StageContext):
+    target.global_position.y = move_toward(target.global_position.y, target_y, 100 * get_physics_process_delta_time())
+    return abs(target.global_position.y - target_y) < 1
+```
+
+### 6.4 使用 Timeline（声明式替代方案）
+
+```gdscript
+func _tick(ctx: StageContext):
+    if not _tl:
+        _tl = start_timeline()
+        _tl.at(0.0).do(func(): ctx.audio.play_bgm(bgm))
+        _tl.at(1.0).every(0.5).times(6).spawn_wave(bullet, 3, 0.3, Vector2.DOWN, pos)
+        _tl.at(10.0).spawn_boss(boss_data, pos)
+    return _tl.tick(get_physics_process_delta_time())
+```
 
 ---
 
 ## 七、挂到游戏
 
-1. 编辑器打开 `scenes/game_scene.tscn`
-2. 在 Inspector 里把 `StageData` 资源拖到 `stage_data` 属性
-3. 或者用 MainMenu → Start 流程（会在 CharacterScreen 后自动加载）
+关卡通过 `StageManager.load_stage(data)` 加载。流程：
+
+1. MainMenu → Start → 选难度 → 选角色 → `GameManager.change_scene("game_scene")`
+2. `GameScene._ready()` → `_resolve_stage_data()` → `StageManager.load_stage(data)`
+3. 练习模式：从 CardDef 构建单 phase Boss，走 `_start_practice_game()`
 
 ---
 
@@ -194,8 +240,7 @@ if api.all_defeated(): return false  # 结束关卡
 ### 自动生成记录
 
 1. 确保所有 StageData 文件已创建并填好 `bosses`
-2. 进游戏 → 主菜单按 **F1**
-3. Spell Practice 解锁，自动填充所有符卡
+2. 进游戏 → Spell Practice 自动从 StageRegistry 加载
 
 ### 符卡记录规则
 
@@ -205,19 +250,35 @@ if api.all_defeated(): return false  # 结束关卡
 | 专属符卡 | 不同 uid，自然分开 |
 | 非符 | uid=0，**不记入符卡簿**，仅练习模式可用 |
 
-**运行时记录**：`boss.gd` 调用 `GameState.record_spell(uid=phase.uid)`。非符（uid=0）自动跳过。
+**运行时记录**：`boss.gd` 调用 `GameState.record_spell()` / `unlock_spell()`。非符（uid=0）自动跳过。
 
 ---
 
 ## 九、菜单页面
 
-### 已有的可复用模板
+### 基类体系
 
-| 页面 | 基类 | 特点 |
-|------|------|------|
-| 难度/角色选择 | `NavPage` | 单列选项 + 渐显 + 脉冲 + 闪烁 |
-| 符卡练习 | `BasePage` | 自定义三列布局 |
-| 其他（Replay等） | `BasePage` | 标题贴图 + 黑底 + X 返回 |
+```
+BasePage          — 生命周期 + 遮罩淡入淡出 + 内容滑入
+  └── NavPage     — 垂直选项列表 + 脉冲高亮 + 导航
+        ├── MainMenu
+        ├── PauseMenu / GameOverMenu
+        ├── DifficultyScreen（水平滑动，自定义着色器）
+        └── CharacterScreen
+```
+
+### 可复用方法（BasePage 提供）
+
+| 方法 | 说明 |
+|------|------|
+| `_on_enter()` | 入场（首次被 push） |
+| `_on_leave()` | 退场（被 pop），播放退场动画后 queue_free |
+| `_fade_overlay_in(dur)` | 暗色遮罩淡入 |
+| `_fade_overlay_out(dur)` | 暗色遮罩淡出（返回 Tween 可接 callback） |
+| `_fade_content_in(ctrl, dur, slide)` | 内容从右侧滑入 + 淡入 |
+| `_fade_all_out(ctrl, dur)` | 内容 + 遮罩一起淡出 |
+| `go_back()` | 触发 back 信号（返回上一页） |
+| `done(result)` | 触发 finished 信号（确认选择） |
 
 ### 添加新页面
 
@@ -226,13 +287,49 @@ if api.all_defeated(): return false  # 结束关卡
 3. 脚本继承 `BasePage` 或 `NavPage`
 4. 在主菜单 `_on_item_selected` 里加 `_open_page("res://scenes/ui/xxx.tscn")`
 
+### 自定义视觉的菜单
+
+如果菜单布局和 NavPage 默认行为差异很大（如水平滑动、shader 着色），可以直接继承 `BasePage`，自己管理选项列表和动画。参考 `DifficultyScreen`。
+
+> 🔮 **未来改进**：考虑抽 `MenuLogic`（纯导航逻辑）与视觉呈现分离，让 `NavPage` 和 `DifficultyScreen` 等自定义菜单共享同一套选项管理逻辑。详见 `ARCHITECTURE_ROADMAP.md`。
+
 ---
 
-## 十、常见问题
+## 十、对话系统
+
+### 对话数据
+
+- `CharacterProfile`：角色名 + 立绘
+- `DialogueLine`：包含多个 `DialogueBubble`
+- `DialogueBubble`：说话者 + 文字 + 立绘位置 + 表情
+
+### 在关卡中使用
+
+```gdscript
+# Timeline 中
+ctx.play_dialogue(data.lines)
+
+# 或协程中
+ctx.dialogue_show("灵梦", "这是测试文本", Vector2(100, 200))
+```
+
+### 自定义气泡样式
+
+气泡渲染由独立的 `BubblePanel`（`scripts/scenes/bubble_panel.gd`）负责。支持：
+- `[shake=N]` — 气泡抖动 N 秒
+- BBCode 颜色 — `[color=red]文字[/color]`
+
+扩展气泡效果（逐字打印、尾巴三角形等）只需修改 `bubble_panel.gd`，不影响对话流程。
+
+---
+
+## 十一、常见问题
 
 | 问题 | 解决 |
 |------|------|
-| 符卡练习显示"No records" | 按 F1 生成数据，或确保 StageData 有 `bosses` |
+| 符卡练习显示"No records" | 确保 StageRegistry 已加载，StageData 有 `bosses` |
 | uid 冲突 | 真符卡保证 uid 全局唯一（建议按关卡预留号段：1面 100-199, 2面 200-299...） |
 | 非符在符卡练习里排列不对 | 排列跟随 `phases` 数组顺序，不依赖 uid 数字 |
 | 不同难度符卡不同 | 各难度用不同 StageData 文件，各自引用不同 BossData |
+| 对话气泡想加新效果 | 改 `scripts/scenes/bubble_panel.gd`，不要动 `dialogue_box.gd` |
+| 菜单加新页面怎么写动画 | 继承 BasePage/NavPage，用 `_fade_overlay_in/out` 等现成方法 |

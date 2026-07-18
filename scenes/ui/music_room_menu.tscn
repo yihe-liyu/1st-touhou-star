@@ -84,7 +84,7 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_vertical = 1
 theme_override_font_sizes/font_size = 30
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="Hint" type="Label" parent="." unique_id=1743166774]
 layout_mode = 1

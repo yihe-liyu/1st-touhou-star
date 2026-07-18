@@ -36,7 +36,8 @@ func _on_enter() -> void:
 		mat.set_shader_parameter("grayscale", 0.0)
 		item.material = mat
 
-	$"Overlay".modulate.a = 1.0
+	# 遮罩淡入
+	_fade_overlay_in(0.4)
 
 	var tex: TextureRect = $"TitleTexture"
 	tex.modulate.a = 0.0

@@ -21,8 +21,8 @@ func _on_enter() -> void:
 	if GameState.selected_character < _nav_items.size():
 		_nav_index = GameState.selected_character
 
-	# 黑底直接 50%
-	$"Overlay".modulate.a = 1.0
+	# 遮罩淡入
+	_fade_overlay_in(0.4)
 
 	# 标题淡入
 	var tex: TextureRect = $"TitleTexture"

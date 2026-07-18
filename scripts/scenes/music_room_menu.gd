@@ -23,6 +23,7 @@ var _list_labels: Array[Label] = []
 
 
 func _ready() -> void:
+	super._ready()  # BasePage._create_overlay() 需要先执行
 	# 进入音乐室时停掉外部 BGM
 	AudioManager.stop_bgm()
 	
@@ -41,14 +42,31 @@ func _ready() -> void:
 	add_child(_preview_player)
 	_preview_player.finished.connect(_on_preview_finished)
 	
-	# 标题渐显
+	# 标题初始透明
 	_title_texture.modulate.a = 0.0
-	var tw_title := create_tween()
-	tw_title.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw_title.tween_property(_title_texture, "modulate:a", 1.0, 0.6)
 	
-	# 重建左栏列表
+	# 重建左栏列表（不设最终颜色，留待 _on_enter 的入场动画）
 	_rebuild_list()
+
+
+## 入场动画：遮罩 + 标题 + 列表依次淡入
+func _on_enter() -> void:
+	# 列表项初始隐藏
+	for item in _nav_items:
+		item.modulate.a = 0.0
+		if item is Control:
+			item.scale = Vector2(0.95, 0.95)
+	
+	# 遮罩淡入
+	_fade_overlay_in(0.5)
+	
+	# 标题淡入
+	var tw := create_tween()
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_title_texture, "modulate:a", 1.0, 0.5)
+	
+	# 列表交错入场
+	_play_entrance()
 
 
 func _rebuild_list() -> void:
@@ -65,9 +83,15 @@ func _rebuild_list() -> void:
 		label.add_theme_font_size_override("font_size", 32)
 		label.name = "Track_%d" % record.music_id
 		
-		# 未解锁的标记为 locked，入场动画自动用 locked_color
+		# 设定文字内容
 		if not record.unlocked:
 			label.set_meta("locked", true)
+			label.text = "NO.%02d  %s" % [record.music_id, LOCKED_TEXT]
+		else:
+			label.text = "NO.%02d  %s" % [record.music_id, record.title]
+		
+		# 初始透明（_on_enter 时渐显）
+		label.modulate.a = 0.0
 		
 		list_container.add_child(label)
 		_list_labels.append(label)
@@ -78,8 +102,6 @@ func _rebuild_list() -> void:
 		if _nav_index < 0:
 			_nav_index = 0
 	
-	# 统一刷外观
-	_update_list_colors()
 	_update_display(_nav_index)
 
 
@@ -152,7 +174,11 @@ func _on_preview_finished() -> void:
 # ═══ 显示更新 ═══
 
 func _update_display(_index: int) -> void:
-	# 只有在播放时才显示乐评，且靠上显示
+	# 确保 CJK 文本正确换行（WORD_SMART = 按字符边界断行）
+	_comment_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# 确保 Label 填满父容器宽度
+	_comment_text.size_flags_horizontal = Control.SIZE_FILL
+	
 	if _playing_id < 0:
 		_comment_text.text = ""
 		return

@@ -183,7 +183,7 @@ func _show_line() -> void:
 		panel.position = Vector2(info.node.size.x, 0) + b_off
 
 		if panel._shake_dur > 0.0:
-			_shake_bubble(panel)
+			panel.shake(info.node)
 
 		info.node.set_meta("_bubble_panel", panel)
 
@@ -233,22 +233,7 @@ func _add_portrait(profile: CharacterProfile, pos: Vector2, name_key: String) ->
 	_root.add_child(ctrl)
 	_portrait_map[name_key] = {node = ctrl, profile = profile}
 
-# ═══ 抖动 ═══
 
-func _shake_bubble(panel: BubblePanel) -> void:
-	var orig := panel.position
-	var dur := panel._shake_dur
-	var tw := create_tween()
-	tw.set_loops()
-	var shakes := ceili(dur / 0.05)
-	for _i in shakes:
-		var off := Vector2(randf_range(-4, 4), randf_range(-2, 2))
-		tw.tween_property(panel, "position", orig + off, 0.025)
-		tw.tween_property(panel, "position", orig, 0.025)
-	await get_tree().create_timer(dur).timeout
-	if is_instance_valid(panel):
-		tw.kill()
-		panel.position = orig
 
 # ═══ 清理 ═══
 
@@ -288,56 +273,4 @@ func _on_game_state(_old: int, new: int) -> void:
 		tw.tween_property(_root, "modulate:a", 1.0, 0.15)
 
 
-# ═══════════════════════════════════════
-#  内部类：气泡面板
-# ═══════════════════════════════════════
 
-class BubblePanel extends PanelContainer:
-	var _label: Label
-	var _shake_dur: float = 0.0
-
-	const PAD_H := 16.0
-	const PAD_V := 10.0
-	const MIN_W := 440.0
-
-	static func create(text: String) -> BubblePanel:
-		var panel := BubblePanel.new()
-		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-		# 样式（PanelContainer 用 "panel" 主题项）
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(1, 1, 1, 0.92)
-		sb.set_corner_radius_all(10)
-		sb.border_width_left   = 2
-		sb.border_width_right  = 2
-		sb.border_width_top    = 2
-		sb.border_width_bottom = 2
-		sb.border_color = Color(0.5, 0.5, 0.55, 0.7)
-		sb.content_margin_left   = int(PAD_H)
-		sb.content_margin_right  = int(PAD_H)
-		sb.content_margin_top    = int(PAD_V)
-		sb.content_margin_bottom = int(PAD_V)
-		panel.add_theme_stylebox_override("panel", sb)
-
-		# 文字
-		panel._label = Label.new()
-		panel._label.add_theme_color_override("font_color", Color(0.1, 0.1, 0.15))
-		panel._label.add_theme_font_size_override("font_size", 40)
-		panel._label.text = text
-		panel.add_child(panel._label)
-
-		# [shake]
-		var re := RegEx.new()
-		re.compile("\\[shake=?(\\d*\\.?\\d*)\\]")
-		var m := re.search(text)
-		if m:
-			panel._shake_dur = float(m.get_string(1)) if m.get_string(1) else 0.3
-			panel._label.text = re.sub(text, "", true)
-
-		# 尺寸：Label 限制最大宽度让其换行，PanelContainer 自动适配
-		panel._label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-		panel._label.custom_minimum_size = Vector2(MIN_W, 0)
-		# 约束气泡最大宽度
-		panel.custom_minimum_size = Vector2(MIN_W, 0)
-
-		return panel

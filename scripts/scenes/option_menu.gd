@@ -3,20 +3,18 @@ extends BasePage
 
 
 func _on_enter() -> void:
-	var ov: ColorRect = $"Overlay"
-	ov.modulate.a = 0.0
+	_fade_overlay_in(0.5)
 	var tex: TextureRect = $"TitleTexture"
 	tex.modulate.a = 0.0
-	var tw := create_tween().set_parallel(true)
+	var tw := create_tween()
 	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property(ov, "modulate:a", 1.0, 0.5)
 	tw.tween_property(tex, "modulate:a", 1.0, 0.5)
 
 
 func _on_leave() -> void:
 	var tw := create_tween().set_parallel(true)
 	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property($"Overlay", "modulate:a", 0.0, 0.5)
+	_fade_overlay_out(0.5)
 	tw.tween_property($"TitleTexture", "modulate:a", 0.0, 0.5)
 	tw.tween_callback(queue_free)
 
