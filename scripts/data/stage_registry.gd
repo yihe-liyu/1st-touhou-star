@@ -2,21 +2,17 @@
 extends Resource
 class_name StageRegistry
 
-@export var stages: Array[StageData] = []  ## 所有关卡（含所有难度）
+@export var stages: Array[StageData] = []  ## 所有关卡（一个 stage_id 一个文件）
 
 
-## 按 (stage_id, difficulty) 查找
-func find(stage_id: int, difficulty: int) -> StageData:
+## 按 stage_id 查找
+func find(stage_id: int) -> StageData:
 	for s in stages:
-		if s.stage_id == stage_id and s.difficulty == difficulty:
+		if s.stage_id == stage_id:
 			return s
 	return null
 
 
-## 按 stage_id 获取所有难度版本
-func get_by_stage(stage_id: int) -> Array[StageData]:
-	var result: Array[StageData] = []
-	for s in stages:
-		if s.stage_id == stage_id:
-			result.append(s)
-	return result
+## 获取所有关卡
+func get_all() -> Array[StageData]:
+	return stages

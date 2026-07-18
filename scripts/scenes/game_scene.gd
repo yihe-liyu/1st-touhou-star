@@ -66,7 +66,7 @@ func _start_practice_game() -> void:
 
 func _resolve_stage_data() -> StageData:
 	if GameState.stage_registry:
-		return GameState.stage_registry.find(GameState.current_stage_id, GameState.selected_difficulty)
+		return GameState.stage_registry.find(GameState.current_stage_id)
 	push_error("GameScene: stage_registry 未设置")
 	return null
 

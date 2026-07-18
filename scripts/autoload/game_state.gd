@@ -75,7 +75,7 @@ func _find_stage_background(stage_id: int) -> PackedScene:
 
 func _find_stage_data(stage_id: int) -> StageData:
 	if stage_registry:
-		return stage_registry.find(stage_id, selected_difficulty)
+		return stage_registry.find(stage_id)
 	# 回退：扫目录（stage_registry 未加载时用）
 	return _scan_stage_dir(stage_id)
 
