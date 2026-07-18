@@ -25,12 +25,13 @@ func _on_phase_start(phase: PhaseData) -> void:
 func _process(_delta: float) -> void:
 	if not _boss or not is_instance_valid(_boss):
 		queue_redraw(); return
-	if _boss._in_gap:
-		visible = false; return
-	visible = true
 	
 	var ph := _boss.current_phase()
-	if not ph or ph.hp <= 0:
+	if not ph or _boss.is_in_gap():
+		visible = false; return  # 还没开战 或 阶段间隙
+	visible = true
+	
+	if ph.hp <= 0:
 		return
 	var ch := _boss.hp
 	if ch != _hp or ph.hp != _max_hp:

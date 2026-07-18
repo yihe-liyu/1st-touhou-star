@@ -59,11 +59,11 @@ func _process(_delta: float) -> void:
 		return
 	var phase := _boss_ref.current_phase()
 	# 间隙期（换阶段之间）不显示
-	if not phase or phase.time_limit <= 0 or _boss_ref._in_gap:
+	if not phase or phase.time_limit <= 0 or _boss_ref.is_in_gap():
 		_timer_label.visible = false
 		return
 	_timer_label.visible = true
-	var rem := maxf(phase.time_limit - _boss_ref._elapsed, 0.0)
+	var rem := maxf(phase.time_limit - _boss_ref.get_elapsed(), 0.0)
 	_timer_label.text = "%02d" % int(ceil(rem))
 
 func _on_boss_defeated(_boss: Node) -> void:
@@ -163,7 +163,7 @@ func _make_sub_label(align: HorizontalAlignment, color: Color) -> Label:
 
 func _update_capture_text() -> void:
 	if not _capture_label or not _boss_ref: return
-	var pid := _boss_ref._pid
+	var pid := _boss_ref.get_phase_id()
 	if not pid: return
 	var book: SpellRecordBook = GameState.spell_book
 	var rec: SpellRecord = book.get_record(pid.stage_id, pid.phase_index, pid.character, pid.difficulty)

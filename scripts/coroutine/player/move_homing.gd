@@ -93,7 +93,7 @@ func _find_nearest_enemy() -> Node2D:
 			continue
 		if enemy is Boss:
 			var phase := (enemy as Boss).current_phase()
-			if phase and phase.is_timeout_only:
+			if not phase or phase.is_timeout_only:
 				continue
 		var dist := target.global_position.distance_squared_to(enemy.global_position)
 		if dist < nearest_dist:

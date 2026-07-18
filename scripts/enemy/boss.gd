@@ -24,6 +24,9 @@ var _pid: PhaseIdentity
 
 func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
+func is_in_gap() -> bool: return _in_gap
+func get_elapsed() -> float: return _elapsed
+func get_phase_id() -> PhaseIdentity: return _pid
 
 
 func setup(data: BossData, p_ctx: StageContext = null) -> void:
@@ -48,9 +51,12 @@ func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	col.shape = shape
 	add_child(col)
 	
-	collision_layer = 4
-	collision_mask = 2
+	collision_layer = 0  # 出场期间无碰撞，begin_battle 后开启
+	collision_mask = 0
 	area_entered.connect(_on_area_entered)
+
+	# 血条初始隐藏
+	ring.visible = false
 
 func start_boss(defer: bool = false) -> void:
 	set_process(true)
@@ -70,6 +76,14 @@ func _next_phase() -> void:
 	if _phase_index >= boss_data.phases.size():
 		_die_boss()
 		return
+	
+	# 正式开战：开启碰撞 + 显示血条
+	collision_layer = 4
+	collision_mask = 2
+	for child in get_children():
+		if child.get_script() == HPRingClass:
+			child.visible = true
+			break
 	
 	_current_phase = boss_data.phases[_phase_index]
 	_elapsed = 0.0
@@ -132,6 +146,7 @@ func _on_area_entered(_area: Area2D) -> void:
 
 func take_damage(damage: int) -> void:
 	if _invincible: return
+	if not _current_phase: return  # 还没 begin_battle，不受伤害
 	hp -= damage
 	if hp <= 0 and not _current_phase.is_timeout_only:
 		_on_phase_clear(true)
