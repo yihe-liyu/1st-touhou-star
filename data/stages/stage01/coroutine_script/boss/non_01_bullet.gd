@@ -9,14 +9,20 @@ const RING_SPEED: float = 200.0
 enum State { TRAVEL, FLEE }
 var _state: State = State.TRAVEL
 var _flee_dir: Vector2
+var _skip: int = 0  # 距离检测跳帧计数
 
 
 func _tick(p_ctx: StageContext):
 	if not target:
 		return false
 	
-	# 每帧移动（挂了协程后自动移动被禁）
+	# 移动每帧都做
 	target.global_position += target.velocity / Engine.physics_ticks_per_second
+	
+	# 距离检测每 3 帧跑一次，省开销
+	_skip += 1
+	if _skip % 3 != 0:
+		return true
 	
 	match _state:
 		State.TRAVEL:
@@ -67,7 +73,7 @@ func _tick_flee(p_ctx: StageContext):
 					.color(Color.RED)\
 					.blend(true)\
 					.enemy()
-				p_ctx.bullets.shoot_spread(red, num, 1 / TAU / 2, away, target.global_position)
+				p_ctx.bullets.shoot_spread(red, num, 1 / TAU / 3, away, target.global_position)
 		
 		# 自己消失
 		BulletManager.return_bullet(target)

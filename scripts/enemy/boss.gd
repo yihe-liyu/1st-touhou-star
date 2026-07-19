@@ -21,12 +21,17 @@ var _in_gap: bool = false
 var _spell_count: int = 0
 var _non_count: int = 0
 var _pid: PhaseIdentity
+var _exit_controlled: bool = false  # true=不自动 queue_free，由外部飞走脚本释放
 
 func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
 func is_in_gap() -> bool: return _in_gap
 func get_elapsed() -> float: return _elapsed
 func get_phase_id() -> PhaseIdentity: return _pid
+
+## 标记退场由外部控制（飞走脚本负责 queue_free）
+func set_exit_controlled() -> void:
+	_exit_controlled = true
 
 
 func setup(data: BossData, p_ctx: StageContext = null) -> void:
@@ -175,9 +180,11 @@ func _on_phase_clear(captured: bool) -> void:
 
 func _die_boss() -> void:
 	set_process(false)
+	_current_phase = null  # 隐藏血条
 	GameState.active_enemies.erase(self)
 	GameEvents.boss_defeated.emit(self)
-	queue_free()
+	if not _exit_controlled:
+		queue_free()
 
 func _drop_items() -> void:
 	if not _current_phase: return

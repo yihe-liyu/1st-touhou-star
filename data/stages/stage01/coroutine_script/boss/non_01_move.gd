@@ -4,7 +4,7 @@ extends CoroutineScript
 
 var _center: float = 448.0     # 中心 x
 var _amplitude: float = 200.0  # 振幅（左右各 200px）
-var _period: float = 4.0       # 一个来回的周期（秒）
+var _period: float = 6.0       # 一个来回的周期（秒）
 var _timer: float = 0.0
 
 

@@ -7,6 +7,7 @@
 [resource]
 script = ExtResource("1_ngo1e")
 name = "卡摩瑞的非符1"
+time_limit = 25.0
 hp = 2500
 move_script = ExtResource("1_q3bo0")
 shoot_script = ExtResource("2_shoot")

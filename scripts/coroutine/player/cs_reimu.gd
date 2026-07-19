@@ -28,6 +28,7 @@ func _option_setup() -> Dictionary:
 
 func _main_shoot(_ctx: StageContext, player: Player) -> float:
 	var b := BulletData.new().tex("reimu_main").speed(2000).player()
+	b.color(Color(1, 1, 1, 0.5))
 	b.damage = 6
 	b.hit_effect = preload("res://scenes/effect/hit_effect_reimu.tscn")
 	ctx.bullets.shoot_spread(b, 1, 0.0, Vector2.UP, player.global_position + Vector2(-20, 0))
@@ -38,6 +39,7 @@ func _main_shoot(_ctx: StageContext, player: Player) -> float:
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
 	if Input.is_action_pressed("focus"):
 		var b := BulletData.new().tex("reimu_opt2").speed(2500).player()
+		b.color(Color(1, 1, 1, 0.5))
 		b.damage = 2
 		b.hit_effect = preload("res://scenes/effect/hit_effect_reimu_option02.tscn")
 		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2(-7, 0))
@@ -45,6 +47,7 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		return ctx.clock.wait_frames(4)
 	else:
 		var b := BulletData.new().tex("reimu_opt1").speed(500).player()
+		b.color(Color(1, 1, 1, 0.5))
 		b.damage = 5
 		b.hit_effect = preload("res://scenes/effect/hit_effect_reimu_option01.tscn")
 		b.coroutine_script = preload("res://scripts/coroutine/player/move_homing.gd")

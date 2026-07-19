@@ -95,9 +95,26 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	
 	var kamorui_mid = BossData.new().name("？？？")\
 		.look(BOSS_POINT)\
-		.phase(preload("res://data/stages/stage01/phase/E_01.tres"))
+		.phase(preload("res://data/stages/stage01/phase/non_01.tres"))
 	
-	tl.at(35).spawn_boss(kamorui_mid, Vector2(448, 250))
+	tl.at(35).do(func(): 
+		var boss = StageManager.spawn_boss(kamorui_mid, Vector2(-50, 500), true, ctx)
+		boss.set_exit_controlled()
+		
+		# 退场：向上飞走
+		GameEvents.boss_defeated.connect(func(dead: Node):
+			if dead != boss: return
+			var tw_fly := boss.create_tween()
+			tw_fly.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tw_fly.tween_property(boss, "global_position", Vector2(448, -150), 1.5)
+			tw_fly.tween_callback(boss.queue_free)
+		, CONNECT_ONE_SHOT)
+		
+		var tw := create_tween()
+		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(boss, "global_position", Vector2(448, 250), 1.5)
+		tw.tween_callback(boss.begin_battle)
+	)
 	
 	#tl.at(35).do(func(): ctx.dialogue.play(DIALOGUE01.lines))
 	
