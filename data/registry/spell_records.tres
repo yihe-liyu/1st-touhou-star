@@ -15,8 +15,8 @@ phase_index = 0
 name = "卡摩瑞的非符1"
 attempts = 1
 captures = 1
-practice_attempts = 1
-practice_captures = 1
+practice_attempts = 2
+practice_captures = 2
 best_time = 12.484445454545156
 
 [resource]

@@ -171,6 +171,7 @@ func skip_entrance() -> void:
 		if item is Control:
 			item.scale = Vector2.ONE
 	_nav_enabled = true
+	_last_accept_time = Time.get_ticks_msec() / 1000.0  # 防跳过误触
 	if _nav_index >= 0 and _nav_index < _nav_items.size():
 		_start_pulse(_nav_items[_nav_index])
 
