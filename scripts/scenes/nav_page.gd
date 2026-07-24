@@ -37,6 +37,7 @@ var _nav_index: int = -1
 var _nav_enabled: bool = false
 var _container: Control
 var _pulse_tween: Tween
+var _entrance_tween: Tween
 var _last_nav_time: float = 0.0
 var _last_accept_time: float = 0.0
 
@@ -126,7 +127,7 @@ func _play_entrance() -> void:
 		_nav_enabled = true
 		return
 
-	var tw := create_tween().set_parallel(true)
+	_entrance_tween = create_tween().set_parallel(true)
 	for i in _nav_items.size():
 		var item := _nav_items[i]
 		var col: Color
@@ -138,18 +139,40 @@ func _play_entrance() -> void:
 			col = normal_color
 
 		var delay := i * entrance_stagger
-		tw.tween_property(item, "modulate", col, entrance_duration * 0.8).set_delay(delay)\
+		_entrance_tween.tween_property(item, "modulate", col, entrance_duration * 0.8).set_delay(delay)\
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		if item is Control:
-			tw.tween_property(item, "scale", Vector2.ONE, entrance_duration).set_delay(delay)\
+			_entrance_tween.tween_property(item, "scale", Vector2.ONE, entrance_duration).set_delay(delay)\
 				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	var total := (_nav_items.size() - 1) * entrance_stagger + entrance_duration
-	tw.tween_callback(func():
+	_entrance_tween.tween_callback(func():
 		_nav_enabled = true
+		_entrance_tween = null
 		if _nav_index >= 0 and _nav_index < _nav_items.size():
 			_start_pulse(_nav_items[_nav_index])
 	).set_delay(total)
+
+
+## 跳过入场动画，所有选项立刻到位
+func skip_entrance() -> void:
+	if not _entrance_tween or not _entrance_tween.is_valid():
+		return
+	_entrance_tween.kill()
+	_entrance_tween = null
+	for i in _nav_items.size():
+		var item := _nav_items[i]
+		if i == _nav_index:
+			item.modulate = highlight_color
+		elif _is_locked(i):
+			item.modulate = locked_color
+		else:
+			item.modulate = normal_color
+		if item is Control:
+			item.scale = Vector2.ONE
+	_nav_enabled = true
+	if _nav_index >= 0 and _nav_index < _nav_items.size():
+		_start_pulse(_nav_items[_nav_index])
 
 
 # ═══ 导航 ═══

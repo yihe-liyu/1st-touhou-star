@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://qp6whiw078gf" path="res://assets/Textures/title/manual.png" id="1"]
 [ext_resource type="Script" uid="uid://dv1ls4mgpwrmm" path="res://scripts/scenes/manual_menu.gd" id="2"]
 
-[node name="ManualMenu" type="Control" unique_id=68057084]
+[node name="ManualMenu" type="Control" unique_id=539023423]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,14 +13,17 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2")
 
-[node name="Overlay" type="ColorRect" parent="." unique_id=366725505]
-layout_mode = 0
+[node name="Overlay" type="ColorRect" parent="." unique_id=606743878]
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.55)
 
-[node name="TitleTexture" type="TextureRect" parent="." unique_id=15847249]
+[node name="TitleTexture" type="TextureRect" parent="." unique_id=2104011629]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -33,12 +36,16 @@ grow_horizontal = 2
 texture = ExtResource("1")
 stretch_mode = 5
 
-[node name="Hint" type="Label" parent="." unique_id=1823196462]
-layout_mode = 0
-anchor_top = 0.88
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1786707163]
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.95
-theme_override_font_sizes/font_size = 16
-text = "X: Back"
-horizontal_alignment = 1
-vertical_alignment = 1
+anchor_bottom = 1.0
+offset_left = 191.99998
+offset_top = 192.0
+offset_right = 31.999878
+offset_bottom = 192.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.8, 0.8)
+stretch_mode = 2

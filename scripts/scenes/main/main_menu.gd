@@ -9,6 +9,9 @@ extends NavPage
 @onready var _particles: GPUParticles2D = $"GPUParticles2D"
 
 
+var _logo_tween: Tween
+
+
 func _ready() -> void:
 	# 导航初始化（不走 NavPage._on_enter，因为 MainMenu 是场景根）
 	_setup_nav()
@@ -37,10 +40,10 @@ func _ready() -> void:
 	entrance_stagger = 0.05
 	entrance_duration = 0.5
 
-	var tw := create_tween()
-	tw.tween_property(_logo.material, "shader_parameter/progress", 1.0, 3.0)\
+	_logo_tween = create_tween()
+	_logo_tween.tween_property(_logo.material, "shader_parameter/progress", 1.0, 3.0)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(_play_entrance)  # 选项在 Logo 播完后入场
+	_logo_tween.tween_callback(_play_entrance)  # 选项在 Logo 播完后入场
 
 
 func _on_item_selected(index: int) -> void:
@@ -154,7 +157,20 @@ func _activate_title() -> void:
 
 # ═══ 调试（F1 全开符卡） ═══
 
+func _skip_logo() -> void:
+	if not _logo_tween or not _logo_tween.is_valid():
+		return
+	_logo_tween.kill()
+	_logo_tween = null
+	_logo.material.set_shader_parameter("progress", 1.0)
+	_play_entrance()
+
+
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("shoot"):
+		_skip_logo()
+		skip_entrance()
+		return
 	if event.is_action_pressed("debug_toggle"):
 		# TODO: debug_fill_spells 已移除 — 从 stage_registry 自动填充
 		_container.get_node("Spell Practice").remove_meta("locked")
