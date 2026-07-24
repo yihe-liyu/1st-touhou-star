@@ -52,6 +52,7 @@ var is_stage_practice: bool = false
 var practice_card: CardDef
 var practice_stage_id: int = 1
 var practice_background: PackedScene
+var _restarting: bool = false
 
 
 func start_practice(card: CardDef, _character: int, _difficulty: int) -> void:
@@ -62,6 +63,8 @@ func start_practice(card: CardDef, _character: int, _difficulty: int) -> void:
 
 
 func end_practice() -> void:
+	if _restarting:
+		return
 	is_practice_mode = false
 
 

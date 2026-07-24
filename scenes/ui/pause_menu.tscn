@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" uid="uid://cfjaugwyh60ij" path="res://scripts/scenes/pause_menu.gd" id="1_script"]
 
-[node name="PauseMenu" type="Control" unique_id=1848198582]
+[node name="PauseMenu" type="Control"]
 script = ExtResource("1_script")
 container_path = NodePath("Container")
 entrance_stagger = 0.08
 
-[node name="Overlay" type="ColorRect" parent="." unique_id=388309025]
+[node name="Overlay" type="ColorRect" parent="."]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
@@ -16,7 +16,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.45)
 
-[node name="Container" type="VBoxContainer" parent="." unique_id=2128251895]
+[node name="Container" type="VBoxContainer" parent="."]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -28,23 +28,23 @@ grow_vertical = 0
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="ResumeLabel" type="Label" parent="Container" unique_id=1070435998]
+[node name="ResumeLabel" type="Label" parent="Container"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Resume"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TitleLabel" type="Label" parent="Container" unique_id=1820670419]
+[node name="RestartLabel" type="Label" parent="Container"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "Return to Title"
+text = "Restart"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="QuitLabel" type="Label" parent="Container" unique_id=2124540227]
+[node name="TitleLabel" type="Label" parent="Container"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "Quit"
+text = "Return to Title"
 horizontal_alignment = 1
 vertical_alignment = 1

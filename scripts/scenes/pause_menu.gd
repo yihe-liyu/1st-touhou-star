@@ -32,9 +32,11 @@ func _on_item_selected(index: int) -> void:
 			if not game_over_mode:
 				GameManager.resume_game()
 		1:
-			GameManager.change_scene.call_deferred("res://scenes/ui/main_menu.tscn", GameManager.AppState.MENU)
+			AudioManager.stop_bgm()
+			GameState._restarting = true
+			GameManager.reload_current_scene()
 		2:
-			get_tree().quit.call_deferred()
+			GameManager.change_scene.call_deferred("res://scenes/ui/main_menu.tscn", GameManager.AppState.MENU)
 
 
 func _on_cancel() -> void:

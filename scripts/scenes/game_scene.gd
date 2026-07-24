@@ -22,10 +22,12 @@ func _ready():
 	StageManager.stage_cleared.connect(_on_stage_cleared)
 
 	if GameState.is_practice_mode:
+		GameState._restarting = false
 		GameState.reset_practice()
 		_setup_player()
 		_start_practice_game()
 	else:
+		GameState._restarting = false
 		GameState.reset_all()
 		_setup_player()
 		_start_normal_game()
