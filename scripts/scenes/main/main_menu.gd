@@ -38,7 +38,7 @@ func _ready() -> void:
 	entrance_duration = 0.5
 
 	var tw := create_tween()
-	tw.tween_property(_logo.material, "shader_parameter/progress", 1.0, 4.0)\
+	tw.tween_property(_logo.material, "shader_parameter/progress", 1.0, 3.0)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(_play_entrance)  # 选项在 Logo 播完后入场
 

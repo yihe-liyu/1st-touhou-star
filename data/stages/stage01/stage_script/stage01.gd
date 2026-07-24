@@ -66,7 +66,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			)
 	
 	for i in 7:
-		tl.at(20.0 + i * 0.1).do(func():
+		tl.at(17.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
@@ -80,7 +80,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		)
 
 	for i in 7:
-		tl.at(28.0 + i * 0.1).do(func():
+		tl.at(24.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
@@ -101,13 +101,12 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var boss = StageManager.spawn_boss(kamorui_mid, Vector2(-50, 500), true, ctx)
 		boss.set_exit_controlled()
 		
-		# 退场：向上飞走
+		# 退场：向上飞走（用信号参数 dead，不捕获 boss）
 		GameEvents.boss_defeated.connect(func(dead: Node):
-			if dead != boss: return
-			var tw_fly := boss.create_tween()
+			var tw_fly := dead.create_tween()
 			tw_fly.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tw_fly.tween_property(boss, "global_position", Vector2(448, -150), 1.5)
-			tw_fly.tween_callback(boss.queue_free)
+			tw_fly.tween_property(dead, "global_position", Vector2(448, -150), 1.5)
+			tw_fly.tween_callback(dead.queue_free)
 		, CONNECT_ONE_SHOT)
 		
 		var tw := create_tween()

@@ -30,7 +30,7 @@ func _init_enemy() -> void:
 		bullet.coroutine_script = null
 		var dir = Vector2.ONE.rotated(RNG.randf_range(-PI, PI))
 		for i in diff_pick([1, 2, 2, 3]):
-			bullet.velocity = Vector2(0, 125 + i * 125)
+			bullet.velocity = Vector2(0, 75 + i * 75)
 			ctx.bullets.shoot_spread(bullet, diff_pick([10, 14, 20, 20]),
 				TAU, dir,
 				target.global_position, AssetRegistry.sounds["shoot"])
@@ -39,7 +39,7 @@ func _init_enemy() -> void:
 		for i in 3:
 			tl.at(1.0 + i * 2.4).every(0.1).times(diff_pick([0, 0, 4, 8])).do(func():
 				bullet.tex("米弹").color(Color.GOLD)
-				bullet.velocity = Vector2(0, 250)
+				bullet.velocity = Vector2(0, 175)
 				bullet.coroutine_script = GRAVITY_BULLET
 				var dir = Vector2.UP.rotated(RNG.randf_range(-PI / 3, PI / 3))
 				ctx.bullets.shoot_spread(bullet, 1, 0, dir,

@@ -1,8 +1,6 @@
 extends CoroutineRunner
 class_name PlayerShootScript
 
-const OPTION = preload("res://assets/Textures/player/pl00.png")
-
 var _options: Array[Node2D] = []
 var _phase: int = 0
 var ctx: StageContext
@@ -103,13 +101,7 @@ func _sync_options(leader: Node2D, _ctx: StageContext) -> void:
 		opt.z_index = 6
 		leader.get_parent().add_child(opt)
 
-		var tex: AtlasTexture = AtlasTexture.new()
-		tex.atlas = OPTION
-		tex.region = Rect2(80, 144, 16, 16)
-
 		var visual: OptionVisual = visual_script.new() as OptionVisual
-		if visual is OptionVisualSimple:
-			visual.texture = tex
 		visual.name = "Visual"
 		opt.add_child(visual)
 		visual.setup(opt)

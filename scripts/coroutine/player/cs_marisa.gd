@@ -1,52 +1,41 @@
 extends PlayerShootScript
 class_name MarisaShoot
 
-const BULLET = preload("res://data/player_data/bullet/marisa_main.tres")
-const OPTION_VISUAL = preload("res://scripts/coroutine/player/base/option_visual.gd")
+const OPTION_VISUAL = preload("res://scripts/coroutine/player/ov_marisa.gd")
 
-const MAIN_INTERVAL_LO: int = 5
-const MAIN_INTERVAL_HI: int = 4
+const MAIN_INTERVAL: int = 3
 const OPTION_INTERVAL: int = 6
 
 
 func _option_setup() -> Dictionary:
 	return {
 		visual_script = OPTION_VISUAL,
-		power_thresholds = [0, 100, 200],
-		counts = [0, 2, 4],
+		power_thresholds = [0, 100, 200, 300],
+		counts = [1, 2, 3, 4],
 		offsets_focus = [
-			[],
-			[Vector2(-12, 0), Vector2(12, 0)],
-			[Vector2(-25, -5), Vector2(-10, -5), Vector2(10, -5), Vector2(25, -5)],
+			[Vector2(0, -40)],
+			[Vector2(-10, -40), Vector2(10, -40)],
+			[Vector2(-20, -30), Vector2(0, -40), Vector2(20, -30)],
+			[Vector2(-30, -30), Vector2(-10, -40), Vector2(10, -40), Vector2(30, -30)],
 		],
 		offsets_spread = [
-			[],
-			[Vector2(-35, 0), Vector2(35, 0)],
-			[Vector2(-60, 0), Vector2(-30, 15), Vector2(30, 15), Vector2(60, 0)],
+			[Vector2(0, -80)],
+			[Vector2(-40, -80), Vector2(40, -80)],
+			[Vector2(-40, -60), Vector2(0, -80), Vector2(40, -60)],
+			[Vector2(-60, -60), Vector2(-20, -80), Vector2(20, -80), Vector2(60, -60)],
 		],
 	}
 
 
 func _main_shoot(_ctx: StageContext, player: Player) -> float:
-	var pw := GameState.power_raw
-	if pw >= 200:
-		ctx.bullets.shoot_spread(BULLET, 5, deg_to_rad(15), Vector2.UP, player.global_position)
-		return ctx.clock.wait_frames(MAIN_INTERVAL_HI)
-	elif pw >= 100:
-		ctx.bullets.shoot_spread(BULLET, 3, deg_to_rad(10), Vector2.UP, player.global_position)
-		return ctx.clock.wait_frames(MAIN_INTERVAL_LO)
-	else:
-		ctx.bullets.shoot_spread(BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(-15, 0))
-		ctx.bullets.shoot_spread(BULLET, 1, 0.0, Vector2.UP, player.global_position + Vector2(15, 0))
-		return ctx.clock.wait_frames(MAIN_INTERVAL_LO)
+	var b := BulletData.new().tex("marisa_main").speed(2000).player()
+	b.color(Color(1, 1, 1, 0.5))
+	b.damage = 6
+	b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")
+	ctx.bullets.shoot_spread(b, 1, 0.0, Vector2.UP, player.global_position + Vector2(-15, 0))
+	ctx.bullets.shoot_spread(b, 1, 0.0, Vector2.UP, player.global_position + Vector2(15, 0))
+	return ctx.clock.wait_frames(MAIN_INTERVAL)
 
 
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
-	var pw := GameState.power_raw
-	if pw >= 200:
-		_shoot_options(ctx, BULLET, 3, deg_to_rad(8), Vector2.UP, Vector2.ZERO)
-	elif pw >= 100:
-		_shoot_options(ctx, BULLET, 1, 0.0, Vector2.UP, Vector2.ZERO)
-	else:
-		return 0.0
-	return ctx.clock.wait_frames(OPTION_INTERVAL)
+	return ctx.clock.wait_frames(4)

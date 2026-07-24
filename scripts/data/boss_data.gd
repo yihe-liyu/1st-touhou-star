@@ -6,7 +6,7 @@ var boss_name: String = ""
 var visual: PackedScene
 var phases: Array[PhaseData] = []
 var score_value: int = 10000
-var hitbox_radius: float = 24.0
+var hitbox_radius: float = 36.0
 
 ## ── 构造链 ──
 

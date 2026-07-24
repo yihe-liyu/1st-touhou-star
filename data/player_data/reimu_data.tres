@@ -6,8 +6,8 @@
 
 [resource]
 script = ExtResource("2_tumgh")
-focus_speed = 200
-normal_speed = 450
+focus_speed = 250
+normal_speed = 500
 animation = ExtResource("1_epgkh")
 shoot_script = ExtResource("3_shoot")
 metadata/_custom_type_script = "uid://grfvsrralj0y"
