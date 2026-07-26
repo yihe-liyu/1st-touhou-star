@@ -187,8 +187,8 @@ func _force_collect_all_items() -> void:
 
 
 func _spawn_one_item(at: Vector2, spawned: Array) -> void:
-	var pool_n := _find_item_pool()
-	if not pool_n:
+	var pool := _find_item_pool()
+	if not pool:
 		return
 	
 	# 衰减：已生成越多，跳过概率越高（最高 80%）
@@ -210,10 +210,8 @@ func _spawn_one_item(at: Vector2, spawned: Array) -> void:
 		item_type = Item.Type.POINT
 	else:
 		return
-	@warning_ignore("unsafe_method_access")
-	var item = pool_n.spawn(at, item_type)
+	var item: Item = pool.spawn(at, item_type)
 	if item:
-		@warning_ignore("unsafe_method_access")
 		item.force_collect()
 
 
