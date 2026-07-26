@@ -29,6 +29,7 @@ var graze_radius: float = 40.0  # 擦弹判定半径
 ## 玩家机体数据（速度、动画、武器等）
 @export var player_data: PlayerData
 var _shoot_script: PlayerShootScript
+var _cached_item_pool: Node = null
 
 # 移动速度（像素/秒）
 var focus_speed: int
@@ -165,38 +166,66 @@ func _memory_release() -> void:
 	
 	AudioManager.play_sfx(preload("res://assets/Sound/kira.wav"), -6.0)
 	
-	# 消弹 + 每颗弹原地掉道具
+	# 消弹 + 每颗弹原地掉道具（衰减：越多越不掉）
+	var spawned := [0]
 	var on_clear := func(bullet_pos: Vector2):
-		_spawn_one_item(bullet_pos)
+		_spawn_one_item(bullet_pos, spawned)
+	
+	# 场上已有道具全部飞向玩家
+	_force_collect_all_items()
 	
 	BulletManager.start_death_clear(pos, MEM_RELEASE_RANGE, MEM_RELEASE_DURATION, 30, on_clear)
 
 
-func _spawn_one_item(at: Vector2) -> void:
+func _force_collect_all_items() -> void:
 	var pool := _find_item_pool()
 	if not pool:
 		return
+	for child in pool.get_children():
+		if child is Item and child.visible:
+			child.force_collect()
+
+
+func _spawn_one_item(at: Vector2, spawned: Array) -> void:
+	var pool_n := _find_item_pool()
+	if not pool_n:
+		return
+	
+	# 衰减：已生成越多，跳过概率越高（最高 80%）
+	var skip_chance := clampf(spawned[0] * 0.02, 0.0, 0.8)
+	if RNG.randf() < skip_chance:
+		return
+	
+	spawned[0] += 1
+	
 	var r := RNG.randf()
 	var item_type: int
 	if r < 0.05:
 		item_type = Item.Type.LIFE_FRAGMENT
-	elif r < 0.15:
+	elif r < 0.1:
 		item_type = Item.Type.BOMB_FRAGMENT
-	elif r < 0.45:
+	elif r < 0.4:
 		item_type = Item.Type.POWER
-	elif r < 0.75:
+	elif r < 0.7:
 		item_type = Item.Type.POINT
 	else:
 		return
-	pool.spawn(at, item_type)
+	@warning_ignore("unsafe_method_access")
+	var item = pool_n.spawn(at, item_type)
+	if item:
+		@warning_ignore("unsafe_method_access")
+		item.force_collect()
 
 
 func _find_item_pool() -> Node:
+	if _cached_item_pool:
+		return _cached_item_pool
 	var scene := get_tree().current_scene
 	if not scene: return null
 	var world := scene.get_node_or_null("World")
 	if not world: return null
-	return world.get_node_or_null("ItemPool")
+	_cached_item_pool = world.get_node_or_null("ItemPool")
+	return _cached_item_pool
 
 
 # ═══ Miss ═══

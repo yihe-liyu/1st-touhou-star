@@ -66,6 +66,10 @@ func _physics_process(delta: float) -> void:
 	if _auto_collect and player and is_instance_valid(player):
 		var dir := to_player.normalized()
 		global_position += dir * _collect_speed * delta
+		# 近距离保险：飞过头也能吃到
+		if to_player.length() < 8.0:
+			collect()
+			return
 	else:
 		# 重力 + 终端速度
 		_velocity.y = min(_velocity.y + _gravity * delta, _max_fall_speed)
@@ -82,6 +86,10 @@ func _on_area_entered(area: Area2D) -> void:
 		return
 	if area is Player:
 		collect()
+
+
+func force_collect() -> void:
+	_auto_collect = true
 
 
 func collect() -> void:
