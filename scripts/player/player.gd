@@ -71,6 +71,9 @@ func _physics_process(delta):
 	input_vector.x = Input.get_axis("move_left", "move_right")
 	input_vector.y = Input.get_axis("move_up", "move_down")
 	is_focused = Input.is_action_pressed("focus")
+	
+	if Input.is_action_just_pressed("memory_release"):
+		_memory_release()
 
 	update_hitbox_display()
 	update_animation()
@@ -124,8 +127,8 @@ func update_animation() -> void:
 	match anim_state:
 		IDLE:
 			if		pressing_left and not pressing_right: change_state(LEFTING)
-			elif		pressing_right and not pressing_left: change_state(RIGHTING)
-		LEFTING:		if not pressing_left:  change_state(IDLE)
+			elif	pressing_right and not pressing_left: change_state(RIGHTING)
+		LEFTING:	if not pressing_left:  change_state(IDLE)
 		LEFT:		if not pressing_left:  change_state(IDLE)
 		RIGHT:		if not pressing_right: change_state(IDLE)
 		RIGHTING:	if not pressing_right: change_state(IDLE)
@@ -144,6 +147,68 @@ func _on_animation_finished() -> void:
 			change_state(LEFT)
 		RIGHTING:
 			change_state(RIGHT)
+
+# ═══ 释放记忆（C 键） ═══
+
+const MEM_RELEASE_RANGE := 300.0
+const MEM_RELEASE_DURATION := 0.75
+
+func _memory_release() -> void:
+	if is_invincible or GameState.memory_value < 50.0:
+		return
+	
+	GameState.reduce_memory(50.0)
+	var pos := global_position
+	
+	# 视觉特效：反色圈
+	MissEffectManager.add_circle(pos, MEM_RELEASE_DURATION, MEM_RELEASE_RANGE, 30, 0.0, 0.25)
+	
+	AudioManager.play_sfx(preload("res://assets/Sound/kira.wav"), -6.0)
+	
+	# 消弹圈（清除范围内敌弹 + 粒子效果）
+	BulletManager.start_death_clear(pos, MEM_RELEASE_RANGE, MEM_RELEASE_DURATION, 30)
+	
+	# 统计清弹数
+	var cleared := 0
+	for bullet in BulletManager.active_bullets:
+		if bullet.faction == Bullet.FACTION_ENEMY:
+			if pos.distance_to(bullet.global_position) < MEM_RELEASE_RANGE:
+				cleared += 1
+	
+	# 根据清弹数生成道具
+	_spawn_release_items(cleared)
+
+
+func _spawn_release_items(count: int) -> void:
+	var pool := _find_item_pool()
+	if not pool:
+		return
+	
+	var items := mini(int(float(count) / 2.0), 20)
+	for _i in items:
+		var r := randf()
+		var item_type: int
+		if r < 0.1:
+			item_type = Item.Type.LIFE_FRAGMENT
+		elif r < 0.2:
+			item_type = Item.Type.BOMB_FRAGMENT
+		elif r < 0.6:
+			item_type = Item.Type.POWER
+		else:
+			item_type = Item.Type.POINT
+		var offset := Vector2(randf_range(-80, 80), randf_range(-80, 80))
+		pool.spawn(global_position + offset, item_type)
+
+
+func _find_item_pool() -> Node:
+	var scene := get_tree().current_scene
+	if not scene: return null
+	var world := scene.get_node_or_null("World")
+	if not world: return null
+	return world.get_node_or_null("ItemPool")
+
+
+# ═══ Miss ═══
 
 func miss() -> void:
 	if is_invincible:

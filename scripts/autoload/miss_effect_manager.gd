@@ -30,7 +30,7 @@ func _ready() -> void:
 	add_child(_rect)
 
 
-func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 1280.0, start_radius: float = 0.0, start_delay: float = 0.0) -> void:
+func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 1280.0, start_radius: float = 0.0, start_delay: float = 0.0, fade_out: float = 0.0) -> void:
 	if _circles.size() >= MAX_CIRCLES: return
 	_circles.append({
 		world_pos = world_pos,
@@ -38,6 +38,7 @@ func add_circle(world_pos: Vector2, duration: float = 0.8, max_radius: float = 1
 		duration = duration,
 		start_r = start_radius,
 		max_r = max_radius,
+		fade_out = fade_out,
 	})
 
 
@@ -46,7 +47,9 @@ func _process(delta: float) -> void:
 		_circles[i].age += delta
 	_update_shader()
 	for i in range(_circles.size() - 1, -1, -1):
-		if _circles[i].age >= _circles[i].duration:
+		var c := _circles[i]
+		var total: float = c.duration + c.fade_out
+		if c.age >= total:
 			_circles.remove_at(i)
 
 func clear_all() -> void:
@@ -71,10 +74,15 @@ func _update_shader() -> void:
 			var radius_px := lerpf(c.start_r, c.max_r, t)
 			var screen_pos: Vector2 = canvas * c.world_pos
 			var uv_pos := screen_pos / view_size
+			# 渐隐
+			var alpha: float = 1.0
+			if c.fade_out > 0.0 and c.age > c.duration:
+				var fade_t := clampf((c.age - c.duration) / c.fade_out, 0.0, 1.0)
+				alpha = 1.0 - fade_t
 			
 			_mat.set_shader_parameter("%s_pos" % pf, uv_pos)
 			_mat.set_shader_parameter("%s_radpx" % pf, radius_px)
-			_mat.set_shader_parameter("%s_alpha" % pf, 1.0)
+			_mat.set_shader_parameter("%s_alpha" % pf, alpha)
 		else:
 			_mat.set_shader_parameter("%s_pos" % pf, Vector2(-1, -1))
 			_mat.set_shader_parameter("%s_radpx" % pf, 0.0)

@@ -132,6 +132,7 @@ func _ensure_input_actions():
 	_add_keys_to_action("ui_down", [KEY_DOWN, KEY_S])
 	_add_keys_to_action("ui_left", [KEY_LEFT, KEY_A])
 	_add_keys_to_action("ui_right", [KEY_RIGHT, KEY_D])
+	_add_keys_to_action("memory_release", [KEY_C])
 
 func _add_keys_to_action(action_name: String, keycodes: Array):
 	if not InputMap.has_action(action_name):
