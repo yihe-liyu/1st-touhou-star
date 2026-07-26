@@ -97,8 +97,8 @@ func clear_all_lasers() -> void:
 
 # ═══ 死亡清弹（委托给 death_clear）═══
 
-func start_death_clear(pos: Vector2, max_radius: float = 1280.0, duration: float = 1.0, start_radius: float = 30.0) -> void:
-	_death_clear.start(pos, max_radius, duration, start_radius)
+func start_death_clear(pos: Vector2, max_radius: float = 1280.0, duration: float = 1.0, start_radius: float = 30.0, on_clear: Callable = Callable()) -> void:
+	_death_clear.start(pos, max_radius, duration, start_radius, on_clear)
 
 
 # ═══ 全局清理 ═══

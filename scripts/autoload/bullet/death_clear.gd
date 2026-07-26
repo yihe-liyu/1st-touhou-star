@@ -14,13 +14,14 @@ func setup(p_pool, p_laser_sys) -> void:
 	_laser_system = p_laser_sys
 
 
-func start(pos: Vector2, max_radius: float = 1280.0, duration: float = 1.0, start_radius: float = 30.0) -> void:
+func start(pos: Vector2, max_radius: float = 1280.0, duration: float = 1.0, start_radius: float = 30.0, on_clear: Callable = Callable()) -> void:
 	_death_clears.append({
 		pos = pos,
 		age = 0.0,
 		duration = duration,
 		start_r = start_radius,
 		max_r = max_radius,
+		on_clear = on_clear,
 	})
 
 
@@ -49,6 +50,8 @@ func process(delta: float) -> void:
 			if not is_instance_valid(bullet) or bullet.faction != 1 or not bullet.is_ready:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
+				if circle.on_clear.is_valid():
+					circle.on_clear.call(bullet.global_position)
 				HitEffectPool.play(_CLEAR_EFFECT, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
 				_pool.return_bullet(bullet)
 

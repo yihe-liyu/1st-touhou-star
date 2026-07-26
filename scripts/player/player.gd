@@ -165,39 +165,30 @@ func _memory_release() -> void:
 	
 	AudioManager.play_sfx(preload("res://assets/Sound/kira.wav"), -6.0)
 	
-	# 消弹圈（清除范围内敌弹 + 粒子效果）
-	BulletManager.start_death_clear(pos, MEM_RELEASE_RANGE, MEM_RELEASE_DURATION, 30)
+	# 消弹 + 每颗弹原地掉道具
+	var on_clear := func(bullet_pos: Vector2):
+		_spawn_one_item(bullet_pos)
 	
-	# 统计清弹数
-	var cleared := 0
-	for bullet in BulletManager.active_bullets:
-		if bullet.faction == Bullet.FACTION_ENEMY:
-			if pos.distance_to(bullet.global_position) < MEM_RELEASE_RANGE:
-				cleared += 1
-	
-	# 根据清弹数生成道具
-	_spawn_release_items(cleared)
+	BulletManager.start_death_clear(pos, MEM_RELEASE_RANGE, MEM_RELEASE_DURATION, 30, on_clear)
 
 
-func _spawn_release_items(count: int) -> void:
+func _spawn_one_item(at: Vector2) -> void:
 	var pool := _find_item_pool()
 	if not pool:
 		return
-	
-	var items := mini(int(float(count) / 2.0), 20)
-	for _i in items:
-		var r := randf()
-		var item_type: int
-		if r < 0.1:
-			item_type = Item.Type.LIFE_FRAGMENT
-		elif r < 0.2:
-			item_type = Item.Type.BOMB_FRAGMENT
-		elif r < 0.6:
-			item_type = Item.Type.POWER
-		else:
-			item_type = Item.Type.POINT
-		var offset := Vector2(randf_range(-80, 80), randf_range(-80, 80))
-		pool.spawn(global_position + offset, item_type)
+	var r := RNG.randf()
+	var item_type: int
+	if r < 0.05:
+		item_type = Item.Type.LIFE_FRAGMENT
+	elif r < 0.15:
+		item_type = Item.Type.BOMB_FRAGMENT
+	elif r < 0.45:
+		item_type = Item.Type.POWER
+	elif r < 0.75:
+		item_type = Item.Type.POINT
+	else:
+		return
+	pool.spawn(at, item_type)
 
 
 func _find_item_pool() -> Node:
