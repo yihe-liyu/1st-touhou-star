@@ -68,6 +68,11 @@ func phase(boss_getter: Callable, data: PhaseData) -> Timeline:
 		boss.phase_cleared.connect(func(_captured: bool, _bonus: int):
 			_cursor = _elapsed
 			_paused = false
+			# 激活下一个未触发的 wait 事件
+			for ev in _events:
+				if ev.wait_offset >= 0 and not ev.wait_armed and not ev.fired:
+					ev.wait_armed = true
+					break
 		, CONNECT_ONE_SHOT)
 	)
 
@@ -113,6 +118,8 @@ func tick(delta: float) -> bool:
 			continue
 		var t := ev.time
 		if ev.wait_offset >= 0:
+			if not ev.wait_armed:
+				continue  # 还没被 phase 激活
 			t = _cursor + ev.wait_offset
 		if _elapsed >= t:
 			ev.execute()
