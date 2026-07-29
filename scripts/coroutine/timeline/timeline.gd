@@ -21,6 +21,7 @@ var _cursor: float = 0.0   # wait() 的参考点，每次 phase/dialogue 结束�
 var _time: float = -1.0
 var _every: float = -1.0
 var _times: int = -1
+var _wait_n: float = -1.0
 
 
 func _init(p_ctx: StageContext) -> void:
@@ -33,6 +34,7 @@ func at(t: float) -> Timeline:
 	_time = t
 	_every = -1.0
 	_times = -1
+	_wait_n = -1.0
 	return self
 
 func every(interval: float) -> Timeline:
@@ -48,17 +50,19 @@ func do(cb: Callable) -> Timeline:
 	return self
 
 
-## 等上一个 blocking 事件结束后 N 秒执行
+## 等上一个 blocking 事件结束后 N 秒执行（运行时计算）
 func wait(n: float) -> Timeline:
-	_time = _cursor + n
+	_time = -1.0  # 标记为相对事件，tick 时用 _cursor + n
 	_every = -1.0
 	_times = -1
+	_wait_n = n
 	return self
 
 
 ## 启动 Boss 阶段 + 冻结时间直到击破/超时
-func phase(boss: Boss, data: PhaseData) -> Timeline:
+func phase(boss_getter: Callable, data: PhaseData) -> Timeline:
 	return do(func():
+		var boss := boss_getter.call() as Boss
 		boss.start_phase(data)
 		_paused = true
 		boss.phase_cleared.connect(func(_captured: bool, _bonus: int):
@@ -91,7 +95,10 @@ func play_dialogue(dialogue_data) -> Timeline:
 # ═══ 内部 ═══
 
 func _add(t: float, cb: Callable, ev: float = -1.0, n: int = -1) -> void:
-	_events.append(TimelineEvent.new(t, cb, ev, n))
+	var event := TimelineEvent.new(t, cb, ev, n)
+	event.wait_offset = _wait_n
+	_wait_n = -1.0
+	_events.append(event)
 
 
 # ═══ 运行 ═══
@@ -104,7 +111,10 @@ func tick(delta: float) -> bool:
 	for ev in _events:
 		if ev.fired and ev.repeat_every < 0:
 			continue
-		if _elapsed >= ev.time:
+		var t := ev.time
+		if ev.wait_offset >= 0:
+			t = _cursor + ev.wait_offset
+		if _elapsed >= t:
 			ev.execute()
 			if ev.repeat_every >= 0:
 				ev.time += ev.repeat_every

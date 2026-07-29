@@ -91,27 +91,27 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# ── Boss ──
 	var kamorui := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_01)
-	var boss: Boss
+	var boss_holder := [null]
 
 	tl.at(35.0).do(func():
-		boss = StageManager.spawn_boss(kamorui, Vector2(-50, 500), ctx)
-		# 从左侧飞入
+		boss_holder[0] = StageManager.spawn_boss(kamorui, Vector2(-50, 500), ctx)
+		var b := boss_holder[0] as Boss
 		var tw := create_tween()
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(boss, "global_position", Vector2(448, 250), 1.5)
+		tw.tween_property(b, "global_position", Vector2(448, 250), 1.5)
 	)
 
 	# 非符 1 (Timeline 冻结中，等击破)
-	tl.at(38.0).phase(boss, NON_01)
+	tl.at(38.0).phase(func(): return boss_holder[0], NON_01)
 	# ← Boss 被击破后从这里继续 →
 	tl.wait(2.0).do(func():
-		boss.set_exit_controlled()
-		boss._die()
-		# 飞走
+		var b := boss_holder[0] as Boss
+		b.set_exit_controlled()
+		b._die()
 		var tw := create_tween()
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(boss, "global_position", Vector2(448, -150), 2.0)
-		tw.tween_callback(boss.queue_free)
+		tw.tween_property(b, "global_position", Vector2(448, -150), 2.0)
+		tw.tween_callback(b.queue_free)
 	)
 
 	super.start(ctx, target)
