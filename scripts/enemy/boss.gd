@@ -21,7 +21,8 @@ var _in_gap: bool = false
 var _spell_count: int = 0
 var _non_count: int = 0
 var _pid: PhaseIdentity
-var _exit_controlled: bool = false  # true=不自动 queue_free，由外部飞走脚本释放
+var _exit_controlled: bool = false
+var _cleared: bool = false  # true=不自动 queue_free，由外部飞走脚本释放
 
 func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
@@ -77,6 +78,7 @@ func begin_battle() -> void:
 
 func _next_phase() -> void:
 	_in_gap = false
+	_cleared = false
 	_phase_index += 1
 	if _phase_index >= boss_data.phases.size():
 		_die_boss()
@@ -157,6 +159,9 @@ func take_damage(damage: int) -> void:
 		_on_phase_clear(true)
 
 func _on_phase_clear(captured: bool) -> void:
+	if _cleared:
+		return
+	_cleared = true
 	_invincible = true  # 防重入
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
