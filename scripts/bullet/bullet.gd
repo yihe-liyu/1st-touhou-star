@@ -120,7 +120,8 @@ func bind(data: BulletData, direction: Vector2):
 	else:
 		var move := DEFAULT_MOVE.new()
 		add_child(move)
-		move.start_null(self)
+		move.start(StageContext.new(move), self)
+		# NOTE: 故意不设 coroutine_script，使 _physics_process 也移动，保持双倍速
 	
 	# 确保可以移动
 	process_mode = Node.PROCESS_MODE_INHERIT
