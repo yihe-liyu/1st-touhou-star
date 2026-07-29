@@ -1040,20 +1040,21 @@ ItemPool:
 
 ### ✅ 已实现
 - 引擎核心（Autoload 系统全部 12 个模块）
-- 弹幕引擎（子弹池 4000/5000、物理、3种激光、死亡清除、MultiMesh）
-- 敌人系统（Enemy + Boss + 14种外观）
-- 玩家系统（灵梦+魔理沙、含射击脚本、Option）
+- 弹幕引擎（子弹池 4000/5000、物理、3种激光、死亡清除、MultiMesh、默认弹 \_physics\_process 优化）
+- 敌人系统（Enemy + Boss + 14种外观、Boss 防双掉落）
+- 玩家系统（灵梦+魔理沙、含射击脚本、Option、双倍速修复）
 - 协程框架（CoroutineRunner + CoroutineScript + Timeline）
 - 道具系统（6种、对象池、自动收集）
-- 特效系统（命中、Miss全屏圈、死亡清除）
+- 特效系统（命中、Miss全屏圈带渐隐、死亡清除回调）
 - 背景系统（平面/圆柱着色素、装饰物）
 - 音频系统（BGM1路+SFX8路、同帧去重）
-- UI系统（主菜单/难度/角色/暂停/GameOver/Option/音乐室/回放/练习 全菜单）
+- UI系统（主菜单/难度/角色/暂停/GameOver/Option/音乐室/回放/练习/Manual 全菜单、logo跳过）
 - 菜单框架（BasePage + NavPage + MenuNav 页面栈）
-- 对话系统（DialogueBox + 独立 BubblePanel + 立绘管理 + 表情切换）
+- 对话系统（DialogueBox + 独立 BubblePanel）
+- 记忆释放系统（C 键消弹+道具+渐隐圈+碎片上限+衰减）
 - 着色器 14 个
 - 数据类全部 Resource
-- Stage 1 关卡雏形（背景+4个弹幕脚本+4个难度配置）
+- Stage 1 关卡雏形
 
 ### ⏳ 待完善
 - **关卡内容**：只有 Stage 1 有数据，缺少 2~6 面
@@ -1062,14 +1063,25 @@ ItemPool:
 - **BGM 集成**：音乐文件已导入但关卡/菜单尚未完整串联
 
 ### 🐛 已知技术债务
-| 问题 | 位置 | 严重度 |
-|------|------|--------|
-| 子弹池缺少 MAX_TOTAL 硬上限 | `bullet_pool.gd:_request_bullet()` | 中 |
-| 激光池 clear() queue_free 池对象 | `laser_system.gd:clear()` | 高 |
-| Enemy.die() 后缺少 queue_free 守卫 | `enemy.gd` | 低 |
-| Player.miss() 直接改 GameState.lives | `player.gd:miss()` | 低 |
-| DifficultyScreen 覆写 NavPage 90% 方法 | `difficulty_screen.gd` | 设计 |
-| PauseMenu/GameOverMenu _on_leave 重复 | 两处 | 低 |
+| 问题 | 位置 | 严重度 | 状态 |
+|------|------|--------|------|
+| ~~激光池 clear() queue_free 池对象~~ | laser.gd | 高 | ✅ fixed |
+| ~~Boss phase 同帧双掉落~~ | boss.gd | 高 | ✅ fixed |
+| ~~默认弹双倍速~~ | bullet.gd | 高 | ✅ fixed |
+| StageContext 每弹创建 | bullet.gd | 中 | P0 |
+| 关卡退出时 RefCounted 残留 | 全局 | 低 | |
+| Enemy take_damage 缺 negative guard | enemy.gd | 低 | |
+| Timeline loop 重置时间戳 | timeline.gd | 低 | |
+| .tres 配置无校验 | PhaseData 等 | 低 | |
+| DifficultyScreen 覆写 NavPage 90% | difficulty_screen.gd | 设计 | |
+| PauseMenu/GameOverMenu _on_leave 重复 | 两处 | 低 | |
+
+### 🚧 缺失功能
+- **Bomb 系统**：FACTION_BOMB 存在，无实现
+- **Stage 2~6**：只有 Stage 1
+- **Stage Practice**：菜单入口存在，未实现
+- **Replay**：RNG 就绪，缺录制/回放
+- **Continue / Result 结算**
 
 ### 🔮 架构改进方向
 - **MenuLogic 拆分**：NavPage 的导航逻辑（选项收集/锁定跳过/冷却）与视觉呈现（modulate颜色/scale脉冲）分离，让自定义菜单只复用逻辑部分。（触发时机：第三个需要大量覆写 NavPage 的菜单出现时）

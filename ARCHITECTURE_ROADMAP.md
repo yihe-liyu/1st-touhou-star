@@ -1,6 +1,6 @@
 # 🎮 全系统图景 + 改进路线 v4
 
-> 2026-07-25 · 基于深度代码审查更新
+> 2026-07-25 · 全面项目审查更新
 
 ---
 
@@ -71,14 +71,55 @@ BulletManager
 
 ## 🐛 已知技术债务
 
+### 代码层面
+
 | 问题 | 位置 | 严重度 | 状态 |
 |------|------|--------|------|
 | ~~激光池 clear() queue_free 池对象~~ | laser.gd | 高 | ✅ fixed |
-| ~~Boss phase 同帧时间到+击破→双掉落~~ | boss.gd | 高 | ✅ fixed |
-| ~~默认弹双倍速 bug（协程+\_physics\_process 同时跑）~~ | bullet.gd | 高 | ✅ fixed |
-| StageContext 每弹创建 | bullet.gd | 中 | 🔴 P0 |
-| 关卡退出时 RefCounted 残留（~6400/局） | 多处 | 低 | 🔴 P0 可缓解 |
-| DifficultyScreen 覆写 NavPage 90% | difficulty_screen.gd | 设计 | 🟢 P2 |
+| ~~Boss phase 同帧双掉落~~ | boss.gd | 高 | ✅ fixed |
+| ~~默认弹双倍速~~ | bullet.gd | 高 | ✅ fixed |
+| StageContext 每弹创建 | bullet.gd | 中 | P0 |
+| 关卡退出时 RefCounted 残留 | 全局 | 低 | P0 可缓解 |
+| Enemy take_damage 缺 negative guard | enemy.gd | 低 | |
+| is_queued_for_deletion 检查不全 | 多处 | 低 | |
+| Timeline loop 重置时间戳精度 | timeline.gd | 低 | |
+| DifficultyScreen 覆写 NavPage 90% | difficulty_screen.gd | 设计 | P2 |
+| layout_mode 混用 0/1/3 | 部分 UI .tscn | 低 | Godot 4 遗留 |
+
+### 数据层面
+
+| 问题 | 位置 |
+|------|------|
+| .tres 配置无校验（time_limit=0 会除零） | PhaseData 等 |
+| SpellRecord @export 字段缺注释 | spell_record.gd |
+| ARCHITECTURE_ROADMAP 文档残留 EnemyService（已移除） | 本文档 |
+
+---
+
+## 🚧 缺失功能
+
+| 功能 | 优先级 | 说明 |
+|------|--------|------|
+| **Bomb 系统** | 🔴 高 | FACTION_BOMB 存在，无实现 |
+| **Stage 2~6** | 🔴 高 | 只有 Stage 1 |
+| **Stage Practice** | 🟡 中 | 菜单入口存在，未实现 |
+| **Replay 播放器** | 🟡 中 | RNG 就绪，缺录制/回放 |
+| **Continue 系统** | 🟢 低 | GameOver 只有 Retry/Title |
+| **Result 结算画面** | 🟢 低 | 通关直接回菜单 |
+| **Option 音量滑条** | 🟢 低 | UI 存在，未绑定 |
+
+---
+
+## 📊 内容完成度
+
+| 类别 | 进度 |
+|------|------|
+| 引擎 | ████████████████████ 95% |
+| 关卡 (6面) | ████ 20% (仅 Stage 1) |
+| 美术 | ██████ 30% |
+| 音效 | ██████ 30% |
+| 叙事 | ██████████ 50% |
+| 打磨/QoL | ██████████████ 70% |
 
 ---
 
