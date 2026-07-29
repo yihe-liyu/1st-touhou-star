@@ -6,8 +6,6 @@ const FACTION_PLAYER: int = 0
 const FACTION_ENEMY: int = 1
 const FACTION_BOMB: int = 2
 
-const DEFAULT_MOVE = preload("res://scripts/coroutine/player/linear_move.gd")
-
 # 基础属性
 var damage: int = 10
 var velocity: Vector2 = Vector2.UP
@@ -114,14 +112,10 @@ func bind(data: BulletData, direction: Vector2):
 		is_ready = true
 		sprite.visible = true
 
-	# 挂载移动协程：优先用自定义脚本，否则用默认直线移动
+	# 挂载移动协程：只有自定义脚本才走协程
 	if data.coroutine_script:
 		_start_coroutine(data)
-	else:
-		var move := DEFAULT_MOVE.new()
-		add_child(move)
-		move.start(StageContext.new(move), self)
-		# NOTE: 故意不设 coroutine_script，使 _physics_process 也移动，保持双倍速
+	# 纯直线弹：只用 _physics_process
 	
 	# 确保可以移动
 	process_mode = Node.PROCESS_MODE_INHERIT

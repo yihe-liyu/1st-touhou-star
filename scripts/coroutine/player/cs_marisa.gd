@@ -28,7 +28,7 @@ func _option_setup() -> Dictionary:
 
 
 func _main_shoot(_ctx: StageContext, player: Player) -> float:
-	var b := BulletData.new().tex("marisa_main").speed(2000).player()
+	var b := BulletData.new().tex("marisa_main").speed(4000).player()
 	b.color(Color(1, 1, 1, 0.5))
 	b.damage = 6
 	b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")

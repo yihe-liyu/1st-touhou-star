@@ -4,7 +4,7 @@ extends CoroutineScript
 
 const PLAYER_PROXIMITY: float = 150.0
 const RING_COUNT: int = 8
-const RING_SPEED: float = 200.0
+const RING_SPEED: float = 400.0
 
 enum State { TRAVEL, FLEE }
 var _state: State = State.TRAVEL
@@ -69,7 +69,7 @@ func _tick_flee(p_ctx: StageContext):
 			for i in diff_pick([0, 0, 4, 8]):
 				var red := BulletData.new()\
 					.tex("棱弹")\
-					.speed(RING_SPEED + i * 25)\
+					.speed(RING_SPEED + i * 50)\
 					.color(Color.RED)\
 					.blend(true)\
 					.enemy()

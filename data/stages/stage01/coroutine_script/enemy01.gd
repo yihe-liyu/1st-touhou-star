@@ -32,16 +32,16 @@ func _init_enemy() -> void:
 		bullet.tex("小玉").color(Color.RED)
 		var player := ctx.player.get_player()
 		var dir := (player.global_position - target.position).normalized()
-		var bullet_speed: int = 175
+		var bullet_speed: int = 350
 
 		for i in diff_pick([1, 3, 5, 8]) / rate:
-			bullet.velocity = Vector2(0, bullet_speed + i * 25)
+			bullet.velocity = Vector2(0, bullet_speed + i * 50)
 			ctx.bullets.shoot_spread(bullet, 1, 0, dir,
 				target.global_position, AssetRegistry.sounds["shoot"])
 
 		if GameState.selected_difficulty >= 2 and is_stage2:
 			for i in diff_pick([0, 0, 1, 2]):
-				bullet.velocity = Vector2(0, 150 + i * 25)
+				bullet.velocity = Vector2(0, 300 + i * 50)
 				bullet.tex("棱弹").color(Color.GOLD)
 				bullet.coroutine_script = GRAVITY_BULLET
 				ctx.bullets.shoot_spread(bullet, diff_pick([0, 0, 3, 6]), PI / (3 - i), -dir,
