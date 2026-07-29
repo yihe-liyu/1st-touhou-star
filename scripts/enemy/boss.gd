@@ -29,6 +29,8 @@ func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
 func get_elapsed() -> float: return _elapsed
 func get_phase_id() -> PhaseIdentity: return _pid
+func is_in_gap() -> bool:
+	return _cleared
 
 func set_exit_controlled() -> void:
 	_exit_controlled = true
