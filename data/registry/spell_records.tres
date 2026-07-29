@@ -13,8 +13,8 @@ name = "卡摩瑞的非符1"
 script = ExtResource("1_nyj52")
 phase_index = 0
 name = "卡摩瑞的非符1"
-attempts = 8
-captures = 8
+attempts = 9
+captures = 9
 practice_attempts = 3
 practice_captures = 3
 best_time = 8.27879348484834
@@ -24,11 +24,20 @@ script = ExtResource("1_nyj52")
 phase_index = 0
 difficulty = 3
 name = "卡摩瑞的非符1"
-attempts = 6
-captures = 2
+attempts = 11
+captures = 7
 practice_attempts = 1
-best_time = 11.846180606060498
+best_time = 9.282206636363352
+
+[sub_resource type="Resource" id="Resource_ve3lw"]
+script = ExtResource("1_nyj52")
+phase_index = 0
+difficulty = 0
+name = "卡摩瑞的非符1"
+attempts = 1
+captures = 1
+best_time = 7.430303030302875
 
 [resource]
 script = ExtResource("1")
-records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn")])
+records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn"), SubResource("Resource_ve3lw")])

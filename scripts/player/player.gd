@@ -151,7 +151,7 @@ func _on_animation_finished() -> void:
 
 # ═══ 释放记忆（C 键） ═══
 
-const MEM_RELEASE_RANGE := 300.0
+const MEM_RELEASE_RANGE := 400.0
 const MEM_RELEASE_DURATION := 0.75
 
 func _memory_release() -> void:
@@ -166,10 +166,10 @@ func _memory_release() -> void:
 	
 	AudioManager.play_sfx(preload("res://assets/Sound/kira.wav"), -6.0)
 	
-	# 消弹 + 每颗弹原地掉道具（衰减：越多越不掉）
-	var spawned := [0]
+	# 消弹 + 每颗弹原地掉道具（碎片有上限）
+	var limits := {life = 0, bomb = 0}
 	var on_clear := func(bullet_pos: Vector2):
-		_spawn_one_item(bullet_pos, spawned)
+		_spawn_one_item(bullet_pos, limits)
 	
 	# 场上已有道具全部飞向玩家
 	_force_collect_all_items()
@@ -186,24 +186,24 @@ func _force_collect_all_items() -> void:
 			child.force_collect()
 
 
-func _spawn_one_item(at: Vector2, spawned: Array) -> void:
+func _spawn_one_item(at: Vector2, limits: Dictionary) -> void:
+	const MAX_LIFE := 2
+	const MAX_BOMB := 2
+	
 	var pool := _find_item_pool()
 	if not pool:
 		return
 	
-	# 衰减：已生成越多，跳过概率越高（最高 80%）
-	var skip_chance := clampf(spawned[0] * 0.02, 0.0, 0.8)
-	if RNG.randf() < skip_chance:
-		return
-	
-	spawned[0] += 1
-	
 	var r := RNG.randf()
 	var item_type: int
-	if r < 0.05:
+	
+	# 碎片有上限，超限降级为跳过
+	if r < 0.05 and limits.life < MAX_LIFE:
 		item_type = Item.Type.LIFE_FRAGMENT
-	elif r < 0.1:
+		limits.life += 1
+	elif r < 0.1 and limits.bomb < MAX_BOMB:
 		item_type = Item.Type.BOMB_FRAGMENT
+		limits.bomb += 1
 	elif r < 0.4:
 		item_type = Item.Type.POWER
 	elif r < 0.7:

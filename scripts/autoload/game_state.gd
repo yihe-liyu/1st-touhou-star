@@ -221,9 +221,8 @@ var memory_value: float = 50.0
 
 # 记忆值每秒自然恢复量
 const MEMORY_REGEN: float = 0.05
-const MEMORY_GRAZE: float = 0.15
-const MEMORY_HIT_BULLET: float = 0.1
-const MEMORY_HIT_BY_BULLET: float = -0.02
+const MEMORY_GRAZE: float = 0.25
+const MEMORY_HIT_BY_BULLET: float = -0.01
 const MEMORY_MISS: float = 25.0
 
 

@@ -13,4 +13,5 @@ move_script = ExtResource("1_q3bo0")
 shoot_script = ExtResource("2_shoot")
 item_power = 25
 item_point = 25
+item_life = 1
 metadata/_custom_type_script = "uid://70htyyc4o2hu"
