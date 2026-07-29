@@ -179,6 +179,9 @@ func _on_phase_clear(captured: bool) -> void:
 	# 掉落 Item
 	_drop_items()
 	
+	# 消弹圈
+	BulletManager.start_death_clear(global_position, 960, 0.75, 30)
+	
 	# 阶段间隔
 	_in_gap = true
 	get_tree().create_timer(2.0).timeout.connect(_next_phase, CONNECT_ONE_SHOT)
