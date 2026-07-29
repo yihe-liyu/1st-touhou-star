@@ -35,6 +35,13 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	run(_tick.bind(ctx))
 
 
+## 启动协程（不需要 StageContext 的轻量版）
+func start_null(p_target: Node2D = null):
+	if p_target != null:
+		target = p_target
+	run(_tick.bind(null))
+
+
 ## 每帧回调。覆写此方法可实现自定义逻辑（不用 Timeline）
 func _tick(_ctx: StageContext) -> Variant:
 	if _tl:

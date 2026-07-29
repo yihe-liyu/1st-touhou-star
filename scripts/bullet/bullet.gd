@@ -120,7 +120,7 @@ func bind(data: BulletData, direction: Vector2):
 	else:
 		var move := DEFAULT_MOVE.new()
 		add_child(move)
-		move.start(StageContext.new(move), self)
+		move.start_null(self)
 	
 	# 确保可以移动
 	process_mode = Node.PROCESS_MODE_INHERIT

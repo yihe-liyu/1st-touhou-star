@@ -77,6 +77,9 @@ func init_growing(p_curve: Curve2D, p_color: Color, p_grow_speed: float, p_tail:
 
 
 func _common_init():
+	# 清理上次残留的子节点
+	for child in get_children():
+		child.queue_free()
 	_setup_line()
 	_spawn_fog()
 	age = 0.0
