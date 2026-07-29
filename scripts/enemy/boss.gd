@@ -4,6 +4,8 @@ extends Area2D
 
 const HPRingClass = preload("res://scripts/scenes/boss_hp_ring.gd")
 
+signal phase_cleared(captured: bool, bonus: int)
+
 var boss_data: BossData
 var hp: int = 0
 var hitbox_radius: float
@@ -17,20 +19,17 @@ var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
 var _stage_id: int
-var _in_gap: bool = false
 var _spell_count: int = 0
 var _non_count: int = 0
 var _pid: PhaseIdentity
 var _exit_controlled: bool = false
-var _cleared: bool = false  # true=不自动 queue_free，由外部飞走脚本释放
+var _cleared: bool = false
 
 func current_phase() -> PhaseData: return _current_phase
 func current_bonus() -> int: return _bonus
-func is_in_gap() -> bool: return _in_gap
 func get_elapsed() -> float: return _elapsed
 func get_phase_id() -> PhaseIdentity: return _pid
 
-## 标记退场由外部控制（飞走脚本负责 queue_free）
 func set_exit_controlled() -> void:
 	_exit_controlled = true
 
@@ -45,7 +44,6 @@ func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	else:
 		_stage_id = GameState.current_stage_id
 	
-	# 环形血条
 	var ring := HPRingClass.new()
 	ring.setup(self)
 	add_child(ring)
@@ -57,84 +55,74 @@ func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	col.shape = shape
 	add_child(col)
 	
-	collision_layer = 0  # 出场期间无碰撞，begin_battle 后开启
+	collision_layer = 0
 	collision_mask = 0
-	area_entered.connect(_on_area_entered)
 
-	# 血条初始隐藏
-	ring.visible = false
+	for child in get_children():
+		if child.get_script() == HPRingClass:
+			child.visible = false
+			break
 
-func start_boss(defer: bool = false) -> void:
+func start_boss() -> void:
 	set_process(true)
 	GameState.active_enemies.append(self)
 	tree_exited.connect(func(): GameState.active_enemies.erase(self))
 	GameEvents.boss_spawned.emit(self)
-	if not defer:
-		_next_phase()
-
-
-func begin_battle() -> void:
-	_next_phase()
-
-func _next_phase() -> void:
-	_in_gap = false
-	_cleared = false
-	_phase_index += 1
-	if _phase_index >= boss_data.phases.size():
-		_die_boss()
-		return
-	
-	# 正式开战：开启碰撞 + 显示血条
 	collision_layer = 4
 	collision_mask = 2
+
+
+func start_phase(data: PhaseData) -> void:
+	_cleared = false
+	_phase_index += 1
+	_current_phase = data
+	_elapsed = 0.0
+	_bonus = data.bonus
+	_invincible = true
+	hp = 0
+	
+	# 显示血条
 	for child in get_children():
 		if child.get_script() == HPRingClass:
 			child.visible = true
 			break
 	
-	_current_phase = boss_data.phases[_phase_index]
-	_elapsed = 0.0
-	_bonus = _current_phase.bonus
-	_invincible = true
-	hp = 0
-	
 	# 计数
-	if _current_phase.uid != 0:
+	if data.uid != 0:
 		_spell_count += 1
 	else:
 		_non_count += 1
 	
-	_pid = PhaseIdentity.from_phase(_current_phase, _stage_id, _phase_index, _spell_count, _non_count)
+	_pid = PhaseIdentity.from_phase(data, _stage_id, _phase_index, _spell_count, _non_count)
 	if not GameState.is_practice_mode:
 		GameState.unlock_spell(_pid)
 	
-	if _current_phase.name != "":
-		GameEvents.phase_start.emit(_current_phase)
+	if data.name != "":
+		GameEvents.phase_start.emit(data)
 	
-	# HP 从 0 涨到满 → 然后开始
+	# HP 从 0 涨到满
 	var twn := create_tween()
-	twn.tween_property(self, "hp", _current_phase.hp, 1.0)
-	twn.tween_callback(_begin_phase)
+	twn.tween_property(self, "hp", data.hp, 1.0)
+	twn.tween_callback(func():
+		if data.is_timeout_only:
+			_invincible = true
+			hp = 999999
+		else:
+			_invincible = false
+		
+		if data.move_script:
+			_move = data.move_script.new()
+			add_child(_move)
+			_move.start(_ctx, self)
+		if data.shoot_script:
+			_shoot = data.shoot_script.new()
+			add_child(_shoot)
+			_shoot.start(_ctx, self)
+	)
 
-func _begin_phase() -> void:
-	if _current_phase.is_timeout_only:
-		_invincible = true
-		hp = 999999
-	else:
-		_invincible = false
-	
-	if _current_phase.move_script:
-		_move = _current_phase.move_script.new()
-		add_child(_move)
-		_move.start(_ctx, self)
-	if _current_phase.shoot_script:
-		_shoot = _current_phase.shoot_script.new()
-		add_child(_shoot)
-		_shoot.start(_ctx, self)
 
 func _process(delta: float) -> void:
 	if not _current_phase: return
-	
 	_elapsed += delta
 	
 	if _bonus > 0:
@@ -144,29 +132,24 @@ func _process(delta: float) -> void:
 	GameEvents.phase_bonus_tick.emit(_bonus)
 	
 	if _elapsed >= _current_phase.time_limit:
-		_on_phase_clear(_current_phase.is_timeout_only)
-		_current_phase = null  # 防止重复触发
+		_clear_phase(_current_phase.is_timeout_only)
 
-func _on_area_entered(_area: Area2D) -> void:
-	# 子弹碰撞由 BulletPhysics 处理
-	pass
 
 func take_damage(damage: int) -> void:
 	if _invincible: return
-	if not _current_phase: return  # 还没 begin_battle，不受伤害
+	if not _current_phase: return
 	hp -= damage
 	if hp <= 0 and not _current_phase.is_timeout_only:
-		_on_phase_clear(true)
+		_clear_phase(true)
 
-func _on_phase_clear(captured: bool) -> void:
-	if _cleared:
-		return
+
+func _clear_phase(captured: bool) -> void:
+	if _cleared: return
 	_cleared = true
-	_invincible = true  # 防重入
+	_invincible = true
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
-	# 更新收取统计
 	if GameState.is_practice_mode:
 		GameState.record_practice(_pid, captured)
 	else:
@@ -176,27 +159,23 @@ func _on_phase_clear(captured: bool) -> void:
 	if captured and _bonus > 0:
 		GameState.add_score(_bonus)
 	
-	# 掉落 Item
 	_drop_items()
-	
-	# 消弹圈
 	BulletManager.start_death_clear(global_position, 960, 0.75, 30)
-	
-	# 阶段间隔
-	_in_gap = true
-	get_tree().create_timer(2.0).timeout.connect(_next_phase, CONNECT_ONE_SHOT)
+	phase_cleared.emit(captured, _bonus)
 
-func _die_boss() -> void:
+
+func _die() -> void:
 	set_process(false)
-	_current_phase = null  # 隐藏血条
+	_current_phase = null
 	GameState.active_enemies.erase(self)
 	GameEvents.boss_defeated.emit(self)
 	if not _exit_controlled:
 		queue_free()
 
+
 func _drop_items() -> void:
 	if not _current_phase: return
-	if GameState.is_practice_mode: return  # 练习不掉落
+	if GameState.is_practice_mode: return
 	var pos := global_position
 	var phase := _current_phase
 	var scatter := 50.0

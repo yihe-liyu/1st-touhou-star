@@ -1,29 +1,30 @@
 extends CoroutineScript
-## 第一面——全难度共享
+## 第一面——新的 Timeline API
 
 const ENEMY01 = preload("res://data/stages/stage01/coroutine_script/enemy01.gd")
 const ENEMY02 = preload("res://data/stages/stage01/coroutine_script/enemy02.gd")
+const FLY_AWAY = preload("res://data/stages/stage01/coroutine_script/fly_away.gd")
 const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
 const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
+const NON_01 = preload("res://data/stages/stage01/phase/non_01.tres")
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
-	if p_target:
-		target = p_target
+	if p_target: target = p_target
 	var tl := start_timeline()
-
 	var bgm: AudioStream = AssetRegistry.sounds["stage1"]
 	var logo_tex: Texture2D = preload("res://assets/Textures/front/logo/logo1.png")
 
-	tl.at(0.0).do(func(): ctx.audio.play_bgm(bgm))
+	# 0s: BGM
+	tl.at(0.0).play_bgm(bgm)
 
+	# 1~3s: 妖精波 (左右交替)
 	for i in 7:
 		tl.at(1.0 + i * 0.1).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 150 + i * 50).spawn()
 		)
-
 	for i in 7:
 		tl.at(4.0 + i * 0.1).do(func():
 			EnemyData.new().script(ENEMY01)\
@@ -31,7 +32,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 				.param("target_y", 150 + i * 50).spawn()
 		)
 
-	# Logo
+	# 7s: Logo
 	tl.at(7.0).do(func():
 		var layer := CanvasLayer.new()
 		layer.layer = 32
@@ -48,73 +49,72 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		t.tween_callback(layer.queue_free)
 	)
 
+	# 11~26s: 中线妖精波
 	for i in 6:
 		var local_enemy = EnemyData.new().script(ENEMY02)
-		var delta_time = 3
 		var target_y = 175 + i * 50
 		if i % 2 == 0:
-			tl.at(11.0 + i * delta_time).do(func():
+			tl.at(11.0 + i * 3.0).do(func():
 				local_enemy.red_middle_fairy()\
 				.pos(Vector2(0, target_y))\
 				.param("target_pos", Vector2(448 + 100 + i * 25, target_y)).spawn()
 			)
 		else:
-			tl.at(11.0 + i * delta_time).do(func():
+			tl.at(11.0 + i * 3.0).do(func():
 				local_enemy.blue_middle_fairy()\
 				.pos(Vector2(914, target_y))\
 				.param("target_pos", Vector2(448 - 100 - i * 25, target_y)).spawn()
 			)
-	
+
 	for i in 7:
 		tl.at(17.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
-				.param("is_stage2", false)\
 				.param("rate", 4).spawn()
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
-				.param("is_stage2", false)\
 				.param("rate", 4).spawn()
 		)
-
 	for i in 7:
 		tl.at(24.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
-				.param("is_stage2", false)\
 				.param("rate", 4).spawn()
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
-				.param("is_stage2", false)\
 				.param("rate", 4).spawn()
 		)
-	
-	var kamorui_mid = BossData.new().name("？？？")\
-		.look(BOSS_POINT)\
-		.phase(preload("res://data/stages/stage01/phase/non_01.tres"))
-	
-	tl.at(35).do(func(): 
-		var boss = StageManager.spawn_boss(kamorui_mid, Vector2(-50, 500), true, ctx)
-		boss.set_exit_controlled()
-		
-		# 退场：向上飞走（用信号参数 dead，不捕获 boss）
-		GameEvents.boss_defeated.connect(func(dead: Node):
-			var tw_fly := dead.create_tween()
-			tw_fly.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tw_fly.tween_property(dead, "global_position", Vector2(448, -150), 1.5)
-			tw_fly.tween_callback(dead.queue_free)
-		, CONNECT_ONE_SHOT)
-		
+
+	# ── Boss ──
+	var kamorui := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_01)
+	var boss: Boss
+
+	tl.at(35.0).do(func():
+		boss = StageManager.spawn_boss(kamorui, Vector2(-50, 500), ctx)
+		# 从左侧飞入
 		var tw := create_tween()
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.tween_property(boss, "global_position", Vector2(448, 250), 1.5)
-		tw.tween_callback(boss.begin_battle)
+		tw.tween_callback(func():
+			# 入场完毕，开始阶段
+		)
 	)
-	
-	#tl.at(35).do(func(): ctx.dialogue.play(DIALOGUE01.lines))
-	
+
+	# 非符 1 (Timeline 冻结中，等击破)
+	tl.at(38.0).phase(boss, NON_01)
+	# ← Boss 被击破后从这里继续 →
+	tl.wait(2.0).do(func():
+		boss.set_exit_controlled()
+		boss._die()
+		# 飞走
+		var tw := create_tween()
+		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(boss, "global_position", Vector2(448, -150), 2.0)
+		tw.tween_callback(boss.queue_free)
+	)
+
 	super.start(ctx, target)

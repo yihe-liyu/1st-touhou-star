@@ -73,7 +73,7 @@ func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) ->
 		enemy.start.call_deferred()
 	return enemy
 
-func spawn_boss(data: BossData, position: Vector2, defer: bool = false, p_ctx: StageContext = null) -> Node:
+func spawn_boss(data: BossData, position: Vector2, p_ctx: StageContext = null) -> Node:
 	var boss := BossClass.new()
 	boss.global_position = position
 	if data.visual:
@@ -81,7 +81,7 @@ func spawn_boss(data: BossData, position: Vector2, defer: bool = false, p_ctx: S
 		boss.add_child(vis)
 	_add_enemy_to_scene(boss)
 	boss.setup(data, p_ctx)
-	boss.start_boss(defer)
+	boss.start_boss()
 	return boss
 
 func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bullet:

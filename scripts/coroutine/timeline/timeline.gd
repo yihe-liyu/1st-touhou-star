@@ -15,6 +15,7 @@ var _events: Array[TimelineEvent] = []
 var _elapsed: float = 0.0
 var _paused: bool = false
 var _loop_start: float = -1.0
+var _cursor: float = 0.0   # wait() 的参考点，每次 phase/dialogue 结束后更新
 
 # builder state
 var _time: float = -1.0
@@ -46,6 +47,31 @@ func do(cb: Callable) -> Timeline:
 	_add(_time, cb, _every, _times)
 	return self
 
+
+## 等上一个 blocking 事件结束后 N 秒执行
+func wait(n: float) -> Timeline:
+	_time = _cursor + n
+	_every = -1.0
+	_times = -1
+	return self
+
+
+## 启动 Boss 阶段 + 冻结时间直到击破/超时
+func phase(boss: Boss, data: PhaseData) -> Timeline:
+	return do(func():
+		boss.start_phase(data)
+		_paused = true
+		boss.phase_cleared.connect(func(_captured: bool, _bonus: int):
+			_cursor = _elapsed
+			_paused = false
+		, CONNECT_ONE_SHOT)
+	)
+
+
+## 快捷符卡宣言（_paused 期间显示）
+func dialogue(data) -> Timeline:
+	return do(func(): ctx.play_dialogue(data.lines))
+
 func spawn_wave(data: BulletData, count: int, spread: float, dir: Vector2, at_pos: Vector2) -> Timeline:
 	return do(func(): ctx.bullets.shoot_spread(data, count, spread, dir, at_pos))
 
@@ -53,7 +79,7 @@ func spawn_enemy(script: Script, pos: Vector2) -> Timeline:
 	return do(func(): EnemyData.new().script(script).pos(pos).spawn())
 
 func spawn_boss(data: BossData, pos: Vector2) -> Timeline:
-	return do(func(): StageManager.spawn_boss(data, pos, false, ctx))
+	return do(func(): StageManager.spawn_boss(data, pos, ctx))
 
 func play_bgm(stream: AudioStream) -> Timeline:
 	return do(func(): ctx.audio.play_bgm(stream))
