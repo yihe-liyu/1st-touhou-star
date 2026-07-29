@@ -313,6 +313,7 @@ func reset_all():
 
 func reset_practice():
 	current_score = 0
+	max_point = 10000
 	graze_count = 0
 	power_raw = 300
 	lives = 0
