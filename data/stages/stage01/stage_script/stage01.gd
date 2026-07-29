@@ -99,9 +99,6 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var tw := create_tween()
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.tween_property(boss, "global_position", Vector2(448, 250), 1.5)
-		tw.tween_callback(func():
-			# 入场完毕，开始阶段
-		)
 	)
 
 	# 非符 1 (Timeline 冻结中，等击破)
