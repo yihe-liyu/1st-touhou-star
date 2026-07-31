@@ -3,9 +3,7 @@ extends Node
 ## 全局游戏数据唯一真源
 
 const BossScript = preload("res://scripts/enemy/boss.gd")
-const SPELL_BOOK_PATH := "res://data/registry/spell_records.tres"
 const REGISTRY_PATH := "res://data/registry/stage_registry.tres"
-const SAVE_PATH: String = "user://save_data.cfg"
 
 # ══════════════════════════════════════════════
 # 全局选择（持久化，不随着关卡重置）
@@ -33,9 +31,17 @@ var stage_registry: StageRegistry
 var spell_book: SpellRecordBook
 
 
+## 子模块：符卡簿 / 存档（拆分职责，对外 API 不变）
+var spell_book_mgr := SpellBookManager.new()
+var save_mgr := SaveManager.new()
+
+
 func _ready():
-	_load_spell_book()
-	load_save_data()
+	spell_book_mgr.load()
+	spell_book = spell_book_mgr.spell_book
+	save_mgr.load()
+	if ResourceLoader.exists(REGISTRY_PATH):
+		stage_registry = ResourceLoader.load(REGISTRY_PATH)
 	if not GameEvents.enemy_killed.is_connected(_on_enemy_killed):
 		GameEvents.enemy_killed.connect(_on_enemy_killed)
 	GameManager.game_state_changed.connect(_on_state_changed)
@@ -120,65 +126,41 @@ func get_all_stages() -> Array[StageData]:
 # 符卡记录
 # ══════════════════════════════════════════════
 
-func _load_spell_book() -> void:
-	spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
-	if ResourceLoader.exists(REGISTRY_PATH):
-		stage_registry = ResourceLoader.load(REGISTRY_PATH)
-
-
-func _save_spell_book() -> void:
-	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
-
-
-## 注册一张符卡（见到即记，不计 attempt）
+## 注册一张符卡（委托 SpellBookManager）
 func unlock_spell(pid: PhaseIdentity) -> void:
-	spell_book.get_or_create(pid.stage_id, pid.phase_index, pid.character, pid.difficulty,
-		pid.uid, pid.phase_type, pid.phase_number, pid.name)
-	_save_spell_book()
+	spell_book_mgr.unlock_spell(pid)
 
 
-## 记录一次符卡尝试（普通模式）
+## 记录一次符卡尝试（委托）
 func record_spell(pid: PhaseIdentity, captured: bool, score: int, elapsed: float) -> void:
-	spell_book.record_attempt(pid.stage_id, pid.phase_index, pid.character, pid.difficulty,
-		captured, score, elapsed, {
-		"uid": pid.uid, "phase_type": pid.phase_type, "phase_number": pid.phase_number, "name": pid.name,
-	})
-	_save_spell_book()
+	spell_book_mgr.record_spell(pid, captured, score, elapsed)
 
 
-## 记录一次练习尝试
+## 记录一次练习尝试（委托）
 func record_practice(pid: PhaseIdentity, captured: bool) -> void:
-	spell_book.record_practice(pid.stage_id, pid.phase_index, pid.character, pid.difficulty, captured)
-	_save_spell_book()
+	spell_book_mgr.record_practice(pid, captured)
 
 # ══════════════════════════════════════════════
 # 得分 & High Score
 # ══════════════════════════════════════════════
 
-var high_scores: Dictionary = {}
+## 高分表（委托 SaveManager）
+var high_scores: Dictionary:
+	get: return save_mgr.high_scores
+
 var current_score: int = 0
-var _config: ConfigFile
 
 
 func load_save_data():
-	_config = ConfigFile.new()
-	if _config.load(SAVE_PATH) != OK:
-		return
-	for key in _config.get_section_keys("high_scores"):
-		high_scores[int(key)] = _config.get_value("high_scores", key)
+	save_mgr.load()
 
 
 func save_high_score(stage_id: int, score: int):
-	var prev: int = get_high_score(stage_id)
-	if score <= prev:
-		return
-	high_scores[stage_id] = score
-	_config.set_value("high_scores", str(stage_id), score)
-	_config.save(SAVE_PATH)
+	save_mgr.save_high_score(stage_id, score)
 
 
 func get_high_score(stage_id: int) -> int:
-	return high_scores.get(stage_id, 0)
+	return save_mgr.get_high_score(stage_id)
 
 
 func add_score(amount: int):
