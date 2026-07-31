@@ -13,6 +13,8 @@ class_name PlayerBulletHitEffect
 @export var fade_time: float = 0.3
 ## 飞散方向随机抖动（弧度，0=不抖）
 @export var jitter: float = 0.0
+## 生成位置随机偏移半径（px，0=不偏移 —— 想要更自然/不遮挡时调大）
+@export var pos_jitter: float = 0.0
 
 var _tint: Color = Color.WHITE
 
@@ -22,6 +24,11 @@ func _get_speed() -> float:
 
 
 func _setup() -> void:
+	# 生成位置随机偏移（相对命中点）
+	if pos_jitter > 0.0:
+		global_position += Vector2(
+			RNG.randf_range(-pos_jitter, pos_jitter),
+			RNG.randf_range(-pos_jitter, pos_jitter))
 	var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 	var sprite: Sprite2D = get_node_or_null("Sprite2D")
 	if anim:

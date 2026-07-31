@@ -45,3 +45,24 @@ func test_anim_effect_no_fade_keeps_alpha():
 	var anim: AnimatedSprite2D = eff.get_node("AnimatedSprite2D")
 	await wait_seconds(0.1)
 	assert_almost_eq(anim.modulate.a, 1.0, 0.01, "fade_time=0 时不应淡出（alpha 保持 1）")
+
+func test_pos_jitter_default_zero():
+	# 默认 pos_jitter=0：生成位置 = 命中点（不偏移）
+	var scene: PackedScene = preload("res://scenes/effect/hit_effect_marisa_option01.tscn")
+	var eff = scene.instantiate()
+	autofree(eff)
+	add_child(eff)
+	assert_eq(eff.pos_jitter, 0.0, "pos_jitter 默认应为 0")
+	eff.activate(Vector2(200, 300), Vector2(0, -1), Color.WHITE)
+	assert_eq(eff.global_position, Vector2(200, 300), "默认不偏移（位置 = 命中点）")
+
+func test_pos_jitter_offsets_within_range():
+	var scene: PackedScene = preload("res://scenes/effect/hit_effect_marisa_option01.tscn")
+	var eff = scene.instantiate()
+	autofree(eff)
+	add_child(eff)
+	eff.pos_jitter = 10.0
+	eff.activate(Vector2(200, 300), Vector2(0, -1), Color.WHITE)
+	var off := eff.global_position - Vector2(200, 300)
+	assert_lt(absf(off.x), 10.5, "x 偏移应在 ±10 内")
+	assert_lt(absf(off.y), 10.5, "y 偏移应在 ±10 内")
