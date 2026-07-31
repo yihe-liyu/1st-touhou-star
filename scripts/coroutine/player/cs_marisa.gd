@@ -9,18 +9,18 @@ const MAIN_INTERVAL: int = 3
 const OPTION_INTERVAL: int = 6
 
 ## 非 focus 分段激光参数
-const SEG_W: float = 32.0              # 每段宽度 —— 唯一需要调的参数！
+const SEG_W: float = 64.0              # 每段宽度 —— 唯一需要调的参数！
 const LASER_FRAME: int = 0             # 所有段公用这一帧（0~段数-1，同图案均匀重复）
-const LASER_DAMAGE: float = 0.75           # 每段伤害（支持小数，累积到整才扣血）
+const LASER_DAMAGE: float = 1.5           # 每段伤害（支持小数，累积到整才扣血）
 const LASER_DRIFT_SPEED: float = 1500.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 0.85  # 段间距 = 段宽 × 0.85（轻微重叠→遮住图案边缘空隙）
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
 ## 各 power 等级下每道激光的发射角度（度：0=垂直向上，正=右偏，负=左偏）
 ## 外层索引 = power 等级（0..3），内层 = 子机索引（0,1,2...）—— 按你的设计填！
 const LASER_ANGLES := [
-	[0.0],                          # power 0   （1 子机）
-	[0.0, 0.0],                  # power 100 （2 子机）
-	[-25.0, 0.0, 25.0],             # power 200 （3 子机）
+	[0.0],                     # power 0   （1 子机）
+	[0.0, 0.0],                # power 100 （2 子机）
+	[-8.0, 0.0, 8.0],          # power 200 （3 子机）
 	[-8.0, 0.0, 0.0, 8.0],     # power 300 （4 子机）
 ]
 
