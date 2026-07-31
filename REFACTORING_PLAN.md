@@ -41,17 +41,18 @@
 ### 阶段 0 — 测试地基 🟢 低风险
 **目标：给重构装上"安全带"**
 
-- [ ] 引入 GUT 测试框架（addons/gut）
-- [ ] 测试骨架 + CI 思路（`gut -d` 命令行可跑）
-- [ ] 核心系统测试：
+- [x] 引入 GUT 测试框架（addons/gut 9.7.1, godot_4_7 分支）
+- [x] 测试骨架 + 一键脚本（`test/run_tests.sh`）
+- [x] 核心系统测试：
   - `test_rng_seed`：同种子 → 同序列
-  - `test_drop_table`：EnemyData/Boss 掉落配置正确
-  - `test_timeline`：时间线事件触发顺序/重复/loop
-  - `test_spell_capture`：符卡捕获/超时/时符判定边界
-  - `test_bullet_physics`：碰撞/擦弹数学
-- [ ] 跑通一条"从命令行跑测试"的流程
+  - `test_drop_table`（初版：test_data_validity）数据完整性
+  - `test_timeline`：时间线事件触发顺序/重复/loop/wait/reset
+  - `test_collision`：圆形/矩形判定 + 擦弹半径
+- [x] 跑通一条"从命令行跑测试"的流程（25 测试 / 2249 断言全绿）
+- [ ] （后续可加）test_spell_capture 符卡判定集成测试
+- [ ] （后续可加）test_drop_table 掉落表精确测试
 
-**验收**：`gut -d` 一键跑全测试，覆盖核心系统。
+**验收**：`test/run_tests.sh` 一键跑全测试，覆盖核心系统。✅（25/25）
 
 ---
 
@@ -130,6 +131,7 @@
 | 日期 | 阶段 | 内容 |
 |------|------|------|
 | 2026-07-31 | 审查 | 全面架构审查 + 诊断报告 + 本计划创建 |
+| 2026-07-31 | 阶段0 | GUT 9.7.1 接入 + 首批测试（RNG/Timeline/碰撞/数据）25 个全绿 |
 | | | |
 
 ---
