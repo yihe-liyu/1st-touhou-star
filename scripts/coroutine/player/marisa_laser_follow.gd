@@ -8,7 +8,7 @@ class_name MarisaLaserFollow
 ##   laser_offset  相对锚点偏移（默认 (0,0) = 在发射口生成）
 ##   drift_speed   向上漂移速度
 
-const FADE_TIME: float = 0.4   # 渐隐时长（秒）
+const FADE_TIME: float = 0.2   # 渐隐时长（秒）
 
 var _drift: float = 0.0
 var _fading: bool = false
@@ -33,11 +33,13 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var extra: Variant = target.get("extra")
 		var off: Vector2 = Vector2.ZERO
 		var drift_speed: float = 0.0
+		var drift_angle: float = 0.0
 		var anchor: Vector2 = Vector2.ZERO
 		var anchor_found := false
 		if extra is Dictionary:
 			off = extra.get("laser_offset", Vector2.ZERO)
 			drift_speed = extra.get("drift_speed", 0.0)
+			drift_angle = extra.get("drift_angle", 0.0)  # 弧度，0=垂直向上
 			var anchor_node: Variant = extra.get("anchor_node")
 			if anchor_node != null and is_instance_valid(anchor_node):
 				anchor = anchor_node.global_position
@@ -47,7 +49,9 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			if not is_instance_valid(player):
 				return false
 			anchor = player.global_position
-		target.global_position = anchor + off + Vector2(0, -_drift)
+		# 沿角度方向漂移（0=垂直向上，正角=右偏）
+		var dir := Vector2(sin(drift_angle), -cos(drift_angle))
+		target.global_position = anchor + off + dir * _drift
 		_drift += drift_speed * dt
 
 		# 松开射击 或 进入 focus → 开始渐隐（激光只在"非focus+按住射击"时存在）
