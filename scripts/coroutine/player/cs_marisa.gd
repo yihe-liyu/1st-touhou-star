@@ -50,7 +50,6 @@ func _main_shoot(_ctx: StageContext, player: Player) -> float:
 
 
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
-	print("[MarisaLaser] _option_shoot called, options=%d" % _options.size())
 	if Input.is_action_pressed("focus"):
 		# focus：高速直线星弹（集中火力）
 		var b := BulletData.new().tex("marisa_option_bullet1").speed(5000).player()
@@ -60,11 +59,14 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2.ZERO)
 		return ctx.clock.wait_frames(4)
 	else:
-		# 非 focus：分段激光（逐段生长 + 继承漂移 → 始终无缝）
+		# 非 focus：固定长度流水激光（16 段从子机向上延伸，根部永不飞走）
+		if _laser_index >= SEGMENTS:
+			return ctx.clock.wait_frames(OPTION_INTERVAL)  # 已满，保持
 		var player: Player = ctx.player.get_player()
 		if not is_instance_valid(player):
 			return ctx.clock.wait_frames(OPTION_INTERVAL)
-		_grow_laser_segment(player)
+		_spawn_laser_segment(player, _laser_index)
+		_laser_index += 1
 		return ctx.clock.wait_frames(LASER_GROW_FRAMES)
 
 
@@ -76,28 +78,14 @@ func _make_laser_segment(i: int) -> AtlasTexture:
 	return at
 
 
-## 从子机（发射口）喷出一段激光：持续喷射 + 继承漂移 → 始终无缝
-func _grow_laser_segment(player: Player) -> void:
-	print("[MarisaLaser] grow segment #%d, active_bullets=%d" % [_laser_index, BulletManager.active_bullets.size()])
+## 在固定槽位生成一段激光（offset = 子机上方 -i*32，根部永远在子机）
+func _spawn_laser_segment(player: Player, i: int) -> void:
 	# 发射口 = 第一个子机（无子机时回退自机）
-	var anchor_node: Node2D = _options[0] if _options.size() > 0 else player
-	if not is_instance_valid(anchor_node):
-		anchor_node = player
+	var source: Node2D = _options[0] if _options.size() > 0 else player
+	if not is_instance_valid(source):
+		source = player
 
-	# 新段偏移 = 链尾段的偏移 + 段宽（接在其上方 32px）→ 流水无缝
-	# 链空/断链时从发射口开始（偏移 0）
-	var offset := Vector2.ZERO
-	var inherit_drift: float = 0.0
-	if _last_laser_seg != null and is_instance_valid(_last_laser_seg):
-		var ex: Variant = _last_laser_seg.get("extra")
-		if ex is Dictionary:
-			offset = ex.get("laser_offset", Vector2.ZERO) + Vector2(0, -SEG_W)
-			inherit_drift = ex.get("drift", 0.0)
-	else:
-		_last_laser_seg = null
-
-	# 贴图按段序循环（0..15），持续喷射不重置
-	var seg := _make_laser_segment(_laser_index % SEGMENTS)
+	var seg := _make_laser_segment(i)
 	var b := BulletData.new().player()
 	b.texture = seg
 	b.damage = LASER_DAMAGE
@@ -107,12 +95,12 @@ func _grow_laser_segment(player: Player) -> void:
 	b.hitbox_size = Vector2(SEG_W, SEG_W)
 	b.coroutine_script = LASER_FOLLOW
 
-	var bullet := ctx.bullets.shoot_single(b, anchor_node.global_position + offset, Vector2.UP)
+	var offset := Vector2(0, -i * SEG_W)
+	var bullet := ctx.bullets.shoot_single(b, source.global_position + offset, Vector2.UP)
 	if bullet:
-		bullet.extra["anchor_node"] = anchor_node  # 锚定发射口
-		bullet.extra["laser_offset"] = offset
-		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
-		bullet.extra["drift_offset"] = inherit_drift  # 继承漂移 → 无缝
+		bullet.extra["anchor_node"] = source    # 锚定发射口（根部在子机）
+		bullet.extra["laser_offset"] = offset    # 固定槽位偏移
+		bullet.extra["segment_index"] = i        # 贴图滚动基准
 		_last_laser_seg = bullet
 
-	_laser_index += 1
+	_laser_index = max(_laser_index, i + 1)
