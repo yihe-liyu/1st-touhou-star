@@ -9,7 +9,7 @@ class_name PlayerBulletHitEffect
 
 ## 飞散速度（px/s）
 @export var speed: float = 300.0
-## 淡出时长（秒）
+## 淡出时长（秒；0 = 不淡出，动画播完即收 —— 动画自带消散效果时用 0）
 @export var fade_time: float = 0.3
 ## 飞散方向随机抖动（弧度，0=不抖）
 @export var jitter: float = 0.0
@@ -25,15 +25,17 @@ func _setup() -> void:
 	var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 	var sprite: Sprite2D = get_node_or_null("Sprite2D")
 	if anim:
-		# 动画版：播第一个动画，播完回收；同时整体淡出
+		# 动画版：播第一个动画，播完回收
 		var names := anim.sprite_frames.get_animation_names()
 		if names.size() > 0:
 			anim.play(names[0])
 		anim.animation_finished.connect(_finish, CONNECT_ONE_SHOT)
-		var tw := create_tween()
-		tw.tween_property(anim, "modulate", Color(_tint.r, _tint.g, _tint.b, 0), fade_time)
+		# fade_time > 0 时叠加淡出；= 0 时不淡出（动画自带消散）
+		if fade_time > 0.0:
+			var tw := create_tween()
+			tw.tween_property(anim, "modulate", Color(_tint.r, _tint.g, _tint.b, 0), fade_time)
 	elif sprite:
-		# 单帧版：淡出后回收
+		# 单帧版：淡出后回收（无动画，必须靠淡出消失）
 		var tw := create_tween()
 		tw.tween_property(sprite, "modulate:a", 0, fade_time)
 		tw.tween_callback(_finish)

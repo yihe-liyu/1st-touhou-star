@@ -33,3 +33,15 @@ func test_sprite_effect_fades_out():
 	eff.activate(Vector2(100, 100), Vector2(0, -1), Color.WHITE)
 	await wait_seconds(0.35)
 	assert_false(is_instance_valid(eff), "淡出后应回收（实例已释放）")
+
+func test_anim_effect_no_fade_keeps_alpha():
+	# fade_time=0：动画版不淡出（alpha 保持 1），动画播完才回收
+	var scene: PackedScene = preload("res://scenes/effect/hit_effect_marisa.tscn")
+	var eff = scene.instantiate()
+	autofree(eff)
+	add_child(eff)
+	eff.fade_time = 0.0  # 不淡出模式
+	eff.activate(Vector2(100, 100), Vector2(0, -1), Color.WHITE)
+	var anim: AnimatedSprite2D = eff.get_node("AnimatedSprite2D")
+	await wait_seconds(0.1)
+	assert_almost_eq(anim.modulate.a, 1.0, 0.01, "fade_time=0 时不应淡出（alpha 保持 1）")
