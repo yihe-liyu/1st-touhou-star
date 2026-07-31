@@ -75,9 +75,6 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 					_spawn_laser_segment(player, opt)
 			else:
 				_spawn_laser_segment(player, null)
-		# 临时调试：每秒打印一次场上段数
-		if Engine.get_physics_frames() % 60 == 0:
-			print("[Laser] total_bullets=%d options=%d" % [BulletManager.active_bullets.size(), _options.size()])
 		return dt  # 每帧都调用，驱动累积
 
 
