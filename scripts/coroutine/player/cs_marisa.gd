@@ -82,12 +82,17 @@ func _grow_laser_segment(player: Player) -> void:
 	if not is_instance_valid(anchor_node):
 		anchor_node = player
 
-	# 上一段已消失（命中/出屏）→ 漂移继承归零，从头衔接
+	# 新段偏移 = 链尾段的偏移 + 段宽（接在其上方 32px）→ 流水无缝
+	# 链空/断链时从发射口开始（偏移 0）
+	var offset := Vector2.ZERO
 	var inherit_drift: float = 0.0
 	if _last_laser_seg != null and is_instance_valid(_last_laser_seg):
 		var ex: Variant = _last_laser_seg.get("extra")
 		if ex is Dictionary:
+			offset = ex.get("laser_offset", Vector2.ZERO) + Vector2(0, -SEG_W)
 			inherit_drift = ex.get("drift", 0.0)
+	else:
+		_last_laser_seg = null
 
 	# 贴图按段序循环（0..15），持续喷射不重置
 	var seg := _make_laser_segment(_laser_index % SEGMENTS)
@@ -100,7 +105,6 @@ func _grow_laser_segment(player: Player) -> void:
 	b.hitbox_size = Vector2(SEG_W, SEG_W)
 	b.coroutine_script = LASER_FOLLOW
 
-	var offset := Vector2(0, -_laser_index * SEG_W)
 	var bullet := ctx.bullets.shoot_single(b, anchor_node.global_position + offset, Vector2.UP)
 	if bullet:
 		bullet.extra["anchor_node"] = anchor_node  # 锚定发射口
