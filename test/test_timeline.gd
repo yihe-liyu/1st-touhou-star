@@ -1,0 +1,97 @@
+extends GutTest
+## Timeline 时间线测试 —— 事件触发顺序 / 重复 / wait 语义 / loop
+## 注意：GDScript lambda 无法修改外部局部变量（count += 1 无效），
+## 必须用数组 append 或成员变量。
+
+var _runner: CoroutineRunner
+var _ctx: StageContext
+var _fired: Array = []
+
+
+func before_each():
+	_runner = CoroutineRunner.new()
+	add_child_autofree(_runner)
+	_ctx = StageContext.new(_runner)
+	_fired = []
+
+
+func _make_timeline() -> Timeline:
+	return Timeline.new(_ctx)
+
+
+## 基础：事件在设定时间点触发，按顺序
+func test_events_fire_at_scheduled_time():
+	var tl := _make_timeline()
+	var fired: Array = []
+	tl.at(1.0).do(func(): fired.append("a"))
+	tl.at(2.0).do(func(): fired.append("b"))
+
+	tl.tick(0.5)   # t=0.5
+	assert_eq(fired, [], "t=0.5 不应触发任何事件")
+	tl.tick(0.6)   # t=1.1
+	assert_eq(fired, ["a"], "t=1.1 应触发 a")
+	tl.tick(1.0)   # t=2.1
+	assert_eq(fired, ["a", "b"], "t=2.1 应触发 b")
+
+
+## 重复事件：every + times 恰好触发指定次数
+func test_repeat_event_fires_exact_count():
+	var tl := _make_timeline()
+	tl.at(0.0).every(1.0).times(3).do(func(): _fired.append("x"))
+
+	for i in 10:
+		tl.tick(1.0)  # t=1,2,...,10
+	assert_eq(_fired.size(), 3, "every+times(3) 应恰好触发 3 次")
+
+
+## 重复事件后不再触发
+func test_repeat_event_stops_after_times():
+	var tl := _make_timeline()
+	tl.at(0.0).every(1.0).times(2).do(func(): _fired.append("x"))
+
+	for i in 10:
+		tl.tick(1.0)
+	assert_eq(_fired.size(), 2, "times(2) 之后不应再触发")
+
+
+## tick 返回 false 当所有一次性事件已触发
+func test_tick_returns_false_when_done():
+	var tl := _make_timeline()
+	tl.at(1.0).do(func(): pass)
+	assert_true(tl.tick(0.5), "未完成时 tick 应返回 true")
+	tl.tick(0.6)  # t=1.1, 事件触发
+	assert_false(tl.tick(0.0), "全部事件触发后 tick 应返回 false")
+
+
+## loop 模式：事件播完重置并重复
+func test_loop_resets_events():
+	var tl := _make_timeline()
+	tl.at(1.0).do(func(): _fired.append("x"))
+	tl.loop()
+
+	tl.tick(1.0)  # 触发 1
+	tl.tick(0.1)
+	assert_eq(_fired.size(), 1, "第一轮应触发 1 次")
+	tl.tick(1.0)  # loop 重置后再次触发
+	assert_eq(_fired.size(), 2, "loop 模式应重复触发")
+
+
+## wait 事件：phase 激活前不触发
+func test_wait_event_requires_phase_activation():
+	var tl := _make_timeline()
+	tl.wait(1.0).do(func(): _fired.append("x"))
+
+	tl.tick(5.0)  # 时间超过 wait，但没有 phase 激活
+	assert_eq(_fired.size(), 0, "未激活的 wait 事件不应触发")
+
+
+## reset 后重新播放
+func test_reset_restarts():
+	var tl := _make_timeline()
+	tl.at(1.0).do(func(): _fired.append("x"))
+
+	tl.tick(1.0)
+	assert_eq(_fired.size(), 1)
+	tl.reset()
+	tl.tick(1.0)
+	assert_eq(_fired.size(), 2, "reset 后应可重新触发")
