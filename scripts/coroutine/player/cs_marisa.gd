@@ -12,11 +12,12 @@ const OPTION_INTERVAL: int = 6
 const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 16 段）
 const SEGMENTS: int = 16               # 段数（512 宽 / 32 段宽）
 const LASER_DAMAGE: int = 1              # 每段伤害（每段独立判定，命中即回收）
-const LASER_DRIFT_SPEED: float = 150.0    # 激光流动速度（px/s，缓慢水流感）
-const LASER_GROW_FRAMES: int = 8          # 每多少帧喷出一段（间距=漂移×间隔≈20px，轻微重叠→视觉密实）
+const LASER_DRIFT_SPEED: float = 1500.0    # 激光流动速度（px/s）
+const LASER_SPACING_OVERLAP: float = 0.6   # 段间距 = 段宽 × 0.6（轻微重叠→视觉密实）
+## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
 
 var _laser_index: int = 0                 # 喷出的段序号（贴图按 %SEGMENTS 循环）
-var _last_laser_seg: Node = null          # 上一段（继承漂移用）
+var _spawn_accumulator: float = 0.0       # 漂移累积量（达到间距即喷一段）
 
 
 func _option_setup() -> Dictionary:
@@ -59,12 +60,17 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2.ZERO)
 		return ctx.clock.wait_frames(4)
 	else:
-		# 非 focus：持续喷出流水激光（段从子机生成→向上流动，永不停）
+		# 非 focus：流水激光（按间距喷段，频率自动跟随漂移速度 → 任何速度都无缝）
 		var player: Player = ctx.player.get_player()
 		if not is_instance_valid(player):
 			return ctx.clock.wait_frames(OPTION_INTERVAL)
-		_spawn_laser_segment(player)
-		return ctx.clock.wait_frames(LASER_GROW_FRAMES)
+		var dt := 1.0 / Engine.physics_ticks_per_second
+		_spawn_accumulator += LASER_DRIFT_SPEED * dt
+		var spacing: float = SEG_W * LASER_SPACING_OVERLAP
+		while _spawn_accumulator >= spacing:
+			_spawn_accumulator -= spacing
+			_spawn_laser_segment(player)
+		return dt  # 每帧都调用，驱动累积
 
 
 ## 把长贴图切成第 i 段（AtlasTexture 切片）
@@ -98,6 +104,5 @@ func _spawn_laser_segment(player: Player) -> void:
 		bullet.extra["anchor_node"] = source
 		bullet.extra["laser_offset"] = Vector2.ZERO
 		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
-		_last_laser_seg = bullet
 
 	_laser_index += 1
