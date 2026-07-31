@@ -67,13 +67,13 @@ func _main_shoot(_ctx: StageContext, player: Player) -> float:
 
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
 	if Input.is_action_pressed("focus"):
-		# focus：高速直线星弹（集中火力）
-		var b := BulletData.new().tex("marisa_option_bullet1").speed(5000).player()
+		# focus：竖直向上匀加速星弹（初速 + 加速度，每秒加速 —— 数值可调）
+		var b := BulletData.new().tex("marisa_opt2").speed(2000).accelerate(0, -4000).player()
 		b.color(Color(1, 1, 1, 0.5))
 		b.damage = 2
 		b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")
 		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2.ZERO)
-		return ctx.clock.wait_frames(4)
+		return ctx.clock.wait_frames(8)
 	else:
 		# 非 focus：流水激光（按间距喷段，频率自动跟随漂移速度 → 任何速度都无缝）
 		var player: Player = ctx.player.get_player()

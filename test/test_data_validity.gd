@@ -53,7 +53,7 @@ func test_player_data_valid():
 
 ## 子弹配置（真实数据源 = AssetRegistry）：玩家主弹/子弹贴图与判定盒有效
 func test_player_bullet_configs_valid():
-	for key in ["reimu_main", "reimu_opt1", "reimu_opt2", "marisa_main", "marisa_option_bullet1"]:
+	for key in ["reimu_main", "reimu_opt1", "reimu_opt2", "marisa_main", "marisa_opt2"]:
 		var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
 		assert_true(cfg.has("tex"), "%s 应有贴图配置" % key)
 		assert_not_null(cfg.get("tex"), "%s 贴图应非空" % key)

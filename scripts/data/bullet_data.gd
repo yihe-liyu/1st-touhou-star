@@ -11,6 +11,7 @@ var tint_mode: TintMode = TintMode.MULTIPLY          ## MULTIPLY=乘法叠加, B
 var tint: Color = Color.WHITE                        ## 贴图染色
 var damage: float = 10.0                              ## 基础伤害（支持小数，伤害累积到整才扣血）
 var velocity: Vector2 = Vector2.UP                   ## 速度向量
+var accel: Vector2 = Vector2.ZERO                   ## 加速度（世界方向，px/s²，0=匀速）
 var hit_effect: PackedScene                          ## 击中特效
 var faction: Faction = Faction.PLAYER                ## 阵营
 var can_be_canceled: bool = false                    ## 是否可被 Bomb 消除
@@ -47,6 +48,11 @@ func speed(v: float) -> BulletData:
 
 func dir(x: float, y: float) -> BulletData:
 	velocity = Vector2(x, y)
+	return self
+
+## 匀加速：ax/ay 为世界方向加速度（px/s²），如 .accelerate(0, -4000) = 竖直向上匀加速
+func accelerate(ax: float, ay: float) -> BulletData:
+	accel = Vector2(ax, ay)
 	return self
 
 func color(c: Color) -> BulletData:

@@ -9,6 +9,7 @@ const FACTION_BOMB: int = 2
 # 基础属性
 var damage: float = 10.0
 var velocity: Vector2 = Vector2.UP
+var accel: Vector2 = Vector2.ZERO  # 加速度（世界方向，px/s²）
 var faction: int = FACTION_PLAYER
 var can_be_canceled: bool = false
 var hit_effect: PackedScene
@@ -99,6 +100,7 @@ func bind(data: BulletData, direction: Vector2):
 	hitbox_rotation = data.hitbox_rotation
 
 	velocity = direction.normalized() * data.velocity.length()
+	accel = data.accel  # 加速度世界方向（发射方向无关）
 	self.rotation = direction.angle()
 
 	if data.spawn_fog:
@@ -128,6 +130,8 @@ func _on_fog_ready():
 func _physics_process(_delta):
 	if not is_ready or coroutine_script:
 		return
+	# 匀加速：velocity += accel * dt（世界方向）
+	velocity += accel / Engine.physics_ticks_per_second
 	self.global_position += velocity / Engine.physics_ticks_per_second
 
 func _start_coroutine(data: BulletData):
