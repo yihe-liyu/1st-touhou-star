@@ -13,9 +13,9 @@ const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 1
 const SEGMENTS: int = 16               # 段数（512 宽 / 32 段宽）
 const LASER_DAMAGE: int = 1              # 每段伤害（每段独立判定，命中即回收）
 const LASER_DRIFT_SPEED: float = 1000.0   # 激光整体向上漂移速度（px/s）
-const LASER_GROW_FRAMES: int = 2          # 每多少帧长出一段（生长动画速度）
+const LASER_GROW_FRAMES: int = 2          # 每多少帧喷出一段（喷射频率）
 
-var _laser_index: int = 0                 # 当前生长到第几段
+var _laser_index: int = 0                 # 喷出的段序号（贴图按 %SEGMENTS 循环）
 var _last_laser_seg: Node = null          # 上一段（继承漂移用）
 
 
@@ -75,27 +75,22 @@ func _make_laser_segment(i: int) -> AtlasTexture:
 	return at
 
 
-## 生长一段激光：新段继承上一段已漂移量 → 无缝衔接
+## 从子机（发射口）喷出一段激光：持续喷射 + 继承漂移 → 始终无缝
 func _grow_laser_segment(player: Player) -> void:
-	# 上一段已消失（命中/出屏）→ 从头开始生长
-	if _last_laser_seg == null or not is_instance_valid(_last_laser_seg):
-		_laser_index = 0
+	# 发射口 = 第一个子机（无子机时回退自机）
+	var anchor_node: Node2D = _options[0] if _options.size() > 0 else player
+	if not is_instance_valid(anchor_node):
+		anchor_node = player
 
-	var i: int = _laser_index
-	if i >= SEGMENTS:
-		# 一轮长满，从头再来（新一轮激光）
-		_laser_index = 0
-		i = 0
-		_last_laser_seg = null
-
-	# 继承上一段的漂移量（若上一段还在），保证新段贴住上一段上方
+	# 上一段已消失（命中/出屏）→ 漂移继承归零，从头衔接
 	var inherit_drift: float = 0.0
 	if _last_laser_seg != null and is_instance_valid(_last_laser_seg):
 		var ex: Variant = _last_laser_seg.get("extra")
 		if ex is Dictionary:
 			inherit_drift = ex.get("drift", 0.0)
 
-	var seg := _make_laser_segment(i)
+	# 贴图按段序循环（0..15），持续喷射不重置
+	var seg := _make_laser_segment(_laser_index % SEGMENTS)
 	var b := BulletData.new().player()
 	b.texture = seg
 	b.damage = LASER_DAMAGE
@@ -105,10 +100,10 @@ func _grow_laser_segment(player: Player) -> void:
 	b.hitbox_size = Vector2(SEG_W, SEG_W)
 	b.coroutine_script = LASER_FOLLOW
 
-	var base: Vector2 = player.global_position
-	var offset := Vector2(0, -i * SEG_W)
-	var bullet := ctx.bullets.shoot_single(b, base + offset, Vector2.UP)
+	var offset := Vector2(0, -_laser_index * SEG_W)
+	var bullet := ctx.bullets.shoot_single(b, anchor_node.global_position + offset, Vector2.UP)
 	if bullet:
+		bullet.extra["anchor_node"] = anchor_node  # 锚定发射口
 		bullet.extra["laser_offset"] = offset
 		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
 		bullet.extra["drift_offset"] = inherit_drift  # 继承漂移 → 无缝
