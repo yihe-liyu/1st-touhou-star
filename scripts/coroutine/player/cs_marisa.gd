@@ -69,7 +69,12 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		var spacing: float = SEG_W * LASER_SPACING_OVERLAP
 		while _spawn_accumulator >= spacing:
 			_spawn_accumulator -= spacing
-			_spawn_laser_segment(player)
+			# 每个子机各喷一段（多道激光，各自锚定自己的子机）
+			if _options.size() > 0:
+				for opt in _options:
+					_spawn_laser_segment(player, opt)
+			else:
+				_spawn_laser_segment(player, null)
 		return dt  # 每帧都调用，驱动累积
 
 
@@ -81,11 +86,10 @@ func _make_laser_segment(i: int) -> AtlasTexture:
 	return at
 
 
-## 从子机喷出一段激光：段在发射口生成，向上漂移，间距=漂移×间隔（自动无缝）
-func _spawn_laser_segment(player: Player) -> void:
-	# 发射口 = 第一个子机（无子机时回退自机）
-	var source: Node2D = _options[0] if _options.size() > 0 else player
-	if not is_instance_valid(source):
+## 从指定子机喷出一段激光：段在发射口生成，向上漂移，间距=漂移×间隔（自动无缝）
+func _spawn_laser_segment(player: Player, source: Node2D) -> void:
+	# 发射口 = 指定子机（无效时回退自机）
+	if source == null or not is_instance_valid(source):
 		source = player
 
 	var seg := _make_laser_segment(_laser_index % SEGMENTS)  # 贴图循环
