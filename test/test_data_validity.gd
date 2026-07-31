@@ -51,10 +51,12 @@ func test_player_data_valid():
 			assert_gt(pd.focus_speed, 0, "%s 低速应 > 0")
 
 
-## 子弹配置：玩家主弹有效
-func test_player_bullet_data_valid():
-	var bd: BulletData = load("res://data/player_data/bullet/reimu_main.tres")
-	assert_not_null(bd, "reimu_main.tres 应存在")
-	if bd:
-		assert_gt(bd.damage, 0, "主弹伤害应 > 0")
-		assert_eq(bd.faction, BulletData.Faction.PLAYER, "玩家弹阵营应为 PLAYER")
+## 子弹配置（真实数据源 = AssetRegistry）：玩家主弹/子弹贴图与判定盒有效
+func test_player_bullet_configs_valid():
+	for key in ["reimu_main", "reimu_opt1", "reimu_opt2", "marisa_main", "marisa_option_bullet1"]:
+		var cfg: Dictionary = AssetRegistry.bullet_configs.get(key, {})
+		assert_true(cfg.has("tex"), "%s 应有贴图配置" % key)
+		assert_not_null(cfg.get("tex"), "%s 贴图应非空" % key)
+		assert_true(cfg.has("hitbox"), "%s 应有判定配置" % key)
+		var hb: Dictionary = cfg.get("hitbox", {})
+		assert_true(hb.has("circle") or hb.has("rect"), "%s 判定应为 circle 或 rect" % key)

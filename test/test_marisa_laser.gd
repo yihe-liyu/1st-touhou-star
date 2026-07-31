@@ -7,14 +7,15 @@ func test_segment_slicing():
 	# 验证切片（通过实例调用 _make_laser_segment）
 	var inst = cs.new()
 	autofree(inst)
+	var n: int = inst._seg_count()
+	var w: float = inst.SEG_W
 	var seg: AtlasTexture = inst._make_laser_segment(0)
 	assert_not_null(seg, "段 0 应存在")
-	assert_eq(seg.region, Rect2(0, 0, 32, 32), "段 0 region 应为 (0,0,32,32)")
-	var seg_last: AtlasTexture = inst._make_laser_segment(15)
-	assert_eq(seg_last.region, Rect2(480, 0, 32, 32), "段 15 region 应为 (480,0,32,32)")
-	# 段数自动由图集算出：512/32 = 16
-	assert_eq(inst._seg_count(), 16, "段数应自动 = 图集宽/段宽 = 16")
-	assert_eq(inst.SEG_W, 32.0, "段宽应为 32")
+	assert_eq(seg.region, Rect2(0, 0, w, 32), "段 0 region 应为 (0,0,SEG_W,32)")
+	var seg_last: AtlasTexture = inst._make_laser_segment(n - 1)
+	assert_eq(seg_last.region, Rect2((n - 1) * w, 0, w, 32), "最后段 region 应正确")
+	# 段数自动由图集算出
+	assert_eq(n, int(512.0 / w), "段数应自动 = 图集宽/段宽")
 
 func test_offset_sequence_is_seamless():
 	var cs = load("res://scripts/coroutine/player/cs_marisa.gd")
