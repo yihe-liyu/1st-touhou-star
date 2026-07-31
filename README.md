@@ -14,6 +14,17 @@
 | **[DIALOGUE.md](DIALOGUE.md)** | 对白全集 —— 各面角色台词 | 编剧 |
 | **[ARCHITECTURE_ROADMAP.md](ARCHITECTURE_ROADMAP.md)** | 架构路线图 —— 已完成/计划中的改进 + 技术债 | 维护者 |
 
+### 我在做什么？看哪份？
+
+| 你的问题 | 打开哪份 |
+|---------|---------|
+| 「这个类怎么用 / 数据怎么流动」 | SPEC.md |
+| 「怎么加一个新敌人 / 符卡」 | CONTENT_GUIDE.md |
+| 「接下来要修什么架构问题」 | REFACTORING_PLAN.md |
+| 「游戏还要做哪些功能」 | ARCHITECTURE_ROADMAP.md |
+| 「某面角色说什么台词」 | DIALOGUE.md |
+| 「怎么跑 / 怎么测 / 快捷键」 | README.md（本页） |
+
 ---
 
 ## ⚡ 快速开始
