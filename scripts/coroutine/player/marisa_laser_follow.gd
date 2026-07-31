@@ -1,13 +1,17 @@
 extends CoroutineScript
 class_name MarisaLaserFollow
-## 魔理沙非 focus 激光段：锚定自机跟随
+## 魔理沙非 focus 激光段：锚定自机 + 向上漂移
 ## 每段相对自机的偏移由 bullet.extra["laser_offset"] 传入
+## 整体向上漂移速度由 bullet.extra["drift_speed"] 传入（0 则不漂移）
+
+var _drift: float = 0.0
 
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
 	if p_target:
 		target = p_target
+	_drift = 0.0
 
 	var tl := start_timeline()
 	tl.every(0).do(func():
@@ -17,10 +21,14 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		if not is_instance_valid(player):
 			return false
 		var off: Vector2 = Vector2.ZERO
+		var drift_speed: float = 0.0
 		var extra: Variant = target.get("extra")
 		if extra is Dictionary:
 			off = extra.get("laser_offset", Vector2.ZERO)
-		target.global_position = player.global_position + off
+			drift_speed = extra.get("drift_speed", 0.0)
+		# 向上漂移累积（所有段同速 → 段间相对位置不变 → 保持无缝）
+		_drift += drift_speed * get_physics_process_delta_time()
+		target.global_position = player.global_position + off + Vector2(0, -_drift)
 		return true
 	)
 	super.start(ctx, target)

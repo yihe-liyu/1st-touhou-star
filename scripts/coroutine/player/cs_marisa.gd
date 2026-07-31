@@ -12,6 +12,7 @@ const OPTION_INTERVAL: int = 6
 const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 16 段）
 const SEGMENTS: int = 512 / SEG_W        # 段数 = 16
 const LASER_DAMAGE: int = 2              # 每段伤害（每段独立判定，命中即回收）
+const LASER_DRIFT_SPEED: float = 180.0   # 激光整体向上漂移速度（px/s）
 
 
 func _option_setup() -> Dictionary:
@@ -74,6 +75,7 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 			var bullet := ctx.bullets.shoot_single(b, base + offset, Vector2.UP)
 			if bullet:
 				bullet.extra["laser_offset"] = offset
+				bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
 		return ctx.clock.wait_frames(OPTION_INTERVAL)
 
 
