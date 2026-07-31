@@ -16,7 +16,7 @@ const LASER_DRIFT_SPEED: float = 2000.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 0.6   # 段间距 = 段宽 × 0.6（轻微重叠→视觉密实）
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
 
-var _laser_index: int = 0                 # 喷出的段序号（贴图按 %SEGMENTS 循环）
+var _laser_seq: Dictionary = {}          # 子机实例ID → 贴图切片序列（每道激光独立连续）
 var _spawn_accumulator: float = 0.0       # 漂移累积量（达到间距即喷一段）
 
 
@@ -92,7 +92,10 @@ func _spawn_laser_segment(player: Player, source: Node2D) -> void:
 	if source == null or not is_instance_valid(source):
 		source = player
 
-	var seg := _make_laser_segment(_laser_index % SEGMENTS)  # 贴图循环
+	# 每道激光独立的贴图序列（子机 0: 0,1,2... 子机 1: 0,1,2... 各自连续）
+	var seq: int = _laser_seq.get(source.get_instance_id(), 0)
+	var seg := _make_laser_segment(seq % SEGMENTS)
+	_laser_seq[source.get_instance_id()] = seq + 1
 	var b := BulletData.new().player()
 	b.texture = seg
 	b.damage = LASER_DAMAGE
@@ -109,5 +112,3 @@ func _spawn_laser_segment(player: Player, source: Node2D) -> void:
 		bullet.extra["anchor_node"] = source
 		bullet.extra["laser_offset"] = Vector2.ZERO
 		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
-
-	_laser_index += 1
