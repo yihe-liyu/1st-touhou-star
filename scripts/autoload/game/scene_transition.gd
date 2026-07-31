@@ -40,7 +40,13 @@ func change_scene(path: String, current_scene_path: String, on_scene_left: Calla
 	BulletManager.clear_all()
 	GameState.clear_enemies()
 
-	_parent.get_tree().change_scene_to_file(path)
+	var err := _parent.get_tree().change_scene_to_file(path)
+	if err != OK:
+		# 场景加载失败：回滚暂停状态，避免永久黑屏
+		push_error("SceneTransition: 场景切换失败 %s (%s)" % [path, error_string(err)])
+		_parent.get_tree().paused = false
+		BulletManager.resume_processing()
+		return current_scene_path if current_scene_path != "" else path
 	await _parent.get_tree().process_frame
 
 	await _fade_in()

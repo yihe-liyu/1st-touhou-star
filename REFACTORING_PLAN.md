@@ -90,7 +90,7 @@
 
 - [x] **P-08** game_scene 深层路径 → `%UniqueName`（World/Player/SubViewport 等；直接子节点 `$X` 属 Godot 惯用法保留）
 - [ ] 菜单系统场景化：页面用场景继承组织，减少代码构建
-- [ ] SceneTransition 健壮化：检查 `change_scene_to_file` 返回值 + 错误处理
+- [x] SceneTransition 健壮化：检查 `change_scene_to_file` 返回值，失败回滚暂停状态
 - [ ] preload 策略优化：音频/大贴图改懒加载
 - [ ] 双轨协程统一策略（文档化：何时用 await，何时用 CoroutineRunner）
 
