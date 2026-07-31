@@ -63,6 +63,34 @@ func _on_stage_finished():
 	all_enemies_defeated.emit()
 	GameState.save_high_score(current_stage.stage_id, GameState.current_score)
 
+## 从 EnemyData 生成敌人（实例化/挂载协程/入场景）
+func spawn_enemy_data(data: EnemyData, p_ctx: StageContext = null) -> Enemy:
+	if not p_ctx or not p_ctx.active():
+		return null
+	if not data.has_script():
+		push_warning("StageManager.spawn_enemy_data: no script set")
+		return null
+	var enemy: Enemy = ENEMY_SCENE.instantiate()
+	enemy.global_position = data.get_spawn_pos()
+	enemy.enemy_data = data
+	enemy.ctx = p_ctx
+	var cs: CoroutineScript = data.make_script()
+	if not cs:
+		push_warning("StageManager.spawn_enemy_data: script is not a CoroutineScript")
+		enemy.queue_free()
+		return null
+	cs.target = enemy
+	var params: Dictionary = data.get_params()
+	for k in params:
+		cs.set(k, params[k])
+	if cs.has_method("setup_custom"):
+		cs.setup_custom(params)
+	enemy.add_child(cs)
+	cs.start(p_ctx, enemy)
+	add_enemy_to_scene(enemy)
+	return enemy
+
+
 func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) -> Enemy:
 	var enemy: Enemy = ENEMY_SCENE.instantiate()
 	enemy.enemy_data = data

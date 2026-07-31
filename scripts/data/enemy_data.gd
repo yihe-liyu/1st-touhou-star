@@ -19,8 +19,6 @@ var item_scatter: float = 50.0  ## 掉落散布范围（像素）
 
 ## ── 构造链 ──
 
-const _ENEMY_SCENE = preload("res://scenes/enemy.tscn")
-
 var _script: Script
 var _pos: Vector2 = Vector2.ZERO
 var _params: Dictionary = {}
@@ -42,34 +40,20 @@ func visual(key: String) -> EnemyData:
 	visual_scene = AssetRegistry.enemy_visuals.get(key, preload("res://data/enemy_visual/red_little_fairy.tscn"))
 	return self
 
+## 生成敌人 —— 数据类不持有场景，实例化/挂载委托给 StageManager
 func spawn(p_ctx: StageContext = null) -> Enemy:
-	if not p_ctx or not p_ctx.active():
-		return null
-	if not _script:
-		push_warning("EnemyData.spawn(): no script set")
-		return null
-	
-	var enemy := _ENEMY_SCENE.instantiate()
-	enemy.global_position = _pos
-	enemy.enemy_data = self
-	enemy.ctx = p_ctx
-	
-	var cs: CoroutineScript = _script.new()
-	if not cs:
-		push_warning("EnemyData.spawn(): script is not a CoroutineScript")
-		enemy.queue_free()
-		return null
-	
-	cs.target = enemy
-	for k in _params:
-		cs.set(k, _params[k])
-	if cs.has_method("setup_custom"):
-		cs.setup_custom(_params)
-	enemy.add_child(cs)
-	cs.start(p_ctx, enemy)
-	
-	StageManager.add_enemy_to_scene(enemy)
-	return enemy
+	return StageManager.spawn_enemy_data(self, p_ctx)
+
+## ── 生成参数（供 StageManager 读取） ──
+
+func has_script() -> bool:            return _script != null
+func get_enemy_script() -> Script:    return _script
+func get_spawn_pos() -> Vector2:      return _pos
+func get_params() -> Dictionary:      return _params
+func make_script() -> CoroutineScript:
+	if _script:
+		return _script.new()
+	return null
 
 ## ── 构造链模板 ──
 
