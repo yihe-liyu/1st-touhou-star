@@ -17,6 +17,7 @@ const LASER_SPACING_OVERLAP: float = 1.0   # 段间距 = 段宽 × 0.6（轻微�
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
 
 var _spawn_accumulator: float = 0.0       # 漂移累积量（达到间距即喷一段）
+var _laser_frame_seq: int = 0             # 帧序列（每轮喷射 +1 → 图案随时间变换）
 var _segments: int = -1                   # 段数缓存（由图集自动算）
 
 
@@ -75,12 +76,14 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		var spacing: float = SEG_W * LASER_SPACING_OVERLAP
 		while _spawn_accumulator >= spacing:
 			_spawn_accumulator -= spacing
-			# 每个子机各喷一段（多道激光，各自锚定自己的子机）
+			# 本轮所有子机共用同一帧（4 道激光同步），轮间帧变换
+			var frame: int = (_laser_frame_seq + LASER_FRAME) % _seg_count()
+			_laser_frame_seq += 1
 			if _options.size() > 0:
 				for opt in _options:
-					_spawn_laser_segment(player, opt)
+					_spawn_laser_segment(player, opt, frame)
 			else:
-				_spawn_laser_segment(player, null)
+				_spawn_laser_segment(player, null, frame)
 		return dt  # 每帧都调用，驱动累积
 
 
@@ -93,13 +96,13 @@ func _make_laser_segment(i: int) -> AtlasTexture:
 
 
 ## 从指定子机喷出一段激光：段在发射口生成，向上漂移，间距=漂移×间隔（自动无缝）
-func _spawn_laser_segment(player: Player, source: Node2D) -> void:
+func _spawn_laser_segment(player: Player, source: Node2D, frame: int) -> void:
 	# 发射口 = 指定子机（无效时回退自机）
 	if source == null or not is_instance_valid(source):
 		source = player
 
-	# 所有段公用同一帧 → 图案均匀重复，天然连续无缝
-	var seg := _make_laser_segment(LASER_FRAME % _seg_count())
+	# 本轮共享帧：同轮所有子机图案一致，轮间变换 → 整齐且流动
+	var seg := _make_laser_segment(frame % _seg_count())
 	var b := BulletData.new().player()
 	b.texture = seg
 	b.damage = LASER_DAMAGE
