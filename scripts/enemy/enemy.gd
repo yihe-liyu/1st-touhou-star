@@ -64,10 +64,18 @@ func start() -> void:
 	pass
 
 
-func take_damage(damage: int):
+## 小数伤害累积器（0.3×4 次 = 1.2 → 扣 1 血余 0.2）
+var _dmg_acc: float = 0.0
+
+func take_damage(damage: float):
 	if is_queued_for_deletion():
 		return
-	hp -= damage
+	_dmg_acc += damage
+	var full: int = int(_dmg_acc)
+	if full <= 0:
+		return
+	_dmg_acc -= full
+	hp -= full
 	if hp <= 0: die()
 
 

@@ -137,10 +137,18 @@ func _process(delta: float) -> void:
 		_clear_phase(_current_phase.is_timeout_only)
 
 
-func take_damage(damage: int) -> void:
+## 小数伤害累积器（0.5×2 次 = 1 → 扣 1 血）
+var _dmg_acc: float = 0.0
+
+func take_damage(damage: float) -> void:
 	if _invincible: return
 	if not _current_phase: return
-	hp -= damage
+	_dmg_acc += damage
+	var full: int = int(_dmg_acc)
+	if full <= 0:
+		return
+	_dmg_acc -= full
+	hp -= full
 	if hp <= 0 and not _current_phase.is_timeout_only:
 		_clear_phase(true)
 

@@ -47,7 +47,7 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 			if not phase or phase.is_timeout_only:
 				continue
 		if _hit_target(bullet, enemy):
-			enemy.take_damage(ceilf(bullet.damage * bonus))
+			enemy.take_damage(bullet.damage * bonus)  # float 伤害，Enemy 内部累积
 			GameState.add_memory(GameState.MEMORY_HIT_BY_BULLET)
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)

@@ -9,7 +9,7 @@ enum TintMode {MULTIPLY, BLEND}
 var texture: Texture2D                               ## 子弹贴图（白色/浅灰底图，用 tint 染色）
 var tint_mode: TintMode = TintMode.MULTIPLY          ## MULTIPLY=乘法叠加, BLEND=灰度混合
 var tint: Color = Color.WHITE                        ## 贴图染色
-var damage: int = 10                                 ## 基础伤害
+var damage: float = 10.0                              ## 基础伤害（支持小数，伤害累积到整才扣血）
 var velocity: Vector2 = Vector2.UP                   ## 速度向量
 var hit_effect: PackedScene                          ## 击中特效
 var faction: Faction = Faction.PLAYER                ## 阵营

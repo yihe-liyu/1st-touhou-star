@@ -11,8 +11,8 @@ const OPTION_INTERVAL: int = 6
 ## 非 focus 分段激光参数
 const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 16 段）
 const SEGMENTS: int = 16               # 段数（512 宽 / 32 段宽）
-const LASER_DAMAGE: int = 1              # 每段伤害（每段独立判定，命中即回收）
-const LASER_DRIFT_SPEED: float = 1500.0    # 激光流动速度（px/s）
+const LASER_DAMAGE: float = 0.5           # 每段伤害（支持小数，累积到整才扣血）
+const LASER_DRIFT_SPEED: float = 2000.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 0.6   # 段间距 = 段宽 × 0.6（轻微重叠→视觉密实）
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
 
