@@ -11,7 +11,7 @@ const OPTION_INTERVAL: int = 6
 ## 非 focus 分段激光参数
 const SEG_W: float = 64.0              # 每段宽度 —— 唯一需要调的参数！
 const LASER_FRAME: int = 0             # 所有段公用这一帧（0~段数-1，同图案均匀重复）
-const LASER_DAMAGE: float = 1.5           # 每段伤害（支持小数，累积到整才扣血）
+const LASER_DAMAGE: float = 2           # 每段伤害（支持小数，累积到整才扣血）
 const LASER_DRIFT_SPEED: float = 1500.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 0.85  # 段间距 = 段宽 × 0.85（轻微重叠→遮住图案边缘空隙）
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
@@ -68,10 +68,10 @@ func _main_shoot(_ctx: StageContext, player: Player) -> float:
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
 	if Input.is_action_pressed("focus"):
 		# focus：竖直向上匀加速星弹（初速 + 加速度，每秒加速 —— 数值可调）
-		var b: BulletData = BulletData.new().tex("marisa_opt2").speed(2000).accelerate(0, -4000).player()
+		var b: BulletData = BulletData.new().tex("marisa_opt2").speed(500).accelerate(0, -5000).player()
 		b.color(Color(1, 1, 1, 0.5))
-		b.damage = 2
-		b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")
+		b.damage = 4
+		b.hit_effect = preload("res://scenes/effect/hit_effect_marisa_option02.tscn")
 		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2.ZERO)
 		return ctx.clock.wait_frames(8)
 	else:

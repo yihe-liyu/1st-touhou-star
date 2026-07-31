@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://dwnd5x6hrkwq0"]
+
+[ext_resource type="Texture2D" uid="uid://66nx3q6rsiax" path="res://assets/Textures/player/pl01.png" id="2_aci5a"]
+[ext_resource type="Script" uid="uid://cup3ihlkjvwgf" path="res://scripts/effect/player_bullet_hit_effect.gd" id="1_aci5a"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ihjqg"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(0, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ijbdf"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(32, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sh4qh"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(64, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3f28w"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(96, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3dlac"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(128, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1c503"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(160, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rqhmb"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(192, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5n7ig"]
+atlas = ExtResource("2_aci5a")
+region = Rect2(224, 224, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_1snx8"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ihjqg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ijbdf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sh4qh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3f28w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3dlac")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1c503")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rqhmb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5n7ig")
+}],
+"loop": 0,
+"name": &"explode",
+"speed": 10.0
+}]
+
+[node name="HitEffectMarisa" type="Node2D" unique_id=492742938]
+script = ExtResource("1_aci5a")
+script = ExtResource("1_aci5a")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=119258572]
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_1snx8")
+animation = &"explode"

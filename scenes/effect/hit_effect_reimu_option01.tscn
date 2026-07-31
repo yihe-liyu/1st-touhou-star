@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dfl3nn0l7e6s4"]
 
-[ext_resource type="Script" uid="uid://d3bw1fuviwig7" path="res://scripts/effect/player_bullet_hit_effect01.gd" id="1_pkpi1"]
+[ext_resource type="Script" uid="uid://cup3ihlkjvwgf" path="res://scripts/effect/player_bullet_hit_effect.gd" id="1_pkpi1"]
 [ext_resource type="Texture2D" uid="uid://c4qm08mqu1doc" path="res://assets/Textures/player/pl00.png" id="2_827ri"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pkpi1"]

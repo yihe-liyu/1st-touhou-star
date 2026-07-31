@@ -429,3 +429,21 @@ ctx.dialogue_show("灵梦", "这是测试文本", Vector2(100, 200))
 | 不同难度符卡不同 | 各难度用不同 StageData 文件，各自引用不同 BossData |
 | 对话气泡想加新效果 | 改 `scripts/scenes/bubble_panel.gd`，不要动 `dialogue_box.gd` |
 | 菜单加新页面怎么写动画 | 继承 BasePage/NavPage，用 `_fade_overlay_in/out` 等现成方法 |
+
+## 自机子弹击中特效（数据驱动，零代码）
+
+所有自机击中特效共用**一个脚本** `scripts/effect/player_bullet_hit_effect.gd`。
+新增特效只需做资源，不用写代码：
+
+**步骤**（以新增"灵梦新星爆"为例）：
+1. 复制 `scenes/effect/hit_effect_reimu_option02.tscn` → 改名
+2. 改贴图 / AtlasTexture region（或换成你的动画 SpriteFrames）
+3. 在 Inspector 里调参数：
+   - `speed`   飞散速度（px/s，默认 300）
+   - `fade_time` 淡出时长（秒，默认 0.3）
+   - `jitter`  飞散方向随机抖动（弧度，默认 0）
+4. 保存即生效！（节点结构自动识别：有 `AnimatedSprite2D` = 动画版，有 `Sprite2D` = 单帧淡出版）
+
+**贴图位置参考**：`assets/Textures/player/pl01.png`（命中特效区在 y≈143~224 行）。
+
+**接线**：在射击脚本里 `b.hit_effect = preload("res://scenes/effect/你的特效.tscn")`。

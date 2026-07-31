@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cd6s163bevtjj"]
 
-[ext_resource type="Script" uid="uid://ck1oqychxykyp" path="res://scripts/effect/player_bullet_hit_effect02.gd" id="1_ubm08"]
+[ext_resource type="Script" uid="uid://cup3ihlkjvwgf" path="res://scripts/effect/player_bullet_hit_effect.gd" id="1_ubm08"]
 [ext_resource type="Texture2D" uid="uid://66nx3q6rsiax" path="res://assets/Textures/player/pl01.png" id="2_ubm08"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_46l05"]
@@ -8,8 +8,11 @@ atlas = ExtResource("2_ubm08")
 region = Rect2(32, 192, 32, 32)
 filter_clip = true
 
-[node name="HitEffectReimu" type="Node2D" unique_id=492742938]
+[node name="HitEffectMarisa" type="Node2D" unique_id=492742938]
 script = ExtResource("1_ubm08")
+speed = 750.0
+fade_time = 0.2
+jitter = 0.1
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1229339536]
 scale = Vector2(2, 2)
