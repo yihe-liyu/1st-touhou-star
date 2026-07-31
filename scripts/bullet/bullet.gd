@@ -7,7 +7,7 @@ const FACTION_ENEMY: int = 1
 const FACTION_BOMB: int = 2
 
 # 基础属性
-var damage: int = 10
+var damage: float = 10.0
 var velocity: Vector2 = Vector2.UP
 var faction: int = FACTION_PLAYER
 var can_be_canceled: bool = false
