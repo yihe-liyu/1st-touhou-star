@@ -12,7 +12,7 @@ const OPTION_INTERVAL: int = 6
 const SEG_W: float = 32.0              # 每段宽度 —— 唯一需要调的参数！
 const LASER_FRAME: int = 0             # 所有段公用这一帧（0~段数-1，同图案均匀重复）
 const LASER_DAMAGE: float = 1.0           # 每段伤害（支持小数，累积到整才扣血）
-const LASER_DRIFT_SPEED: float = 2000.0    # 激光流动速度（px/s）
+const LASER_DRIFT_SPEED: float = 1500.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 1.0   # 段间距 = 段宽 × 0.6（轻微重叠→视觉密实）
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
 
@@ -105,6 +105,7 @@ func _spawn_laser_segment(player: Player, source: Node2D, frame: int) -> void:
 	var seg := _make_laser_segment(frame % _seg_count())
 	var b := BulletData.new().player()
 	b.texture = seg
+	b.color(Color(1, 1, 1, 0.5))
 	b.damage = LASER_DAMAGE
 	b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")
 	# 矩形判定覆盖整段（32x32）
