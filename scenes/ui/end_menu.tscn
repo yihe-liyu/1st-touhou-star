@@ -10,6 +10,12 @@ title_text = ""
 container_path = NodePath("Panel/MenuContainer")
 entrance_stagger = 0.1
 
+[node name="Overlay" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.5)
+
 [node name="Panel" type="ColorRect" parent="." unique_id=1599365742]
 anchors_preset = 15
 anchor_right = 1.0
