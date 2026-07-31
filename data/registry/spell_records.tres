@@ -15,8 +15,8 @@ phase_index = 0
 name = "卡摩瑞的非符1"
 attempts = 14
 captures = 14
-practice_attempts = 3
-practice_captures = 3
+practice_attempts = 4
+practice_captures = 4
 best_time = 7.743014545454425
 
 [sub_resource type="Resource" id="Resource_6vhrn"]
@@ -50,6 +50,16 @@ attempts = 1
 captures = 1
 best_time = 13.145763636363313
 
+[sub_resource type="Resource" id="Resource_02on7"]
+script = ExtResource("1_nyj52")
+stage = 0
+phase_index = 0
+name = "测试符卡"
+attempts = 52
+captures = 39
+best_score = 10000
+best_time = 5.01
+
 [resource]
 script = ExtResource("1")
-records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn"), SubResource("Resource_ve3lw"), SubResource("Resource_plj11")])
+records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn"), SubResource("Resource_ve3lw"), SubResource("Resource_plj11"), SubResource("Resource_02on7")])

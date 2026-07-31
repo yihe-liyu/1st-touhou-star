@@ -48,6 +48,11 @@ func play(lines: Array) -> void:
 	if not GameManager.game_state_changed.is_connected(_on_game_state):
 		GameManager.game_state_changed.connect(_on_game_state)
 
+func _exit_tree() -> void:
+	if GameManager.game_state_changed.is_connected(_on_game_state):
+		GameManager.game_state_changed.disconnect(_on_game_state)
+
+
 func _process(delta: float) -> void:
 	if _is_closing or not _data or not _input_ready:
 		return

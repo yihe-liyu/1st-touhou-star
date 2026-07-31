@@ -11,8 +11,8 @@ func play(lines: Array) -> float:
 		return 0.0
 	var box := DialogueBoxScene.instantiate()
 	ctx.runner.get_tree().current_scene.add_child(box)
-	ctx.runner.is_running = false
-	box.finished.connect(func(): ctx.runner.is_running = true, CONNECT_ONE_SHOT)
+	ctx.runner.pause()
+	box.finished.connect(func(): ctx.runner.resume(), CONNECT_ONE_SHOT)
 	box.play(lines)
 	return 0.0
 

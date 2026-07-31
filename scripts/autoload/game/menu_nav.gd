@@ -144,7 +144,7 @@ func push_overlay(page_path: String) -> Node:
 	tree.root.add_child(wrapper)
 	_connect_signals(page)
 
-	_parent._set_state.call_deferred(GameManager.AppState.PAUSED)
+	_parent.set_state.call_deferred(GameManager.AppState.PAUSED)
 	tree.paused = true
 
 	if page.has_method("_on_enter"):
@@ -166,7 +166,7 @@ func add_overlay_instance(page: Node) -> void:
 	
 	_parent.get_tree().root.add_child(wrapper)
 	_connect_signals(page)
-	_parent._set_state.call_deferred(GameManager.AppState.PAUSED)
+	_parent.set_state.call_deferred(GameManager.AppState.PAUSED)
 	_parent.get_tree().paused = true
 	if page.has_method("_on_enter"):
 		page._on_enter()
@@ -193,7 +193,7 @@ func pop_overlay() -> void:
 	# 恢复游戏
 	if _overlay_stack.is_empty():
 		_parent.get_tree().paused = false
-		_parent._set_state.call_deferred(GameManager.AppState.PLAYING)
+		_parent.set_state.call_deferred(GameManager.AppState.PLAYING)
 
 
 ## 弹出指定覆盖层
@@ -211,7 +211,7 @@ func pop_specific_overlay(page: Node) -> void:
 		wrapper.queue_free()
 	if _overlay_stack.is_empty():
 		_parent.get_tree().paused = false
-		_parent._set_state.call_deferred(GameManager.AppState.PLAYING)
+		_parent.set_state.call_deferred(GameManager.AppState.PLAYING)
 
 
 func is_overlay_open() -> bool:

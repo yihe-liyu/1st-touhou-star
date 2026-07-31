@@ -43,6 +43,11 @@ func _process(_delta):
 
 # ═══ 状态 ═══
 
+## 受控状态入口（供内部模块/场景使用，会发信号并做去重）
+func set_state(new_state: AppState) -> void:
+	_set_state(new_state)
+
+
 func _set_state(new_state: AppState):
 	var old: int = current_state
 	if old == new_state:

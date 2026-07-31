@@ -17,6 +17,11 @@ func setup(p_boss: Boss) -> void:
 	GameEvents.phase_start.connect(_on_phase_start)
 	queue_redraw()
 
+func _exit_tree() -> void:
+	if GameEvents.phase_start.is_connected(_on_phase_start):
+		GameEvents.phase_start.disconnect(_on_phase_start)
+
+
 func _on_phase_start(phase: PhaseData) -> void:
 	_max_hp = phase.hp
 	_hp = phase.hp

@@ -23,13 +23,13 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tl.at(1.0 + i * 0.1).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
-				.param("target_y", 150 + i * 50).spawn()
+				.param("target_y", 150 + i * 50).spawn(ctx)
 		)
 	for i in 7:
 		tl.at(4.0 + i * 0.1).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
-				.param("target_y", 150 + i * 50).spawn()
+				.param("target_y", 150 + i * 50).spawn(ctx)
 		)
 
 	# 7s: Logo
@@ -57,13 +57,13 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			tl.at(11.0 + i * 3.0).do(func():
 				local_enemy.red_middle_fairy()\
 				.pos(Vector2(0, target_y))\
-				.param("target_pos", Vector2(448 + 100 + i * 25, target_y)).spawn()
+				.param("target_pos", Vector2(448 + 100 + i * 25, target_y)).spawn(ctx)
 			)
 		else:
 			tl.at(11.0 + i * 3.0).do(func():
 				local_enemy.blue_middle_fairy()\
 				.pos(Vector2(914, target_y))\
-				.param("target_pos", Vector2(448 - 100 - i * 25, target_y)).spawn()
+				.param("target_pos", Vector2(448 - 100 - i * 25, target_y)).spawn(ctx)
 			)
 
 	for i in 7:
@@ -71,22 +71,22 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
-				.param("rate", 4).spawn()
+				.param("rate", 4).spawn(ctx)
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
-				.param("rate", 4).spawn()
+				.param("rate", 4).spawn(ctx)
 		)
 	for i in 7:
 		tl.at(24.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
-				.param("rate", 4).spawn()
+				.param("rate", 4).spawn(ctx)
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
-				.param("rate", 4).spawn()
+				.param("rate", 4).spawn(ctx)
 		)
 
 	# ── Boss ──

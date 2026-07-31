@@ -33,7 +33,6 @@ func load_stage(data: StageData):
 	stage_script.finished.connect(_on_stage_finished)
 
 	var ctx := StageContext.new(stage_script)
-	EnemyData.setup_ctx(ctx)
 	stage_script.start(ctx)
 
 	# 自动启动背景场景里挂的所有协程脚本
@@ -68,7 +67,7 @@ func spawn_enemy(data: EnemyData, position: Vector2, auto_start: bool = true) ->
 	var enemy: Enemy = ENEMY_SCENE.instantiate()
 	enemy.enemy_data = data
 	enemy.global_position = position
-	_add_enemy_to_scene(enemy)
+	add_enemy_to_scene(enemy)
 	if auto_start:
 		enemy.start.call_deferred()
 	return enemy
@@ -79,7 +78,7 @@ func spawn_boss(data: BossData, position: Vector2, p_ctx: StageContext = null) -
 	if data.visual:
 		var vis := data.visual.instantiate()
 		boss.add_child(vis)
-	_add_enemy_to_scene(boss)
+	add_enemy_to_scene(boss)
 	boss.setup(data, p_ctx)
 	boss.start_boss()
 	return boss
@@ -87,13 +86,10 @@ func spawn_boss(data: BossData, position: Vector2, p_ctx: StageContext = null) -
 func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bullet:
 	return BulletManager.shoot_enemy_bullet(data, position, direction)
 
-func _add_enemy_to_scene(node: Node2D):
+func add_enemy_to_scene(node: Node2D):
 	var parent: Node = get_tree().current_scene
 	if parent:
 		var world = parent.get_node_or_null("World")
 		if world:
 			parent = world
 	parent.add_child(node)
-
-func add_enemy_to_scene(node: Node2D):
-	_add_enemy_to_scene(node)

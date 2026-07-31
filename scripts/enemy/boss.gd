@@ -166,6 +166,11 @@ func _clear_phase(captured: bool) -> void:
 	phase_cleared.emit(captured, _bonus)
 
 
+## 外部受控死亡（练习模式等场景调用）
+func die() -> void:
+	_die()
+
+
 func _die() -> void:
 	set_process(false)
 	_current_phase = null

@@ -2,12 +2,6 @@
 extends Resource
 class_name EnemyData
 
-static var _ctx: StageContext
-
-## 设置全局上下文（GameScene._ready 调用）
-static func setup_ctx(p_ctx: StageContext) -> void:
-	_ctx = p_ctx
-
 var visual_scene: PackedScene   ## 外观场景
 var max_hp: int = 100           ## 最大生命
 var hitbox_radius: float = 8.0  ## 判定半径（像素）
@@ -48,8 +42,8 @@ func visual(key: String) -> EnemyData:
 	visual_scene = AssetRegistry.enemy_visuals.get(key, preload("res://data/enemy_visual/red_little_fairy.tscn"))
 	return self
 
-func spawn() -> Enemy:
-	if not _ctx or not _ctx.active():
+func spawn(p_ctx: StageContext = null) -> Enemy:
+	if not p_ctx or not p_ctx.active():
 		return null
 	if not _script:
 		push_warning("EnemyData.spawn(): no script set")
@@ -71,7 +65,7 @@ func spawn() -> Enemy:
 	if cs.has_method("setup_custom"):
 		cs.setup_custom(_params)
 	enemy.add_child(cs)
-	cs.start(_ctx, enemy)
+	cs.start(p_ctx, enemy)
 	
 	StageManager.add_enemy_to_scene(enemy)
 	return enemy

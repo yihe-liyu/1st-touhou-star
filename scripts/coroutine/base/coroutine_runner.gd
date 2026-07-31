@@ -14,6 +14,7 @@ class_name CoroutineRunner
 ##
 ## run()      — 先清掉所有旧任务再启动
 ## run_parallel() — 追加一个并行任务
+## pause()/resume() — 临时冻结时钟（任务保留），对话/演出期间使用
 ##
 ## 计时方式：累积 _physics_process 的 delta，暂停时不累积。
 ## 恢复后不会追帧，时钟从暂停处继续。
@@ -22,6 +23,7 @@ signal finished()
 signal cancelled()
 
 var is_running: bool = false
+var _paused: bool = false
 var _tasks: Array[Task] = []
 var _clock: float = 0.0  # 游戏内时间（物理帧累积，暂停时冻结）
 
@@ -48,15 +50,35 @@ func _start_task(method: Callable):
 func stop():
 	if not is_running:
 		return
+	_paused = false
 	for task in _tasks:
 		task.callable = Callable()
 	_tasks.clear()
 	is_running = false
 	cancelled.emit()
 
+
+## 临时暂停：冻结时钟，任务保留（恢复后继续）
+func pause() -> void:
+	if not is_running:
+		return
+	_paused = true
+
+
+## 恢复运行（时钟从暂停处继续）
+func resume() -> void:
+	_paused = false
+
+
+func is_paused() -> bool:
+	return _paused
+
+
 func _physics_process(delta: float) -> void:
 	if not is_running:
 		return
+	if _paused:
+		return  # 暂停时不累积时钟
 	_clock += delta
 	
 	for i in range(_tasks.size() - 1, -1, -1):

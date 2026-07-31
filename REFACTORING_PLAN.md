@@ -59,14 +59,14 @@
 ### 阶段 1 — 封装修复 🟢 低风险
 **目标：消除最危险的漏洞，不动行为**
 
-- [ ] **P-01** 消灭静态 `_ctx`：`EnemyData.spawn()` 改为显式 `spawn(ctx, ...)` 或从调用点传参
-- [ ] **P-04** 私有访问封装：
-  - `GameManager` 提供公开 `set_state()`（或改为仅内部 + 公开入口）
-  - `GameState` 提供 `begin_practice_restart()/end_practice_restart()`
-  - `Boss` 提供公开 `die()`（内部逻辑不变）
-- [ ] **P-02** 信号生命周期：GameScene/DialogueBox/UI 页面统一 `_exit_tree` 断开 autoload 连接
-- [ ] **P-13** 删冗余 API（合并 `_add_enemy_to_scene`）
-- [ ] **P-03** CoroutineRunner 提供正式 `pause()/resume()`，DialogueService 改用它
+- [x] **P-01** 消灭静态 `_ctx`：`EnemyData.spawn(ctx)` 显式传参（stage01/timeline 调用点已改）
+- [x] **P-04** 私有访问封装：
+  - `GameManager.set_state()` 公开入口（menu_nav/game_scene 改用）
+  - `GameState._restarting` → 公开 `restarting`
+  - `Boss.die()` 公开（内部 `_die()` 保留）
+- [x] **P-02** 信号生命周期：GameScene/BossHpRing/BossUI/DialogueBox 统一 `_exit_tree` 断开（is_connected 保护）
+- [x] **P-13** 删冗余 API（`_add_enemy_to_scene`/`add_enemy_to_scene` 合并为公开版）
+- [x] **P-03** CoroutineRunner 正式 `pause()/resume()`，DialogueService 改用（不再 hack is_running）
 
 **验收**：全测试绿 + 游戏主流程（菜单→Stage1→Boss→GAMEOVER）人工跑通。
 
@@ -133,6 +133,7 @@
 | 2026-07-31 | 审查 | 全面架构审查 + 诊断报告 + 本计划创建 |
 | 2026-07-31 | 阶段0 | GUT 9.7.1 接入 + 首批测试（RNG/Timeline/碰撞/数据）25 个全绿 |
 | 2026-07-31 | 阶段0 | 追加 Boss 符卡判定测试（捕获/超时/时符/掉落表）→ 34 个全绿 |
+| 2026-07-31 | 阶段1 | P-01~P-04/P-13 全部完成：静态ctx消除、私有封装、信号生命周期、冗余API合并（34 测试全绿 + 主菜单无报错） |
 | | | |
 
 ---

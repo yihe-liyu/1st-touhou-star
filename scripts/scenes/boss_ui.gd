@@ -27,6 +27,18 @@ func _ready() -> void:
 	GameEvents.phase_end.connect(_on_phase_end)
 	GameEvents.phase_bonus_tick.connect(_on_tick)
 
+
+func _exit_tree() -> void:
+	for conn in [
+		[GameEvents.boss_spawned, _on_boss_spawned],
+		[GameEvents.boss_defeated, _on_boss_defeated],
+		[GameEvents.phase_start, _on_phase_start],
+		[GameEvents.phase_end, _on_phase_end],
+		[GameEvents.phase_bonus_tick, _on_tick],
+	]:
+		if conn[0].is_connected(conn[1]):
+			conn[0].disconnect(conn[1])
+
 func _on_boss_spawned(boss: Node) -> void:
 	_boss_ref = boss as Boss
 	var boss_data: BossData = boss.boss_data

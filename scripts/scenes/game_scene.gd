@@ -11,7 +11,7 @@ var _practice_runner: CoroutineRunner
 
 
 func _ready():
-	GameManager._set_state(GameManager.AppState.PLAYING)
+	GameManager.set_state(GameManager.AppState.PLAYING)
 
 	var item_pool: Node = load("res://scripts/item/item_pool.gd").new()
 	item_pool.name = "ItemPool"
@@ -22,12 +22,12 @@ func _ready():
 	StageManager.stage_cleared.connect(_on_stage_cleared)
 
 	if GameState.is_practice_mode:
-		GameState._restarting = false
+		GameState.restarting = false
 		GameState.reset_practice()
 		_setup_player()
 		_start_practice_game()
 	else:
-		GameState._restarting = false
+		GameState.restarting = false
 		GameState.reset_all()
 		_setup_player()
 		_start_normal_game()
@@ -64,7 +64,7 @@ func _start_practice_game() -> void:
 
 	var boss := StageManager.spawn_boss(single, Vector2(448, 240), ctx)
 	boss.start_phase(phase)
-	boss.phase_cleared.connect(func(_c: bool, _b: int): boss._die())
+	boss.phase_cleared.connect(func(_c: bool, _b: int): boss.die())
 	GameEvents.boss_defeated.connect(_on_practice_cleared)
 
 
@@ -87,6 +87,16 @@ func _load_background(scene: PackedScene) -> void:
 
 
 func _exit_tree():
+	# 断开 autoload 信号连接（防悬空连接：接收者 free 后连接仍在发出者）
+	if GameEvents.player_death.is_connected(_on_player_death):
+		GameEvents.player_death.disconnect(_on_player_death)
+	if GameManager.game_state_changed.is_connected(_on_game_state_changed):
+		GameManager.game_state_changed.disconnect(_on_game_state_changed)
+	if StageManager.stage_cleared.is_connected(_on_stage_cleared):
+		StageManager.stage_cleared.disconnect(_on_stage_cleared)
+	if GameEvents.boss_defeated.is_connected(_on_practice_cleared):
+		GameEvents.boss_defeated.disconnect(_on_practice_cleared)
+
 	BulletManager.clear_all()
 	HitEffectPool.clear_all_pool()
 	if GameState.is_practice_mode:
