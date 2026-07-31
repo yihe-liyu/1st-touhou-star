@@ -10,7 +10,9 @@ const OPTION_INTERVAL: int = 6
 
 ## 非 focus 分段激光参数
 const SEG_W: float = 32.0              # 每段宽度 —— 唯一需要调的参数！
-const LASER_FRAME: int = 0             # 所有段公用这一帧（0~段数-1，同图案均匀重复）
+const LASER_FRAME: int = 0             # 起始帧偏移
+## 变换用的帧列表（跳过暗/透明切片，避免视觉空隙）—— 图集为 2亮2暗交替
+const LASER_FRAME_SEQ := [0, 1, 4, 5, 8, 9, 12, 13]
 const LASER_DAMAGE: float = 0.75           # 每段伤害（支持小数，累积到整才扣血）
 const LASER_DRIFT_SPEED: float = 1500.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 0.85  # 段间距 = 段宽 × 0.85（轻微重叠→遮住图案边缘空隙）
@@ -85,7 +87,7 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		while _spawn_accumulator >= spacing:
 			_spawn_accumulator -= spacing
 			# 本轮所有子机共用同一帧（4 道激光同步），轮间帧变换
-			var frame: int = (_laser_frame_seq + LASER_FRAME) % _seg_count()
+			var frame: int = LASER_FRAME_SEQ[(_laser_frame_seq + LASER_FRAME) % LASER_FRAME_SEQ.size()]
 			_laser_frame_seq += 1
 			if _options.size() > 0:
 				for opt in _options:
