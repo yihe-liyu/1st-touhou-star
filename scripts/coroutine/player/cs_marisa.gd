@@ -115,7 +115,7 @@ func _spawn_laser_segment(player: Player, source: Node2D, frame: int) -> void:
 	b.texture = seg
 	b.color(Color(1, 1, 1, 0.5))
 	b.damage = LASER_DAMAGE
-	b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")
+	b.hit_effect = preload("res://scenes/effect/hit_effect_marisa_option01.tscn")  # 激光专用击中特效
 	# 矩形判定覆盖整段（32x32）
 	b.hitbox_shape = BulletData.HitboxShape.RECTANGLE
 	b.hitbox_size = Vector2(SEG_W, SEG_W)
