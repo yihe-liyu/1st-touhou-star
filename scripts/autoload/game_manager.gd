@@ -21,7 +21,6 @@ var current_state: AppState = AppState.MENU
 
 
 func _ready():
-	_ensure_input_actions()
 	process_mode = PROCESS_MODE_ALWAYS
 
 	_transition = TransClass.new()
@@ -126,30 +125,3 @@ func toggle_pause():
 	elif current_state == AppState.PLAYING:
 		pause_game()
 
-
-# ═══ 输入 ═══
-
-func _ensure_input_actions():
-	_add_keys_to_action("ui_accept", [KEY_Z, KEY_ENTER, KEY_SPACE])
-	_add_keys_to_action("ui_cancel", [KEY_X, KEY_ESCAPE])
-	_add_keys_to_action("ui_pause", [KEY_ESCAPE])
-	_add_keys_to_action("ui_up", [KEY_UP, KEY_W])
-	_add_keys_to_action("ui_down", [KEY_DOWN, KEY_S])
-	_add_keys_to_action("ui_left", [KEY_LEFT, KEY_A])
-	_add_keys_to_action("ui_right", [KEY_RIGHT, KEY_D])
-	_add_keys_to_action("memory_release", [KEY_C])
-
-func _add_keys_to_action(action_name: String, keycodes: Array):
-	if not InputMap.has_action(action_name):
-		InputMap.add_action(action_name)
-	for keycode in keycodes:
-		var already = false
-		for event in InputMap.action_get_events(action_name):
-			if event is InputEventKey and (event.keycode == keycode or event.physical_keycode == keycode):
-				already = true
-				break
-		if already:
-			continue
-		var event = InputEventKey.new()
-		event.keycode = keycode
-		InputMap.action_add_event(action_name, event)
