@@ -63,6 +63,6 @@ func test_pos_jitter_offsets_within_range():
 	add_child(eff)
 	eff.pos_jitter = 10.0
 	eff.activate(Vector2(200, 300), Vector2(0, -1), Color.WHITE)
-	var off := eff.global_position - Vector2(200, 300)
+	var off: Vector2 = eff.global_position - Vector2(200, 300)
 	assert_lt(absf(off.x), 10.5, "x 偏移应在 ±10 内")
 	assert_lt(absf(off.y), 10.5, "y 偏移应在 ±10 内")
