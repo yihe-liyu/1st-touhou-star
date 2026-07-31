@@ -12,9 +12,9 @@ func test_segment_slicing():
 	assert_eq(seg.region, Rect2(0, 0, 32, 32), "段 0 region 应为 (0,0,32,32)")
 	var seg_last: AtlasTexture = inst._make_laser_segment(15)
 	assert_eq(seg_last.region, Rect2(480, 0, 32, 32), "段 15 region 应为 (480,0,32,32)")
-	# 16 段无缝：每段 32px，总长 512
-	assert_eq(inst.SEGMENTS, 16, "应为 16 段")
-	assert_eq(inst.SEG_W, 32, "段宽应为 32")
+	# 段数自动由图集算出：512/32 = 16
+	assert_eq(inst._seg_count(), 16, "段数应自动 = 图集宽/段宽 = 16")
+	assert_eq(inst.SEG_W, 32.0, "段宽应为 32")
 
 func test_offset_sequence_is_seamless():
 	var cs = load("res://scripts/coroutine/player/cs_marisa.gd")
@@ -22,7 +22,7 @@ func test_offset_sequence_is_seamless():
 	autofree(inst)
 	# 段 i 偏移 = (0, -i*32)：间距=段宽 → 无缝
 	var prev_y := 0.0
-	for i in inst.SEGMENTS:
+	for i in inst._seg_count():
 		var offset := Vector2(0, -i * inst.SEG_W)
 		if i > 0:
 			assert_eq(prev_y - offset.y, float(inst.SEG_W), "段 %d 与上一段间距应为段宽 32" % i)

@@ -9,15 +9,22 @@ const MAIN_INTERVAL: int = 3
 const OPTION_INTERVAL: int = 6
 
 ## 非 focus 分段激光参数
-const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 16 段）
-const SEGMENTS: int = 16               # 段数（512 宽 / 32 段宽）
+const SEG_W: float = 32.0              # 每段宽度 —— 唯一需要调的参数！
+## 段数自动由图集宽度 / 段宽算出（换图集/改段宽都不用手动同步）
 const LASER_DAMAGE: float = 1.0           # 每段伤害（支持小数，累积到整才扣血）
-const LASER_DRIFT_SPEED: float = 2000.0    # 激光流动速度（px/s）
+const LASER_DRIFT_SPEED: float = 200.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 0.6   # 段间距 = 段宽 × 0.6（轻微重叠→视觉密实）
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
 
 var _laser_seq: Dictionary = {}          # 子机实例ID → 贴图切片序列（每道激光独立连续）
 var _spawn_accumulator: float = 0.0       # 漂移累积量（达到间距即喷一段）
+var _segments: int = -1                   # 段数缓存（由图集自动算）
+
+
+func _seg_count() -> int:
+	if _segments < 0:
+		_segments = maxi(1, int(LASER_TEX.get_size().x / SEG_W))
+	return _segments
 
 
 func _option_setup() -> Dictionary:
@@ -94,7 +101,7 @@ func _spawn_laser_segment(player: Player, source: Node2D) -> void:
 
 	# 每道激光独立的贴图序列（子机 0: 0,1,2... 子机 1: 0,1,2... 各自连续）
 	var seq: int = _laser_seq.get(source.get_instance_id(), 0)
-	var seg := _make_laser_segment(seq % SEGMENTS)
+	var seg := _make_laser_segment(seq % _seg_count())
 	_laser_seq[source.get_instance_id()] = seq + 1
 	var b := BulletData.new().player()
 	b.texture = seg
