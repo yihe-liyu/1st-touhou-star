@@ -49,6 +49,9 @@ func _start_practice_game() -> void:
 	add_child(_practice_runner)
 	_practice_runner.run(func(): return true)
 	var ctx := StageContext.new(_practice_runner)
+	var player := $World/Player
+	if player:
+		player.ctx = ctx
 
 	var card: CardDef = GameState.practice_card
 	if not card:

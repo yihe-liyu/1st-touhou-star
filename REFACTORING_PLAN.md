@@ -76,8 +76,8 @@
 **目标：把依赖图理顺成单向瀑布**
 
 - [x] **P-05** 输入映射移入 project.godot `[input]` 节（删 `_ensure_input_actions`）
-- [x] **P-06**（部分）扩展 StageContext：新增 EffectService + BulletService.death_clear；Enemy/Boss 走服务（ctx 注入，null 回退全局）。⚠️ Player 仍直连全局，记为技术债
-- [x] **P-07** 数据层解耦：EnemyData 不再持有 enemy.tscn，生成逻辑移交 StageManager.spawn_enemy_data
+- [x] **P-06** 扩展 StageContext：新增 EffectService + BulletService.death_clear；Enemy/Boss/Player 全部走服务（ctx 注入，null 回退全局）
+- [x] **P-07** 数据层解耦：EnemyData 不再持有 enemy.tscn，生成逻辑移交 StageManager.spawn_enemy_data；BulletData 检查通过（无场景依赖）
 - [x] **P-11** 魔法数字集中：新建 `GameConfig`（东方框边界/屏幕尺寸），player/item/game_ui/game_scene/stage01 已替换
 - [x] **P-12** 拆分 GameState：SpellBookManager + SaveManager 子模块（对外 API 不变，354→~290 行）
 
@@ -138,7 +138,7 @@
 | 2026-07-31 | 阶段2 | P-06（部分）：EffectService + death_clear 服务，Enemy/Boss 服务化（34 全绿） |
 | 2026-07-31 | 阶段2 | P-07：EnemyData 场景依赖移除，生成逻辑归 StageManager（34 全绿） |
 | 2026-07-31 | 阶段2 | P-12：GameState 拆出 SpellBookManager/SaveManager（34 全绿） |
-| 2026-07-31 | 阶段2 | ✅ 阶段 2 完成（P-05/06部分/07/11/12）；技术债：Player 服务化、BulletData 检查 |
+| 2026-07-31 | 阶段2 | ✅ 阶段 2 完成（P-05/06/07/11/12）；Player 服务化完成，BulletData 检查通过，技术债清零 |
 | | | |
 
 ---

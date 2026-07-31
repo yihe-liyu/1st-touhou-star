@@ -34,6 +34,7 @@ func load_stage(data: StageData):
 
 	var ctx := StageContext.new(stage_script)
 	stage_script.start(ctx)
+	_inject_player_ctx(ctx)
 
 	# 自动启动背景场景里挂的所有协程脚本
 	if current_background:
@@ -113,6 +114,15 @@ func spawn_boss(data: BossData, position: Vector2, p_ctx: StageContext = null) -
 
 func spawn_bullet(data: BulletData, position: Vector2, direction: Vector2) -> Bullet:
 	return BulletManager.shoot_enemy_bullet(data, position, direction)
+
+## 把关卡上下文注入给场景中的自机（供系统操作服务）
+func _inject_player_ctx(p_ctx: StageContext) -> void:
+	var scene := get_tree().current_scene
+	if not scene: return
+	var player := scene.get_node_or_null("World/Player") as Player
+	if player:
+		player.ctx = p_ctx
+
 
 func add_enemy_to_scene(node: Node2D):
 	var parent: Node = get_tree().current_scene

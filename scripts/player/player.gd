@@ -8,6 +8,9 @@ const FRONT_LEFT: float = GameConfig.FIELD_LEFT
 const FRONT_RIGHT: float = GameConfig.FIELD_RIGHT
 const MIN_MARGIN: int = 8
 
+## 关卡上下文（StageManager/game_scene 注入，系统操作走服务）
+var ctx: StageContext
+
 const IDLE = "idle"
 const LEFTING = "lefting"
 const LEFT = "left"
@@ -161,10 +164,9 @@ func _memory_release() -> void:
 	GameState.reduce_memory(50.0)
 	var pos := global_position
 	
-	# 视觉特效：反色圈
-	MissEffectManager.add_circle(pos, MEM_RELEASE_DURATION, MEM_RELEASE_RANGE, 30, 0.0, 0.25)
-	
-	AudioManager.play_sfx(preload("res://assets/Sound/kira.wav"), -6.0)
+	# 视觉特效：反色圈（走服务）
+	_miss_circle(pos, MEM_RELEASE_DURATION, MEM_RELEASE_RANGE, 30, 0.0, 0.25)
+	_play_sfx(preload("res://assets/Sound/kira.wav"), -6.0)
 	
 	# 消弹 + 每颗弹原地掉道具（碎片有上限）
 	var limits := {life = 0, bomb = 0}
@@ -174,7 +176,7 @@ func _memory_release() -> void:
 	# 场上已有道具全部飞向玩家
 	_force_collect_all_items()
 	
-	BulletManager.start_death_clear(pos, MEM_RELEASE_RANGE, MEM_RELEASE_DURATION, 30, on_clear)
+	_death_clear(pos, MEM_RELEASE_RANGE, MEM_RELEASE_DURATION, 30, on_clear)
 
 
 func _force_collect_all_items() -> void:
@@ -232,16 +234,16 @@ func miss() -> void:
 	if is_invincible:
 		return
 	
-	AudioManager.play_sfx(preload("res://assets/Sound/player_dead.wav"), -6.0)
+	_play_sfx(preload("res://assets/Sound/player_dead.wav"), -6.0)
 	var pos: Vector2 = global_position
-	MissEffectManager.add_circle(pos, 2.5, 1280)
-	MissEffectManager.add_circle(pos + Vector2(100, 0), 2.5, 1280)
-	MissEffectManager.add_circle(pos + Vector2(-100, 0), 2.5, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, 100), 2.5, 1280)
-	MissEffectManager.add_circle(pos + Vector2(0, -100), 2.5, 1280)
-	MissEffectManager.add_circle(pos, 1.0, 1280, 0.0, 1.5)
+	_miss_circle(pos, 2.5, 1280)
+	_miss_circle(pos + Vector2(100, 0), 2.5, 1280)
+	_miss_circle(pos + Vector2(-100, 0), 2.5, 1280)
+	_miss_circle(pos + Vector2(0, 100), 2.5, 1280)
+	_miss_circle(pos + Vector2(0, -100), 2.5, 1280)
+	_miss_circle(pos, 1.0, 1280, 0.0, 1.5)
 	
-	BulletManager.start_death_clear(pos, 2048, 3.0)
+	_death_clear(pos, 2048, 3.0)
 	
 	# Miss 后记忆值增加 25%
 	GameState.add_memory(GameState.MEMORY_MISS)
@@ -256,3 +258,28 @@ func miss() -> void:
 		is_invincible = true
 		_invincible_timer = 3.0
 		GameEvents.player_death.emit()
+
+
+# ═══ 系统操作服务（ctx 注入时走服务，否则回退全局） ═══
+
+func _miss_circle(world_pos: Vector2, duration: float, max_radius: float,
+		start_radius: float = 0.0, start_delay: float = 0.0, fade_out: float = 0.0) -> void:
+	if ctx:
+		ctx.effects.add_miss_circle(world_pos, duration, max_radius, start_radius, start_delay, fade_out)
+	else:
+		MissEffectManager.add_circle(world_pos, duration, max_radius, start_radius, start_delay, fade_out)
+
+
+func _play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
+	if ctx:
+		ctx.audio.play_sfx(stream, volume_db)
+	else:
+		AudioManager.play_sfx(stream, volume_db)
+
+
+func _death_clear(pos: Vector2, max_radius: float, duration: float,
+		start_radius: float = 30.0, on_clear: Callable = Callable()) -> void:
+	if ctx:
+		ctx.bullets.death_clear(pos, max_radius, duration, start_radius, on_clear)
+	else:
+		BulletManager.start_death_clear(pos, max_radius, duration, start_radius, on_clear)
