@@ -12,7 +12,7 @@ func _get_speed() -> float:
 
 func _setup() -> void:
 	var tw := create_tween()
-	tw.tween_property(sprite, "modulate", Color(_tint.r * 4, _tint.g * 4, _tint.b * 4, 0), 0.2)
+	tw.tween_property(sprite, "modulate:a", 0, 0.2)
 	tw.tween_callback(_finish)
 
 
