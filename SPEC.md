@@ -67,7 +67,7 @@ CoroutineScript → StageContext → 系统 → 实体
 | **场景切换** | `change_scene()` → `_set_state(TRANSITIONING)` → 清页面+覆盖层 → await SceneTransition → 更新 `current_scene_path` → `_set_state(target_state)` |
 | **菜单导航** | 所有页面 push/pop 统一走 MenuNav（普通页面 + 覆盖层两层栈） |
 | **页面契约** | 页面必须有 `finished(result: Dictionary)` 信号；推荐继承 `BasePage` / `NavPage` |
-| **输入映射** | `_ensure_input_actions()` 自动添加 Z/X/ESC/Enter/Space/方向键到 InputMap |
+| **输入映射** | 定义在 `project.godot` 的 `[input]` 节（ui_accept/ui_cancel/ui_pause/ui_*+WASD/memory_release/shoot/focus 等） |
 
 ### 2.2 GameState — Autoload 单例
 | 项目 | 内容 |
@@ -93,7 +93,7 @@ CoroutineScript → StageContext → 系统 → 实体
 | **停止** | `stop_stage()` 清敌人、清弹幕、清背景引用 |
 | **敌人生成** | `spawn_enemy(data, pos)` → instantiate `enemy.tscn` → 挂到 World 下 → `enemy.start()`；`spawn_boss(data, pos, defer, ctx)` → Boss 类 |
 | **子弹生成** | `spawn_bullet(data, pos, dir)` → 委托 BulletManager |
-| **添加节点** | `_add_enemy_to_scene(node)` → 查找当前 Scene 的 World 节点作为父节点 |
+| **添加节点** | `add_enemy_to_scene(node)` → 查找当前 Scene 的 World 节点作为父节点 |
 
 ### 2.4 BulletManager — Autoload Node2D
 | 项目 | 内容 |

@@ -1,12 +1,20 @@
-# 🎮 全系统图景 + 改进路线 v4
+# 🎮 全系统图景 + 改进路线 v5
 
-> 2026-07-25 · 全面项目审查更新
+> 2026-07-31 · 架构重构（阶段 0-3 完成）更新
+> 重构专项记录见 **[REFACTORING_PLAN.md](REFACTORING_PLAN.md)**
 
 ---
 
 ## 核心设计
 
 **所有协程脚本 = CoroutineScript。Boss = .tres。默认弹 = _physics_process 直线。**
+
+**2026-07 新增核心原则**：
+- 依赖单向：数据类不持有场景（spawn 归 StageManager），实体走服务（ctx 注入）
+- 信号生命周期：场景 `_exit_tree` 统一断开 autoload 连接
+- 协程约定：游戏逻辑用 CoroutineRunner（可暂停/可复现），UI 用 await（SPEC §10）
+- 常量集中：GameConfig（东方框边界）+ LayerConfig（z_index）
+- 测试保护：GUT 34 个用例覆盖碰撞/掉落/符卡/时间线/RNG
 
 ---
 
@@ -52,6 +60,10 @@ BulletManager
 | 暂停/GameOver 重开（含符卡练习适配） | ✅ |
 | 主菜单跳过 logo/入场动画 | ✅ |
 | Manual 页面（help01~06） | ✅ |
+| 2026-07 重构阶段 0：GUT 测试框架 + 34 用例 | ✅ |
+| 2026-07 重构阶段 1：静态 ctx 消除 / 私有封装 / 信号生命周期 / pause-resume | ✅ |
+| 2026-07 重构阶段 2：输入映射入 project.godot / GameConfig / 服务层 / 数据解耦 / GameState 拆分 | ✅ |
+| 2026-07 重构阶段 3：%UniqueName / SceneTransition 健壮化 / BGM 懒加载 / 协程约定 / 菜单场景化 | ✅ |
 
 ---
 
@@ -59,11 +71,11 @@ BulletManager
 
 | 优先级 | 改进 | 说明 |
 |--------|------|------|
-| 🔴 P0 | **共享 StageContext** | 关卡内敌人/Boss/自定义弹共享一个 ctx，不每弹创建。减少数千 RefCounted。 |
+| 🔴 P0 | ~~共享 StageContext~~ | 已由阶段 2 服务层落地（Enemy/Boss/Player 注入 ctx） |
 | 🟡 P1 | **Replay 录输入基础设施** | 每帧记录 Input + RNG 种子，为 replay 打地基 |
 | 🟡 P1 | **高频路径禁 RefCounted 规则** | bullet.bind() / _physics_process 碰撞 / return_bullet 禁止 new() |
 | 🟢 P2 | **MenuLogic 拆分** | NavPage 逻辑与视觉分离（等第三个需要大量覆写 NavPage 的菜单出现时） |
-| 🟢 P2 | **配置校验层** | PhaseData/StageData 加载时校验合法性 |
+| 🟢 P2 | **配置校验层** | PhaseData/StageData 加载时校验合法性（含除零防护） |
 | ⚪ P3 | **批量子弹渲染优化** | 利用 MultiMesh 减少 draw call（弹幕 >3000 时考虑） |
 | ⚪ P3 | **PauseMenu/GameOverMenu 去重** | 抽 OverlayPage 基类 |
 
@@ -80,7 +92,7 @@ BulletManager
 | ~~默认弹双倍速~~ | bullet.gd | 高 | ✅ fixed |
 | StageContext 每弹创建 | bullet.gd | 中 | P0 |
 | 关卡退出时 RefCounted 残留 | 全局 | 低 | P0 可缓解 |
-| Enemy take_damage 缺 negative guard | enemy.gd | 低 | |
+| ~~Enemy take_damage 缺 negative guard~~ | enemy.gd | 低 | ✅ 已修复（hp<=0 判定） |
 | is_queued_for_deletion 检查不全 | 多处 | 低 | |
 | Timeline loop 重置时间戳精度 | timeline.gd | 低 | |
 | DifficultyScreen 覆写 NavPage 90% | difficulty_screen.gd | 设计 | P2 |
