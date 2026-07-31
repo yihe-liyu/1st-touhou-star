@@ -19,9 +19,9 @@ const LASER_SPACING_OVERLAP: float = 1.0   # 段间距 = 段宽 × 0.6（轻微�
 ## 外层索引 = power 等级（0..3），内层 = 子机索引（0,1,2...）—— 按你的设计填！
 const LASER_ANGLES := [
 	[0.0],                          # power 0   （1 子机）
-	[-15.0, 15.0],                  # power 100 （2 子机）
+	[0.0, 0.0],                  # power 100 （2 子机）
 	[-25.0, 0.0, 25.0],             # power 200 （3 子机）
-	[-30.0, -10.0, 10.0, 30.0],     # power 300 （4 子机）
+	[-8.0, 0.0, 0.0, 8.0],     # power 300 （4 子机）
 ]
 
 var _spawn_accumulator: float = 0.0       # 漂移累积量（达到间距即喷一段）
@@ -124,14 +124,16 @@ func _spawn_laser_segment(player: Player, source: Node2D, frame: int) -> void:
 	# 段在发射口生成（offset=0），drift 从 0 独立累积 → 根部永远在子机
 	var bullet := ctx.bullets.shoot_single(b, source.global_position, Vector2.UP)
 	if bullet:
-		bullet.rotation = -PI / 2.0  # 横向切片竖过来（原图 512x32 横向 → 竖直激光）
-		bullet.extra["anchor_node"] = source
-		bullet.extra["laser_offset"] = Vector2.ZERO
-		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
 		# 按火力 + 子机索引查发射角度（LASER_ANGLES 表）
 		var opt_idx: int = _options.find(source)
 		if opt_idx < 0:
 			opt_idx = 0
 		var lv: int = clampi(_options.size() - 1, 0, LASER_ANGLES.size() - 1)
 		var angles: Array = LASER_ANGLES[lv]
-		bullet.extra["drift_angle"] = deg_to_rad(angles[opt_idx] if opt_idx < angles.size() else 0.0)
+		var angle_rad: float = deg_to_rad(angles[opt_idx] if opt_idx < angles.size() else 0.0)
+		# 贴图旋转 = 基础竖过来（-90°）+ 发射角度 → 贴图朝向 = 漂移方向
+		bullet.rotation = -PI / 2.0 + angle_rad
+		bullet.extra["anchor_node"] = source
+		bullet.extra["laser_offset"] = Vector2.ZERO
+		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
+		bullet.extra["drift_angle"] = angle_rad
