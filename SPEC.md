@@ -1105,3 +1105,36 @@ ItemPool:
 | **Timeline** | 有 seek() | 有 seek() |
 | **CardDef/CardRegistry** | 未提及 | 实际存在，用于练习模式 |
 }
+---
+
+## 10. 协程使用约定（2026-07-31 补充）
+
+项目有两套"时序"工具，**边界必须清晰**：
+
+### 10.1 CoroutineRunner / CoroutineScript —— 游戏逻辑时序
+**用途（必须用它）**：
+- 弹幕射击/移动/等待（敌机、Boss 符卡、自机射击）
+- 关卡编排（Timeline）
+- 演出性等待（对话冻结等）
+
+**理由**：时钟在 `_physics_process` 累积，**暂停时冻结、可复现**（RNG 种子 replay 基础）。
+
+**返回值约定**：`float/int > 0`=等待秒数；`true`=下帧再调；`false/null`=结束。
+
+### 10.2 原生 await —— 一次性 UI / 过渡
+**用途（必须用它）**：
+- 菜单动画、页面切换、淡入淡出
+- 一次性延迟（如 GameOver 前等 2 秒）
+- 等待信号/帧（`await signal`、`await process_frame`）
+
+**理由**：await 是协程语法糖，简单直接；UI 时序不需要暂停冻结/复现。
+
+### 10.3 禁忌
+- ❌ 游戏逻辑（弹幕/关卡节奏）用 `await` 做关键等待 —— 暂停/Replay 会乱
+- ❌ UI 过渡用 CoroutineRunner —— 过度设计，维护成本高
+- ❌ 直接写 `runner.is_running` —— 用 `pause()/resume()`
+
+### 10.4 现状
+- `await` 15 处（全部在 UI/过渡/一次性延迟，符合约定）✅
+- CoroutineRunner/CoroutineScript 29 处引用（游戏逻辑）✅
+- DialogueService 已改用 `pause()/resume()` ✅
