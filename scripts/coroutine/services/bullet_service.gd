@@ -51,6 +51,12 @@ func clear_all_lasers() -> void:
 	BulletManager.clear_all_lasers()
 
 
+## 死亡清弹圈：从 start_radius 膨胀到 max_radius 消除敌弹
+func death_clear(pos: Vector2, max_radius: float, duration: float,
+		start_radius: float = 30.0, on_clear: Callable = Callable()) -> void:
+	BulletManager.start_death_clear(pos, max_radius, duration, start_radius, on_clear)
+
+
 func _bezier_curve(p0: Vector2, p1: Vector2, p2: Vector2) -> Curve2D:
 	const SAMPLES := 60
 	var curve := Curve2D.new()

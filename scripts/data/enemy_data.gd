@@ -52,6 +52,7 @@ func spawn(p_ctx: StageContext = null) -> Enemy:
 	var enemy := _ENEMY_SCENE.instantiate()
 	enemy.global_position = _pos
 	enemy.enemy_data = self
+	enemy.ctx = p_ctx
 	
 	var cs: CoroutineScript = _script.new()
 	if not cs:

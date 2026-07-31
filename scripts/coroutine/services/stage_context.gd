@@ -8,6 +8,7 @@ var player: PlayerService
 var dialogue: DialogueService
 var items: ItemService
 var audio: AudioService
+var effects: EffectService
 var runner: CoroutineRunner
 
 var _decor_mgr: DecorManager
@@ -22,6 +23,7 @@ func _init(p_runner: CoroutineRunner) -> void:
 	items = ItemService.new()
 	items.ctx = self
 	audio = AudioService.new()
+	effects = EffectService.new()
 
 ## 装饰物管理器（树附着，懒加载）
 func get_decor() -> DecorManager:

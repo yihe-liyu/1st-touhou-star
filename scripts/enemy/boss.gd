@@ -162,7 +162,10 @@ func _clear_phase(captured: bool) -> void:
 		GameState.add_score(_bonus)
 	
 	_drop_items()
-	BulletManager.start_death_clear(global_position, 960, 0.75, 30)
+	if _ctx:
+		_ctx.bullets.death_clear(global_position, 960, 0.75, 30)
+	else:
+		BulletManager.start_death_clear(global_position, 960, 0.75, 30)
 	phase_cleared.emit(captured, _bonus)
 
 

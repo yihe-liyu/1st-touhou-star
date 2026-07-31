@@ -5,6 +5,9 @@ class_name Enemy
 ## 敌人配置数据（生命、判定、弹幕模式等）
 var enemy_data: EnemyData
 
+## 运行时上下文（EnemyData.spawn 注入，用于走服务而非全局）
+var ctx: StageContext
+
 var _visual: Node2D          # 外观实例（可能不是 AnimatedSprite2D）
 var max_hp: int
 var hitbox_radius: float
@@ -69,14 +72,19 @@ func take_damage(damage: int):
 
 
 func die():
-	AudioManager.play_sfx(preload("res://assets/Sound/enemy_dead.wav"), -6.0)
+	# 系统操作走服务（ctx 注入时），否则回退全局
+	if ctx:
+		ctx.audio.play_sfx(preload("res://assets/Sound/enemy_dead.wav"), -6.0)
+		if death_effect:
+			ctx.effects.play_hit_effect(death_effect, global_position)
+	else:
+		AudioManager.play_sfx(preload("res://assets/Sound/enemy_dead.wav"), -6.0)
+		if death_effect:
+			HitEffectPool.play(death_effect, global_position)
 	GameState.active_enemies.erase(self)
 	
 	# 掉落 item
 	_drop_item()
-	
-	if death_effect:
-		HitEffectPool.play(death_effect, global_position)
 	
 	GameEvents.enemy_killed.emit(score_value, global_position)
 	queue_free()
