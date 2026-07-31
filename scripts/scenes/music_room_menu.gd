@@ -124,7 +124,7 @@ func _on_item_selected(index: int) -> void:
 func _on_cancel() -> void:
 	_stop_preview()
 	# 退出音乐室，恢复主菜单 BGM
-	AudioManager.play_bgm(preload("res://assets/Music/THq01_01.无缘故之回.mp3"))
+	AudioManager.play_bgm(AssetRegistry.get_bgm("menu"))
 	go_back()
 
 

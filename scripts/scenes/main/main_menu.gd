@@ -30,7 +30,7 @@ func _ready() -> void:
 		item.modulate.a = 0.0
 
 	GameManager.current_scene_path = "res://scenes/ui/main_menu.tscn"
-	AudioManager.play_bgm(preload("res://assets/Music/THq01_01.无缘故之回.mp3"), 1.0)
+	AudioManager.play_bgm(AssetRegistry.get_bgm("menu"), 1.0)
 
 	# Logo 入场动画
 	_logo.material.set_shader_parameter("progress", 0.0)

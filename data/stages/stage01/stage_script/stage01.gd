@@ -12,7 +12,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
 	if p_target: target = p_target
 	var tl := start_timeline()
-	var bgm: AudioStream = AssetRegistry.sounds["stage1"]
+	var bgm: AudioStream = AssetRegistry.get_bgm("stage1")
 	var logo_tex: Texture2D = preload("res://assets/Textures/front/logo/logo1.png")
 
 	# 0s: BGM

@@ -15,8 +15,8 @@ phase_index = 0
 name = "卡摩瑞的非符1"
 attempts = 14
 captures = 14
-practice_attempts = 4
-practice_captures = 4
+practice_attempts = 5
+practice_captures = 5
 best_time = 7.743014545454425
 
 [sub_resource type="Resource" id="Resource_6vhrn"]
@@ -26,8 +26,8 @@ difficulty = 3
 name = "卡摩瑞的非符1"
 attempts = 16
 captures = 11
-practice_attempts = 5
-practice_captures = 3
+practice_attempts = 6
+practice_captures = 4
 best_time = 8.95061999999983
 
 [sub_resource type="Resource" id="Resource_ve3lw"]
@@ -57,8 +57,8 @@ script = ExtResource("1_nyj52")
 stage = 0
 phase_index = 0
 name = "测试符卡"
-attempts = 64
-captures = 48
+attempts = 112
+captures = 84
 best_score = 10000
 best_time = 5.01
 

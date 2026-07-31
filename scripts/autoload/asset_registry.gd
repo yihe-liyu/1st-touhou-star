@@ -55,8 +55,29 @@ const sounds := {
 	"graze":    preload("res://assets/Sound/graze.wav"),
 	"item":     preload("res://assets/Sound/item.wav"),
 	"kira":     preload("res://assets/Sound/kira.wav"),
-	"stage1":     preload("res://assets/Music/THq01_02.夜间漫步.mp3"),
 }
+
+## BGM 路径表 —— 按需加载（load 而非 preload，避免启动即解码大文件）
+const BGM_PATHS := {
+	"menu":     "res://assets/Music/THq01_01.无缘故之回.mp3",
+	"stage1":   "res://assets/Music/THq01_02.夜间漫步.mp3",
+	"stage1_b": "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3",
+	"stage1_c": "res://assets/Music/THq01_12.不尽记忆的天空.mp3",
+}
+
+var _bgm_cache: Dictionary = {}
+
+## 按需加载 BGM（带缓存，首次访问后复用）
+func get_bgm(key: String) -> AudioStream:
+	if _bgm_cache.has(key):
+		return _bgm_cache[key]
+	var path: String = BGM_PATHS.get(key, "")
+	if path.is_empty():
+		push_warning("AssetRegistry.get_bgm: 未知 BGM key '%s'" % key)
+		return null
+	var stream: AudioStream = load(path)
+	_bgm_cache[key] = stream
+	return stream
 
 func get_bullet_tex(key: String) -> Texture2D:
 	var cfg: Dictionary = bullet_configs.get(key, {})

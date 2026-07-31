@@ -6,7 +6,7 @@ func start(p_ctx: StageContext, _p_target: Node2D = null):
 	ctx = p_ctx
 	var tl := start_timeline()
 
-	tl.at(0.0).do(func(): ctx.audio.play_bgm(preload("res://assets/Music/THq01_02.夜间漫步.mp3")))
+	tl.at(0.0).do(func(): ctx.audio.play_bgm(AssetRegistry.get_bgm("stage1")))
 
 	# ① 水平红线：从左边框到右边框，y=400（可移动区域正中偏上）
 	tl.at(0.5).do(func():
