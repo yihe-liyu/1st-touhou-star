@@ -31,7 +31,12 @@ func _sync():
 		var tex = bullet.batch_texture()
 		if not tex:
 			continue
-		var key = tex.resource_path + "|" + str(bullet.faction) + "|" + str(bullet.tint_mode)
+		# 动态 AtlasTexture 无 resource_path，用 region 区分切片（如分段激光）
+		var region_key := ""
+		if tex is AtlasTexture:
+			var r := (tex as AtlasTexture).region
+			region_key = "%d,%d,%d,%d|" % [r.position.x, r.position.y, r.size.x, r.size.y]
+		var key = tex.resource_path + "|" + region_key + str(bullet.faction) + "|" + str(bullet.tint_mode)
 		if not active_groups.has(key):
 			active_groups[key] = {tex = tex, faction = bullet.faction, tint_mode = bullet.tint_mode, bullets = []}
 		active_groups[key].bullets.append(bullet)
