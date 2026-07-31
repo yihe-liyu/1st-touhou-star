@@ -50,6 +50,7 @@ func _main_shoot(_ctx: StageContext, player: Player) -> float:
 
 
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
+	print("[MarisaLaser] _option_shoot called, options=%d" % _options.size())
 	if Input.is_action_pressed("focus"):
 		# focus：高速直线星弹（集中火力）
 		var b := BulletData.new().tex("marisa_option_bullet1").speed(5000).player()
@@ -77,6 +78,7 @@ func _make_laser_segment(i: int) -> AtlasTexture:
 
 ## 从子机（发射口）喷出一段激光：持续喷射 + 继承漂移 → 始终无缝
 func _grow_laser_segment(player: Player) -> void:
+	print("[MarisaLaser] grow segment #%d, active_bullets=%d" % [_laser_index, BulletManager.active_bullets.size()])
 	# 发射口 = 第一个子机（无子机时回退自机）
 	var anchor_node: Node2D = _options[0] if _options.size() > 0 else player
 	if not is_instance_valid(anchor_node):
