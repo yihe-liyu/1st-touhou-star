@@ -11,7 +11,7 @@ region = Rect2(64, 176, 64, 16)
 script = ExtResource("1_de5ng")
 speed = 750.0
 fade_time = 0.2
-jitter = 0.1
+jitter = 0.3
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1229339536]
 scale = Vector2(2, 2)

@@ -8,18 +8,18 @@ script = ExtResource("1_nyj52")
 character = 1
 phase_index = 0
 name = "卡摩瑞的非符1"
-attempts = 20
-captures = 20
-practice_attempts = 9
-practice_captures = 9
+attempts = 21
+captures = 21
+practice_attempts = 28
+practice_captures = 28
 best_time = 7.696199999999885
 
 [sub_resource type="Resource" id="Resource_acmwy"]
 script = ExtResource("1_nyj52")
 phase_index = 0
 name = "卡摩瑞的非符1"
-attempts = 15
-captures = 15
+attempts = 16
+captures = 16
 practice_attempts = 5
 practice_captures = 5
 best_time = 7.743014545454425
@@ -42,8 +42,8 @@ difficulty = 0
 name = "卡摩瑞的非符1"
 attempts = 1
 captures = 1
-practice_attempts = 1
-practice_captures = 1
+practice_attempts = 12
+practice_captures = 12
 best_time = 7.430303030302875
 
 [sub_resource type="Resource" id="Resource_plj11"]
@@ -62,8 +62,8 @@ script = ExtResource("1_nyj52")
 stage = 0
 phase_index = 0
 name = "测试符卡"
-attempts = 340
-captures = 255
+attempts = 360
+captures = 270
 best_score = 10000
 best_time = 5.01
 
@@ -73,7 +73,9 @@ character = 1
 phase_index = 0
 difficulty = 3
 name = "卡摩瑞的非符1"
-attempts = 1
+attempts = 4
+captures = 3
+best_time = 9.2664612727271
 
 [resource]
 script = ExtResource("1")

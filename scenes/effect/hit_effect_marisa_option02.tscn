@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dwnd5x6hrkwq0"]
 
-[ext_resource type="Texture2D" uid="uid://66nx3q6rsiax" path="res://assets/Textures/player/pl01.png" id="2_aci5a"]
 [ext_resource type="Script" uid="uid://cup3ihlkjvwgf" path="res://scripts/effect/player_bullet_hit_effect.gd" id="1_aci5a"]
+[ext_resource type="Texture2D" uid="uid://66nx3q6rsiax" path="res://assets/Textures/player/pl01.png" id="2_aci5a"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ihjqg"]
 atlas = ExtResource("2_aci5a")
@@ -64,12 +64,14 @@ animations = [{
 }],
 "loop": 0,
 "name": &"explode",
-"speed": 10.0
+"speed": 20.0
 }]
 
 [node name="HitEffectMarisa" type="Node2D" unique_id=492742938]
 script = ExtResource("1_aci5a")
-script = ExtResource("1_aci5a")
+speed = 0.0
+fade_time = 0.0
+pos_jitter = 50.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=119258572]
 scale = Vector2(2, 2)
