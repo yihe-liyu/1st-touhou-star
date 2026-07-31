@@ -68,7 +68,7 @@ func _main_shoot(_ctx: StageContext, player: Player) -> float:
 func _option_shoot(_ctx: StageContext, _count: int) -> float:
 	if Input.is_action_pressed("focus"):
 		# focus：竖直向上匀加速星弹（初速 + 加速度，每秒加速 —— 数值可调）
-		var b := BulletData.new().tex("marisa_opt2").speed(2000).accelerate(0, -4000).player()
+		var b: BulletData = BulletData.new().tex("marisa_opt2").speed(2000).accelerate(0, -4000).player()
 		b.color(Color(1, 1, 1, 0.5))
 		b.damage = 2
 		b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")
