@@ -2,10 +2,10 @@
 extends Area2D
 class_name Player
 
-const FRONT_UP: int = 32
-const FRONT_DOWN: int = 960 - 32
-const FRONT_LEFT: int = 64
-const FRONT_RIGHT: int = 1280 - 448
+const FRONT_UP: float = GameConfig.FIELD_TOP
+const FRONT_DOWN: float = GameConfig.FIELD_BOTTOM
+const FRONT_LEFT: float = GameConfig.FIELD_LEFT
+const FRONT_RIGHT: float = GameConfig.FIELD_RIGHT
 const MIN_MARGIN: int = 8
 
 const IDLE = "idle"

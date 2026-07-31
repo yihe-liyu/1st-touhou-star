@@ -76,7 +76,7 @@ func _physics_process(delta: float) -> void:
 		global_position += _velocity * delta
 	
 	# 出屏回收
-	if global_position.y > 960:
+	if global_position.y > GameConfig.VIEW_HEIGHT:
 		_dead = true
 		set_physics_process(false)
 		_recycle()

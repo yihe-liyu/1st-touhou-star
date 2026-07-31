@@ -75,10 +75,10 @@
 ### 阶段 2 — 依赖整理 🟡 中风险
 **目标：把依赖图理顺成单向瀑布**
 
-- [ ] **P-05** 输入映射移入 project.godot `[input]` 节（删 `_ensure_input_actions`）
+- [x] **P-05** 输入映射移入 project.godot `[input]` 节（删 `_ensure_input_actions`）
 - [ ] **P-06** 扩展 StageContext 服务（score / enemy / collision），实体改用服务访问
 - [ ] **P-07** 数据层解耦：EnemyData/BulletData 移除场景依赖（spawn 移交给 StageManager 或工厂）
-- [ ] **P-11** 魔法数字集中：屏幕中心/边界 → 配置常量（新 `GameConfig` 或并入 LayerConfig）
+- [x] **P-11** 魔法数字集中：新建 `GameConfig`（东方框边界/屏幕尺寸），player/item/game_ui/game_scene/stage01 已替换
 - [ ] **P-12** 拆分 GameState：SpellBook / ScoreSystem / SaveManager 子模块
 
 **验收**：全测试绿 + 无"实体直接摸全局"残留（grep 统计下降）。
@@ -134,6 +134,7 @@
 | 2026-07-31 | 阶段0 | GUT 9.7.1 接入 + 首批测试（RNG/Timeline/碰撞/数据）25 个全绿 |
 | 2026-07-31 | 阶段0 | 追加 Boss 符卡判定测试（捕获/超时/时符/掉落表）→ 34 个全绿 |
 | 2026-07-31 | 阶段1 | P-01~P-04/P-13 全部完成：静态ctx消除、私有封装、信号生命周期、冗余API合并（34 测试全绿 + 主菜单无报错） |
+| 2026-07-31 | 阶段2 | P-05 输入映射入 project.godot；P-11 新建 GameConfig 集中东方框常量（34 全绿） |
 | | | |
 
 ---

@@ -22,13 +22,13 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	for i in 7:
 		tl.at(1.0 + i * 0.1).do(func():
 			EnemyData.new().script(ENEMY01)\
-				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
+				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 150 + i * 50).spawn(ctx)
 		)
 	for i in 7:
 		tl.at(4.0 + i * 0.1).do(func():
 			EnemyData.new().script(ENEMY01)\
-				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
+				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 150 + i * 50).spawn(ctx)
 		)
 
@@ -38,7 +38,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		layer.layer = 32
 		var logo := TextureRect.new()
 		logo.texture = logo_tex
-		logo.global_position = Vector2(448 - (logo.texture.get_size().x / 2), 250)
+		logo.global_position = Vector2(GameConfig.FIELD_CENTER_X - (logo.texture.get_size().x / 2), 250)
 		logo.modulate.a = 0.0
 		layer.add_child(logo)
 		add_child(layer)
@@ -57,34 +57,34 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			tl.at(11.0 + i * 3.0).do(func():
 				local_enemy.red_middle_fairy()\
 				.pos(Vector2(0, target_y))\
-				.param("target_pos", Vector2(448 + 100 + i * 25, target_y)).spawn(ctx)
+				.param("target_pos", Vector2(GameConfig.FIELD_CENTER_X + 100 + i * 25, target_y)).spawn(ctx)
 			)
 		else:
 			tl.at(11.0 + i * 3.0).do(func():
 				local_enemy.blue_middle_fairy()\
 				.pos(Vector2(914, target_y))\
-				.param("target_pos", Vector2(448 - 100 - i * 25, target_y)).spawn(ctx)
+				.param("target_pos", Vector2(GameConfig.FIELD_CENTER_X - 100 - i * 25, target_y)).spawn(ctx)
 			)
 
 	for i in 7:
 		tl.at(17.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
-				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
+				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
 				.param("rate", 4).spawn(ctx)
 			EnemyData.new().script(ENEMY01)\
-				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
+				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
 				.param("rate", 4).spawn(ctx)
 		)
 	for i in 7:
 		tl.at(24.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
-				.pos(Vector2(448 + 300 - i * 90, 0)).red_little_fairy()\
+				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
 				.param("rate", 4).spawn(ctx)
 			EnemyData.new().script(ENEMY01)\
-				.pos(Vector2(448 - 300 + i * 90, 0)).red_little_fairy()\
+				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
 				.param("rate", 4).spawn(ctx)
 		)
@@ -98,7 +98,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var b := boss_holder[0] as Boss
 		var tw := create_tween()
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(b, "global_position", Vector2(448, 250), 1.5)
+		tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 250), 1.5)
 	)
 
 	# 非符 1 (Timeline 冻结中，等击破)
@@ -110,7 +110,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		b._die()
 		var tw := create_tween()
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(b, "global_position", Vector2(448, -150), 2.0)
+		tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, -150), 2.0)
 		tw.tween_callback(b.queue_free)
 	)
 

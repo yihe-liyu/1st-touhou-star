@@ -10,7 +10,7 @@ func start(p_ctx: StageContext, _p_target: Node2D = null):
 
 	# ① 水平红线：从左边框到右边框，y=400（可移动区域正中偏上）
 	tl.at(0.5).do(func():
-		ctx.bullets.fire_line_laser(Vector2(64, 400), Vector2(832, 400), Color(1.0, 0.0, 0.0, 1.0), 10.0)
+		ctx.bullets.fire_line_laser(Vector2(GameConfig.FIELD_LEFT, 400), Vector2(GameConfig.FIELD_RIGHT, 400), Color(1.0, 0.0, 0.0, 1.0), 10.0)
 	)
 
 	# ② 蓝色生长型 S 形：在可移动区域内来回穿梭
@@ -20,7 +20,7 @@ func start(p_ctx: StageContext, _p_target: Node2D = null):
 		curve.add_point(Vector2(700, 200))
 		curve.add_point(Vector2(200, 480))
 		curve.add_point(Vector2(700, 700))
-		curve.add_point(Vector2(200, 928))
+		curve.add_point(Vector2(200, GameConfig.FIELD_BOTTOM))
 		ctx.bullets.fire_growing_laser(curve, Color(0.2, 0.6, 1.0), 800.0, 500.0, 12.0)
 	)
 
@@ -28,7 +28,7 @@ func start(p_ctx: StageContext, _p_target: Node2D = null):
 	tl.at(4.0).do(func():
 		var curve := Curve2D.new()
 		curve.add_point(Vector2(100, 700))
-		curve.add_point(Vector2(448, 480))
+		curve.add_point(Vector2(GameConfig.FIELD_CENTER_X, GameConfig.FIELD_CENTER_Y))
 		curve.add_point(Vector2(800, 300))
 		ctx.bullets.fire_fixed_laser(curve, Color(0.0, 1.0, 0.3), 10.0)
 	)

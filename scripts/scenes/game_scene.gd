@@ -62,7 +62,7 @@ func _start_practice_game() -> void:
 	single.visual = card.boss_scene
 	single.phases = [phase]
 
-	var boss := StageManager.spawn_boss(single, Vector2(448, 240), ctx)
+	var boss := StageManager.spawn_boss(single, Vector2(GameConfig.FIELD_CENTER_X, 240), ctx)
 	boss.start_phase(phase)
 	boss.phase_cleared.connect(func(_c: bool, _b: int): boss.die())
 	GameEvents.boss_defeated.connect(_on_practice_cleared)

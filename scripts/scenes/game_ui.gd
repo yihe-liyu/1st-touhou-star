@@ -56,17 +56,17 @@ func _ready() -> void:
 	_entry_queue.append($MemoryValue)
 	
 	_hi_score_num = _make_number_sprite("HiScoreNumber",  $HighScore.position + Vector2(102, 0), tex, 10)
-	_add_separator(Vector2(832, 124), 450.0, Color(0.685, 0.685, 0.685, 0.5))
+	_add_separator(Vector2(GameConfig.FIELD_RIGHT, 124), 450.0, Color(0.685, 0.685, 0.685, 0.5))
 	_score_num    = _make_number_sprite("ScoreNumber",    $Score.position     + Vector2(102, 0), tex, 10)
-	_add_separator(Vector2(832, 180), 450.0, Color(1.0, 1.0, 1.0, 0.5))
-	_add_separator(Vector2(832, 274), 450.0, Color(0.961, 0.825, 0.963, 0.502))
-	_add_separator(Vector2(832, 344), 450.0, Color(0.735, 1.0, 0.732, 0.502))
+	_add_separator(Vector2(GameConfig.FIELD_RIGHT, 180), 450.0, Color(1.0, 1.0, 1.0, 0.5))
+	_add_separator(Vector2(GameConfig.FIELD_RIGHT, 274), 450.0, Color(0.961, 0.825, 0.963, 0.502))
+	_add_separator(Vector2(GameConfig.FIELD_RIGHT, 344), 450.0, Color(0.735, 1.0, 0.732, 0.502))
 	_power_num    = _make_number_sprite("PowerNumber",    $Power.position     + Vector2(78, 0), tex, 10)
-	_add_separator(Vector2(832, 396), 450.0, Color(1.0, 0.805, 0.704, 0.502))
+	_add_separator(Vector2(GameConfig.FIELD_RIGHT, 396), 450.0, Color(1.0, 0.805, 0.704, 0.502))
 	_max_point_num= _make_number_sprite("MaxPointNumber", $Point.position     + Vector2(102, 0), tex)
-	_add_separator(Vector2(832, 452), 450.0, Color(0.689, 0.933, 1.0, 0.502))
+	_add_separator(Vector2(GameConfig.FIELD_RIGHT, 452), 450.0, Color(0.689, 0.933, 1.0, 0.502))
 	_graze_num    = _make_number_sprite("GrazeNumber",    $Graze.position     + Vector2(102, 0), tex)
-	_add_separator(Vector2(832, 508), 450.0, Color(0.685, 0.685, 0.685, 0.5))
+	_add_separator(Vector2(GameConfig.FIELD_RIGHT, 508), 450.0, Color(0.685, 0.685, 0.685, 0.5))
 	
 	_memory_rect = $Memory/OutlineRect
 	_entry_queue.append(_memory_rect)
@@ -127,7 +127,7 @@ func _reset_entry_node(node: Node) -> void:
 		node.progress = 0.0
 		node.modulate.a = 0.0
 	elif node.name == "diffculty":
-		node.position = Vector2(448, 480)
+		node.position = Vector2(GameConfig.FIELD_CENTER_X, GameConfig.FIELD_CENTER_Y)
 		node.scale = Vector2(0.01, 0.01)
 		node.modulate.a = 0.0
 	elif node.name in ["MemoryValue", "MemoryNumber"]:
