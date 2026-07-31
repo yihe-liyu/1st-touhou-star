@@ -11,7 +11,7 @@ const OPTION_INTERVAL: int = 6
 ## 非 focus 分段激光参数
 const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 16 段）
 const SEGMENTS: int = 16               # 段数（512 宽 / 32 段宽）
-const LASER_DAMAGE: float = 0.5           # 每段伤害（支持小数，累积到整才扣血）
+const LASER_DAMAGE: float = 1.0           # 每段伤害（支持小数，累积到整才扣血）
 const LASER_DRIFT_SPEED: float = 2000.0    # 激光流动速度（px/s）
 const LASER_SPACING_OVERLAP: float = 0.6   # 段间距 = 段宽 × 0.6（轻微重叠→视觉密实）
 ## 频率自动跟随速度：每漂移一个间距喷一段，任何速度都无缝
@@ -105,6 +105,7 @@ func _spawn_laser_segment(player: Player, source: Node2D) -> void:
 	# 段在发射口生成（offset=0），drift 从 0 独立累积 → 根部永远在子机
 	var bullet := ctx.bullets.shoot_single(b, source.global_position, Vector2.UP)
 	if bullet:
+		bullet.rotation = -PI / 2.0  # 横向切片竖过来（原图 512x32 横向 → 竖直激光）
 		bullet.extra["anchor_node"] = source
 		bullet.extra["laser_offset"] = Vector2.ZERO
 		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
