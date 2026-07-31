@@ -29,22 +29,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			return false
 		var dt := get_physics_process_delta_time()
 
-		# 松开射击 或 进入 focus → 开始渐隐（激光只在"非focus+按住射击"时存在）
-		if not _fading and (not Input.is_action_pressed("shoot") or Input.is_action_pressed("focus")):
-			_fading = true
-			_fade_t = FADE_TIME
-
-		if _fading:
-			_fade_t -= dt
-			var alpha := clampf(_fade_t / FADE_TIME, 0.0, 1.0)
-			var sprite: Sprite2D = target.get_node_or_null("Sprite2D")
-			if sprite:
-				sprite.modulate.a = alpha  # MultiMesh 用 sprite.modulate 上色 → 淡出生效
-			if _fade_t <= 0.0:
-				BulletManager.return_bullet(target)  # 淡完回收
-				return false  # 协程结束
-			return true
-
+		# 位置更新：持续向上漂移（包括渐隐期间，激光边淡出边飞走）
 		var extra: Variant = target.get("extra")
 		var off: Vector2 = Vector2.ZERO
 		var drift_speed: float = 0.0
@@ -62,9 +47,23 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			if not is_instance_valid(player):
 				return false
 			anchor = player.global_position
-		# 位置 = 发射口 + 偏移 + 向上漂移（drift 独立累积）
 		target.global_position = anchor + off + Vector2(0, -_drift)
 		_drift += drift_speed * dt
+
+		# 松开射击 或 进入 focus → 开始渐隐（激光只在"非focus+按住射击"时存在）
+		if not _fading and (not Input.is_action_pressed("shoot") or Input.is_action_pressed("focus")):
+			_fading = true
+			_fade_t = FADE_TIME
+
+		if _fading:
+			_fade_t -= dt
+			var alpha := clampf(_fade_t / FADE_TIME, 0.0, 1.0)
+			var sprite: Sprite2D = target.get_node_or_null("Sprite2D")
+			if sprite:
+				sprite.modulate.a = alpha  # MultiMesh 用 sprite.modulate 上色 → 淡出生效
+			if _fade_t <= 0.0:
+				BulletManager.return_bullet(target)  # 淡完回收
+				return false  # 协程结束
 		return true
 	)
 	super.start(ctx, target)
