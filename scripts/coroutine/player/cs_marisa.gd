@@ -10,9 +10,9 @@ const OPTION_INTERVAL: int = 6
 
 ## 非 focus 分段激光参数
 const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 16 段）
-const SEGMENTS: int = 512 / SEG_W        # 段数 = 16
+const SEGMENTS: int = 16               # 段数（512 宽 / 32 段宽）
 const LASER_DAMAGE: int = 2              # 每段伤害（每段独立判定，命中即回收）
-const LASER_DRIFT_SPEED: float = 180.0   # 激光整体向上漂移速度（px/s）
+const LASER_DRIFT_SPEED: float = 1000.0   # 激光整体向上漂移速度（px/s）
 
 
 func _option_setup() -> Dictionary:

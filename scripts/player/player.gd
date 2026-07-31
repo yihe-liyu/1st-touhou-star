@@ -89,8 +89,8 @@ func _init_shoot_script() -> void:
 	_shoot_script = player_data.shoot_script.new()
 	assert(_shoot_script is PlayerShootScript, "Player: shoot_script must be a PlayerShootScript")
 	add_child(_shoot_script)
-	var ctx := StageContext.new(_shoot_script)
-	_shoot_script.start_shooting(ctx)
+	var shoot_ctx := StageContext.new(_shoot_script)
+	_shoot_script.start_shooting(shoot_ctx)
 
 ## 切换角色时重新初始化射击
 func _reinit_shoot() -> void:
