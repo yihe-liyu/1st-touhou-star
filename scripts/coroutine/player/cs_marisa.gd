@@ -12,8 +12,8 @@ const OPTION_INTERVAL: int = 6
 const SEG_W: int = 32                    # 每段宽度（原图 512x32 切成 16 段）
 const SEGMENTS: int = 16               # 段数（512 宽 / 32 段宽）
 const LASER_DAMAGE: int = 1              # 每段伤害（每段独立判定，命中即回收）
-const LASER_DRIFT_SPEED: float = 1000.0   # 激光整体向上漂移速度（px/s）
-const LASER_GROW_FRAMES: int = 2          # 每多少帧喷出一段（喷射频率）
+const LASER_DRIFT_SPEED: float = 150.0    # 激光流动速度（px/s，缓慢水流感）
+const LASER_GROW_FRAMES: int = 8          # 每多少帧喷出一段（间距=漂移×间隔≈20px，轻微重叠→视觉密实）
 
 var _laser_index: int = 0                 # 喷出的段序号（贴图按 %SEGMENTS 循环）
 var _last_laser_seg: Node = null          # 上一段（继承漂移用）
@@ -59,14 +59,11 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		_shoot_options(ctx, b, 1, 0.0, Vector2.UP, Vector2.ZERO)
 		return ctx.clock.wait_frames(4)
 	else:
-		# 非 focus：固定长度流水激光（16 段从子机向上延伸，根部永不飞走）
-		if _laser_index >= SEGMENTS:
-			return ctx.clock.wait_frames(OPTION_INTERVAL)  # 已满，保持
+		# 非 focus：持续喷出流水激光（段从子机生成→向上流动，永不停）
 		var player: Player = ctx.player.get_player()
 		if not is_instance_valid(player):
 			return ctx.clock.wait_frames(OPTION_INTERVAL)
-		_spawn_laser_segment(player, _laser_index)
-		_laser_index += 1
+		_spawn_laser_segment(player)
 		return ctx.clock.wait_frames(LASER_GROW_FRAMES)
 
 
@@ -78,29 +75,29 @@ func _make_laser_segment(i: int) -> AtlasTexture:
 	return at
 
 
-## 在固定槽位生成一段激光（offset = 子机上方 -i*32，根部永远在子机）
-func _spawn_laser_segment(player: Player, i: int) -> void:
+## 从子机喷出一段激光：段在发射口生成，向上漂移，间距=漂移×间隔（自动无缝）
+func _spawn_laser_segment(player: Player) -> void:
 	# 发射口 = 第一个子机（无子机时回退自机）
 	var source: Node2D = _options[0] if _options.size() > 0 else player
 	if not is_instance_valid(source):
 		source = player
 
-	var seg := _make_laser_segment(i)
+	var seg := _make_laser_segment(_laser_index % SEGMENTS)  # 贴图循环
 	var b := BulletData.new().player()
 	b.texture = seg
 	b.damage = LASER_DAMAGE
 	b.hit_effect = preload("res://scenes/effect/hit_effect_marisa.tscn")
-	# 矩形判定覆盖整段（32x32），保证激光无空隙
+	# 矩形判定覆盖整段（32x32）
 	b.hitbox_shape = BulletData.HitboxShape.RECTANGLE
 	b.hitbox_size = Vector2(SEG_W, SEG_W)
 	b.coroutine_script = LASER_FOLLOW
 
-	var offset := Vector2(0, -i * SEG_W)
-	var bullet := ctx.bullets.shoot_single(b, source.global_position + offset, Vector2.UP)
+	# 段在发射口生成（offset=0），drift 从 0 独立累积 → 根部永远在子机
+	var bullet := ctx.bullets.shoot_single(b, source.global_position, Vector2.UP)
 	if bullet:
-		bullet.extra["anchor_node"] = source    # 锚定发射口（根部在子机）
-		bullet.extra["laser_offset"] = offset    # 固定槽位偏移
-		bullet.extra["segment_index"] = i        # 贴图滚动基准
+		bullet.extra["anchor_node"] = source
+		bullet.extra["laser_offset"] = Vector2.ZERO
+		bullet.extra["drift_speed"] = LASER_DRIFT_SPEED
 		_last_laser_seg = bullet
 
-	_laser_index = max(_laser_index, i + 1)
+	_laser_index += 1
