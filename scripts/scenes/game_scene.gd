@@ -3,7 +3,7 @@ class_name GameScene
 
 const GAME_OVER_MENU = preload("res://scenes/ui/game_over_menu.tscn")
 
-@onready var _sub_viewport: SubViewport = $Background/SubViewportContainer/SubViewport
+@onready var _sub_viewport: SubViewport = %SubViewport
 
 var _blur_rect: ColorRect
 var _background_instance: Node  # StageBackground 或测试 Node3D
@@ -15,7 +15,7 @@ func _ready():
 
 	var item_pool: Node = load("res://scripts/item/item_pool.gd").new()
 	item_pool.name = "ItemPool"
-	$World.add_child(item_pool)
+	%World.add_child(item_pool)
 
 	GameEvents.player_death.connect(_on_player_death)
 	GameManager.game_state_changed.connect(_on_game_state_changed)
@@ -49,7 +49,7 @@ func _start_practice_game() -> void:
 	add_child(_practice_runner)
 	_practice_runner.run(func(): return true)
 	var ctx := StageContext.new(_practice_runner)
-	var player := $World/Player
+	var player := %Player
 	if player:
 		player.ctx = ctx
 
@@ -119,7 +119,7 @@ func _setup_player() -> void:
 		preload("res://data/player_data/reimu_data.tres"),
 		preload("res://data/player_data/marisa_data.tres"),
 	]
-	var player := $World/Player
+	var player := %Player
 	if player and GameState.selected_character < data_map.size():
 		player.player_data = data_map[GameState.selected_character]
 		player._apply_player_data()
@@ -161,7 +161,7 @@ func _on_practice_cleared(_boss: Node) -> void:
 
 func _add_blur() -> void:
 	if _blur_rect: return
-	var container := $Background/SubViewportContainer
+	var container := %SubViewportContainer
 	var vs := get_viewport().get_visible_rect().size
 	_blur_rect = ColorRect.new()
 	_blur_rect.set_anchors_preset(Control.PRESET_FULL_RECT)

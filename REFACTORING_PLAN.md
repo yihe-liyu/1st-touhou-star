@@ -88,7 +88,7 @@
 ### 阶段 3 — Godot 特性强化 🟡 中风险
 **目标：尽到 Godot 的特性**
 
-- [ ] **P-08** `$X` 路径 → `@export` 注入 / `%UniqueName`
+- [x] **P-08** game_scene 深层路径 → `%UniqueName`（World/Player/SubViewport 等；直接子节点 `$X` 属 Godot 惯用法保留）
 - [ ] 菜单系统场景化：页面用场景继承组织，减少代码构建
 - [ ] SceneTransition 健壮化：检查 `change_scene_to_file` 返回值 + 错误处理
 - [ ] preload 策略优化：音频/大贴图改懒加载
@@ -139,6 +139,7 @@
 | 2026-07-31 | 阶段2 | P-07：EnemyData 场景依赖移除，生成逻辑归 StageManager（34 全绿） |
 | 2026-07-31 | 阶段2 | P-12：GameState 拆出 SpellBookManager/SaveManager（34 全绿） |
 | 2026-07-31 | 阶段2 | ✅ 阶段 2 完成（P-05/06/07/11/12）；Player 服务化完成，BulletData 检查通过，技术债清零 |
+| 2026-07-31 | 阶段3 | P-08：game_scene 深层路径改 %UniqueName（35 测试含场景验证） |
 | | | |
 
 ---

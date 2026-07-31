@@ -92,6 +92,7 @@ script = ExtResource("9_script")
 layer = -1
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="Background" unique_id=1683698703]
+unique_name_in_owner = true
 offset_left = 64.0
 offset_top = 32.0
 offset_right = 832.0
@@ -99,6 +100,7 @@ offset_bottom = 928.0
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="Background/SubViewportContainer" unique_id=1903016322]
+unique_name_in_owner = true
 handle_input_locally = false
 size = Vector2i(768, 896)
 render_target_update_mode = 4
@@ -108,8 +110,10 @@ transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 10, 6
 fov = 55.0
 
 [node name="World" type="Node2D" parent="." unique_id=1228399696]
+unique_name_in_owner = true
 
 [node name="Player" parent="World" unique_id=1148497527 instance=ExtResource("1_w5aja")]
+unique_name_in_owner = true
 position = Vector2(448, 840)
 player_data = ExtResource("6_b5spy")
 
