@@ -31,10 +31,7 @@ func _ready() -> void:
 	_canvas.focus = _focus
 	_timeline.focus = _focus
 	_refresh_tree()
-	if Engine.is_editor_hint():
-		_playing = false  # 编辑器编辑模式默认暂停
-	else:
-		_playing = true
+	_playing = false  # 默认不自动播放：打开先看静态，按 ▶ 才播
 	_update_controls()
 	_timeline.queue_redraw()
 
