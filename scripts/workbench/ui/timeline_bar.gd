@@ -7,6 +7,8 @@ class_name TimelineBar
 
 ## 选中回调（节点）
 signal node_selected(node: LifecycleNode)
+## 时间跳转（点击轨道任意处 = seek）
+signal time_seeked(t: float)
 
 var focus: LifecycleNode
 var time: float = 0.0
@@ -52,8 +54,9 @@ func _gui_input(event: InputEvent) -> void:
 			if event.position.x >= x0 and event.position.x <= x0 + cw:
 				node_selected.emit(child)
 				return
-		# 点轨道 = 跳转时间
+		# 点轨道 = 跳转时间（seek）
 		time = clampf(event.position.x / size.x, 0.0, 1.0) * total
+		time_seeked.emit(time)
 		queue_redraw()
 
 

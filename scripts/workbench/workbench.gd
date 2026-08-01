@@ -20,6 +20,7 @@ var _breadcrumb: Label
 var _time_label: Label
 var _play_btn: Button
 var _speed_btn: Button
+var _inspector: VBoxContainer  # 参数面板（右）
 
 # ── 初始化 ──
 
@@ -118,12 +119,18 @@ func _build_ui() -> void:
 	_canvas = CanvasScript.new()
 	_canvas.custom_minimum_size = Vector2(560, 420)
 	mid.add_child(_canvas)
+	# 参数面板（右）
+	_inspector = VBoxContainer.new()
+	_inspector.name = "Inspector"
+	_inspector.custom_minimum_size = Vector2(230, 0)
+	mid.add_child(_inspector)
 
 	# 底部：时间轴
 	_timeline = TimelineBarScript.new()
 	_timeline.name = "Timeline"
 	_timeline.custom_minimum_size = Vector2(0, 48)
 	_timeline.node_selected.connect(_on_node_selected)
+	_timeline.time_seeked.connect(_on_time_seeked)
 	_timeline.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_timeline)
 
@@ -153,6 +160,16 @@ func _update_time_label() -> void:
 
 # ── 聚焦/导航 ──
 
+## 点击时间线 = seek：时间跳到该处，全树状态更新到对应时刻
+func _on_time_seeked(t: float) -> void:
+	if _focus == null:
+		return
+	_time = t
+	_focus.simulate_to(t)  # 确定性重放（seek）
+	_refresh_tree.call_deferred()
+	_update_inspector()
+
+
 func _on_node_selected(node: LifecycleNode) -> void:
 	# 时间轴切到该对象的局部时间线（锚点语义）
 	_focus = node
@@ -165,6 +182,7 @@ func _on_node_selected(node: LifecycleNode) -> void:
 	_timeline.focus = _focus
 	_timeline.time = 0.0
 	_timeline.queue_redraw()
+	_update_inspector()
 
 
 func _breadcrumb_path(node: LifecycleNode) -> String:
@@ -176,6 +194,50 @@ func _breadcrumb_path(node: LifecycleNode) -> String:
 		var pref: Script = n.get_script() as Script
 		parts.push_front(pref.resource_path.get_file().get_basename())
 	return " › ".join(parts)
+
+
+# ── 参数面板 ──
+
+## 显示选中节点的生命周期属性
+func _update_inspector() -> void:
+	if _inspector == null:
+		return
+	for child in _inspector.get_children():
+		child.queue_free()
+	if _focus == null:
+		return
+	var script_ref: Script = _focus.get_script() as Script
+	var title := Label.new()
+	title.text = "■ " + script_ref.resource_path.get_file().get_basename()
+	title.add_theme_font_size_override("font_size", 16)
+	_inspector.add_child(title)
+	_add_inspector_row("锚点（出生）", "%.2fs" % _focus.anchor)
+	_add_inspector_row("局部时间", "%.2fs" % _focus.local_time)
+	_add_inspector_row("世界时间", "%.2fs" % _focus.world_time())
+	_add_inspector_row("状态", "▶ 存活" if _focus.alive else "✖ 死亡")
+	_add_inspector_row("子对象数", str(_focus.children.size()))
+	_add_inspector_row("子对象", _child_summary(_focus))
+
+
+func _add_inspector_row(key: String, value: String) -> void:
+	var row := HBoxContainer.new()
+	var k := Label.new()
+	k.text = key
+	k.custom_minimum_size = Vector2(90, 0)
+	k.modulate = Color(0.7, 0.7, 0.8)
+	var v := Label.new()
+	v.text = value
+	row.add_child(k)
+	row.add_child(v)
+	_inspector.add_child(row)
+
+
+func _child_summary(node: LifecycleNode) -> String:
+	var names: Array = []
+	for child in node.children:
+		var ref: Script = child.get_script() as Script
+		names.append(ref.resource_path.get_file().get_basename())
+	return "、".join(names) if names.size() > 0 else "—"
 
 
 # ── 生命周期树 UI ──
