@@ -75,6 +75,9 @@ func start_boss() -> void:
 
 
 func start_phase(data: PhaseData) -> void:
+	# 配置校验：time_limit<=0 会除零/立即超时，防御性拒绝
+	for e in data.validate():
+		push_error("Boss.start_phase 配置错误: " + e)
 	_cleared = false
 	_phase_index += 1
 	_current_phase = data
@@ -128,7 +131,9 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	
 	if _bonus > 0:
-		var tick := maxi(1, int(float(_current_phase.bonus) / _current_phase.time_limit * delta))
+		# maxf 防御：time_limit 非法为 0 时优雅降级（正常配置由 validate 拦截）
+		var t := maxf(_current_phase.time_limit, 0.001)
+		var tick := maxi(1, int(float(_current_phase.bonus) / t * delta))
 		_bonus = maxi(0, _bonus - tick)
 	
 	GameEvents.phase_bonus_tick.emit(_bonus)

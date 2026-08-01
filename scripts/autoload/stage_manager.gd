@@ -17,8 +17,11 @@ func load_stage(data: StageData):
 	if _stage_active:
 		stop_stage()
 
-	if not data.create_script:
-		push_error("StageManager: StageData has no create_script")
+	# 配置校验：非法数据拒绝启动，防止除零/空脚本崩溃
+	var errs := data.validate()
+	for e in errs:
+		push_error("StageManager 配置错误: " + e)
+	if not errs.is_empty():
 		return
 
 	GameState.reset_all()

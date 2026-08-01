@@ -18,3 +18,14 @@ class_name PhaseData
 @export var item_bomb: int = 0          ## 击破掉落 Bomb 碎片
 @export var item_life_full: int = 0     ## 击破掉落整残
 @export var item_bomb_full: int = 0     ## 击破掉落整 B
+
+
+## 配置校验：返回错误列表（空 = 合法）。加载/开战前调用，防除零
+## 注意：不校验脚本（纯移动/演示阶段可能无脚本，属合法）
+func validate() -> Array[String]:
+	var errs: Array[String] = []
+	if time_limit <= 0.0:
+		errs.append("PhaseData[%s].time_limit = %s 必须 > 0（会除零/立即超时）" % [name, time_limit])
+	if hp <= 0:
+		errs.append("PhaseData[%s].hp = %s 必须 > 0" % [name, hp])
+	return errs
