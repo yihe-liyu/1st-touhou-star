@@ -161,7 +161,7 @@ func _on_node_selected(node: LifecycleNode) -> void:
 	if _canvas:
 		_canvas.focus = _focus
 	_breadcrumb.text = _breadcrumb_path(node)
-	_refresh_tree()
+	_refresh_tree.call_deferred()
 	_timeline.focus = _focus
 	_timeline.time = 0.0
 	_timeline.queue_redraw()
@@ -200,13 +200,14 @@ func _add_tree_children(parent_item: TreeItem, node: LifecycleNode) -> void:
 
 func _node_label(node: LifecycleNode) -> String:
 	var script_ref: Script = node.get_script() as Script
-	var name: String = script_ref.resource_path.get_file().get_basename()
+	var label: String = script_ref.resource_path.get_file().get_basename()
 	var state: String = "▶" if node.alive else "✖"
-	return "%s %s (t=%.1f)" % [state, name, node.local_time]
+	return "%s %s (t=%.1f)" % [state, label, node.local_time]
 
 
 func _on_tree_selected() -> void:
 	var item := _tree_ui.get_selected()
 	if item:
 		var node: LifecycleNode = item.get_metadata(0)
-		_on_node_selected(node)
+		# Tree 在鼠标选中事件期间禁止 clear/create → 延迟到事件结束后
+		_on_node_selected.call_deferred(node)
