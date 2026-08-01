@@ -6,6 +6,8 @@ const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
 var _pool: BulletPool
 var _graze_sfx_played: bool = false
+var _enemy_hash: SpatialHash = SpatialHash.new()  # 敌人登记（玩家弹查询）
+var _bullet_hash: SpatialHash = SpatialHash.new() # 敌弹登记（自机查询）
 
 
 func setup(p_pool) -> void:
@@ -17,20 +19,52 @@ func reset_frame() -> void:
 
 
 func process_collisions() -> void:
+	# 空间哈希（P-10）：每帧重建敌人 + 敌弹网格
+	_enemy_hash.clear()
+	for enemy in GameState.get_active_enemies():
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
+			_enemy_hash.insert(enemy)
+	_bullet_hash.clear()
+	for bullet in _pool.active_bullets:
+		if bullet.is_ready and bullet.faction == Bullet.FACTION_ENEMY:
+			_bullet_hash.insert(bullet)
+	# 玩家弹 vs 敌人（倒序，命中回收安全）
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
 		var bullet: Bullet = _pool.active_bullets[i]
-		if bullet.is_ready:
-			_resolve(bullet)
-
-
-func _resolve(bullet: Bullet) -> void:
-	match bullet.faction:
-		Bullet.FACTION_PLAYER:
+		if bullet.is_ready and bullet.faction == Bullet.FACTION_PLAYER:
 			_player_vs_enemies(bullet)
-		Bullet.FACTION_ENEMY:
-			_enemy_vs_player(bullet)
-		Bullet.FACTION_BOMB:
+	# 敌弹 vs 自机（自机为中心查哈希，一次 query）
+	_resolve_enemy_bullets_near_player()
+	# Bomb 弹 vs 敌人
+	for i in range(_pool.active_bullets.size() - 1, -1, -1):
+		var bullet: Bullet = _pool.active_bullets[i]
+		if bullet.is_ready and bullet.faction == Bullet.FACTION_BOMB:
 			_bomb_vs_enemies(bullet)
+
+
+## 敌弹 vs 自机：查询自机周围格子内的敌弹（擦弹/命中判定）
+func _resolve_enemy_bullets_near_player() -> void:
+	var player: Player = GameState.player
+	if not is_instance_valid(player) or player.is_invincible:
+		return
+	# query 半径覆盖命中半径（~11px）与擦弹半径（~46px）
+	var candidates: Array = _bullet_hash.query(player.global_position, player.graze_radius + 8.0)
+	for bullet in candidates:
+		if not is_instance_valid(bullet) or bullet.is_queued_for_deletion():
+			continue
+		if not bullet.is_ready:
+			continue
+		if _hit_target(bullet, player):
+			player.miss()
+			_pool.return_bullet(bullet)
+		elif not bullet._grazed and _grazes_player(bullet, player):
+			bullet._grazed = true
+			on_graze()
+			if GameState.memory_value >= 50.0:
+				var chance := remap(GameState.memory_value, 50.0, 100.0, 0.05, 0.30)
+				if RNG.randf() < chance:
+					HitEffectPool.play(_CLEAR_EFFECT, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
+					_pool.return_bullet(bullet)
 
 
 func _player_vs_enemies(bullet: Bullet) -> void:
@@ -38,8 +72,10 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 	if bullet.faction == Bullet.FACTION_PLAYER and GameState.memory_value < 50.0:
 		bonus = 1.0 + remap(GameState.memory_value, 0.0, 50.0, 0.15, 0.05)
 	
-	for enemy in GameState.get_active_enemies():
-		if not is_instance_valid(enemy):
+	# 空间哈希：只检查附近格子内的敌人（最大目标半径 36 = Boss 默认）
+	var candidates: Array = _enemy_hash.query(bullet.global_position, bullet.hitbox_radius + 36.0)
+	for enemy in candidates:
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
 		# 时符阶段 / 没开战：Boss 不可被击中，子弹穿过
 		if enemy is Boss:
@@ -54,26 +90,10 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 			return
 
 
-func _enemy_vs_player(bullet: Bullet) -> void:
-	var player: Player = GameState.player
-	if not is_instance_valid(player) or player.is_invincible:
-		return
-	if _hit_target(bullet, player):
-		player.miss()
-		_pool.return_bullet(bullet)
-	elif not bullet._grazed and _grazes_player(bullet, player):
-		bullet._grazed = true
-		on_graze()
-		if GameState.memory_value >= 50.0:
-			var chance := remap(GameState.memory_value, 50.0, 100.0, 0.05, 0.30)
-			if RNG.randf() < chance:
-				HitEffectPool.play(_CLEAR_EFFECT, bullet.global_position, Vector2.ZERO, bullet.sprite.modulate)
-				_pool.return_bullet(bullet)
-
-
 func _bomb_vs_enemies(bullet: Bullet) -> void:
-	for enemy in GameState.get_active_enemies():
-		if not is_instance_valid(enemy):
+	var candidates: Array = _enemy_hash.query(bullet.global_position, bullet.hitbox_radius + 36.0)
+	for enemy in candidates:
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
 		if enemy is Boss:
 			var phase = (enemy as Boss).current_phase()

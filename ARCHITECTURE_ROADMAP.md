@@ -76,7 +76,7 @@ BulletManager
 | 🟡 P1 | **高频路径禁 RefCounted 规则** | bullet.bind() / _physics_process 碰撞 / return_bullet 禁止 new() |
 | 🟢 P2 | **MenuLogic 拆分** | NavPage 逻辑与视觉分离（等第三个需要大量覆写 NavPage 的菜单出现时） |
 | 🟢 P2 | **配置校验层** | PhaseData/StageData 加载时校验合法性（含除零防护） |
-| ⚪ P3 | **批量子弹渲染优化** | 利用 MultiMesh 减少 draw call（弹幕 >3000 时考虑） |
+| ⚪ P3 | ~~批量子弹渲染优化~~ | ~~利用 MultiMesh 减少 draw call~~（use_multi_mesh 已启用） |
 | ⚪ P3 | **PauseMenu/GameOverMenu 去重** | 抽 OverlayPage 基类 |
 
 ---
