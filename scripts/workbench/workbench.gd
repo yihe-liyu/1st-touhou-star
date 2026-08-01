@@ -65,6 +65,9 @@ func _reset() -> void:
 	_time = 0.0
 	if _focus:
 		_focus.simulate_to(0.0)
+	if _timeline:
+		_timeline.time = 0.0  # 重置瞬间同步播放头（不等下一帧）
+		_timeline.queue_redraw()
 	_refresh_tree()
 
 
