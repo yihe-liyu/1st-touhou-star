@@ -74,7 +74,7 @@ func _build_demo() -> void:
 	# 树根：把发射器声明为生成计划（确定性重跑时自动重建）
 	var root := WorkbenchDemoRoot.new()
 	var emitter := WorkbenchDemoEmitter.new()
-	root.child_plan = [{"t": 1.0, "node": emitter}]
+	root.child_plan = [{"t": 0.0, "node": emitter}]  # 立即出生：重置后 0.5s 就有子弹
 	_root = root
 	# 初始显示 t=3s 的状态
 	_root.simulate_to(3.0)
