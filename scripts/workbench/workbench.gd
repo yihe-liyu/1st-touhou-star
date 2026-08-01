@@ -68,7 +68,7 @@ func _reset() -> void:
 	if _timeline:
 		_timeline.time = 0.0  # 重置瞬间同步播放头（不等下一帧）
 		_timeline.queue_redraw()
-	_refresh_tree()
+	_refresh_tree.call_deferred()  # 按钮事件中不能同步 clear Tree！
 
 
 # ── 演示树：发射器 → 生成子弹 → 死亡 ──
