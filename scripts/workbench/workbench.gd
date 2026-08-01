@@ -141,7 +141,7 @@ func _cycle_speed() -> void:
 	var speeds := [1.0, 2.0, 0.5]
 	var idx: int = speeds.find(_speed)
 	_speed = speeds[(idx + 1) % speeds.size()] if idx >= 0 else 1.0
-	_speed_btn.text = "速度 ×%g" % _speed
+	_speed_btn.text = "速度 ×" + str(_speed)
 
 
 func _update_controls() -> void:
