@@ -35,12 +35,8 @@ func _ready() -> void:
 		_playing = false  # 编辑器编辑模式默认暂停
 	else:
 		_playing = true
-		_auto_shot = 1.0  # 运行模式：1 秒后自动截图（xvfb 验证，子弹活跃期）
 	_update_controls()
 	_timeline.queue_redraw()
-
-
-var _auto_shot: float = -1.0  # 调试钩子：>=0 时倒计时截图（xvfb 验证 UI）
 
 
 func _process(delta: float) -> void:
@@ -53,14 +49,6 @@ func _process(delta: float) -> void:
 		_timeline.time = _time
 		_timeline.queue_redraw()
 	_update_time_label()
-	if _auto_shot >= 0.0:
-		_auto_shot -= delta
-		if _auto_shot <= 0.0:
-			var img := get_viewport().get_texture().get_image()
-			img.save_png("/tmp/workbench.png")
-			print("工作台截图已保存 /tmp/workbench.png")
-			_auto_shot = -999.0
-			get_tree().quit()
 
 
 # ── 模拟 ──
