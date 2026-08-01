@@ -170,7 +170,7 @@ func _ensure_meshes() -> void:
 	head_mat.shader = preload("res://gdshader/glow_dot.gdshader")
 	_head_sprite.material = head_mat
 	_head_sprite.scale = Vector2(1.2, 1.2)
-	_head_sprite.z_index = 1
+	_head_sprite.z_index = LayerConfig.ENEMY_BULLET + 1  # 光球在激光主体之上
 	add_child(_head_sprite)
 
 
