@@ -60,10 +60,11 @@ func _simulate() -> void:
 
 
 func _reset() -> void:
-	# 重置 = 回到初始展示态（弹幕立刻在场，不空窗）
-	_time = 3.0
+	# 重置（方案 A）：时间归零；播放状态保持不变
+	# 播放中重置 → 从头继续播；暂停中重置 → 停在起点 t=0
+	_time = 0.0
 	if _focus:
-		_focus.simulate_to(_time)
+		_focus.simulate_to(0.0)
 	_refresh_tree()
 
 
