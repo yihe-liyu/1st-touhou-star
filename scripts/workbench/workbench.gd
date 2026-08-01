@@ -114,16 +114,19 @@ func _build_ui() -> void:
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(mid)
 	_tree_ui = Tree.new()
-	_tree_ui.custom_minimum_size = Vector2(220, 0)
+	_tree_ui.custom_minimum_size = Vector2(140, 0)
+	_tree_ui.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tree_ui.item_selected.connect(_on_tree_selected)
 	mid.add_child(_tree_ui)
 	_canvas = CanvasScript.new()
-	_canvas.custom_minimum_size = Vector2(560, 420)
+	_canvas.custom_minimum_size = Vector2(320, 320)  # 弹性：小窗口也能显示
+	_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.add_child(_canvas)
 	# 参数面板（右）
 	_inspector = VBoxContainer.new()
 	_inspector.name = "Inspector"
-	_inspector.custom_minimum_size = Vector2(230, 0)
+	_inspector.custom_minimum_size = Vector2(150, 0)
+	_inspector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.add_child(_inspector)
 
 	# 底部：时间轴

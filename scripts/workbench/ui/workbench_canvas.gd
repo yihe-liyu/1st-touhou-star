@@ -20,6 +20,11 @@ func _to_screen(p: Vector2) -> Vector2:
 func _update_view() -> void:
 	var margin := 12.0
 	var avail: Vector2 = size - Vector2(margin, margin) * 2.0
+	# 防御：画布太小/布局未就绪时回退 1:1，绝不产生负缩放（内容飞出）
+	if avail.x <= 4.0 or avail.y <= 4.0:
+		_scale = 1.0
+		_offset = -WORLD.position
+		return
 	_scale = minf(avail.x / WORLD.size.x, avail.y / WORLD.size.y)
 	_offset = (size - WORLD.size * _scale) / 2.0 - WORLD.position * _scale
 
