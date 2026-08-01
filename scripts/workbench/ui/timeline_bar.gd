@@ -12,6 +12,7 @@ signal time_seeked(t: float)
 
 var focus: LifecycleNode
 var time: float = 0.0
+var window_len: float = 15.0  ## 固定时间窗口（秒）：刻度/条位稳定，播放头移动
 
 const BAR_H := 14.0
 const PAD := 10.0
@@ -20,16 +21,18 @@ const PAD := 10.0
 func _draw() -> void:
 	if focus == null:
 		return
-	var total := maxf(focus.duration(), 0.001)
+	var total := maxf(window_len, 0.001)  # 固定窗口 → 刻度/条位稳定
 	var w := size.x
 	# 轨道背景
 	draw_rect(Rect2(0, 0, w, size.y), Color(0.08, 0.08, 0.12))
-	# 网格刻度（每 1s）
+	# 固定刻度（每 1s）
 	var ticks := int(ceil(total))
 	for i in ticks + 1:
 		var x := i / total * w
 		draw_line(Vector2(x, 0), Vector2(x, size.y), Color(1, 1, 1, 0.05))
-	# 子对象条
+		if i % 5 == 0:
+			draw_string(ThemeDB.fallback_font, Vector2(x + 2, 10), str(i), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.6, 0.6, 0.7))
+	# 子对象条（按锚点在固定窗口内定位；超出窗口的截断）
 	var cy := size.y / 2.0
 	for child in focus.children:
 		var x0 := child.anchor / total * w
@@ -37,7 +40,7 @@ func _draw() -> void:
 		var col := _color_for(child)
 		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col)
 		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col.darkened(0.5), false, 1.0)
-	# 播放头
+	# 播放头（唯一移动的东西）
 	var hx := clampf(time / total, 0.0, 1.0) * w
 	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.9), 2.0)
 
@@ -46,7 +49,7 @@ func _gui_input(event: InputEvent) -> void:
 	if focus == null:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var total := maxf(focus.duration(), 0.001)
+		var total := maxf(window_len, 0.001)  # seek 基于固定窗口
 		# 先试点击条（优先于轨道跳转）
 		for child in focus.children:
 			var x0 := child.anchor / total * size.x
