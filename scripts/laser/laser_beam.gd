@@ -27,7 +27,11 @@ var _dirty: bool = true             ## 骨架可见段是否变化（渲染层�
 var _fade_age: float = 0.0
 var _head_cut: bool = false         ## 消弹圈切头：头部冻结
 
-var _line: Line2D                   ## 最小渲染（单层；第 3 步升级为 MultiMesh 三层）
+var _core_mm: MultiMesh               ## Core 亮核层（MultiMesh 切片）
+var _glow_mm: MultiMesh               ## Glow 光晕层（提亮 + 低透明）
+var _head_sprite: Sprite2D            ## 头部光点
+const SEG_PX: float = 32.0            ## 段长（贴图切片宽度）
+const MAX_SEGMENTS := 64
 
 
 ## 初始化（池复用入口）：绑定骨架 + 重置状态
@@ -40,7 +44,7 @@ func spawn(p_skeleton: LaserSkeleton, p_color: Color) -> void:
 	_dirty = true
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
-	_ensure_line()
+	_ensure_meshes()
 	if grow_on_spawn and grow_speed > 0.0:
 		phase = Phase.GROW
 		head_dist = 0.0
@@ -49,6 +53,7 @@ func spawn(p_skeleton: LaserSkeleton, p_color: Color) -> void:
 		phase = Phase.SUSTAIN  # 瞬间全开：可见段 = 全长
 		head_dist = skeleton.total_length
 		tail_dist = 0.0
+	_rebuild_meshes()  # 立即渲染（防止首帧 _dirty 被覆盖为 false）
 
 
 func _physics_process(delta: float) -> void:
@@ -81,12 +86,14 @@ func _physics_process(delta: float) -> void:
 				phase = Phase.DEAD
 	_dirty = old_head != head_dist or old_tail != tail_dist
 	if _dirty:
-		_rebuild_line()
+		_rebuild_meshes()
 	if phase == Phase.DEAD:
 		visible = false
 		process_mode = Node.PROCESS_MODE_DISABLED
-		if _line:
-			_line.clear_points()
+		if _core_mm:
+			_core_mm.instance_count = 0
+			_glow_mm.instance_count = 0
+			_head_sprite.visible = false
 
 
 # ── 判定（点到骨架折线段距离）──
@@ -132,37 +139,99 @@ func _reset() -> void:
 	skeleton = null
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
-	if _line:
-		_line.clear_points()
+	if _core_mm:
+		_core_mm.instance_count = 0
+		_glow_mm.instance_count = 0
+		_head_sprite.visible = false
 
 
 func _dead_phase() -> bool:
 	return phase == Phase.DEAD
 
 
-## 最小渲染：Line2D 沿可见骨架重建（第 3 步升级）
-func _ensure_line() -> void:
-	if _line:
+## MultiMesh 双层渲染（Core 亮核 + Glow 光晕）+ 头部光点
+## 每段 = 32px 切片 QuadMesh，旋转 = 切线角；静止激光不重建（_dirty）
+func _ensure_meshes() -> void:
+	if _core_mm:
 		return
-	_line = Line2D.new()
-	_line.width = core_width
-	_line.default_color = laser_color
-	_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	_line.end_cap_mode = Line2D.LINE_CAP_ROUND
-	_line.joint_mode = Line2D.LINE_JOINT_ROUND
-	_line.antialiased = true
-	_line.texture = laser_texture if laser_texture else preload("res://assets/Textures/bullet/laser.png")
-	_line.texture_mode = Line2D.LINE_TEXTURE_STRETCH
-	add_child(_line)
+	# 切片纹理：laser.png 512x32 → 32px 段（纵向渐变光柱）
+	var tex: Texture2D = laser_texture if laser_texture else preload("res://assets/Textures/bullet/laser.png")
+	_core_mm = _make_layer_mesh(tex, Color(1, 1, 1, 1))
+	_glow_mm = _make_layer_mesh(tex, Color(1, 1, 1, 1))
+	# 头部光点：激光切片头段（放大光球）
+	_head_sprite = Sprite2D.new()
+	var head_at := AtlasTexture.new()
+	head_at.atlas = tex
+	head_at.region = Rect2(SEG_PX, 0, SEG_PX, SEG_PX)
+	_head_sprite.texture = head_at
+	_head_sprite.scale = Vector2(1.4, 1.4)
+	_head_sprite.z_index = 1
+	add_child(_head_sprite)
 
 
-func _rebuild_line() -> void:
-	if _line == null:
+## 建一层 MultiMesh（切片 QuadMesh + batch shader）
+func _make_layer_mesh(tex: Texture2D, _tint: Color) -> MultiMesh:
+	var mm: MultiMesh = MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_2D
+	mm.use_colors = true
+	mm.instance_count = MAX_SEGMENTS
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(SEG_PX, SEG_PX)
+	mm.mesh = mesh
+	var mmi := MultiMeshInstance2D.new()
+	mmi.multimesh = mm
+	var shader := preload("res://gdshader/bullet_batch.gdshader")
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("tex", tex)
+	mat.set_shader_parameter("region", Vector4(0.0, 0.0, 1.0, 1.0))
+	mat.set_shader_parameter("tint_mode", 1)  # 灰度混合：灰白底图染色
+	mmi.material = mat
+	mmi.z_index = LayerConfig.ENEMY_BULLET
+	mmi.z_as_relative = false
+	add_child(mmi)
+	return mm
+
+
+## 沿可见骨架重建段（Core + Glow 共用骨架，各配色）
+func _rebuild_meshes() -> void:
+	if _core_mm == null or skeleton == null:
 		return
-	_line.clear_points()
-	var pts := visible_points(24)
-	for p in pts:
-		_line.add_point(p - global_position)
+	var vis_len: float = maxf(head_dist - tail_dist, 0.0)
+	var n := clampi(ceili(vis_len / SEG_PX), 0, MAX_SEGMENTS)
+	_core_mm.instance_count = n
+	_glow_mm.instance_count = n
+	if n == 0:
+		if _head_sprite:
+			_head_sprite.visible = false
+		return
+	var d0 := tail_dist
+	var d1 := head_dist
+	var core_sy: float = core_width / SEG_PX      # 高度缩放（沿激光方向 32px 固定）
+	var glow_sy: float = (core_width * 2.2) / SEG_PX
+	for i in n:
+		var da := d0 + (d1 - d0) * float(i) / float(n)
+		var db := d0 + (d1 - d0) * float(i + 1) / float(n)
+		var mid: Vector2 = (skeleton.sample_at(da) + skeleton.sample_at(db)) * 0.5
+		var dir := skeleton.tangent_at((da + db) * 0.5)
+		var angle := atan2(dir.y, dir.x)
+		var local: Vector2 = mid - global_position
+		_core_mm.set_instance_transform_2d(i, Transform2D(angle, Vector2(1.0, core_sy), 0.0, local))
+		_core_mm.set_instance_color(i, laser_color)
+		_glow_mm.set_instance_transform_2d(i, Transform2D(angle, Vector2(1.0, glow_sy), 0.0, local))
+		_glow_mm.set_instance_color(i, Color(
+			minf(laser_color.r * 1.5, 1.0),
+			minf(laser_color.g * 1.5, 1.0),
+			minf(laser_color.b * 1.5, 1.0),
+			0.35))
+	# 头部光点
+	_head_sprite.global_position = skeleton.sample_at(head_dist)
+	_head_sprite.modulate = Color(
+		minf(laser_color.r * 1.6, 1.0),
+		minf(laser_color.g * 1.6, 1.0),
+		minf(laser_color.b * 1.6, 1.0),
+		0.9)
+	_head_sprite.visible = true
 
 
 func _dist_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
