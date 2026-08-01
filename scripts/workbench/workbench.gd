@@ -325,11 +325,15 @@ func _refresh_tree() -> void:
 		return  # 结构没变：跳过重建（性能）
 	_tree_sig = sig
 	_tree_ui.clear()
+	# 树根 = 最顶层祖先（主对象在路径中，可点击返回）
+	var top := _focus
+	while top.parent:
+		top = top.parent
 	var root_item := _tree_ui.create_item()
-	root_item.set_text(0, _node_label(_focus))
-	root_item.set_metadata(0, _focus)
+	root_item.set_text(0, _node_label(top))
+	root_item.set_metadata(0, top)
 	# 注意：不要 select()——Tree.select 触发 item_selected → 信号循环崩溃！
-	_add_tree_children(root_item, _focus)
+	_add_path_to_focus(root_item, top)
 
 
 ## 树结构签名：对象节点（非实体）+ 存活数 + 局部时间（量化）
@@ -349,6 +353,29 @@ func _add_tree_children(parent_item: TreeItem, node: LifecycleNode) -> void:
 		item.set_text(0, _node_label(child))
 		item.set_metadata(0, child)
 		_add_tree_children(item, child)
+
+
+## 构建"根 → 主对象"路径（路径上节点可点击返回）
+func _add_path_to_focus(item: TreeItem, node: LifecycleNode) -> void:
+	if node == _focus:
+		_add_tree_children(item, node)  # 主对象：展开它的子树
+		return
+	for child in node.children:
+		if _is_ancestor_of(child, _focus):
+			var ci := _tree_ui.create_item(item)
+			ci.set_text(0, _node_label(child))
+			ci.set_metadata(0, child)
+			_add_path_to_focus(ci, child)
+			return
+
+
+func _is_ancestor_of(ancestor: LifecycleNode, node: LifecycleNode) -> bool:
+	var n: LifecycleNode = node
+	while n.parent:
+		if n.parent == ancestor:
+			return true
+		n = n.parent
+	return false
 
 
 func _node_label(node: LifecycleNode) -> String:
