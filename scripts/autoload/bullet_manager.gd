@@ -85,15 +85,15 @@ func return_bullet(bullet):
 
 ## 生长型曲线激光（沿 Curve2D 头部生长，尾部跟随）
 func fire_growing_laser(curve: Curve2D, color: Color, speed: float = 600.0, tail: float = 300.0, lifetime: float = 8.0, tex: Texture2D = null) -> LaserBeam:
-	return _lasers.spawn_curve(curve, color, {"grow": true, "grow_speed": speed, "tail": tail, "lifetime": lifetime})
+	return _lasers.spawn_curve(curve, color, {"grow": true, "grow_speed": speed, "tail": tail, "lifetime": lifetime, "tex": tex})
 
 ## 直线激光（瞬间全开）
 func fire_line_laser(a: Vector2, b: Vector2, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> LaserBeam:
-	return _lasers.spawn_line(a, b, color, {"grow": false, "lifetime": lifetime})
+	return _lasers.spawn_line(a, b, color, {"grow": false, "lifetime": lifetime, "tex": tex})
 
 ## 固定曲线激光（瞬间全开沿曲线）
 func fire_fixed_laser(curve: Curve2D, color: Color, lifetime: float = 10.0, tex: Texture2D = null) -> LaserBeam:
-	return _lasers.spawn_curve(curve, color, {"grow": false, "lifetime": lifetime})
+	return _lasers.spawn_curve(curve, color, {"grow": false, "lifetime": lifetime, "tex": tex})
 
 func clear_all_lasers() -> void:
 	_lasers.clear()

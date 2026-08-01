@@ -15,6 +15,7 @@ var grow_speed: float = 600.0       ## 生长/收缩速度（px/s）
 var tail_distance: float = 300.0    ## 生长型：尾部滞后距离
 var max_lifetime: float = 8.0       ## 持续时长（0 = 无限）
 var grow_on_spawn: bool = true      ## true=生长型；false=瞬间全开（固定/直线型）
+var laser_texture: Texture2D          ## 自定义贴图（null=内置 laser.png）
 
 # ── 运行时 ──
 var skeleton: LaserSkeleton
@@ -150,6 +151,8 @@ func _ensure_line() -> void:
 	_line.end_cap_mode = Line2D.LINE_CAP_ROUND
 	_line.joint_mode = Line2D.LINE_JOINT_ROUND
 	_line.antialiased = true
+	_line.texture = laser_texture if laser_texture else preload("res://assets/Textures/bullet/laser.png")
+	_line.texture_mode = Line2D.LINE_TEXTURE_STRETCH
 	add_child(_line)
 
 
