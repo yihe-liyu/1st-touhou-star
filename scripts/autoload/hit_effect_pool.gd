@@ -22,7 +22,7 @@ func play(scene: PackedScene, pos: Vector2, vel: Vector2 = Vector2.ZERO, tint: C
 		else:
 			target.add_child(effect)
 	
-	effect.z_index = 100
+	effect.z_index = LayerConfig.EFFECT
 	effect.activate(pos, vel, tint, _return_method)
 	return effect
 

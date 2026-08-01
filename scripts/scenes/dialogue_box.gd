@@ -163,6 +163,7 @@ func _show_line() -> void:
 		var tw_mod := create_tween()
 		tw_mod.tween_property(info.node, "modulate", target_mod, 0.25)
 
+		# UI 内相对排序（讲话者立绘置顶；非世界层，无需 LayerConfig）
 		info.node.z_index = 10 if speakers.has(name_key) else 0
 
 	# ── 表情（所有在场角色，包括沉默者） ──

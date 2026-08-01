@@ -98,7 +98,7 @@ func _sync_options(leader: Node2D, _ctx: StageContext) -> void:
 	while _options.size() < wanted:
 		var opt := Node2D.new()
 		opt.global_position = leader.global_position
-		opt.z_index = 6
+		opt.z_index = LayerConfig.OPTION
 		leader.get_parent().add_child(opt)
 
 		var visual: OptionVisual = visual_script.new() as OptionVisual

@@ -91,7 +91,7 @@ func _ready() -> void:
 	_memory_num.pct_index     = 13
 	_memory_num.minus_index   = 12
 	_memory_num.char_count    = 14
-	_memory_num.z_index       = 128
+	_memory_num.z_index       = LayerConfig.UI_TOP
 	
 	# 依次播放入场动画
 	_play_entry_animation()
@@ -198,7 +198,7 @@ func _make_number_sprite_on(p_name: String, parent: Node, pos: Vector2, tex: Tex
 	var ns := _make_number_sprite(p_name, pos, tex, dcount)
 	remove_child(ns)
 	parent.add_child(ns)
-	ns.z_index = 0  # 同层内靠到最上
+	ns.z_index = 0  # 同层内靠到最上（UI 内部相对）
 	return ns
 
 
@@ -216,7 +216,7 @@ func _fragment_init() -> void:
 		var s := Sprite2D.new()
 		s.texture = _make_fragment_region(life_tex, 5)
 		s.position = Vector2(1018 + i * 32, 232)
-		s.z_index = 128
+		s.z_index = LayerConfig.UI_TOP
 		s.modulate.a = 0.0
 		s.set_meta("is_fragment", true)
 		add_child(s)
@@ -228,7 +228,7 @@ func _fragment_init() -> void:
 		var s := Sprite2D.new()
 		s.texture = _make_fragment_region(spell_tex, 5)
 		s.position = Vector2(1018 + i * 32, 304)
-		s.z_index = 128
+		s.z_index = LayerConfig.UI_TOP
 		s.modulate.a = 0.0
 		s.set_meta("is_fragment", true)
 		add_child(s)
@@ -315,7 +315,7 @@ func _add_separator(pos: Vector2, length: float, col: Color) -> void:
 	sep.line_color = col
 	sep.line_width = 4
 	sep.fade_ratio = 0.25
-	sep.z_index = 128
+	sep.z_index = LayerConfig.UI_TOP
 	add_child(sep)
 	_entry_queue.append(sep)
 
@@ -324,7 +324,7 @@ func _make_number_sprite(p_name: String, pos: Vector2, tex: Texture2D = null, dc
 	var ns := NumberSpriteClass.new()
 	ns.name = p_name
 	ns.position = pos
-	ns.z_index = 128
+	ns.z_index = LayerConfig.UI_TOP
 	ns.digit_count = dcount
 	ns.digit_texture = tex
 	ns.char_count = 14   # 贴图: 0-9 . / - %

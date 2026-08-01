@@ -13,7 +13,7 @@ var _hp: int = 1
 func setup(p_boss: Boss) -> void:
 	_boss = p_boss
 	position = Vector2.ZERO
-	z_index = 10
+	z_index = LayerConfig.BOSS_HP_RING
 	GameEvents.phase_start.connect(_on_phase_start)
 	queue_redraw()
 
