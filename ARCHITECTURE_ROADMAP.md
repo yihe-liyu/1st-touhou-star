@@ -143,3 +143,4 @@ BulletManager
 - **章节分割**：>50 行加 `# ═══`
 - **随机数**：必须走 `RNG`，禁止全局 `randf()`
 - **GameState**：通过方法读写，不直接改属性
+- **高频路径禁 new()**：bullet.bind() / _physics_process / return_bullet 等每弹/每帧路径禁止分配对象（StageContext 已懒加载服务）

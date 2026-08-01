@@ -2,28 +2,60 @@ class_name StageContext
 extends RefCounted
 ## 关卡上下文 —— 协程拿这个代替 StageAPI
 
-var clock: ClockService
-var bullets: BulletService
-var player: PlayerService
-var dialogue: DialogueService
-var items: ItemService
-var audio: AudioService
-var effects: EffectService
 var runner: CoroutineRunner
-
 var _decor_mgr: DecorManager
+
+# 服务懒加载（高频路径优化：每颗协程弹 new 一次 ctx，只创建用到的服务）
+# 大多数子弹协程只用 bullets/player —— 从 8 个对象降到 2 个
+var _clock: ClockService
+var _bullets: BulletService
+var _player: PlayerService
+var _dialogue: DialogueService
+var _items: ItemService
+var _audio: AudioService
+var _effects: EffectService
+
+var clock: ClockService:
+	get:
+		if _clock == null: _clock = ClockService.new()
+		return _clock
+
+var bullets: BulletService:
+	get:
+		if _bullets == null: _bullets = BulletService.new()
+		return _bullets
+
+var player: PlayerService:
+	get:
+		if _player == null: _player = PlayerService.new()
+		return _player
+
+var dialogue: DialogueService:
+	get:
+		if _dialogue == null:
+			_dialogue = DialogueService.new()
+			_dialogue.ctx = self
+		return _dialogue
+
+var items: ItemService:
+	get:
+		if _items == null:
+			_items = ItemService.new()
+			_items.ctx = self
+		return _items
+
+var audio: AudioService:
+	get:
+		if _audio == null: _audio = AudioService.new()
+		return _audio
+
+var effects: EffectService:
+	get:
+		if _effects == null: _effects = EffectService.new()
+		return _effects
 
 func _init(p_runner: CoroutineRunner) -> void:
 	runner = p_runner
-	clock = ClockService.new()
-	bullets = BulletService.new()
-	player = PlayerService.new()
-	dialogue = DialogueService.new()
-	dialogue.ctx = self
-	items = ItemService.new()
-	items.ctx = self
-	audio = AudioService.new()
-	effects = EffectService.new()
 
 ## 装饰物管理器（树附着，懒加载）
 func get_decor() -> DecorManager:
