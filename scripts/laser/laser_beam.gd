@@ -163,13 +163,13 @@ func _ensure_meshes() -> void:
 		0.35)
 	_core_line = _make_stretch_line(core_width, laser_color, tex)
 	_glow_line = _make_stretch_line(core_width * 2.2, glow, tex)
-	# 头部光点：光球（laser.png 中段，放大）
+	# 头部光点：圆形光球（径向渐变 shader + 白点纹理）
 	_head_sprite = Sprite2D.new()
-	var head_at := AtlasTexture.new()
-	head_at.atlas = tex
-	head_at.region = Rect2(240, 0, 32, 32)  # 中段（最亮处）
-	_head_sprite.texture = head_at
-	_head_sprite.scale = Vector2(1.6, 1.6)
+	_head_sprite.texture = preload("res://assets/Textures/effect/glow_dot.png")
+	var head_mat := ShaderMaterial.new()
+	head_mat.shader = preload("res://gdshader/glow_dot.gdshader")
+	_head_sprite.material = head_mat
+	_head_sprite.scale = Vector2(1.2, 1.2)
 	_head_sprite.z_index = 1
 	add_child(_head_sprite)
 
@@ -210,13 +210,14 @@ func _rebuild_meshes() -> void:
 		glow_pts.append(p - global_position)
 	_core_line.points = core_pts
 	_glow_line.points = glow_pts
-	# 头部光点
+	# 头部光点：圆形光球（颜色 = 激光提亮色）
 	_head_sprite.global_position = skeleton.sample_at(head_dist)
-	_head_sprite.modulate = Color(
+	var head_col: Color = Color(
 		minf(laser_color.r * 1.6, 1.0),
 		minf(laser_color.g * 1.6, 1.0),
 		minf(laser_color.b * 1.6, 1.0),
 		0.9)
+	(_head_sprite.material as ShaderMaterial).set_shader_parameter("glow_color", head_col)
 	_head_sprite.visible = true
 
 
