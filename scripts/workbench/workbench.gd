@@ -34,6 +34,7 @@ func _ready() -> void:
 	_refresh_tree()
 	_playing = false  # 默认不自动播放：打开先看静态，按 ▶ 才播
 	_update_controls()
+	_update_inspector()
 	_timeline.queue_redraw()
 
 
@@ -216,6 +217,13 @@ func _update_inspector() -> void:
 	_add_inspector_row("状态", "▶ 存活" if _focus.alive else "✖ 死亡")
 	_add_inspector_row("子对象数", str(_focus.children.size()))
 	_add_inspector_row("子对象", _child_summary(_focus))
+	# 行为事件（生成计划时刻）
+	var plan: Array = _focus._spawn_plan()
+	if plan.size() > 0:
+		var times: Array = []
+		for ev in plan:
+			times.append("%.1f" % ev.t)
+		_add_inspector_row("行为事件", "t=" + "、".join(times))
 
 
 func _add_inspector_row(key: String, value: String) -> void:
@@ -248,6 +256,7 @@ func _refresh_tree() -> void:
 	var root_item := _tree_ui.create_item()
 	root_item.set_text(0, _node_label(_focus))
 	root_item.set_metadata(0, _focus)
+	root_item.select(0)  # 主对象高亮
 	_add_tree_children(root_item, _focus)
 
 

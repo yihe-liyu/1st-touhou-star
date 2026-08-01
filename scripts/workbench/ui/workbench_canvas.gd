@@ -21,6 +21,17 @@ func _draw() -> void:
 	for node in alive:
 		if node is LifecycleBullet:
 			_draw_bullet(node as LifecycleBullet)
+		elif node != focus:
+			# 通用节点标记（发射器/敌人等）：存活指示点
+			_draw_node_marker(node)
+
+
+## 通用节点标记（非子弹实体）：小方块 + 存活框
+func _draw_node_marker(node: LifecycleNode) -> void:
+	# 节点没有位置概念时在画布中央显示标记（占位；步 3 接入位置行为）
+	var pos := Vector2(448, 480)
+	draw_rect(Rect2(pos - Vector2(6, 6), Vector2(12, 12)), Color(0.4, 0.7, 1.0, 0.5))
+	draw_rect(Rect2(pos - Vector2(6, 6), Vector2(12, 12)), Color(0.4, 0.7, 1.0), false, 1.0)
 
 
 func _draw_bullet(b: LifecycleBullet) -> void:

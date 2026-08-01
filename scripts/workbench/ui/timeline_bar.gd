@@ -32,8 +32,13 @@ func _draw() -> void:
 		draw_line(Vector2(x, 0), Vector2(x, size.y), Color(1, 1, 1, 0.05))
 		if i % 5 == 0:
 			draw_string(ThemeDB.fallback_font, Vector2(x + 2, 10), str(i), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.6, 0.6, 0.7))
-	# 子对象条（按锚点在固定窗口内定位；超出窗口的截断）
 	var cy := size.y / 2.0
+	# 主对象自身条（高亮：整个生命周期范围）
+	var self_x0 := clampf((focus.anchor if focus.parent else 0.0) / total * w, 0.0, w)
+	var self_cw := maxf(focus.duration() / total * w, 2.0)
+	draw_rect(Rect2(self_x0, cy - BAR_H / 2.0, self_cw, BAR_H), Color(1.0, 0.9, 0.4, 0.25))
+	draw_rect(Rect2(self_x0, cy - BAR_H / 2.0, self_cw, BAR_H), Color(1.0, 0.9, 0.4, 0.6), false, 1.0)
+	# 子对象条（按锚点在固定窗口内定位；超出窗口的截断）
 	for child in focus.children:
 		var x0 := child.anchor / total * w
 		var cw := maxf(child.duration() / total * w, 2.0)
@@ -45,15 +50,30 @@ func _draw() -> void:
 	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.9), 2.0)
 
 
+var _dragging: bool = false
+
+
 func _gui_input(event: InputEvent) -> void:
 	if focus == null:
 		return
-	# 点击时间线任意处 = seek（不切换主对象；主对象由左侧编排树选择）
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var total := maxf(window_len, 0.001)
-		time = clampf(event.position.x / size.x, 0.0, 1.0) * total
-		time_seeked.emit(time)
-		queue_redraw()
+	# 点击/拖动时间线任意处 = seek（不切换主对象；主对象由左侧编排树选择）
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_dragging = true
+			_seek_to_x(event.position.x)
+			accept_event()
+		else:
+			_dragging = false
+	elif event is InputEventMouseMotion and _dragging:
+		_seek_to_x(event.position.x)
+		accept_event()
+
+
+func _seek_to_x(x: float) -> void:
+	var total := maxf(window_len, 0.001)
+	time = clampf(x / size.x, 0.0, 1.0) * total
+	time_seeked.emit(time)
+	queue_redraw()
 
 
 func _color_for(node: LifecycleNode) -> Color:
