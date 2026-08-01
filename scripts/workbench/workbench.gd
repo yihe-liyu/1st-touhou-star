@@ -171,6 +171,11 @@ func _on_time_seeked(t: float) -> void:
 
 
 func _on_node_selected(node: LifecycleNode) -> void:
+	# 防重入：同一节点（如信号风暴/重复点击）只刷新不重置时间
+	if node == _focus:
+		_refresh_tree.call_deferred()
+		_update_inspector()
+		return
 	# 时间轴切到该对象的局部时间线（锚点语义）
 	_focus = node
 	_time = 0.0
@@ -256,7 +261,7 @@ func _refresh_tree() -> void:
 	var root_item := _tree_ui.create_item()
 	root_item.set_text(0, _node_label(_focus))
 	root_item.set_metadata(0, _focus)
-	root_item.select(0)  # 主对象高亮
+	# 注意：不要 select()——Tree.select 触发 item_selected → 信号循环崩溃！
 	_add_tree_children(root_item, _focus)
 
 
@@ -279,5 +284,7 @@ func _on_tree_selected() -> void:
 	var item := _tree_ui.get_selected()
 	if item:
 		var node: LifecycleNode = item.get_metadata(0)
+		if node == _focus:
+			return  # 已是主对象：忽略（防信号循环）
 		# Tree 在鼠标选中事件期间禁止 clear/create → 延迟到事件结束后
 		_on_node_selected.call_deferred(node)
