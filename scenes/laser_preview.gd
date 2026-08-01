@@ -8,24 +8,17 @@ func _ready() -> void:
 	add_child(bg)
 	var engine := LaserEngine.new()
 	engine.setup(self)
-	# ① 红色直线 y=150
-	engine.spawn_line(Vector2(100, 150), Vector2(1100, 150), Color(1.0, 0.2, 0.15), {"grow": false, "lifetime": 30, "core_width": 24.0})
-	# ② 蓝色 S 形曲线（生长型）
-	var curve := Curve2D.new()
-	curve.add_point(Vector2(100, 400))
-	curve.add_point(Vector2(400, 280), Vector2(-80, 0), Vector2(80, 0))
-	curve.add_point(Vector2(800, 420), Vector2(-80, 0), Vector2(80, 0))
-	curve.add_point(Vector2(1100, 300))
-	engine.spawn_curve(curve, Color(0.3, 0.6, 1.0), {"grow": true, "grow_speed": 300.0, "tail": 260.0, "lifetime": 30, "core_width": 18.0})
-	# ③ 绿色摆动曲线
-	var wave := Curve2D.new()
-	for i in 30:
-		var x := 100.0 + float(i) * 34.0
-		var y := 650.0 + sin(float(i) * 0.55) * 70.0
-		wave.add_point(Vector2(x, y))
-	engine.spawn_curve(wave, Color(0.2, 1.0, 0.5), {"grow": false, "lifetime": 30, "core_width": 16.0})
-	await get_tree().create_timer(3.0).timeout
+	# ① 正弦波预设（红色）
+	var w := LaserPresets.wave(Vector2(100, 150), Vector2(1, 0), 1000.0, 60.0, 200.0)
+	engine.spawn(w, Color(1.0, 0.2, 0.15), {"grow": false, "lifetime": 30, "core_width": 18.0})
+	# ② 螺旋预设（蓝色，生长型）
+	var sp := LaserPresets.spiral(Vector2(640, 500), 250.0, 1.5, 0.0)
+	engine.spawn(sp, Color(0.3, 0.6, 1.0), {"grow": true, "grow_speed": 400.0, "tail": 220.0, "lifetime": 30, "core_width": 14.0})
+	# ③ 扇形扫预设（绿色）
+	var sw := LaserPresets.sweep(Vector2(640, 850), Vector2(0, -1), PI * 0.7, 350.0)
+	engine.spawn(sw, Color(0.2, 1.0, 0.5), {"grow": false, "lifetime": 30, "core_width": 16.0})
+	await get_tree().create_timer(2.5).timeout
 	var img := get_viewport().get_texture().get_image()
-	img.save_png("/tmp/laser_preview.png")
+	img.save_png("/tmp/laser_presets.png")
 	print("已保存")
 	get_tree().quit()

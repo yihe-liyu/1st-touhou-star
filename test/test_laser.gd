@@ -257,3 +257,37 @@ func test_rendering_zero_when_dead():
 		beam._physics_process(0.1)
 	assert_eq(beam.phase, LaserBeam.Phase.DEAD, "激光已死")
 	assert_eq(beam._core_line.points.size(), 0, "死亡后点集清空（不泄漏）")
+
+# ── 第 4 步：形态预设 ──
+
+func test_preset_straight():
+	var sk := LaserPresets.straight(Vector2(0, 0), Vector2(0, 300))
+	assert_eq(sk.total_length, 300.0, "直线预设长度正确")
+
+func test_preset_wave():
+	var sk := LaserPresets.wave(Vector2(0, 0), Vector2(1, 0), 400.0, 50.0, 100.0)
+	assert_gt(sk.total_length, 400.0, "波动使长度大于直线距离")
+	assert_gt(sk.points.size(), 10, "波应有足够采样点")
+	# 起点在 origin，终点在 x=400
+	assert_almost_eq(sk.points[0].x, 0.0, 0.5, "波起点 x=0")
+	assert_almost_eq(sk.points[sk.points.size()-1].x, 400.0, 0.5, "波终点 x=400")
+
+func test_preset_spiral():
+	var sk := LaserPresets.spiral(Vector2(200, 200), 150.0, 2.0)
+	assert_gt(sk.points.size(), 20, "螺旋应有足够点")
+	var first: Vector2 = sk.points[0]
+	var last: Vector2 = sk.points[sk.points.size()-1]
+	assert_almost_eq(first.distance_to(Vector2(200, 200)), 0.0, 0.5, "螺旋从中心出发")
+	assert_almost_eq(last.distance_to(Vector2(200, 200)), 150.0, 2.0, "螺旋终点 = 外径")
+
+func test_preset_sweep():
+	var sk := LaserPresets.sweep(Vector2(100, 100), Vector2(0, -1), PI / 2.0, 300.0)
+	assert_almost_eq(sk.points[0].distance_to(Vector2(100, -200)), 0.0, 0.5, "扫起点 = 向上 300px")
+	var end_dir := Vector2(0, -1).rotated(PI / 2.0)  # 右
+	assert_almost_eq(sk.points[sk.points.size()-1].distance_to(Vector2(100, 100) + end_dir * 300.0), 0.0, 1.0, "扫终点 = 右向 300px")
+
+func test_preset_bezier():
+	var sk := LaserPresets.bezier(Vector2(0, 0), Vector2(100, -100), Vector2(300, 100), Vector2(400, 0))
+	assert_gt(sk.total_length, 400.0, "弯曲贝塞尔比直线长")
+	assert_almost_eq(sk.points[0].distance_to(Vector2(0, 0)), 0.0, 0.5, "起点")
+	assert_almost_eq(sk.points[sk.points.size()-1].distance_to(Vector2(400, 0)), 0.0, 0.5, "终点")
