@@ -60,9 +60,10 @@ func _simulate() -> void:
 
 
 func _reset() -> void:
-	_time = 0.0
+	# 重置 = 回到初始展示态（弹幕立刻在场，不空窗）
+	_time = 3.0
 	if _focus:
-		_focus.simulate_to(0.0)  # 重置 = 全量重放
+		_focus.simulate_to(_time)
 	_refresh_tree()
 
 
@@ -180,7 +181,8 @@ func _update_controls() -> void:
 
 func _update_time_label() -> void:
 	if _time_label:
-		_time_label.text = "t=%.2fs" % _time
+		var state := "" if _playing else " ⏸"
+		_time_label.text = "t=%.2fs%s" % [_time, state]
 
 
 # ── 聚焦/导航 ──
