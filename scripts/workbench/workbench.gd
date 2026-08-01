@@ -160,11 +160,17 @@ func _update_time_label() -> void:
 
 # ── 聚焦/导航 ──
 
-## 点击时间线 = seek：时间跳到该处，全树状态更新到对应时刻
+var _last_seek_ms: int = 0  # 拖动节流（全量重放较贵，拖动中限制频率）
+
+## 点击/拖动时间线 = seek：时间跳到该处，全树状态更新到对应时刻
 func _on_time_seeked(t: float) -> void:
 	if _focus == null:
 		return
-	_time = t
+	_time = t  # 播放头位置总是即时更新
+	var now := Time.get_ticks_msec()
+	if now - _last_seek_ms < 50:  # ~20Hz 节流：拖动流畅不卡
+		return
+	_last_seek_ms = now
 	_focus.simulate_to(t)  # 确定性重放（seek）
 	_refresh_tree.call_deferred()
 	_update_inspector()
