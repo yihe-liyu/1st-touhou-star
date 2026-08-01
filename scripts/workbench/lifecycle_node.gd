@@ -83,12 +83,18 @@ func duration() -> float:
 
 
 ## 树中所有活动节点（含自己，DFS）—— 预览画布用
-func collect_alive(result: Array = []) -> Array:
+## 注意：不可用默认数组参数（GDScript 默认数组是静态共享的 → 无限膨胀 OOM！）
+func collect_alive() -> Array:
+	var result: Array = []
+	_collect_alive(result)
+	return result
+
+
+func _collect_alive(result: Array) -> void:
 	if alive:
 		result.append(self)
 	for child in children:
-		child.collect_alive(result)
-	return result
+		child._collect_alive(result)
 
 
 # ── 子类钩子（覆写）──
