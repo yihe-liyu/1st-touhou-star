@@ -98,7 +98,8 @@ func _hit_target(bullet: Bullet, target: Node2D) -> bool:
 func _check_circle(bullet: Bullet, target: Node2D) -> bool:
 	var center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
 	var target_center: Vector2 = target.global_position
-	var target_radius: float = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
+	# 类型化访问（性能：target.get()/in 动态调用每次 ~2us，高频路径禁用）
+	var target_radius: float = target.hitbox_radius
 	var total_radius: float = bullet.hitbox_radius + target_radius
 	return center.distance_squared_to(target_center) < total_radius * total_radius
 
@@ -108,7 +109,8 @@ func _check_rect(bullet: Bullet, target: Node2D) -> bool:
 	var half: Vector2 = bullet.hitbox_size / 2.0
 	var angle: float = bullet.rotation + deg_to_rad(bullet.hitbox_rotation)
 	var target_center: Vector2 = target.global_position
-	var target_radius: float = target.get("hitbox_radius") if "hitbox_radius" in target else 8.0
+	# 类型化访问（性能）
+	var target_radius: float = target.hitbox_radius
 	var local_target: Vector2 = (target_center - box_center).rotated(-angle)
 	var closest: Vector2 = Vector2(
 		clamp(local_target.x, -half.x, half.x),

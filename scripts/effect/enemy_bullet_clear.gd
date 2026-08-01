@@ -23,6 +23,10 @@ func _setup() -> void:
 	if _tween and _tween.is_valid():
 		_tween.kill()
 	
+	# 防御：add_child 同栈 activate 时 _ready 未跑，@onready sprite 可能为 null
+	if sprite == null:
+		return
+	
 	sprite.scale = Vector2.ONE
 	rotation = RNG.randf_range(0.0, TAU)
 	
@@ -39,6 +43,8 @@ func _setup() -> void:
 
 
 func set_tint(color: Color) -> void:
+	if sprite == null:
+		return
 	var mat := sprite.material as ShaderMaterial
 	if not mat:
 		return
