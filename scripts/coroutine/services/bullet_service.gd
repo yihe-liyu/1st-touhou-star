@@ -29,6 +29,11 @@ func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base
 
 # ── 激光 ──
 
+## 骨架级生成（配合 LaserPresets 预设）：最灵活入口
+func spawn_laser(skeleton: LaserSkeleton, color: Color, opts: Dictionary = {}) -> LaserBeam:
+	if not active: return null
+	return BulletManager.spawn_laser(skeleton, color, opts)
+
 ## 沿 Curve2D 生长的激光
 func fire_growing_laser(curve: Curve2D, color: Color, speed: float = 600.0, tail: float = 300.0, lifetime: float = 8.0, tex: Texture2D = null) -> LaserBeam:
 	if not active: return null

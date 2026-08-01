@@ -83,6 +83,10 @@ func return_bullet(bullet):
 # ═══ 激光 API（新引擎 Laser 2.0）═══
 # 返回 LaserBeam（可配置 core_width / hitbox_width / graze_width 等）
 
+## 骨架级生成（配合 LaserPresets 预设）—— 最灵活的入口
+func spawn_laser(skeleton: LaserSkeleton, color: Color, opts: Dictionary = {}) -> LaserBeam:
+	return _lasers.spawn(skeleton, color, opts)
+
 ## 生长型曲线激光（沿 Curve2D 头部生长，尾部跟随）
 func fire_growing_laser(curve: Curve2D, color: Color, speed: float = 600.0, tail: float = 300.0, lifetime: float = 8.0, tex: Texture2D = null) -> LaserBeam:
 	return _lasers.spawn_curve(curve, color, {"grow": true, "grow_speed": speed, "tail": tail, "lifetime": lifetime, "tex": tex})
