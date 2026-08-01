@@ -40,7 +40,16 @@ func _ready() -> void:
 	_timeline.queue_redraw()
 
 
+var _shot3: float = 2.0
+
 func _process(delta: float) -> void:
+	if _shot3 > 0.0:
+		_shot3 -= delta
+		if _shot3 <= 0.0:
+			var img := get_viewport().get_texture().get_image()
+			img.save_png("/tmp/wb_mm.png")
+			print("SHOT mm")
+			_shot3 = -9.0
 	if _playing:
 		# 关键：限制 delta（编辑器 @tool 模式下 delta 可能暴涨到几百秒
 		# → 时间瞬间跳完 → 弹幕秒死 → 画面空/卡"不发射"）

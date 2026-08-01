@@ -29,11 +29,16 @@ func _ready() -> void:
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(32, 32)
 	mm.mesh = mesh
+	# 材质：batch shader 采样 glow_dot（实例色 = 红色，经 shader 染色）
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://gdshader/bullet_batch.gdshader")
+	mat.set_shader_parameter("tex", preload("res://assets/Textures/effect/glow_dot.png"))
+	mat.set_shader_parameter("region", Vector4(0, 0, 1, 1))
+	mat.set_shader_parameter("tint_mode", 0)  # 乘法：白纹理 × 实例色 = 红子弹
 	_bullet_mm = MultiMeshInstance2D.new()
 	_bullet_mm.multimesh = mm
-	_bullet_mm.texture = preload("res://assets/Textures/effect/glow_dot.png")
-	_bullet_mm.modulate = Color(1.0, 0.3, 0.2)
-	_bullet_mm.show_behind_parent = true  # 画在 _draw 背景之上、标记之下
+	_bullet_mm.material = mat
+	# 注意：不要 show_behind_parent（会画在背景后面被盖住 → 看不见！）
 	add_child(_bullet_mm)
 
 
@@ -74,7 +79,6 @@ func _draw() -> void:
 	# 所有活动节点（DFS 全树）
 	var alive: Array = focus.collect_alive()
 	var bullets: Array = []
-	var trail_pts := PackedVector2Array()  # 轨迹合并批量绘制
 	for node in alive:
 		if node is LifecycleBullet:
 			bullets.append(node as LifecycleBullet)
@@ -114,6 +118,7 @@ func _sync_bullet_mesh(bullets: Array) -> void:
 	for i in count:
 		var p: Vector2 = _to_screen((bullets[i] as LifecycleBullet).position())
 		mm.set_instance_transform_2d(i, Transform2D(0.0, Vector2(r, r), 0.0, p))
+		mm.set_instance_color(i, Color(1.0, 0.3, 0.2))
 
 
 ## 通用节点标记（非子弹实体）：小方块 + 存活框
