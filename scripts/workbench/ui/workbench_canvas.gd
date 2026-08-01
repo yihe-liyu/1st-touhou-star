@@ -16,30 +16,13 @@ const WORLD := Rect2(64, 32, 768, 896)  # 东方框世界坐标
 var _scale := 1.0
 var _offset := Vector2.ZERO
 
-var _bullet_mm: MultiMeshInstance2D  # 子弹批量渲染
+var _bullet_groups: Dictionary = {}  # 贴图路径 → MultiMeshInstance2D（分组批量）
 const MAX_BULLETS := 4096
+const _DEFAULT_TEX := preload("res://assets/Textures/effect/glow_dot.png")
 
 
 func _ready() -> void:
-	# 子弹批量渲染：glow_dot 圆点纹理 + QuadMesh（一次 draw call）
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_2D
-	mm.use_colors = true
-	mm.instance_count = 0
-	var mesh := QuadMesh.new()
-	mesh.size = Vector2(32, 32)
-	mm.mesh = mesh
-	# 材质：batch shader 采样 glow_dot（实例色 = 红色，经 shader 染色）
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://gdshader/bullet_batch.gdshader")
-	mat.set_shader_parameter("tex", preload("res://assets/Textures/effect/glow_dot.png"))
-	mat.set_shader_parameter("region", Vector4(0, 0, 1, 1))
-	mat.set_shader_parameter("tint_mode", 0)  # 乘法：白纹理 × 实例色 = 红子弹
-	_bullet_mm = MultiMeshInstance2D.new()
-	_bullet_mm.multimesh = mm
-	_bullet_mm.material = mat
-	# 注意：不要 show_behind_parent（会画在背景后面被盖住 → 看不见！）
-	add_child(_bullet_mm)
+	pass  # MultiMesh 组按需懒创建（_get_bullet_group）
 
 
 ## 世界坐标 → 画布坐标（缩放 + 居中）
@@ -95,8 +78,8 @@ func _draw() -> void:
 			for i in trail_n:
 				var tp: Vector2 = _to_screen(b.position_at(maxf(0.0, b.local_time - i * LifecycleNode.TICK)))
 				draw_circle(tp, 1.5, Color(1.0, 0.3, 0.2, 0.15))
-	# 子弹批量（MultiMesh 一次 draw call）
-	_sync_bullet_mesh(bullets)
+	# 子弹批量（按贴图分组，每组一次 draw call）
+	_sync_bullet_groups(bullets)
 	# 重置提示（画布中央，短暂显示）
 	if reset_flash > 0.0:
 		var alpha: float = clampf(reset_flash / 0.4, 0.0, 1.0)
@@ -107,18 +90,60 @@ func _draw() -> void:
 			txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 0.9, 0.4, alpha))
 
 
-## 子弹 → MultiMesh（一次 draw call）
-func _sync_bullet_mesh(bullets: Array) -> void:
-	if _bullet_mm == null:
-		return
-	var mm: MultiMesh = _bullet_mm.multimesh
-	var count := mini(bullets.size(), MAX_BULLETS)
-	mm.instance_count = count
-	var r: float = 2.5 * _scale
-	for i in count:
-		var p: Vector2 = _to_screen((bullets[i] as LifecycleBullet).position())
-		mm.set_instance_transform_2d(i, Transform2D(0.0, Vector2(r, r), 0.0, p))
-		mm.set_instance_color(i, Color(1.0, 0.3, 0.2))
+## 子弹 → 按贴图分组 MultiMesh（每组一次 draw call）
+func _sync_bullet_groups(bullets: Array) -> void:
+	# 按贴图分组
+	var groups: Dictionary = {}  # tex → [bullets]
+	for b in bullets:
+		var tex: Texture2D = (b as LifecycleBullet).texture if (b as LifecycleBullet).texture else _DEFAULT_TEX
+		var key: String = tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
+		if not groups.has(key):
+			groups[key] = {tex = tex, bullets = []}
+		groups[key].bullets.append(b)
+	# 填充各组 MultiMesh
+	var seen: Array = []
+	for key in groups:
+		var g: Dictionary = groups[key]
+		var mmi: MultiMeshInstance2D = _get_bullet_group(g.tex)
+		seen.append(mmi)
+		var mm: MultiMesh = mmi.multimesh
+		var list: Array = g.bullets
+		var count := mini(list.size(), MAX_BULLETS)
+		mm.instance_count = count
+		var r: float = 2.5 * _scale
+		for i in count:
+			var p: Vector2 = _to_screen((list[i] as LifecycleBullet).position())
+			mm.set_instance_transform_2d(i, Transform2D(0.0, Vector2(r, r), 0.0, p))
+			mm.set_instance_color(i, Color(1.0, 1.0, 1.0))
+	# 隐藏没用的组
+	for mmi in _bullet_groups.values():
+		if not seen.has(mmi):
+			(mmi.multimesh as MultiMesh).instance_count = 0
+
+
+## 按贴图取（或创建）MultiMesh 组
+func _get_bullet_group(tex: Texture2D) -> MultiMeshInstance2D:
+	var key: String = tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
+	if _bullet_groups.has(key):
+		return _bullet_groups[key]
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_2D
+	mm.use_colors = true
+	mm.instance_count = 0
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(32, 32)
+	mm.mesh = mesh
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://gdshader/bullet_batch.gdshader")
+	mat.set_shader_parameter("tex", tex)
+	mat.set_shader_parameter("region", Vector4(0, 0, 1, 1))
+	mat.set_shader_parameter("tint_mode", 0)  # 乘法：贴图 × 实例色
+	var mmi := MultiMeshInstance2D.new()
+	mmi.multimesh = mm
+	mmi.material = mat
+	add_child(mmi)
+	_bullet_groups[key] = mmi
+	return mmi
 
 
 ## 通用节点标记（非子弹实体）：小方块 + 存活框

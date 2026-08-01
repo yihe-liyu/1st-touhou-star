@@ -11,6 +11,7 @@ func _spawn_plan() -> Array:
 			b.origin = Vector2(448, 480)
 			var ang := TAU * float(i) / 8.0
 			b.velocity = Vector2(cos(ang), sin(ang)) * 240.0
+			b.texture = preload("res://assets/Textures/bullet/星弹.png")  # 真实弹幕贴图
 			plan.append({"t": 0.5 + wave * 0.5, "node": b})
 	return plan
 

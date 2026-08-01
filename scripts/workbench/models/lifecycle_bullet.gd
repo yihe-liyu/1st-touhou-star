@@ -7,6 +7,7 @@ extends LifecycleNode
 var origin: Vector2 = Vector2.ZERO
 var velocity: Vector2 = Vector2.ZERO
 var radius: float = 4.0
+var texture: Texture2D  ## 贴图（null = 默认红点）；预览用游戏真实贴图
 
 
 func _init() -> void:
