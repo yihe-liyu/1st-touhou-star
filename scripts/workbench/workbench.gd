@@ -51,6 +51,7 @@ func _process(delta: float) -> void:
 		_reset_flash -= delta
 	if _canvas is WorkbenchCanvas:
 		_canvas.reset_flash = _reset_flash  # 防御：脚本缓存不一致时安全跳过
+		_canvas.playing = _playing  # 播放中不画轨迹（性能）
 		_canvas.queue_redraw()
 	if _timeline:
 		_timeline.time = _time

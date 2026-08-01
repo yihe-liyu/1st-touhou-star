@@ -15,6 +15,7 @@ const TICK := 1.0 / 60.0  ## 模拟步长（固定，保证确定性）
 var parent: LifecycleNode
 var anchor: float = 0.0        ## 父创建本节点时的父局部时间
 var local_time: float = 0.0    ## 本节点局部时间（从出生起）
+var fast_advance := false      ## 子类声明：无 tick/生成逻辑 → 纯时间推进（性能）
 var children: Array[LifecycleNode] = []
 var alive: bool = false        ## 生成后 true，死亡后 false
 var died_at: float = -1.0      ## 死亡时局部时间（-1 = 未死）
@@ -62,13 +63,21 @@ func simulate_to(t: float) -> void:
 ## 增量推进（不重置）—— 播放模式用；也是重放的内部实现
 ## 与重放同一确定性函数 → 增量结果 = 重放结果（逐帧播放等价拖动）
 func advance_to(t: float) -> void:
+	# 快速路径：纯时间推进（子弹等无 tick/生成逻辑的对象）
+	# 避免 GDScript 逐 tick 函数调用开销（2000 子弹 = 2000 次调用）
+	if fast_advance and _spawn_queue.is_empty():
+		local_time = t
+		_check_death()
+		return
 	while local_time < t and alive:
 		var dt := minf(TICK, t - local_time)
 		_tick(dt)
 		local_time += dt
 		_process_spawns()
-		_sync_children()
 		_check_death()
+	# 性能：子节点时间 = 父时间 - 锚点，循环结束后同步一次即可
+	# （每 tick 同步 → 2000 子 × 60 tick = 12 万次/帧！）
+	_sync_children()
 
 
 ## 重置到出生时刻（确定性起点）

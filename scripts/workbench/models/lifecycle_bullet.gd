@@ -9,6 +9,10 @@ var velocity: Vector2 = Vector2.ZERO
 var radius: float = 4.0
 
 
+func _init() -> void:
+	fast_advance = true  # 子弹位置是纯函数：直接跳时间（性能）
+
+
 func is_entity() -> bool:
 	return true  # 子弹是运行时实体：编排树不显示
 
