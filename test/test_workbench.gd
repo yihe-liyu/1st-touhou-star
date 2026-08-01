@@ -90,3 +90,36 @@ func test_bullet_offscreen_death():
 	b.velocity = Vector2(0, -100)
 	b.simulate_to(3.5)
 	assert_false(b.alive, "出框（y<32）后死亡")
+
+func test_replay_twice_preserves_tree():
+	# 回归：两次 simulate_to（拖动/播放切换）子树不丢失
+	var root := WorkbenchDemoRoot.new()
+	var emitter := WorkbenchDemoEmitter.new()
+	root.child_plan = [{"t": 1.0, "node": emitter}]
+	root.simulate_to(3.0)
+	assert_eq(root.children.size(), 1, "第一次模拟：emitter 在")
+	assert_gt(emitter.children.size(), 0, "第一次模拟：子弹已生成")
+	root.simulate_to(4.0)  # 第二次重放
+	assert_eq(root.children.size(), 1, "第二次模拟：emitter 仍在（计划不被消耗）")
+	assert_gt(emitter.children.size(), 0, "第二次模拟：子弹重新生成")
+
+func test_spawn_plan_not_consumed():
+	# 回归：_spawn_plan 返回的数组是"模板"，pop 消耗的是副本
+	var root := WorkbenchDemoRoot.new()
+	var emitter := WorkbenchDemoEmitter.new()
+	root.child_plan = [{"t": 1.0, "node": emitter}]
+	for i in 3:
+		root.simulate_to(2.5)
+		assert_eq(root.children.size(), 1, "第 %d 次重放 emitter 都在" % (i + 1))
+
+func test_advance_incremental_matches_replay():
+	# 增量推进（播放）结果 = 全量重放（拖动）结果（确定性一致）
+	var a := WorkbenchDemoRoot.new()
+	a.child_plan = [{"t": 1.0, "node": WorkbenchDemoEmitter.new()}]
+	a.simulate_to(3.0)  # 重放
+	var b := WorkbenchDemoRoot.new()
+	b.child_plan = [{"t": 1.0, "node": WorkbenchDemoEmitter.new()}]
+	b.simulate_to(2.0)  # 先到 2.0
+	b.advance_to(3.0)   # 再增量到 3.0
+	assert_eq(a.children.size(), b.children.size(), "重放与增量：子数量一致")
+	assert_eq(a.collect_alive().size(), b.collect_alive().size(), "重放与增量：存活数一致")

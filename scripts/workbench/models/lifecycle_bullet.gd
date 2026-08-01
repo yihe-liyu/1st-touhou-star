@@ -10,7 +10,12 @@ var radius: float = 4.0
 
 
 func position() -> Vector2:
-	return origin + velocity * local_time
+	return position_at(local_time)
+
+
+## 任意局部时刻的位置（轨迹绘制用）
+func position_at(t: float) -> Vector2:
+	return origin + velocity * t
 
 
 func _should_die() -> bool:
