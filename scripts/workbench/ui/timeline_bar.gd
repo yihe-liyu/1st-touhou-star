@@ -29,7 +29,7 @@ func _draw() -> void:
 		var x := i / total * w
 		draw_line(Vector2(x, 0), Vector2(x, size.y), Color(1, 1, 1, 0.05))
 		if i % 5 == 0:
-			draw_string(ThemeDB.fallback_font, Vector2(x + 2, 10), str(i), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.6, 0.6, 0.7))
+			_draw_tick_label(x, i)
 	var cy := size.y / 2.0
 	# 主对象自身条（高亮：整个生命周期范围）
 	var self_x0 := clampf((focus.anchor if focus.parent else 0.0) / total * w, 0.0, w)
@@ -64,6 +64,16 @@ func _collect_events(node: LifecycleNode, base_t: float, out: Array) -> void:
 	for child in node.children:
 		if not child.is_entity():
 			_collect_events(child, base_t + child.anchor, out)
+
+
+## 刻度数字（字体 null 保护：Vulkan/编辑器下 fallback_font 可能为空 → 空纹理错误）
+func _draw_tick_label(x: float, sec: int) -> void:
+	var font: Font = ThemeDB.fallback_font
+	if font == null:
+		font = get_theme_default_font()
+	if font == null:
+		return  # 无字体可用：跳过文字（只画线）
+	draw_string(font, Vector2(x + 2, 10), str(sec), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.6, 0.6, 0.7))
 
 
 var _dragging: bool = false
