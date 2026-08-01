@@ -45,8 +45,9 @@ func _draw() -> void:
 		var col := _color_for(child)
 		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col)
 		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col.darkened(0.5), false, 1.0)
-	# 行为事件点（◆ 沿时间线：行为的节奏）
-	var events: Array = focus._behavior_events()
+	# 行为事件点（◆ 沿时间线：焦点对象 + 所有子对象的发射节奏）
+	var events: Array = []
+	_collect_events(focus, 0.0, events)
 	for ev in events:
 		var ex: float = ev.t / total * w
 		if ex >= 0.0 and ex <= w:
@@ -56,6 +57,15 @@ func _draw() -> void:
 	# 播放头（唯一移动的东西）
 	var hx := clampf(time / total, 0.0, 1.0) * w
 	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.9), 2.0)
+
+
+## 递归收集行为事件（子对象事件 = 父锚点 + 局部 t → 主对象时间线可见）
+func _collect_events(node: LifecycleNode, base_t: float, out: Array) -> void:
+	for ev in node._behavior_events():
+		out.append({"t": base_t + ev.t, "label": ev.label})
+	for child in node.children:
+		if not child.is_entity():
+			_collect_events(child, base_t + child.anchor, out)
 
 
 var _dragging: bool = false
