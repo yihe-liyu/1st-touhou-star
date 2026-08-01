@@ -7,6 +7,7 @@ class_name WorkbenchCanvas
 var focus: LifecycleNode
 var trail_length: int = 24   ## 拖尾帧数（0 = 关闭）
 var show_trail: bool = true  ## 拖尾开关
+var reset_flash: float = 0.0  ## 重置提示剩余时长
 
 const WORLD := Rect2(64, 32, 768, 896)  # 东方框世界坐标
 
@@ -55,6 +56,14 @@ func _draw() -> void:
 			_draw_bullet(node as LifecycleBullet)
 		elif node != focus:
 			_draw_node_marker(node)
+	# 重置提示（画布中央，短暂显示）
+	if reset_flash > 0.0:
+		var alpha: float = clampf(reset_flash / 0.4, 0.0, 1.0)
+		var txt := "↺ 已重置 t=0"
+		var fs := 22
+		var wd := txt.length() * fs * 0.6
+		draw_string(ThemeDB.fallback_font, Vector2((size.x - wd) / 2.0, size.y / 2.0),
+			txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 0.9, 0.4, alpha))
 
 
 ## 通用节点标记（非子弹实体）：小方块 + 存活框

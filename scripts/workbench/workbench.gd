@@ -4,6 +4,8 @@
 @tool
 extends Control
 
+const VERSION := "v4.2"  ## 调试用：确认运行的是最新代码
+
 const TimelineBarScript = preload("res://scripts/workbench/ui/timeline_bar.gd")
 const CanvasScript = preload("res://scripts/workbench/ui/workbench_canvas.gd")
 
@@ -45,7 +47,10 @@ func _process(delta: float) -> void:
 		var dt := minf(delta, 0.05)
 		_time += dt * _speed
 		_simulate()
+	if _reset_flash > 0.0:
+		_reset_flash -= delta
 	if _canvas:
+		_canvas.reset_flash = _reset_flash
 		_canvas.queue_redraw()
 	if _timeline:
 		_timeline.time = _time
@@ -64,16 +69,15 @@ func _simulate() -> void:
 
 func _reset() -> void:
 	# 重置（方案 A）：时间归零；播放状态保持不变
-	print("[WB] RESET START")
 	_time = 0.0
 	if _focus:
 		_focus.simulate_to(0.0)
-		print("[WB] RESET simulated: local_t=", _focus.local_time, " children=", _focus.children.size())
 	if _timeline:
 		_timeline.time = 0.0
 		_timeline.queue_redraw()
 	_refresh_tree.call_deferred()
-	print("[WB] RESET DONE")
+	# 重置视觉反馈：画布短暂提示（确认重置生效）
+	_reset_flash = 0.8
 
 
 # ── 演示树：发射器 → 生成子弹 → 死亡 ──
@@ -117,6 +121,10 @@ func _build_ui() -> void:
 	toolbar.add_child(_breadcrumb)
 	_time_label = Label.new()
 	toolbar.add_child(_time_label)
+	var ver := Label.new()
+	ver.text = VERSION
+	ver.modulate = Color(0.5, 0.7, 1.0)
+	toolbar.add_child(ver)
 	# 拖尾设置
 	var trail_check := CheckButton.new()
 	trail_check.text = "拖尾"
@@ -197,6 +205,7 @@ func _update_time_label() -> void:
 # ── 聚焦/导航 ──
 
 var _last_seek_ms: int = 0  # 拖动节流（全量重放较贵，拖动中限制频率）
+var _reset_flash: float = 0.0  # 重置提示剩余时长（秒）
 
 ## 点击/拖动时间线 = seek：时间跳到该处，全树状态更新到对应时刻
 func _on_time_seeked(t: float) -> void:
