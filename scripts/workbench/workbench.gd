@@ -183,15 +183,16 @@ func _on_node_selected(node: LifecycleNode) -> void:
 		_update_inspector()
 		return
 	# 时间轴切到该对象的局部时间线（锚点语义）
+	# 注意：保留 _time（不归零）——切换主对象后画布立刻显示
+	# 该时刻的完整状态，不会变成空画面
 	_focus = node
-	_time = 0.0
-	_focus.simulate_to(0.0)
+	_focus.simulate_to(_time)
 	if _canvas:
 		_canvas.focus = _focus
 	_breadcrumb.text = _breadcrumb_path(node)
 	_refresh_tree.call_deferred()
 	_timeline.focus = _focus
-	_timeline.time = 0.0
+	_timeline.time = _time
 	_timeline.queue_redraw()
 	_update_inspector()
 
