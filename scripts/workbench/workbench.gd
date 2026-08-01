@@ -49,8 +49,8 @@ func _process(delta: float) -> void:
 		_simulate()
 	if _reset_flash > 0.0:
 		_reset_flash -= delta
-	if _canvas:
-		_canvas.reset_flash = _reset_flash
+	if _canvas is WorkbenchCanvas:
+		_canvas.reset_flash = _reset_flash  # 防御：脚本缓存不一致时安全跳过
 		_canvas.queue_redraw()
 	if _timeline:
 		_timeline.time = _time
