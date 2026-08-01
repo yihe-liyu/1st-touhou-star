@@ -249,17 +249,25 @@ func _add_inspector_row(key: String, value: String) -> void:
 	k.modulate = Color(0.7, 0.7, 0.8)
 	var v := Label.new()
 	v.text = value
+	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # 长文本换行，不撑宽
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(k)
 	row.add_child(v)
 	_inspector.add_child(row)
 
 
 func _child_summary(node: LifecycleNode) -> String:
+	# 截断：最多列 5 个，避免超长文本撑爆面板（画布被挤出！）
 	var names: Array = []
 	for child in node.children:
+		if names.size() >= 5:
+			break
 		var ref: Script = child.get_script() as Script
 		names.append(ref.resource_path.get_file().get_basename())
-	return "、".join(names) if names.size() > 0 else "—"
+	var s: String = "、".join(names)
+	if node.children.size() > 5:
+		s += "… 等 %d 个" % node.children.size()
+	return s if names.size() > 0 else "—"
 
 
 # ── 生命周期树 UI ──
