@@ -45,6 +45,14 @@ func _draw() -> void:
 		var col := _color_for(child)
 		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col)
 		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col.darkened(0.5), false, 1.0)
+	# 行为事件点（◆ 沿时间线：行为的节奏）
+	var events: Array = focus._behavior_events()
+	for ev in events:
+		var ex: float = ev.t / total * w
+		if ex >= 0.0 and ex <= w:
+			draw_colored_polygon(PackedVector2Array([
+				Vector2(ex, 4), Vector2(ex + 7, 8), Vector2(ex, 12)
+			]), Color(1.0, 0.8, 0.3, 0.9))
 	# 播放头（唯一移动的东西）
 	var hx := clampf(time / total, 0.0, 1.0) * w
 	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.9), 2.0)

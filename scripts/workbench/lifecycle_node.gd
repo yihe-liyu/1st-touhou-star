@@ -108,6 +108,10 @@ func _tick(_dt: float) -> void: pass
 func _spawn_plan() -> Array: return []
 ## 死亡条件：局部时间达到返回 true
 func _should_die() -> bool: return false
+## 行为事件（编排树/时间线展示）：返回 [{t: 局部时刻, label: 描述}]
+func _behavior_events() -> Array: return []
+## 是否实体（子弹等运行时个体；编排树不显示实体）
+func is_entity() -> bool: return false
 
 
 # ── 内部 ──

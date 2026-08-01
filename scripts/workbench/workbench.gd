@@ -272,9 +272,16 @@ func _child_summary(node: LifecycleNode) -> String:
 
 # ── 生命周期树 UI ──
 
+var _tree_sig: String = ""
+
+## 树刷新：结构签名变化才重建（实体生成/死亡才刷 → 播放不卡）
 func _refresh_tree() -> void:
 	if _tree_ui == null:
 		return
+	var sig := _tree_signature(_focus)
+	if sig == _tree_sig:
+		return  # 结构没变：跳过重建（性能）
+	_tree_sig = sig
 	_tree_ui.clear()
 	var root_item := _tree_ui.create_item()
 	root_item.set_text(0, _node_label(_focus))
@@ -283,8 +290,19 @@ func _refresh_tree() -> void:
 	_add_tree_children(root_item, _focus)
 
 
+## 树结构签名：对象节点（非实体）+ 存活数 + 局部时间（量化）
+func _tree_signature(node: LifecycleNode) -> String:
+	var parts: Array = [str(int(node.local_time * 10)), str(node.alive)]
+	for child in node.children:
+		if not child.is_entity():
+			parts.append(_tree_signature(child))
+	return "|".join(parts)
+
+
 func _add_tree_children(parent_item: TreeItem, node: LifecycleNode) -> void:
 	for child in node.children:
+		if child.is_entity():
+			continue  # 实体（子弹）不进编排树
 		var item := _tree_ui.create_item(parent_item)
 		item.set_text(0, _node_label(child))
 		item.set_metadata(0, child)
@@ -295,7 +313,11 @@ func _node_label(node: LifecycleNode) -> String:
 	var script_ref: Script = node.get_script() as Script
 	var label: String = script_ref.resource_path.get_file().get_basename()
 	var state: String = "▶" if node.alive else "✖"
-	return "%s %s (t=%.1f)" % [state, label, node.local_time]
+	var events: Array = node._behavior_events()
+	var beh: String = ""
+	if events.size() > 0:
+		beh = "  [%d 行为]" % events.size()
+	return "%s %s (t=%.1f)%s" % [state, label, node.local_time, beh]
 
 
 func _on_tree_selected() -> void:

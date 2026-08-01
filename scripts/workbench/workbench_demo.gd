@@ -14,6 +14,13 @@ func _spawn_plan() -> Array:
 			plan.append({"t": 0.5 + round * 0.5, "node": b})
 	return plan
 
+## 行为事件：每轮发射 = 一个事件（编排树/时间线展示）
+func _behavior_events() -> Array:
+	var events: Array = []
+	for round in 8:
+		events.append({"t": 0.5 + round * 0.5, "label": "发射环 #%d" % (round + 1)})
+	return events
+
 ## 7 秒后死亡
 func _should_die() -> bool:
 	return local_time >= 7.0

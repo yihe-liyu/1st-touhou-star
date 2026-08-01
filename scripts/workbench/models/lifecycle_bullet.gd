@@ -9,6 +9,10 @@ var velocity: Vector2 = Vector2.ZERO
 var radius: float = 4.0
 
 
+func is_entity() -> bool:
+	return true  # 子弹是运行时实体：编排树不显示
+
+
 func position() -> Vector2:
 	return position_at(local_time)
 
