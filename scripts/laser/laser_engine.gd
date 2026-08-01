@@ -4,14 +4,18 @@ class_name LaserEngine
 extends RefCounted
 
 const POOL_SIZE := 64
+const GRAZE_COOLDOWN_FRAMES := 3
 
 var _pool: Array[LaserBeam] = []
 var _active: Array[LaserBeam] = []
 var _parent: Node
 var _pool_index: int = 0
+var _physics: BulletPhysics  ## 擦弹计分/音效委托
+var _graze_cooldown: int = 0
 
 
-func setup(p_parent: Node) -> void:
+func setup(p_parent: Node, p_physics: BulletPhysics = null) -> void:
+	_physics = p_physics
 	_parent = p_parent
 	for i in POOL_SIZE:
 		var beam := LaserBeam.new()
@@ -33,36 +37,61 @@ func _acquire() -> LaserBeam:
 	return reuse
 
 
-## 统一生成入口：骨架 + 颜色（形态/参数在 beam 上配置）
-func spawn(skeleton: LaserSkeleton, color: Color) -> LaserBeam:
+## 统一生成入口：骨架 + 颜色 + 配置（opts：grow/grow_speed/tail/lifetime/宽度等）
+func spawn(skeleton: LaserSkeleton, color: Color, opts: Dictionary = {}) -> LaserBeam:
 	var beam := _acquire()
 	if beam == null:
 		return null
+	beam.grow_on_spawn = opts.get("grow", beam.grow_on_spawn)
+	beam.grow_speed = opts.get("grow_speed", beam.grow_speed)
+	beam.tail_distance = opts.get("tail", beam.tail_distance)
+	beam.max_lifetime = opts.get("lifetime", beam.max_lifetime)
+	beam.core_width = opts.get("core_width", beam.core_width)
+	beam.hitbox_width = opts.get("hitbox_width", beam.hitbox_width)
+	beam.graze_width = opts.get("graze_width", beam.graze_width)
 	beam.spawn(skeleton, color)
 	_active.append(beam)
 	return beam
 
 
-## 便捷：直线激光
-func spawn_line(a: Vector2, b: Vector2, color: Color) -> LaserBeam:
+## 便捷：直线激光（opts 同上）
+func spawn_line(a: Vector2, b: Vector2, color: Color, opts: Dictionary = {}) -> LaserBeam:
 	var sk := LaserSkeleton.new()
 	sk.from_line(a, b)
-	return spawn(sk, color)
+	return spawn(sk, color, opts)
 
 
-## 便捷：曲线激光（Curve2D，均匀采样）
-func spawn_curve(curve: Curve2D, color: Color, seg_len: float = 32.0) -> LaserBeam:
+## 便捷：曲线激光（Curve2D，均匀采样；opts 同上）
+func spawn_curve(curve: Curve2D, color: Color, opts: Dictionary = {}, seg_len: float = 32.0) -> LaserBeam:
 	var sk := LaserSkeleton.new()
 	sk.from_curve(curve, seg_len)
-	return spawn(sk, color)
+	return spawn(sk, color, opts)
 
 
-## 每帧推进所有活动激光（回收 DEAD）
-func step(_delta: float) -> void:
+## 每帧推进所有活动激光 + 玩家判定（回收 DEAD）
+func step(delta: float) -> void:
+	var player: Player = GameState.player
+	var has_player: bool = is_instance_valid(player) and not player.is_invincible
+	var missed: bool = false
 	for i in range(_active.size() - 1, -1, -1):
-		if _active[i].phase == LaserBeam.Phase.DEAD:
-			_active[i]._reset()
+		var beam := _active[i]
+		beam._physics_process(delta)
+		if beam.phase == LaserBeam.Phase.DEAD:
+			beam._reset()
 			_active.remove_at(i)
+			continue
+		# 玩家判定：命中（每帧最多一次 miss）/ 擦弹（冷却）
+		if has_player and beam.phase != LaserBeam.Phase.FADE and not missed:
+			var pos := player.global_position
+			if beam.is_hitting(pos):
+				missed = true
+				player.miss()
+			elif _graze_cooldown <= 0 and beam.is_grazing(pos, player.graze_radius):
+				_graze_cooldown = GRAZE_COOLDOWN_FRAMES
+				if _physics:
+					_physics.on_graze()
+	if _graze_cooldown > 0:
+		_graze_cooldown -= 1
 
 
 func clear() -> void:

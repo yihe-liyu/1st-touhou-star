@@ -170,3 +170,59 @@ func test_engine_spawn_curve():
 	var beam := engine.spawn_curve(curve, Color.GREEN)
 	assert_not_null(beam, "曲线激光应生成")
 	assert_gt(beam.skeleton.total_length, 0.0, "曲线骨架应有长度")
+
+# ── 第 2 步：cut_head + 引擎判定 ──
+
+func test_cut_head_freezes_then_dies():
+	var beam := _make_beam()
+	beam._physics_process(0.5)  # head = 150
+	assert_eq(beam.head_dist, 150.0, "生长中 head=150")
+	beam.cut_head()
+	beam._physics_process(0.1)
+	assert_eq(beam.phase, LaserBeam.Phase.CONTRACT, "切头后转 CONTRACT（不再前进）")
+	assert_eq(beam.head_dist, 180.0, "切头前已生成的部分保留")
+	# 尾部追上消失
+	for i in 20:
+		beam._physics_process(0.1)
+	assert_eq(beam.phase, LaserBeam.Phase.DEAD, "尾部追上 → DEAD")
+
+func test_cut_head_ignored_on_fixed():
+	var beam := _make_full_beam()
+	beam.cut_head()
+	assert_eq(beam.phase, LaserBeam.Phase.SUSTAIN, "固定型切头无效（保持 SUSTAIN）")
+
+func _make_engine() -> LaserEngine:
+	var engine := LaserEngine.new()
+	autofree(engine)
+	var physics := BulletPhysics.new()
+	physics.setup(BulletPool.new())
+	engine.setup(self, physics)  # 传 physics 委托擦弹计分
+	return engine
+
+func _make_engine_player(x: float) -> Player:
+	var player = preload("res://scenes/player.tscn").instantiate()
+	autofree(player)
+	player.player_data = load("res://data/player_data/marisa_data.tres")
+	add_child(player)
+	player._reinit_shoot()
+	player.global_position = Vector2(x, 300)
+	player.is_invincible = false
+	GameState.player = player
+	return player
+
+func test_engine_step_detects_hit_and_graze():
+	var engine := _make_engine()
+	var player := _make_engine_player(3.0)  # 命中线内（hitbox 6）
+	# 竖直线激光在 x=0（瞬间全开）
+	engine.spawn_line(Vector2(0, 0), Vector2(0, 600), Color.RED, {"grow": false})
+	engine.step(0.016)
+	assert_true(player.is_invincible, "激光命中 → 玩家 miss（进入无敌帧）")
+
+func test_engine_graze():
+	var engine := _make_engine()
+	var player := _make_engine_player(30.0)  # 擦弹范围（22+graze 40）
+	var beam: LaserBeam = engine.spawn_line(Vector2(0, 0), Vector2(0, 600), Color.RED, {"grow": false})
+	assert_eq(beam.phase, LaserBeam.Phase.SUSTAIN, "opts 生效：瞬间全开")
+	var g0 := GameState.graze_count
+	engine.step(0.016)
+	assert_gt(GameState.graze_count, g0, "擦弹应计数")

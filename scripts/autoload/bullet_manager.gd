@@ -4,12 +4,12 @@ extends Node2D
 # ═══ 子模块 ───
 const PoolClass = preload("res://scripts/autoload/bullet/bullet_pool.gd")
 const PhysicsClass = preload("res://scripts/autoload/bullet/bullet_physics.gd")
-const LaserClass = preload("res://scripts/autoload/bullet/laser_system.gd")
+const LaserEngineClass = preload("res://scripts/laser/laser_engine.gd")
 const DeathClearClass = preload("res://scripts/autoload/bullet/death_clear.gd")
 
 var _pool: BulletPool
 var _physics: BulletPhysics
-var _lasers: LaserSystem
+var _lasers: LaserEngine
 var _death_clear: DeathClear
 
 ## 暴露给 bullet_multi_mesh 等需要直接遍历子弹的地方
@@ -27,7 +27,7 @@ func _ready():
 	_pool.setup(self)
 	_physics = PhysicsClass.new()
 	_physics.setup(_pool)
-	_lasers = LaserClass.new()
+	_lasers = LaserEngineClass.new()
 	_lasers.setup(self, _physics)
 	_death_clear = DeathClearClass.new()
 	_death_clear.setup(_pool, _lasers)
@@ -80,16 +80,20 @@ func return_bullet(bullet):
 	_pool.return_bullet(bullet)
 
 
-# ═══ 激光 API（委托给 lasers）═══
+# ═══ 激光 API（新引擎 Laser 2.0）═══
+# 返回 LaserBeam（可配置 core_width / hitbox_width / graze_width 等）
 
-func fire_growing_laser(curve: Curve2D, color: Color, speed: float, tail: float, lifetime: float, tex: Texture2D = null) -> Laser:
-	return _lasers.fire_growing(curve, color, speed, tail, lifetime, tex)
+## 生长型曲线激光（沿 Curve2D 头部生长，尾部跟随）
+func fire_growing_laser(curve: Curve2D, color: Color, speed: float = 600.0, tail: float = 300.0, lifetime: float = 8.0, tex: Texture2D = null) -> LaserBeam:
+	return _lasers.spawn_curve(curve, color, {"grow": true, "grow_speed": speed, "tail": tail, "lifetime": lifetime})
 
-func fire_line_laser(a: Vector2, b: Vector2, color: Color, lifetime: float, tex: Texture2D = null) -> Laser:
-	return _lasers.fire_line(a, b, color, lifetime, tex)
+## 直线激光（瞬间全开）
+func fire_line_laser(a: Vector2, b: Vector2, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> LaserBeam:
+	return _lasers.spawn_line(a, b, color, {"grow": false, "lifetime": lifetime})
 
-func fire_fixed_laser(curve: Curve2D, color: Color, lifetime: float, tex: Texture2D = null) -> Laser:
-	return _lasers.fire_fixed_path(curve, color, lifetime, tex)
+## 固定曲线激光（瞬间全开沿曲线）
+func fire_fixed_laser(curve: Curve2D, color: Color, lifetime: float = 10.0, tex: Texture2D = null) -> LaserBeam:
+	return _lasers.spawn_curve(curve, color, {"grow": false, "lifetime": lifetime})
 
 func clear_all_lasers() -> void:
 	_lasers.clear()

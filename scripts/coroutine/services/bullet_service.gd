@@ -30,22 +30,22 @@ func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base
 # ── 激光 ──
 
 ## 沿 Curve2D 生长的激光
-func fire_growing_laser(curve: Curve2D, color: Color, speed: float = 600.0, tail: float = 300.0, lifetime: float = 8.0, tex: Texture2D = null) -> Laser:
+func fire_growing_laser(curve: Curve2D, color: Color, speed: float = 600.0, tail: float = 300.0, lifetime: float = 8.0, tex: Texture2D = null) -> LaserBeam:
 	if not active: return null
 	return BulletManager.fire_growing_laser(curve, color, speed, tail, lifetime, tex)
 
 ## 两点间直线激光（瞬间全开）
-func fire_line_laser(a: Vector2, b: Vector2, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> Laser:
+func fire_line_laser(a: Vector2, b: Vector2, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> LaserBeam:
 	if not active: return null
 	return BulletManager.fire_line_laser(a, b, color, lifetime, tex)
 
 ## 固定路径激光（沿 Curve2D 瞬间全开）
-func fire_fixed_laser(curve: Curve2D, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> Laser:
+func fire_fixed_laser(curve: Curve2D, color: Color, lifetime: float = 3.0, tex: Texture2D = null) -> LaserBeam:
 	if not active: return null
 	return BulletManager.fire_fixed_laser(curve, color, lifetime, tex)
 
 ## 自机导向激光
-func fire_homing_laser(origin: Vector2, player_pos: Vector2, color: Color, bend: float = 100.0, length: float = 500.0, lifetime: float = 5.0) -> Laser:
+func fire_homing_laser(origin: Vector2, player_pos: Vector2, color: Color, bend: float = 100.0, length: float = 500.0, lifetime: float = 5.0) -> LaserBeam:
 	if not active or player_pos == Vector2.ZERO:
 		return null
 	var dir := (player_pos - origin).normalized()

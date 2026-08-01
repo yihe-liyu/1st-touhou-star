@@ -6,7 +6,7 @@ const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
 var _death_clears: Array[Dictionary] = []
 var _pool: BulletPool
-var _laser_system: LaserSystem
+var _laser_system: LaserEngine
 
 
 func setup(p_pool, p_laser_sys) -> void:
@@ -56,11 +56,11 @@ func process(delta: float) -> void:
 				_pool.return_bullet(bullet)
 
 		# 生长型激光头部碰到消弹圈时：头部停止前进，尾部追上后消失
-		for laser in _laser_system.get_active():
-			if laser._dead or laser._fading or laser.mode != 2:
+		for beam in _laser_system.get_active():
+			if beam.phase != LaserBeam.Phase.GROW:
 				continue
-			var head_pos: Vector2 = laser._sample_curve(laser.head_dist)
+			var head_pos: Vector2 = beam.skeleton.sample_at(beam.head_dist)
 			if head_pos.distance_squared_to(center) <= radius_sq:
-				laser._cut_head()
+				beam.cut_head()
 
 		

@@ -24,6 +24,9 @@ var head_dist: float = 0.0
 var tail_dist: float = 0.0
 var _dirty: bool = true             ## 骨架可见段是否变化（渲染层据此重建）
 var _fade_age: float = 0.0
+var _head_cut: bool = false         ## 消弹圈切头：头部冻结
+
+var _line: Line2D                   ## 最小渲染（单层；第 3 步升级为 MultiMesh 三层）
 
 
 ## 初始化（池复用入口）：绑定骨架 + 重置状态
@@ -32,9 +35,11 @@ func spawn(p_skeleton: LaserSkeleton, p_color: Color) -> void:
 	laser_color = p_color
 	age = 0.0
 	_fade_age = 0.0
+	_head_cut = false
 	_dirty = true
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
+	_ensure_line()
 	if grow_on_spawn and grow_speed > 0.0:
 		phase = Phase.GROW
 		head_dist = 0.0
@@ -56,7 +61,9 @@ func _physics_process(delta: float) -> void:
 			head_dist = minf(head_dist + grow_speed * delta, skeleton.total_length)
 			# 尾部滞后：距离头部 tail_distance（不短于 0）
 			tail_dist = maxf(tail_dist, head_dist - tail_distance)
-			if head_dist >= skeleton.total_length:
+			if _head_cut:
+				phase = Phase.CONTRACT  # 消弹圈切头 → 尾部追上消失
+			elif head_dist >= skeleton.total_length:
 				phase = Phase.SUSTAIN
 		Phase.SUSTAIN:
 			if max_lifetime > 0.0 and age >= max_lifetime:
@@ -72,9 +79,13 @@ func _physics_process(delta: float) -> void:
 			if _fade_age >= 0.15:
 				phase = Phase.DEAD
 	_dirty = old_head != head_dist or old_tail != tail_dist
+	if _dirty:
+		_rebuild_line()
 	if phase == Phase.DEAD:
 		visible = false
 		process_mode = Node.PROCESS_MODE_DISABLED
+		if _line:
+			_line.clear_points()
 
 
 # ── 判定（点到骨架折线段距离）──
@@ -107,12 +118,48 @@ func is_grazing(pos: Vector2, graze_radius: float) -> bool:
 	return distance_to(pos, 16) <= graze_width + graze_radius
 
 
-## 池回收：彻底复位（渲染层第 3 步加清理）
+## 消弹圈切头：冻结头部，尾部追上后消失（只对生长型有效）
+func cut_head() -> void:
+	if _dead_phase() or phase != Phase.GROW:
+		return
+	_head_cut = true
+
+
+## 池回收：彻底复位
 func _reset() -> void:
 	phase = Phase.DEAD
 	skeleton = null
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
+	if _line:
+		_line.clear_points()
+
+
+func _dead_phase() -> bool:
+	return phase == Phase.DEAD
+
+
+## 最小渲染：Line2D 沿可见骨架重建（第 3 步升级）
+func _ensure_line() -> void:
+	if _line:
+		return
+	_line = Line2D.new()
+	_line.width = core_width
+	_line.default_color = laser_color
+	_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	_line.joint_mode = Line2D.LINE_JOINT_ROUND
+	_line.antialiased = true
+	add_child(_line)
+
+
+func _rebuild_line() -> void:
+	if _line == null:
+		return
+	_line.clear_points()
+	var pts := visible_points(24)
+	for p in pts:
+		_line.add_point(p - global_position)
 
 
 func _dist_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
