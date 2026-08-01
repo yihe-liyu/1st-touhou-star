@@ -237,9 +237,8 @@ func test_rendering_segments_and_rotation():
 	sk.from_line(Vector2(0, 0), Vector2(0, 320))  # 320px → 10 段
 	beam.grow_on_spawn = false
 	beam.spawn(sk, Color.RED)
-	assert_eq(beam._core_mm.instance_count, 10, "320px/32 = 10 段")
-	# 段旋转 = 骨架切线角（headless 下 MultiMesh transform 不可读，
-	# 验证驱动数学：垂直激光切线角 = PI/2）
+	assert_eq(beam._core_line.points.size(), 10, "320px/32 = 10 渲染点")
+	# 段旋转 = 骨架切线角（垂直激光切线角 = PI/2）
 	var dir := sk.tangent_at(16.0)
 	assert_almost_eq(atan2(dir.y, dir.x), PI / 2.0, 0.02, "垂直激光切线角 = 90°")
 	# head 距离驱动渲染范围
@@ -257,4 +256,4 @@ func test_rendering_zero_when_dead():
 	for i in 5:
 		beam._physics_process(0.1)
 	assert_eq(beam.phase, LaserBeam.Phase.DEAD, "激光已死")
-	assert_eq(beam._core_mm.instance_count, 0, "死亡后段数归零（不泄漏）")
+	assert_eq(beam._core_line.points.size(), 0, "死亡后点集清空（不泄漏）")
