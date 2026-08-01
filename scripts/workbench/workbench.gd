@@ -137,7 +137,10 @@ func _toggle_play() -> void:
 
 
 func _cycle_speed() -> void:
-	_speed = [1.0, 2.0, 0.5][[1.0, 2.0, 0.5].find(_speed, 0)] if false else ([1.0, 2.0, 0.5][[1.0, 2.0, 0.5].find(_speed)] if [1.0, 2.0, 0.5].has(_speed) else 1.0)
+	# 轮转速度：×1 → ×2 → ×0.5 → ×1 ...
+	var speeds := [1.0, 2.0, 0.5]
+	var idx: int = speeds.find(_speed)
+	_speed = speeds[(idx + 1) % speeds.size()] if idx >= 0 else 1.0
 	_speed_btn.text = "速度 ×%g" % _speed
 
 
