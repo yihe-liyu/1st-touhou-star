@@ -38,10 +38,15 @@ func spawn_under(p_parent: LifecycleNode) -> void:
 
 
 ## 挂到父节点（精确锚点）：anchor = 指定时刻（生成计划用）
+## 关键：复用实例时必须彻底重置内部状态！
+## （否则重放时节点带着旧的 local_time/children → 画面"卡在重置前"）
 func spawn_under_at(p_parent: LifecycleNode, p_anchor: float) -> void:
 	parent = p_parent
 	anchor = p_anchor
 	alive = true
+	local_time = 0.0
+	died_at = -1.0
+	children.clear()
 	p_parent.children.append(self)
 	_spawn_queue = _spawn_plan().duplicate()  # 副本！原计划数组不被消耗
 	_spawn_queue.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.t < b.t)
