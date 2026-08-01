@@ -107,6 +107,20 @@ func _build_ui() -> void:
 	toolbar.add_child(_breadcrumb)
 	_time_label = Label.new()
 	toolbar.add_child(_time_label)
+	# 拖尾设置
+	var trail_check := CheckButton.new()
+	trail_check.text = "拖尾"
+	trail_check.button_pressed = true
+	trail_check.toggled.connect(_on_trail_toggled)
+	toolbar.add_child(trail_check)
+	var trail_slider := HSlider.new()
+	trail_slider.min_value = 0
+	trail_slider.max_value = 60
+	trail_slider.step = 1
+	trail_slider.value = 24
+	trail_slider.custom_minimum_size = Vector2(80, 0)
+	trail_slider.value_changed.connect(_on_trail_length)
+	toolbar.add_child(trail_slider)
 
 	# 中部：树 + 画布
 	var mid := HSplitContainer.new()
@@ -150,6 +164,14 @@ func _cycle_speed() -> void:
 	_speed = speeds[(idx + 1) % speeds.size()] if idx >= 0 else 1.0
 	_speed_btn.text = "速度 ×" + str(_speed)
 
+
+func _on_trail_toggled(on: bool) -> void:
+	if _canvas:
+		_canvas.show_trail = on
+
+func _on_trail_length(v: float) -> void:
+	if _canvas:
+		_canvas.trail_length = int(v)
 
 func _update_controls() -> void:
 	if _play_btn:

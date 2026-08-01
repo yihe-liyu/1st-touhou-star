@@ -5,6 +5,8 @@ extends Control
 class_name WorkbenchCanvas
 
 var focus: LifecycleNode
+var trail_length: int = 24   ## 拖尾帧数（0 = 关闭）
+var show_trail: bool = true  ## 拖尾开关
 
 const WORLD := Rect2(64, 32, 768, 896)  # 东方框世界坐标
 
@@ -67,10 +69,11 @@ func _draw_node_marker(node: LifecycleNode) -> void:
 func _draw_bullet(b: LifecycleBullet) -> void:
 	var p: Vector2 = _to_screen(b.position())
 	var r: float = b.radius * _scale
-	# 轨迹（最近 24 tick）
-	for i in 24:
-		var tp: Vector2 = _to_screen(b.position_at(maxf(0.0, b.local_time - i * LifecycleNode.TICK)))
-		draw_circle(tp, 1.5, Color(1.0, 0.3, 0.2, 0.15))
+	# 轨迹（设置：trail_length 帧，0 = 关闭）
+	if show_trail and trail_length > 0:
+		for i in trail_length:
+			var tp: Vector2 = _to_screen(b.position_at(maxf(0.0, b.local_time - i * LifecycleNode.TICK)))
+			draw_circle(tp, 1.5, Color(1.0, 0.3, 0.2, 0.15))
 	# 弹体
 	draw_circle(p, r, Color(1.0, 0.3, 0.2))
 	# 命中框
