@@ -32,7 +32,7 @@ func _ready() -> void:
 	_canvas.focus = _focus
 	_timeline.focus = _focus
 	_refresh_tree()
-	_playing = false  # 默认不自动播放：打开先看静态，按 ▶ 才播
+	_playing = true  # 打开自动播放：一进来就看到弹幕生长（否则像"不发射"）
 	_update_controls()
 	_update_inspector()
 	_timeline.queue_redraw()
