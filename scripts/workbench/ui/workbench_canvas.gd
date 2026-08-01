@@ -58,7 +58,7 @@ func _draw() -> void:
 
 
 ## 通用节点标记（非子弹实体）：小方块 + 存活框
-func _draw_node_marker(node: LifecycleNode) -> void:
+func _draw_node_marker(_node: LifecycleNode) -> void:
 	# 节点没有位置概念时在东方框中央显示标记（占位；步 3 接入位置行为）
 	var pos := _to_screen(Vector2(448, 480))
 	var half := 6.0 * _scale
