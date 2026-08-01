@@ -64,14 +64,16 @@ func _simulate() -> void:
 
 func _reset() -> void:
 	# 重置（方案 A）：时间归零；播放状态保持不变
-	# 播放中重置 → 从头继续播；暂停中重置 → 停在起点 t=0
+	print("[WB] RESET START")
 	_time = 0.0
 	if _focus:
 		_focus.simulate_to(0.0)
+		print("[WB] RESET simulated: local_t=", _focus.local_time, " children=", _focus.children.size())
 	if _timeline:
-		_timeline.time = 0.0  # 重置瞬间同步播放头（不等下一帧）
+		_timeline.time = 0.0
 		_timeline.queue_redraw()
-	_refresh_tree.call_deferred()  # 按钮事件中不能同步 clear Tree！
+	_refresh_tree.call_deferred()
+	print("[WB] RESET DONE")
 
 
 # ── 演示树：发射器 → 生成子弹 → 死亡 ──
