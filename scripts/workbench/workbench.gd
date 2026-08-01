@@ -38,10 +38,18 @@ func _ready() -> void:
 	_timeline.queue_redraw()
 
 
+var _dbg_log_t: float = 0.0
+
 func _process(delta: float) -> void:
 	if _playing:
 		_time += delta * _speed
 		_simulate()
+		if _time - _dbg_log_t > 2.0:
+			_dbg_log_t = _time
+			if _focus:
+				var ref: Script = _focus.get_script() as Script
+				print("[WB] PLAYING t=", _time, " focus=", ref.resource_path,
+					" local_t=", _focus.local_time, " alive_nodes=", _focus.collect_alive().size())
 	if _canvas:
 		_canvas.queue_redraw()
 	if _timeline:
@@ -65,6 +73,9 @@ func _reset() -> void:
 	_time = 0.0
 	if _focus:
 		_focus.simulate_to(0.0)
+		var ref: Script = _focus.get_script() as Script
+		print("[WB] RESET focus=", ref.resource_path, " local_t=", _focus.local_time,
+			" children=", _focus.children.size(), " alive=", _focus.alive)
 	if _timeline:
 		_timeline.time = 0.0  # 重置瞬间同步播放头（不等下一帧）
 		_timeline.queue_redraw()
