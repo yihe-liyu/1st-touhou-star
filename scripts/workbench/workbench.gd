@@ -129,8 +129,7 @@ func _build_ui() -> void:
 	_timeline = TimelineBarScript.new()
 	_timeline.name = "Timeline"
 	_timeline.custom_minimum_size = Vector2(0, 48)
-	_timeline.node_selected.connect(_on_node_selected)
-	_timeline.time_seeked.connect(_on_time_seeked)
+	_timeline.time_seeked.connect(_on_time_seeked)  # 时间线只 seek；主对象切换来自左侧树
 	_timeline.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_timeline)
 

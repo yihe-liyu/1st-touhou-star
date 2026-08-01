@@ -48,16 +48,9 @@ func _draw() -> void:
 func _gui_input(event: InputEvent) -> void:
 	if focus == null:
 		return
+	# 点击时间线任意处 = seek（不切换主对象；主对象由左侧编排树选择）
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var total := maxf(window_len, 0.001)  # seek 基于固定窗口
-		# 先试点击条（优先于轨道跳转）
-		for child in focus.children:
-			var x0 := child.anchor / total * size.x
-			var cw := maxf(child.duration() / total * size.x, 2.0)
-			if event.position.x >= x0 and event.position.x <= x0 + cw:
-				node_selected.emit(child)
-				return
-		# 点轨道 = 跳转时间（seek）
+		var total := maxf(window_len, 0.001)
 		time = clampf(event.position.x / size.x, 0.0, 1.0) * total
 		time_seeked.emit(time)
 		queue_redraw()
