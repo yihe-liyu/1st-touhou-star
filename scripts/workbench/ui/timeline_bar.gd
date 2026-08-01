@@ -5,9 +5,7 @@
 extends Control
 class_name TimelineBar
 
-## 选中回调（节点）
-signal node_selected(node: LifecycleNode)
-## 时间跳转（点击轨道任意处 = seek）
+## 时间跳转（点击时间线任意处 = seek，主对象不变）
 signal time_seeked(t: float)
 
 var focus: LifecycleNode
