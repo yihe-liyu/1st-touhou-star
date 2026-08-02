@@ -279,10 +279,19 @@ func _clear_container(vb: Node) -> void:
 		child.queue_free()
 
 
+## res:// 路径 → user:// 可写副本路径（开发时编辑保存；运行时 res:// 只读）
+static func _user_timeline_path(res_path: String) -> String:
+	return "user://" + res_path.trim_prefix("res://")
+
+
 ## 当前关卡的时间线数据（协程关卡返回 null）
+## 优先读 user:// 副本（工作台保存的），否则用 res:// 默认
 func _get_timeline_data() -> Resource:
 	var scr: Script = _stage_data.create_script
 	if scr and "TIMELINE" in scr:
+		var user_p := _user_timeline_path(scr.TIMELINE.resource_path)
+		if FileAccess.file_exists(user_p):
+			return load(user_p)
 		return scr.TIMELINE
 	return null
 
@@ -381,6 +390,7 @@ func _on_wave_selected() -> void:
 	_add_field_edit("数量", w, "count", 1.0, 60.0, 1.0, true)
 	_add_field_edit("间隔", w, "interval", 0.0, 10.0, 0.1, false)
 	_add_field_edit("出生x", w, "spawn_x", 0.0, 900.0, 1.0, false)
+	_add_field_edit("出生y", w, "spawn_y", -100.0, 1000.0, 1.0, false)
 	# 模板参数（按值类型动态生成表单）
 	var params: Dictionary = w.get("params", {})
 	if not params.is_empty():
@@ -498,13 +508,18 @@ func _apply_wave_changes(idx: int) -> void:
 	_restart()
 
 
-## 保存：写回 .tres
+## 保存：写回 .tres（user:// 可写副本；运行时 res:// 只读）
 func _save_timeline() -> void:
 	var timeline = _get_timeline_data()
 	if timeline == null:
 		return
-	ResourceSaver.save(timeline, timeline.resource_path)
-	_log_line("💾 编排数据已保存")
+	var user_p := _user_timeline_path(timeline.resource_path)
+	DirAccess.make_dir_recursive_absolute(user_p.get_base_dir())
+	var err := ResourceSaver.save(timeline, user_p)
+	if err == OK:
+		_log_line("💾 编排数据已保存 → " + user_p)
+	else:
+		_log_line("⚠️ 保存失败：%s" % user_p)
 
 
 ## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
