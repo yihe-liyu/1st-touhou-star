@@ -24,6 +24,7 @@ signal cancelled()
 
 var is_running: bool = false
 var _paused: bool = false
+var _fast_mode: bool = false  ## 快速模式（子弹协程）：run() 不创建 Task，由宿主 tick_fast 驱动
 var _tasks: Array[Task] = []
 var _clock: float = 0.0  # 游戏内时间（物理帧累积，暂停时冻结）
 var _last_dt: float = 0.0  # 当前帧物理步长（time_scale 生效；节点/无节点模式一致）
@@ -53,6 +54,8 @@ class Task extends RefCounted:
 func run(method: Callable):
 	stop()
 	_clock = 0.0
+	if _fast_mode:
+		return  # 快速模式：不创建调度 Task（由宿主直接调 _tick）
 	_start_task(method)
 
 func run_parallel(method: Callable):

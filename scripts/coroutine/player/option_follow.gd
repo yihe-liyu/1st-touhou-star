@@ -13,7 +13,9 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
 	if p_target:
 		target = p_target
-	var delta := get_dt()
+	# start() 可能在物理循环外调用（_ready 阶段）→ get_dt()/_physics_delta 都是 0
+	# 追赶系数用恒定步长（time_scale 差异对跟随效果无感知）
+	var delta := 1.0 / Engine.physics_ticks_per_second
 	_lerp_factor = 1.0 - exp(-FOLLOW_SPEED * delta)
 	super.start(ctx, target)
 

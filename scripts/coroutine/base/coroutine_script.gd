@@ -42,13 +42,13 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 var _fast_wait_left: float = 0.0
 
 
-## 快速模式启动：不创建 Task、不依赖 runner 调度
+## 快速模式启动（子弹协程）：不创建 Task、不依赖 runner 调度
+## 关键：调用子类覆写的 start()（初始化/建 timeline 照常），只是 run() 跳过 Task
 func start_fast(p_ctx: StageContext, p_target: Node2D = null) -> void:
-	ctx = p_ctx
-	if p_target != null:
-		target = p_target
-	_fast_wait_left = 0.0
+	_fast_mode = true
+	start(p_ctx, p_target)
 	is_running = true
+	_fast_wait_left = 0.0
 
 
 ## 快速模式每帧推进：直接调 _tick（返回约定同 _tick：true=继续 / false=结束 / float=等待）
