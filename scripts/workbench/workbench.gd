@@ -349,15 +349,15 @@ func _delete_selected_wave() -> void:
 	var timeline = _get_timeline_data()
 	if timeline == null or idx >= timeline.waves.size():
 		return
-	var name: String = str(timeline.waves[idx].get("name", "波次"))
+	var wave_name: String = str(timeline.waves[idx].get("name", "波次"))
 	var vb := _make_dialog("🗑 删除波次")
 	var msg := Label.new()
-	msg.text = "确定删除「%s」？" % name
+	msg.text = "确定删除「%s」？" % wave_name
 	vb.add_child(msg)
 	_dialog_add_actions(vb, "✓ 删除", func():
 		timeline.waves.remove_at(idx)
 		_refresh_wave_table()
-		_log_line("🗑 删除波次：%s" % name)
+		_log_line("🗑 删除波次：%s" % wave_name)
 	)
 
 
@@ -874,10 +874,17 @@ func _build_ui() -> void:
 	_wave_tree.set_column_expand(4, false)
 	_wave_tree.item_selected.connect(_on_wave_selected)
 	right.add_child(_wave_tree)
+	# 详情表单包 ScrollContainer：固定高度，内容超高内部滚动
+	# （否则表单变高挤压下方书签/日志 → ItemList 滚动重置跳顶）
+	var detail_scroll := ScrollContainer.new()
+	detail_scroll.custom_minimum_size = Vector2(0, 140)
+	detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	right.add_child(detail_scroll)
 	_wave_detail = VBoxContainer.new()
-	_wave_detail.custom_minimum_size = Vector2(0, 90)
+	_wave_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_wave_detail.add_theme_constant_override("separation", 4)
-	right.add_child(_wave_detail)
+	detail_scroll.add_child(_wave_detail)
 
 	right.add_child(_label("── 书签（点击 = 快进）──"))
 	# 编辑按钮行（添加人工书签；删除用列表右键）
