@@ -19,23 +19,11 @@ const VERSION := "v2-sandbox"
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const GHOST_SCRIPT := preload("res://scripts/workbench/ghost_player.gd")
 const HITBOX_OVERLAY := preload("res://scripts/workbench/hitbox_overlay.gd")
+const BOOKMARK_EXTRACTOR := preload("res://scripts/workbench/bookmark_extractor.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
 const STAGE01 := preload("res://data/stages/stage01/stage_data/stage01.tres")
 
 const DIFFICULTIES: Array[String] = ["Easy", "Normal", "Hard", "Lunatic"]
-
-# stage01 编排时刻表（对应 stage01.gd 的 tl.at()；以后数据化后从关卡数据读）
-const STAGE01_BOOKMARKS: Array[Dictionary] = [
-	{"t": 0.0, "label": "0s 开始 / BGM"},
-	{"t": 1.0, "label": "1s 红妖精波（左）"},
-	{"t": 4.0, "label": "4s 红妖精波（右）"},
-	{"t": 7.0, "label": "7s Logo 演出"},
-	{"t": 11.0, "label": "11s 中线妖精波"},
-	{"t": 17.0, "label": "17s 双翼妖精波①"},
-	{"t": 24.0, "label": "24s 双翼妖精波②"},
-	{"t": 35.0, "label": "35s Boss 卡摩瑞入场"},
-	{"t": 38.0, "label": "38s 非符 1"},
-]
 
 var _stage_data: StageData = STAGE01
 var _world: Node2D
@@ -194,15 +182,16 @@ func _load_stage() -> void:
 	StageManager.load_stage(_stage_data)
 	# 时间轴 + 书签
 	_timeline.set_window(60.0)
+	# 书签：从关卡脚本自动提取 tl.at 时刻（不再硬编码，任意关卡通用）
 	_timeline.clear_bookmarks()
 	_bookmark_list.clear()
-	for bm in STAGE01_BOOKMARKS:
+	var bookmarks: Array = BOOKMARK_EXTRACTOR.extract_from_script(_stage_data.create_script)
+	for bm in bookmarks:
 		_timeline.add_bookmark(bm.t, bm.label)
-		# label 已含时间戳前缀（"0s 开始 / BGM"），不重复加
 		var idx := _bookmark_list.add_item(bm.label)
 		_bookmark_list.set_item_metadata(idx, bm)
 	_prev_time = -1.0
-	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
+	_log_line("▶ 加载 Stage %d（难度 %s）· 书签 %d 个" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected], bookmarks.size()])
 
 
 func _restart() -> void:
