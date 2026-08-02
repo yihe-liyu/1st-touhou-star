@@ -16,6 +16,7 @@ var _elapsed: float = 0.0
 var _paused: bool = false
 var _loop_start: float = -1.0
 var _cursor: float = 0.0   # wait() 的参考点，每次 phase/dialogue 结束后更新
+var bookmark_collector: Callable  # 可选：事件触发时回调(关卡时刻)，工作台书签收集用
 
 # builder state
 var _time: float = -1.0
@@ -122,6 +123,8 @@ func tick(delta: float) -> bool:
 				continue  # 还没被 phase 激活
 			t = _cursor + ev.wait_offset
 		if _elapsed >= t:
+			if bookmark_collector.is_valid():
+				bookmark_collector.call(t)  # 记录事件设计时刻（快进大 delta 下 _elapsed 会偏移）
 			ev.execute()
 			if ev.repeat_every >= 0:
 				ev.time += ev.repeat_every

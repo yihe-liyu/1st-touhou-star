@@ -27,6 +27,11 @@ func start_timeline() -> Timeline:
 	return _tl
 
 
+## 当前时间线（工作台书签收集/调试用）
+func get_timeline() -> Timeline:
+	return _tl
+
+
 ## 启动协程
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
