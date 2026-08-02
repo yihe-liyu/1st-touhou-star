@@ -178,6 +178,12 @@ func _load_stage() -> void:
 	StageManager.stop_stage()
 	BulletManager.clear_all()
 	AudioManager.stop_bgm()  # 重跑时 BGM 从头播（play_bgm 有同流防重保护，必须先停）
+	# 清 World 残留：退场中的 Boss（_exit_controlled 不 queue_free、已从
+	# active_enemies 移除）stop_stage 清不到 → 立即脱离树，避免卡在画面上
+	for child in _world.get_children():
+		if child != _ghost:
+			_world.remove_child(child)
+			child.queue_free()
 	if _background and is_instance_valid(_background):
 		# 立即脱离树（不能只 queue_free 延迟删除）：
 		# 旧背景的协程/Tween 会和新背景抢同一个 Camera3D（相机数据错乱）
