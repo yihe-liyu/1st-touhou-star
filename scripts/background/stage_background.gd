@@ -11,7 +11,27 @@ var _active: bool = false
 func _ready():
 	camera = _find_camera()
 	world_environment = _find_world_environment()
+	# 关键：Environment 是场景 SubResource，多个实例共享同一资源！
+	# 重跑/多背景实例会互相污染（雾/环境光状态残留）→ duplicate 成实例私有
+	# （否则每次实例化拿到的是上一次 tween 改过的状态 → "越重跑越暗"）
+	if world_environment and world_environment.environment:
+		world_environment.environment = world_environment.environment.duplicate()
+	# 无外部相机（工作台等复用场景）→ 自建随本实例销毁的相机
+	# 这样重跑时旧相机随背景销毁、新背景拿初始相机，零残留、无需手动复位
+	if camera == null:
+		_own_camera()
 	_on_setup()
+
+
+## 自建相机：初始姿态与真游戏 SubViewport 相机一致；随本背景实例销毁
+func _own_camera() -> void:
+	var cam := Camera3D.new()
+	cam.name = "Camera3D"
+	cam.position = Vector3(0, 10, 6)
+	cam.rotation_degrees = Vector3(-30, 0, 0)
+	cam.fov = 55.0
+	add_child(cam)
+	camera = cam
 
 func _process(delta):
 	if not _active:
@@ -103,7 +123,7 @@ func get_camera_offset() -> Vector3:
 func rotate_camera(target_rot: Vector3, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
 	if not camera:
 		return
-	var tween: Tween = create_tween()
+	var tween: Tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tween.set_ease(ease_type).set_trans(trans_type)
 	tween.tween_property(camera, "rotation", target_rot, duration)
 
@@ -116,7 +136,7 @@ func pan_camera(offset: Vector3, duration: float, ease_type: int = Tween.EASE_IN
 func move_camera(target_pos: Vector3, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE):
 	if not camera:
 		return
-	var tween: Tween = create_tween()
+	var tween: Tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tween.set_ease(ease_type).set_trans(trans_type)
 	tween.tween_property(camera, "position", target_pos, duration)
 
@@ -162,15 +182,15 @@ func setup_sun() -> void:
 
 func set_sun_color(color: Color, duration: float = 2.0) -> void:
 	if not sun_light: return
-	var tw := create_tween()
+	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(sun_light, "light_color", color, duration)
 
 func set_sun_energy(energy: float, duration: float = 2.0) -> void:
 	if not sun_light: return
-	var tw := create_tween()
+	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(sun_light, "light_energy", energy, duration)
 
 func set_sun_rotation(rot: Vector3, duration: float = 2.0) -> void:
 	if not sun_light: return
-	var tw := create_tween()
+	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(sun_light, "rotation", rot, duration)

@@ -106,7 +106,7 @@ func start_phase(data: PhaseData) -> void:
 		GameEvents.phase_start.emit(data)
 	
 	# HP 从 0 涨到满
-	var twn := create_tween()
+	var twn := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	twn.tween_property(self, "hp", data.hp, 1.0)
 	twn.tween_callback(func():
 		if data.is_timeout_only:

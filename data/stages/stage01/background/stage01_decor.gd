@@ -44,7 +44,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# ③ 地面加速 (10s)
 	tl.at(10.0).do(func():
-		var t := bg.create_tween()
+		var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		t.tween_method(_camera_accel, 1.0, 7.0, 32).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	)
 
@@ -60,7 +60,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
-	var t := bg.create_tween().set_parallel(true)
+	var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS).set_parallel(true)
 	t.tween_property(env, "fog_light_color", color, sec)
 	t.tween_property(env, "fog_density", density, sec)
 	t.tween_property(bg.camera, "fov", fov, sec)

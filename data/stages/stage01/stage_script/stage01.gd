@@ -42,7 +42,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		logo.modulate.a = 0.0
 		layer.add_child(logo)
 		add_child(layer)
-		var t := create_tween()
+		var t := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		t.tween_property(logo, "modulate:a", 1.0, 2.0)
 		t.tween_interval(3.0)
 		t.tween_property(logo, "modulate:a", 0.0, 1.0)
@@ -71,22 +71,22 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
-				.param("rate", 4).spawn(ctx)
+				.param("rate", 4).param("heavy_wave", false).spawn(ctx)
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
-				.param("rate", 4).spawn(ctx)
+				.param("rate", 4).param("heavy_wave", false).spawn(ctx)
 		)
 	for i in 7:
 		tl.at(24.0 + i * 0.5).do(func():
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
-				.param("rate", 4).spawn(ctx)
+				.param("rate", 4).param("heavy_wave", false).spawn(ctx)
 			EnemyData.new().script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
-				.param("rate", 4).spawn(ctx)
+				.param("rate", 4).param("heavy_wave", false).spawn(ctx)
 		)
 
 	# ── Boss ──
@@ -96,7 +96,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	tl.at(35.0).do(func():
 		boss_holder[0] = StageManager.spawn_boss(kamorui, Vector2(-50, 500), ctx)
 		var b := boss_holder[0] as Boss
-		var tw := create_tween()
+		var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 250), 1.5)
 	)
@@ -107,8 +107,8 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	tl.wait(2.0).do(func():
 		var b := boss_holder[0] as Boss
 		b.set_exit_controlled()
-		b._die()
-		var tw := create_tween()
+		b.die()
+		var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, -150), 2.0)
 		tw.tween_callback(b.queue_free)

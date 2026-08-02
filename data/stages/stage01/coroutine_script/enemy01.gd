@@ -5,7 +5,7 @@ const GRAVITY_BULLET = preload("res://data/stages/stage01/coroutine_script/gravi
 const FLY_AWAY = preload("res://data/stages/stage01/coroutine_script/fly_away.gd")
 
 var target_y: float = 300
-var is_stage2: bool = true
+var heavy_wave: bool = true  ## 强化波：Hard+ 时额外发射金色重力弹
 var rate: int = 1
 
 ## 延迟初始化（等父节点完成 add_child 链）
@@ -19,7 +19,7 @@ func _init_enemy() -> void:
 		return
 
 	# 移动:向下减速
-	parent.create_tween().tween_property(parent, "global_position",
+	parent.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS).tween_property(parent, "global_position",
 		Vector2(parent.global_position.x, target_y), 1.5) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 
@@ -39,7 +39,7 @@ func _init_enemy() -> void:
 			ctx.bullets.shoot_spread(bullet, 1, 0, dir,
 				target.global_position, AssetRegistry.sounds["shoot"])
 
-		if GameState.selected_difficulty >= 2 and is_stage2:
+		if GameState.selected_difficulty >= 2 and heavy_wave:
 			for i in diff_pick([0, 0, 1, 2]):
 				bullet.velocity = Vector2(0, 300 + i * 50)
 				bullet.tex("棱弹").color(Color.GOLD)
