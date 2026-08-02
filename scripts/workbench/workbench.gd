@@ -72,6 +72,9 @@ var _diff_sel: OptionButton
 var _time_label: Label
 var _status_label: Label
 var _bookmark_list: ItemList
+var _wave_tree: Tree              # 编排表格（数据关卡波次）
+var _wave_detail: VBoxContainer   # 选中波次的详情表单容器
+var _detail_spins: Array = []     # 详情表单控件（应用时读取）
 var _log: RichTextLabel
 var _timeline: TimelineBar
 
@@ -215,6 +218,7 @@ func _load_stage() -> void:
 	# 时间轴 + 书签（缓存优先，未命中则静默收集真实时刻）
 	_timeline.set_window(60.0)
 	_apply_bookmarks_from_cache()
+	_refresh_wave_table()
 	_prev_time = -1.0
 	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
 
@@ -258,6 +262,132 @@ func _apply_bookmarks(auto: Array, manual: Array) -> void:
 		_timeline.add_bookmark(it.t, it.label)
 		var idx := _bookmark_list.add_item(label)
 		_bookmark_list.set_item_metadata(idx, it)
+
+
+# ═══ 编排表格（数据关卡波次）═══
+
+## 清空容器子节点（VBoxContainer 无 clear()）
+func _clear_container(vb: Node) -> void:
+	for child in vb.get_children():
+		child.queue_free()
+
+
+## 当前关卡的时间线数据（协程关卡返回 null）
+func _get_timeline_data() -> Resource:
+	var scr: Script = _stage_data.create_script
+	if scr and "TIMELINE" in scr:
+		return scr.TIMELINE
+	return null
+
+
+## 刷新编排表格（数据关卡才显示）
+func _refresh_wave_table() -> void:
+	if _wave_tree == null:
+		return
+	_wave_tree.clear()
+	_clear_container(_wave_detail)
+	var timeline = _get_timeline_data()
+	if timeline == null or timeline.waves.is_empty():
+		_wave_tree.visible = false
+		_wave_detail.visible = false
+		return
+	_wave_tree.visible = true
+	_wave_detail.visible = true
+	var root := _wave_tree.create_item()
+	for i in timeline.waves.size():
+		var w: Dictionary = timeline.waves[i]
+		var item := _wave_tree.create_item(root)
+		item.set_text(0, "%.1f" % float(w.get("t", 0.0)))
+		item.set_text(1, str(w.get("name", "波次")))
+		item.set_text(2, str(w.get("enemy", "")))
+		item.set_text(3, str(w.get("count", 1)))
+		item.set_text(4, str(w.get("interval", 0.5)))
+		item.set_metadata(0, i)
+
+
+## 选中波次 → 详情表单（按字段类型动态生成）
+func _on_wave_selected() -> void:
+	var item := _wave_tree.get_selected()
+	if item == null:
+		return
+	var idx: int = item.get_metadata(0)
+	var timeline = _get_timeline_data()
+	if timeline == null or idx >= timeline.waves.size():
+		return
+	var w: Dictionary = timeline.waves[idx]
+	_detail_spins.clear()
+	_clear_container(_wave_detail)
+	# 基础字段（可编辑）
+	_add_spin_row("t", w, "t", 0.0, 90.0, 0.1)
+	_add_spin_row("数量", w, "count", 1, 60, 1)
+	_add_spin_row("间隔", w, "interval", 0.0, 10.0, 0.1)
+	_add_spin_row("出生x", w, "spawn_x", 0.0, 900.0, 1.0)
+	# 模板参数摘要（只读，S4+ 深度编辑）
+	var params: Dictionary = w.get("params", {})
+	if not params.is_empty():
+		var pl := Label.new()
+		var parts: Array = []
+		for k in params:
+			parts.append("%s=%s" % [k, str(params[k])])
+		pl.text = "参数: " + "、".join(parts)
+		pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		pl.modulate = Color(0.7, 0.7, 0.8)
+		_wave_detail.add_child(pl)
+	# 按钮行
+	var row := HBoxContainer.new()
+	var apply := Button.new()
+	apply.text = "✔ 应用"
+	apply.pressed.connect(func(): _apply_wave_changes(idx))
+	row.add_child(apply)
+	var save := Button.new()
+	save.text = "💾 保存"
+	save.pressed.connect(func(): _save_timeline())
+	row.add_child(save)
+	_wave_detail.add_child(row)
+
+
+## 详情表单行：SpinBox + 写回字段
+func _add_spin_row(label_text: String, wave: Dictionary, key: String, min_v: float, max_v: float, step: float) -> void:
+	var h := HBoxContainer.new()
+	var l := Label.new()
+	l.text = label_text
+	l.custom_minimum_size = Vector2(48, 0)
+	h.add_child(l)
+	var spin := SpinBox.new()
+	spin.min_value = min_v
+	spin.max_value = max_v
+	spin.step = step
+	spin.value = float(wave.get(key, min_v))
+	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(spin)
+	_wave_detail.add_child(h)
+	_detail_spins.append({"key": key, "spin": spin})
+
+
+## 应用：写回 timeline 数据 → 重跑（WaveStage 读同一资源，新参数生效）
+func _apply_wave_changes(idx: int) -> void:
+	var timeline = _get_timeline_data()
+	if timeline == null or idx >= timeline.waves.size():
+		return
+	var w: Dictionary = timeline.waves[idx]
+	for entry in _detail_spins:
+		var spin: SpinBox = entry.spin
+		match entry.key:
+			"count":
+				w[entry.key] = int(spin.value)
+			_:
+				w[entry.key] = spin.value
+	_log_line("✔ 应用波次参数 → 重跑")
+	_restart()
+
+
+## 保存：写回 .tres
+func _save_timeline() -> void:
+	var timeline = _get_timeline_data()
+	if timeline == null:
+		return
+	ResourceSaver.save(timeline, timeline.resource_path)
+	_log_line("💾 编排数据已保存")
 
 
 ## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
@@ -600,6 +730,28 @@ func _build_ui() -> void:
 	right.add_child(_status_label)
 
 	# 书签
+	# ── 编排（数据关卡波次表格 + 详情编辑）──
+	right.add_child(_label("── 编排（数据关卡）──"))
+	_wave_tree = Tree.new()
+	_wave_tree.columns = 5
+	_wave_tree.custom_minimum_size = Vector2(0, 120)
+	_wave_tree.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_wave_tree.set_column_title(0, "t")
+	_wave_tree.set_column_title(1, "波次")
+	_wave_tree.set_column_title(2, "敌人")
+	_wave_tree.set_column_title(3, "数量")
+	_wave_tree.set_column_title(4, "间隔")
+	_wave_tree.set_column_expand(1, true)
+	_wave_tree.set_column_expand(2, false)
+	_wave_tree.set_column_expand(3, false)
+	_wave_tree.set_column_expand(4, false)
+	_wave_tree.item_selected.connect(_on_wave_selected)
+	right.add_child(_wave_tree)
+	_wave_detail = VBoxContainer.new()
+	_wave_detail.custom_minimum_size = Vector2(0, 90)
+	_wave_detail.add_theme_constant_override("separation", 4)
+	right.add_child(_wave_detail)
+
 	right.add_child(_label("── 书签（点击 = 快进）──"))
 	# 编辑按钮行（添加人工书签；删除用列表右键）
 	var bm_row := HBoxContainer.new()
