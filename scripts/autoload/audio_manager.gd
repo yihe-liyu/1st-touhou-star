@@ -94,6 +94,12 @@ func stop_bgm() -> void:
 	_bgm_player.stop()
 
 
+## BGM 变速（工作台快进时音乐跟随游戏时间；1.0 = 正常）
+func set_bgm_pitch(pitch: float) -> void:
+	if _bgm_player and is_instance_valid(_bgm_player):
+		_bgm_player.pitch_scale = maxf(pitch, 0.01)
+
+
 # ═══ BGM 音量同步 ═══
 
 func _bgm_sync_volume() -> void:

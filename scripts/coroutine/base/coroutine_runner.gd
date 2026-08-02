@@ -27,6 +27,17 @@ var _paused: bool = false
 var _tasks: Array[Task] = []
 var _clock: float = 0.0  # 游戏内时间（物理帧累积，暂停时冻结）
 
+
+## 游戏内时间访问器（工作台/调试/Replay 用）
+func game_time() -> float:
+	return _clock
+
+
+## 设置游戏内时间（快进用：外部将 _clock 拨到目标时刻）
+func set_game_time(t: float) -> void:
+	_clock = maxf(t, 0.0)
+
+
 class Task extends RefCounted:
 	var callable: Callable
 	var wake_time: float = 0.0
@@ -74,12 +85,12 @@ func is_paused() -> bool:
 	return _paused
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if not is_running:
 		return
 	if _paused:
 		return  # 暂停时不累积时钟
-	_clock += delta
+	_clock += get_physics_process_delta_time()  # 用引擎时钟（time_scale 生效，快进/慢动作正确）
 	
 	for i in range(_tasks.size() - 1, -1, -1):
 		var task := _tasks[i]

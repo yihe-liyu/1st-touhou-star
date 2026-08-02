@@ -1,108 +1,79 @@
-## 时间轴条带 —— 工作台时间线（@tool）
-## 子对象 = 焦点生命周期上的"条"（锚点→死亡）；点击条 → 聚焦该对象
-## 以主对象时间线为锚：子条位置 = 子.anchor / 焦点生命周期长
+## 时间轴条带 —— 工作台 v2（关卡沙盒版）
+##
+## 真实关卡不支持任意 seek（协程/状态机/玩家交互），时间轴只做两件事：
+##   1. 显示当前游戏内时间（播放头）+ 书签标记（tl.at 时刻）
+##   2. 点击任意处 = 快进到该时刻（工作台收到 jump_to 后重跑+加速）
 @tool
 extends Control
 class_name TimelineBar
 
-## 时间跳转（点击时间线任意处 = seek，主对象不变）
-signal time_seeked(t: float)
+## 点击时间轴 = 快进到该时刻（非暂停/seek，见 workbench.gd）
+signal jump_to(t: float)
 
-var focus: LifecycleNode
-var time: float = 0.0
-var window_len: float = 15.0  ## 固定时间窗口（秒）：刻度/条位稳定，播放头移动
+var time: float = 0.0                 ## 当前游戏内时间（秒）
+var window_len: float = 60.0          ## 时间窗口（秒）
+var bookmarks: Array[Dictionary] = [] ## [{t, label}]，升序
 
-const BAR_H := 14.0
-const PAD := 10.0
+const PAD := 8.0
+
+
+func set_window(seconds: float) -> void:
+	window_len = maxf(seconds, 1.0)
+	queue_redraw()
+
+
+func add_bookmark(t: float, label: String) -> void:
+	bookmarks.append({"t": t, "label": label})
+	bookmarks.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.t < b.t)
+	queue_redraw()
+
+
+func clear_bookmarks() -> void:
+	bookmarks.clear()
+	queue_redraw()
 
 
 func _draw() -> void:
-	if focus == null:
-		return
-	var total := maxf(window_len, 0.001)  # 固定窗口 → 刻度/条位稳定
 	var w := size.x
+	var total := maxf(window_len, 0.001)
+	var cy := size.y / 2.0
 	# 轨道背景
-	draw_rect(Rect2(0, 0, w, size.y), Color(0.08, 0.08, 0.12))
-	# 固定刻度（每 1s）
+	draw_rect(Rect2(0, 0, w, size.y), Color(0.07, 0.07, 0.11))
+	# 刻度（每 1s 细线，每 5s 标数字）
 	var ticks := int(ceil(total))
 	for i in ticks + 1:
 		var x := i / total * w
-		draw_line(Vector2(x, 0), Vector2(x, size.y), Color(1, 1, 1, 0.05))
+		draw_line(Vector2(x, 0), Vector2(x, size.y), Color(1, 1, 1, 0.04))
 		if i % 5 == 0:
 			_draw_tick_label(x, i)
-	var cy := size.y / 2.0
-	# 主对象自身条（高亮：整个生命周期范围）
-	var self_x0 := clampf((focus.anchor if focus.parent else 0.0) / total * w, 0.0, w)
-	var self_cw := maxf(focus.duration() / total * w, 2.0)
-	draw_rect(Rect2(self_x0, cy - BAR_H / 2.0, self_cw, BAR_H), Color(1.0, 0.9, 0.4, 0.25))
-	draw_rect(Rect2(self_x0, cy - BAR_H / 2.0, self_cw, BAR_H), Color(1.0, 0.9, 0.4, 0.6), false, 1.0)
-	# 子对象条（按锚点在固定窗口内定位；超出窗口的截断）
-	for child in focus.children:
-		var x0 := child.anchor / total * w
-		var cw := maxf(child.duration() / total * w, 2.0)
-		var col := _color_for(child)
-		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col)
-		draw_rect(Rect2(x0, cy - BAR_H / 2.0, cw, BAR_H), col.darkened(0.5), false, 1.0)
-	# 行为事件点（◆ 沿时间线：焦点对象 + 所有子对象的发射节奏）
-	var events: Array = []
-	_collect_events(focus, 0.0, events)
-	for ev in events:
-		var ex: float = ev.t / total * w
-		if ex >= 0.0 and ex <= w:
-			draw_colored_polygon(PackedVector2Array([
-				Vector2(ex, 4), Vector2(ex + 7, 8), Vector2(ex, 12)
-			]), Color(1.0, 0.8, 0.3, 0.9))
+	# 书签：菱形标记（颜色区分：前段敌波=蓝，Boss=红）
+	for bm in bookmarks:
+		var x := float(bm.t) / total * w
+		if x < -6.0 or x > w + 6.0:
+			continue
+		var is_boss: bool = float(bm.t) >= 35.0
+		var col: Color = Color(1.0, 0.4, 0.3, 0.9) if is_boss else Color(0.4, 0.8, 1.0, 0.9)
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(x, 5), Vector2(x + 6, cy), Vector2(x, size.y - 5), Vector2(x - 6, cy)
+		]), col)
 	# 播放头（唯一移动的东西）
 	var hx := clampf(time / total, 0.0, 1.0) * w
-	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.9), 2.0)
+	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.95), 2.0)
 
 
-## 递归收集行为事件（子对象事件 = 父锚点 + 局部 t → 主对象时间线可见）
-func _collect_events(node: LifecycleNode, base_t: float, out: Array) -> void:
-	for ev in node._behavior_events():
-		out.append({"t": base_t + ev.t, "label": ev.label})
-	for child in node.children:
-		if not child.is_entity():
-			_collect_events(child, base_t + child.anchor, out)
-
-
-## 刻度数字（字体 null 保护：Vulkan/编辑器下 fallback_font 可能为空 → 空纹理错误）
 func _draw_tick_label(x: float, sec: int) -> void:
 	var font: Font = ThemeDB.fallback_font
 	if font == null:
 		font = get_theme_default_font()
 	if font == null:
-		return  # 无字体可用：跳过文字（只画线）
+		return
 	draw_string(font, Vector2(x + 2, 10), str(sec), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.6, 0.6, 0.7))
 
 
-var _dragging: bool = false
-
-
 func _gui_input(event: InputEvent) -> void:
-	if focus == null:
-		return
-	# 点击/拖动时间线任意处 = seek（不切换主对象；主对象由左侧编排树选择）
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			_dragging = true
-			_seek_to_x(event.position.x)
-			accept_event()
-		else:
-			_dragging = false
-	elif event is InputEventMouseMotion and _dragging:
-		_seek_to_x(event.position.x)
+	# 点击/拖动时间轴任意处 = 快进到该时刻
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		var total := maxf(window_len, 0.001)
+		var t := clampf(event.position.x / maxf(size.x, 1.0), 0.0, 1.0) * total
+		jump_to.emit(t)
 		accept_event()
-
-
-func _seek_to_x(x: float) -> void:
-	var total := maxf(window_len, 0.001)
-	time = clampf(x / size.x, 0.0, 1.0) * total
-	time_seeked.emit(time)
-	queue_redraw()
-
-
-func _color_for(node: LifecycleNode) -> Color:
-	if node is LifecycleBullet:
-		return Color(1.0, 0.3, 0.2, 0.8)
-	return Color(0.3, 0.7, 1.0, 0.8)

@@ -13,6 +13,10 @@ var current_background: StageBackground
 var _stage_active: bool = false
 var _stage_script: CoroutineScript
 
+## 当前关卡协程脚本（工作台/调试读取运行时间用）
+func current_stage_script() -> CoroutineScript:
+	return _stage_script
+
 func load_stage(data: StageData):
 	if _stage_active:
 		stop_stage()

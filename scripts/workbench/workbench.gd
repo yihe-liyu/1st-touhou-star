@@ -1,400 +1,463 @@
-## 内容工作台主场景（@tool）
-## 生命周期树 + 预览画布 + 时间轴条带（播放/暂停/拖动/聚焦）
-## 编辑器里打开即见；F6 运行可交互
-@tool
+## 内容工作台 v2 —— 关卡沙盒（真实运行时预览）
+##
+## 设计（与 v1 模型沙盒的根本区别）：
+##   v1：LifecycleNode 纯逻辑模型复刻实体公式（一致性靠"复刻"，会漂移）
+##   v2：F6 运行时直接加载真实关卡 —— StageManager + BulletManager + 真实协程
+##       幽灵玩家提供自机狙目标；一致性与游戏 100% 相同（跑的就是游戏代码）
+##
+## 能力：
+##   · 播放/暂停/重跑（真实引擎时钟）
+##   · 快进跳转（点击时间轴/书签 → 加速跑到目标时刻；真实关卡不支持任意 seek）
+##   · 难度切换 / 静音 / 背景开关
+##   · 实时状态（时间/子弹数/敌人/Boss/FPS）+ 事件日志
+##
+## 运行：F6（依赖 autoload），窗口自动设为 1600x1000
 extends Control
 
-const VERSION := "v4.2"  ## 调试用：确认运行的是最新代码
+const VERSION := "v2-sandbox"
 
-const TimelineBarScript = preload("res://scripts/workbench/ui/timeline_bar.gd")
-const CanvasScript = preload("res://scripts/workbench/ui/workbench_canvas.gd")
+const PLAYER_SCENE := preload("res://scenes/player.tscn")
+const GHOST_SCRIPT := preload("res://scripts/workbench/ghost_player.gd")
+const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
+const STAGE01 := preload("res://data/stages/stage01/stage_data/stage01.tres")
 
-var _root: LifecycleNode   # 树根（当前演示）
-var _focus: LifecycleNode  # 聚焦对象（时间轴锚点）
-var _time: float = 0.0
-var _playing: bool = false
-var _speed: float = 1.0
+const DIFFICULTIES: Array[String] = ["Easy", "Normal", "Hard", "Lunatic"]
 
-var _canvas: Control
-var _tree_ui: Tree
-var _timeline: Control
-var _breadcrumb: Label
-var _time_label: Label
+# stage01 编排时刻表（对应 stage01.gd 的 tl.at()；以后数据化后从关卡数据读）
+const STAGE01_BOOKMARKS: Array[Dictionary] = [
+	{"t": 0.0, "label": "0s 开始 / BGM"},
+	{"t": 1.0, "label": "1s 红妖精波（左）"},
+	{"t": 4.0, "label": "4s 红妖精波（右）"},
+	{"t": 7.0, "label": "7s Logo 演出"},
+	{"t": 11.0, "label": "11s 中线妖精波"},
+	{"t": 17.0, "label": "17s 双翼妖精波①"},
+	{"t": 24.0, "label": "24s 双翼妖精波②"},
+	{"t": 35.0, "label": "35s Boss 卡摩瑞入场"},
+	{"t": 38.0, "label": "38s 非符 1"},
+]
+
+var _stage_data: StageData = STAGE01
+var _world: Node2D
+var _ghost: Player
+var _background: Node
+
+var _paused := false
+var _muted := false
+var _show_bg := true
+var _ff_target := -1.0   # 快进目标时刻（-1 = 不快进）
+var _prev_time := -1.0   # 时间轴刷新去重
+var _log_lines: Array[String] = []
+
+# UI 引用
 var _play_btn: Button
-var _speed_btn: Button
-var _inspector: VBoxContainer  # 参数面板（右）
+var _mute_btn: CheckButton
+var _bg_btn: CheckButton
+var _stage_sel: OptionButton
+var _diff_sel: OptionButton
+var _time_label: Label
+var _status_label: Label
+var _bookmark_list: ItemList
+var _log: RichTextLabel
+var _timeline: TimelineBar
 
-# ── 初始化 ──
+
+# ═══ 初始化 ═══
 
 func _ready() -> void:
-	if _timeline == null:
-		_build_ui()
-	_build_demo()
-	_focus = _root
-	_canvas.focus = _focus
-	_timeline.focus = _focus
-	_refresh_tree()
-	_playing = true  # 打开自动播放：一进来就看到弹幕生长（否则像"不发射"）
-	_update_controls()
-	_update_inspector()
-	_timeline.queue_redraw()
+	# UI 在暂停/快进时也要活着
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# 工作台专用窗口：给右侧面板腾位置（东方框 64,32~832,928 完整可见）
+	get_window().size = Vector2i(1600, 1000)
+	_build_ui()
+	_setup_world()
+	_connect_events()
+	_load_stage()
 
 
-func _process(delta: float) -> void:
-	if _playing:
-		# 关键：限制 delta（编辑器 @tool 模式下 delta 可能暴涨到几百秒
-		# → 时间瞬间跳完 → 弹幕秒死 → 画面空/卡"不发射"）
-		var dt := minf(delta, 0.05)
-		_time += dt * _speed
-		_simulate()
-	if _reset_flash > 0.0:
-		_reset_flash -= delta
-	if _canvas is WorkbenchCanvas:
-		_canvas.reset_flash = _reset_flash  # 防御：脚本缓存不一致时安全跳过
-		_canvas.playing = _playing  # 播放中不画轨迹（性能）
-		_canvas.queue_redraw()
-	if _timeline:
-		_timeline.time = _time
-		_timeline.queue_redraw()
-	_update_time_label()
+func _process(_delta: float) -> void:
+	# 快进到达检测（UI 是 ALWAYS，暂停中也检测）
+	if _ff_target >= 0.0:
+		var runner := StageManager.current_stage_script()
+		if runner == null or runner.game_time() >= _ff_target:
+			_stop_fast_forward()
+	_update_ui()
 
 
-# ── 模拟 ──
-
-func _simulate() -> void:
-	if _focus == null:
-		return
-	_focus.advance_to(_time)  # 播放 = 增量推进（高效）
-	_refresh_tree()
-
-
-func _reset() -> void:
-	# 重置（方案 A）：时间归零；播放状态保持不变
-	_time = 0.0
-	if _focus:
-		_focus.simulate_to(0.0)
-	if _timeline:
-		_timeline.time = 0.0
-		_timeline.queue_redraw()
-	_refresh_tree.call_deferred()
-	# 重置视觉反馈：画布短暂提示（确认重置生效）
-	_reset_flash = 0.8
-
-
-# ── 演示树：发射器 → 生成子弹 → 死亡 ──
-
-func _build_demo() -> void:
-	# 树根：把发射器声明为生成计划（确定性重跑时自动重建）
-	var root := WorkbenchDemoRoot.new()
-	var emitter := WorkbenchDemoEmitter.new()
-	root.child_plan = [{"t": 0.0, "node": emitter}]  # 立即出生：重置后 0.5s 就有子弹
-	_root = root
-	# 初始显示 t=3s 的状态
-	_root.simulate_to(3.0)
-	_time = 3.0
+func _draw() -> void:
+	# 场景底：有背景时让 3D 背景透出，只在东方框外画暗色；无背景时全屏实心
+	var has_bg: bool = _show_bg and _background and is_instance_valid(_background)
+	var field := Rect2(GameConfig.FIELD_LEFT, GameConfig.FIELD_TOP,
+		GameConfig.FIELD_RIGHT - GameConfig.FIELD_LEFT,
+		GameConfig.FIELD_BOTTOM - GameConfig.FIELD_TOP)
+	if not has_bg:
+		draw_rect(Rect2(0, 0, size.x, size.y), Color(0.03, 0.03, 0.05))
+	else:
+		# 东方框外四块（左上/右上/左下/右下）压暗，框内留给 3D 背景
+		draw_rect(Rect2(0, 0, size.x, field.position.y), Color(0.03, 0.03, 0.05))
+		draw_rect(Rect2(0, field.end.y, size.x, size.y - field.end.y), Color(0.03, 0.03, 0.05))
+		draw_rect(Rect2(0, field.position.y, field.position.x, field.size.y), Color(0.03, 0.03, 0.05))
+		draw_rect(Rect2(field.end.x, field.position.y, size.x - field.end.x, field.size.y), Color(0.03, 0.03, 0.05))
+	# 东方框边框 + 网格（半透明，不挡 3D 背景）
+	draw_rect(field, Color(0.35, 0.45, 0.7, 0.5), false, 2.0)
+	for x in range(64, 833, 64):
+		draw_line(Vector2(x, 32), Vector2(x, 928), Color(1, 1, 1, 0.05))
+	for y in range(32, 929, 64):
+		draw_line(Vector2(64, y), Vector2(832, y), Color(1, 1, 1, 0.05))
+	# 幽灵玩家路径参考（纵向漂移中线）
+	draw_line(Vector2(64, 620), Vector2(832, 620), Color(0.3, 0.9, 0.5, 0.15))
 
 
+func _exit_tree() -> void:
+	# 项目规范：断开 autoload 信号连接
+	if GameEvents.boss_spawned.is_connected(_on_boss_spawned):
+		GameEvents.boss_spawned.disconnect(_on_boss_spawned)
+	if GameEvents.phase_start.is_connected(_on_phase_start):
+		GameEvents.phase_start.disconnect(_on_phase_start)
+	if GameEvents.phase_end.is_connected(_on_phase_end):
+		GameEvents.phase_end.disconnect(_on_phase_end)
+	if GameEvents.boss_defeated.is_connected(_on_boss_defeated):
+		GameEvents.boss_defeated.disconnect(_on_boss_defeated)
+	Engine.time_scale = 1.0
+	Engine.max_physics_steps_per_frame = 8  # 恢复默认
+	AudioManager.set_bgm_pitch(1.0)
+	var idx := AudioServer.get_bus_index("Master")
+	if idx >= 0:
+		AudioServer.set_bus_mute(idx, false)
 
 
+## 幽灵玩家：实例化真实 player.tscn + 换 GhostPlayer 脚本（继承 Player，类型兼容）
+func _setup_world() -> void:
+	_world = Node2D.new()
+	_world.name = "World"  # StageManager.add_enemy_to_scene / _inject_player_ctx 需要
+	# 关键：显式 PAUSABLE！否则继承 root 的 ALWAYS，暂停时敌人照常发弹
+	_world.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(_world)
+	_ghost = PLAYER_SCENE.instantiate()
+	_ghost.set_script(GHOST_SCRIPT)
+	_ghost.name = "Player"
+	_ghost.player_data = REIMU_DATA
+	_world.add_child(_ghost)
 
 
-# ── UI 构建 ──
+# ═══ 关卡加载 / 重跑 ═══
 
-func _build_ui() -> void:
-	# 工具栏
-	var toolbar := HBoxContainer.new()
-	toolbar.name = "Toolbar"
-	add_child(toolbar)
-	_play_btn = Button.new()
-	_play_btn.text = "▶ 播放"
-	_play_btn.pressed.connect(_toggle_play)
-	toolbar.add_child(_play_btn)
-	var reset := Button.new()
-	reset.text = "↺ 重置"
-	reset.pressed.connect(_reset)
-	toolbar.add_child(reset)
-	_speed_btn = Button.new()
-	_speed_btn.text = "速度 ×1"
-	_speed_btn.pressed.connect(_cycle_speed)
-	toolbar.add_child(_speed_btn)
-	_breadcrumb = Label.new()
-	_breadcrumb.text = "Stage"
-	toolbar.add_child(_breadcrumb)
-	_time_label = Label.new()
-	toolbar.add_child(_time_label)
-	var ver := Label.new()
-	ver.text = VERSION
-	ver.modulate = Color(0.5, 0.7, 1.0)
-	toolbar.add_child(ver)
-	# 拖尾设置
-	var trail_check := CheckButton.new()
-	trail_check.text = "拖尾"
-	trail_check.button_pressed = true
-	trail_check.toggled.connect(_on_trail_toggled)
-	toolbar.add_child(trail_check)
-	var trail_slider := HSlider.new()
-	trail_slider.min_value = 0
-	trail_slider.max_value = 60
-	trail_slider.step = 1
-	trail_slider.value = 24
-	trail_slider.custom_minimum_size = Vector2(80, 0)
-	trail_slider.value_changed.connect(_on_trail_length)
-	toolbar.add_child(trail_slider)
+func _load_stage() -> void:
+	# 停止旧关卡 + 清空
+	StageManager.stop_stage()
+	BulletManager.clear_all()
+	AudioManager.stop_bgm()  # 重跑时 BGM 从头播（play_bgm 有同流防重保护，必须先停）
+	if _background and is_instance_valid(_background):
+		# 立即脱离树（不能只 queue_free 延迟删除）：
+		# 旧背景的协程/Tween 会和新背景抢同一个 Camera3D（相机数据错乱）
+		remove_child(_background)
+		_background.queue_free()
+		_background = null
+	GameState.restarting = false
+	GameState.reset_all()
+	if _diff_sel:
+		GameState.selected_difficulty = _diff_sel.selected
+	# 幽灵复位（重头走路径）
+	if _ghost:
+		_ghost.reset()
+	# 背景：必须先设 current_background（load_stage 会启动背景里的协程脚本）
+	if _show_bg and _stage_data.background_scene:
+		_background = _stage_data.background_scene.instantiate()
+		if _background is StageBackground:
+			StageManager.current_background = _background
+		# 显式 PAUSABLE：背景演出也随暂停冻结（否则继承 root 的 ALWAYS）
+		_background.process_mode = Node.PROCESS_MODE_PAUSABLE
+		add_child(_background)
+	# 真实加载（跑 stage01.gd 的 Timeline）
+	StageManager.load_stage(_stage_data)
+	# 时间轴 + 书签
+	_timeline.set_window(60.0)
+	_timeline.clear_bookmarks()
+	_bookmark_list.clear()
+	for bm in STAGE01_BOOKMARKS:
+		_timeline.add_bookmark(bm.t, bm.label)
+		var idx := _bookmark_list.add_item("%.0fs  %s" % [bm.t, bm.label])
+		_bookmark_list.set_item_metadata(idx, bm)
+	_prev_time = -1.0
+	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
 
-	# 中部：树 + 画布
-	var mid := HSplitContainer.new()
-	mid.name = "Mid"
-	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_child(mid)
-	_tree_ui = Tree.new()
-	_tree_ui.custom_minimum_size = Vector2(140, 0)
-	_tree_ui.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_tree_ui.item_selected.connect(_on_tree_selected)
-	mid.add_child(_tree_ui)
-	_canvas = CanvasScript.new()
-	_canvas.custom_minimum_size = Vector2(320, 320)  # 弹性：小窗口也能显示
-	_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mid.add_child(_canvas)
-	# 参数面板（右）
-	_inspector = VBoxContainer.new()
-	_inspector.name = "Inspector"
-	_inspector.custom_minimum_size = Vector2(150, 0)
-	_inspector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mid.add_child(_inspector)
 
-	# 底部：时间轴
-	_timeline = TimelineBarScript.new()
-	_timeline.name = "Timeline"
-	_timeline.custom_minimum_size = Vector2(0, 48)
-	_timeline.time_seeked.connect(_on_time_seeked)  # 时间线只 seek；主对象切换来自左侧树
-	_timeline.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(_timeline)
+func _restart() -> void:
+	_stop_fast_forward()
+	_load_stage()
+	_log_line("↺ 重跑")
 
+
+# ═══ 播放 / 暂停 ═══
 
 func _toggle_play() -> void:
-	_playing = not _playing
-	_update_controls()
+	if _paused:
+		_resume()
+	else:
+		_pause()
 
 
-func _cycle_speed() -> void:
-	# 轮转速度：×1 → ×2 → ×0.5 → ×1 ...
-	var speeds := [1.0, 2.0, 0.5]
-	var idx: int = speeds.find(_speed)
-	_speed = speeds[(idx + 1) % speeds.size()] if idx >= 0 else 1.0
-	_speed_btn.text = "速度 ×" + str(_speed)
-
-
-func _on_trail_toggled(on: bool) -> void:
-	if _canvas:
-		_canvas.show_trail = on
-
-func _on_trail_length(v: float) -> void:
-	if _canvas:
-		_canvas.trail_length = int(v)
-
-func _update_controls() -> void:
+func _pause() -> void:
+	if _ff_target >= 0.0:
+		_stop_fast_forward()
+	get_tree().paused = true
+	_paused = true
+	_apply_audio()
 	if _play_btn:
-		_play_btn.text = "⏸ 暂停" if _playing else "▶ 播放"
+		_play_btn.text = "▶ 播放"
+	_log_line("⏸ 暂停")
 
 
-func _update_time_label() -> void:
+func _resume() -> void:
+	get_tree().paused = false
+	_paused = false
+	_apply_audio()
+	if _play_btn:
+		_play_btn.text = "⏸ 暂停"
+	_log_line("▶ 继续")
+
+
+# ═══ 快进跳转（真实关卡不支持任意 seek，只能加速跑到目标）═══
+
+func _jump_to(t: float) -> void:
+	# 统一先停现有快进：重置 time_scale / BGM pitch / _ff_target
+	# （否则重跑分支或 t≈0 分支会残留 12 倍速 → 数据全乱）
+	_stop_fast_forward()
+	var runner := StageManager.current_stage_script()
+	var cur := runner.game_time() if runner else 0.0
+	if t < cur - 0.5:
+		# 目标在过去：无法倒带 → 重跑再快进
+		_log_line("↺ 目标 %.1fs 在过去（当前 %.1fs），重跑后快进" % [t, cur])
+		_load_stage()
+	if t <= 0.05:
+		return
+	_start_fast_forward(t)
+
+
+func _start_fast_forward(t: float) -> void:
+	if _paused:
+		_resume()
+	_ff_target = t
+	Engine.time_scale = 12.0
+	# 默认 max_physics_steps_per_frame=8 会丢步（12 步/帧的需求）→ 演出 tween/物理落后
+	Engine.max_physics_steps_per_frame = 64
+	_apply_audio()
+	AudioManager.set_bgm_pitch(Engine.time_scale)  # 音乐跟随快进变速
+	_log_line("⏩ 快进到 %.1fs ..." % t)
+
+
+func _stop_fast_forward() -> void:
+	if _ff_target < 0.0:
+		return
+	var t := _ff_target
+	_ff_target = -1.0
+	Engine.time_scale = 1.0
+	Engine.max_physics_steps_per_frame = 8  # 恢复默认
+	_apply_audio()
+	AudioManager.set_bgm_pitch(1.0)  # 音乐恢复正常
+	_log_line("▶ 到达 %.1fs" % t)
+
+
+## 静音合并策略：用户静音 / 暂停 / 快进 任一成立即静音
+func _apply_audio() -> void:
+	var m: bool = _muted or _paused or _ff_target >= 0.0
+	var idx := AudioServer.get_bus_index("Master")
+	if idx >= 0:
+		AudioServer.set_bus_mute(idx, m)
+
+
+# ═══ UI 刷新 ═══
+
+func _update_ui() -> void:
+	var runner := StageManager.current_stage_script()
+	var t := runner.game_time() if runner else 0.0
 	if _time_label:
-		var state := "" if _playing else " ⏸"
-		_time_label.text = "t=%.2fs%s" % [_time, state]
+		_time_label.text = "t = %.1f s%s" % [t, " ⏩" if _ff_target >= 0.0 else ""]
+	if absf(t - _prev_time) >= 0.05:
+		_prev_time = t
+		if _timeline:
+			_timeline.time = t
+			_timeline.queue_redraw()
+	if _status_label:
+		var boss = GameState.get_boss()
+		var boss_txt := "—"
+		if is_instance_valid(boss):
+			boss_txt = "存活"
+		_status_label.text = "子弹: %d\n敌人: %d\nBoss: %s\nFPS: %d" % [
+			BulletManager.active_bullets.size(),
+			GameState.get_active_enemies().size(),
+			boss_txt,
+			Engine.get_frames_per_second(),
+		]
 
 
-# ── 聚焦/导航 ──
+# ═══ 事件日志 ═══
 
-var _last_seek_ms: int = 0  # 拖动节流（全量重放较贵，拖动中限制频率）
-var _reset_flash: float = 0.0  # 重置提示剩余时长（秒）
+func _connect_events() -> void:
+	GameEvents.boss_spawned.connect(_on_boss_spawned)
+	GameEvents.phase_start.connect(_on_phase_start)
+	GameEvents.phase_end.connect(_on_phase_end)
+	GameEvents.boss_defeated.connect(_on_boss_defeated)
 
-## 点击/拖动时间线 = seek：时间跳到该处，全树状态更新到对应时刻
-func _on_time_seeked(t: float) -> void:
-	if _focus == null:
+
+func _on_boss_spawned(_boss: Node) -> void:
+	_log_line("👑 Boss 登场")
+
+
+func _on_phase_start(phase: PhaseData) -> void:
+	_log_line("🎴 符卡开始：%s" % (phase.name if phase else "？"))
+
+
+func _on_phase_end(_captured: bool, _bonus: int) -> void:
+	_log_line("🏁 符卡结束")
+
+
+func _on_boss_defeated(_boss: Node) -> void:
+	_log_line("💀 Boss 击破")
+
+
+func _log_line(text: String) -> void:
+	if _log == null:
 		return
-	_time = t  # 播放头位置总是即时更新
-	var now := Time.get_ticks_msec()
-	if now - _last_seek_ms < 50:  # ~20Hz 节流：拖动流畅不卡
-		return
-	_last_seek_ms = now
-	_focus.simulate_to(t)  # 确定性重放（seek）
-	_refresh_tree.call_deferred()
-	_update_inspector()
+	_log_lines.append(text)
+	while _log_lines.size() > 80:
+		_log_lines.pop_front()
+	_log.text = "\n".join(_log_lines)
 
 
-func _on_node_selected(node: LifecycleNode) -> void:
-	# 防重入：同一节点（如信号风暴/重复点击）只刷新不重置时间
-	if node == _focus:
-		_refresh_tree.call_deferred()
-		_update_inspector()
-		return
-	# 时间轴切到该对象的局部时间线（锚点语义）
-	# 注意：保留 _time（不归零）——切换主对象后画布立刻显示
-	# 该时刻的完整状态，不会变成空画面
-	_focus = node
-	_focus.simulate_to(_time)
-	if _canvas:
-		_canvas.focus = _focus
-	_breadcrumb.text = _breadcrumb_path(node)
-	_refresh_tree.call_deferred()
-	_timeline.focus = _focus
-	_timeline.time = _time
-	_timeline.queue_redraw()
-	_update_inspector()
+# ═══ UI 构建 ═══
 
+func _build_ui() -> void:
+	var ui := CanvasLayer.new()
+	ui.layer = 10
+	ui.name = "UI"
+	add_child(ui)
 
-func _breadcrumb_path(node: LifecycleNode) -> String:
-	var script_ref: Script = node.get_script() as Script
-	var parts: Array = [script_ref.resource_path.get_file().get_basename()]
-	var n: LifecycleNode = node
-	while n.parent:
-		n = n.parent
-		var pref: Script = n.get_script() as Script
-		parts.push_front(pref.resource_path.get_file().get_basename())
-	return " › ".join(parts)
+	# ── 右侧面板（工具栏 + 状态 + 书签 + 日志）──
+	var right := VBoxContainer.new()
+	right.name = "RightPanel"
+	right.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	right.offset_left = -752.0  # x ≈ 840
+	right.offset_top = 8.0
+	right.offset_right = -8.0
+	right.offset_bottom = 928.0
+	right.add_theme_constant_override("separation", 6)
+	ui.add_child(right)
 
-
-# ── 参数面板 ──
-
-## 显示选中节点的生命周期属性
-func _update_inspector() -> void:
-	if _inspector == null:
-		return
-	for child in _inspector.get_children():
-		child.queue_free()
-	if _focus == null:
-		return
-	var script_ref: Script = _focus.get_script() as Script
+	# 标题
 	var title := Label.new()
-	title.text = "■ " + script_ref.resource_path.get_file().get_basename()
-	title.add_theme_font_size_override("font_size", 16)
-	_inspector.add_child(title)
-	_add_inspector_row("锚点（出生）", "%.2fs" % _focus.anchor)
-	_add_inspector_row("局部时间", "%.2fs" % _focus.local_time)
-	_add_inspector_row("世界时间", "%.2fs" % _focus.world_time())
-	_add_inspector_row("状态", "▶ 存活" if _focus.alive else "✖ 死亡")
-	_add_inspector_row("子对象数", str(_focus.children.size()))
-	_add_inspector_row("子对象", _child_summary(_focus))
-	# 行为事件（生成计划时刻）
-	var plan: Array = _focus._spawn_plan()
-	if plan.size() > 0:
-		var times: Array = []
-		for ev in plan:
-			times.append("%.1f" % ev.t)
-		_add_inspector_row("行为事件", "t=" + "、".join(times))
+	title.text = "内容工作台 %s" % VERSION
+	title.add_theme_font_size_override("font_size", 18)
+	right.add_child(title)
+
+	# 工具栏（两行）
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 4)
+	right.add_child(grid)
+
+	# 关卡选择
+	grid.add_child(_label("关卡"))
+	_stage_sel = OptionButton.new()
+	_stage_sel.add_item("Stage 1 橡树之庭")
+	_stage_sel.disabled = true  # 目前只有一个关卡
+	grid.add_child(_stage_sel)
+
+	# 难度
+	grid.add_child(_label("难度"))
+	_diff_sel = OptionButton.new()
+	for d in DIFFICULTIES:
+		_diff_sel.add_item(d)
+	_diff_sel.selected = 1  # Normal
+	_diff_sel.item_selected.connect(_on_difficulty_changed)
+	grid.add_child(_diff_sel)
+
+	# 播放 / 重跑
+	_play_btn = Button.new()
+	_play_btn.text = "⏸ 暂停"
+	_play_btn.pressed.connect(_toggle_play)
+	grid.add_child(_play_btn)
+	var restart_btn := Button.new()
+	restart_btn.text = "↺ 重跑"
+	restart_btn.pressed.connect(_restart)
+	grid.add_child(restart_btn)
+
+	# 静音 / 背景
+	_mute_btn = CheckButton.new()
+	_mute_btn.text = "静音"
+	_mute_btn.toggled.connect(_on_mute_toggled)
+	grid.add_child(_mute_btn)
+	_bg_btn = CheckButton.new()
+	_bg_btn.text = "背景"
+	_bg_btn.button_pressed = true
+	_bg_btn.toggled.connect(_on_bg_toggled)
+	grid.add_child(_bg_btn)
+
+	# 当前时间
+	_time_label = Label.new()
+	_time_label.add_theme_font_size_override("font_size", 16)
+	right.add_child(_time_label)
+
+	# 状态
+	var status_title := _label("── 状态 ──")
+	right.add_child(status_title)
+	_status_label = Label.new()
+	right.add_child(_status_label)
+
+	# 书签
+	right.add_child(_label("── 书签（点击 = 快进）──"))
+	_bookmark_list = ItemList.new()
+	_bookmark_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_bookmark_list.custom_minimum_size = Vector2(0, 120)
+	_bookmark_list.item_clicked.connect(_on_bookmark_clicked)
+	right.add_child(_bookmark_list)
+
+	# 事件日志
+	right.add_child(_label("── 事件日志 ──"))
+	_log = RichTextLabel.new()
+	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_log.custom_minimum_size = Vector2(0, 160)
+	_log.fit_content = false
+	_log.scroll_following = true
+	right.add_child(_log)
+
+	# ── 底部时间轴 ──
+	_timeline = TimelineBar.new()
+	_timeline.name = "Timeline"
+	_timeline.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_timeline.offset_left = 8.0
+	_timeline.offset_right = -8.0
+	_timeline.offset_top = -64.0   # y ≈ 936
+	_timeline.offset_bottom = -4.0 # y ≈ 996
+	_timeline.custom_minimum_size = Vector2(0, 56)
+	_timeline.jump_to.connect(_jump_to)
+	ui.add_child(_timeline)
 
 
-func _add_inspector_row(key: String, value: String) -> void:
-	var row := HBoxContainer.new()
-	var k := Label.new()
-	k.text = key
-	k.custom_minimum_size = Vector2(90, 0)
-	k.modulate = Color(0.7, 0.7, 0.8)
-	var v := Label.new()
-	v.text = value
-	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # 长文本换行，不撑宽
-	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(k)
-	row.add_child(v)
-	_inspector.add_child(row)
+func _on_mute_toggled(on: bool) -> void:
+	_muted = on
+	_apply_audio()
 
 
-func _child_summary(node: LifecycleNode) -> String:
-	# 截断：最多列 5 个，避免超长文本撑爆面板（画布被挤出！）
-	var names: Array = []
-	for child in node.children:
-		if names.size() >= 5:
-			break
-		var ref: Script = child.get_script() as Script
-		names.append(ref.resource_path.get_file().get_basename())
-	var s: String = "、".join(names)
-	if node.children.size() > 5:
-		s += "… 等 %d 个" % node.children.size()
-	return s if names.size() > 0 else "—"
+func _on_bg_toggled(on: bool) -> void:
+	_show_bg = on
+	_restart()
 
 
-# ── 生命周期树 UI ──
+func _on_difficulty_changed(_i: int) -> void:
+	_restart()
 
-var _tree_sig: String = ""
 
-## 树刷新：结构签名变化才重建（实体生成/死亡才刷 → 播放不卡）
-func _refresh_tree() -> void:
-	if _tree_ui == null:
+func _label(text: String) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.modulate = Color(0.7, 0.7, 0.8)
+	return l
+
+
+func _on_bookmark_clicked(index: int, _pos: Vector2, _btn: int) -> void:
+	if index < 0 or index >= _bookmark_list.item_count:
 		return
-	var sig := _tree_signature(_focus)
-	if sig == _tree_sig:
-		return  # 结构没变：跳过重建（性能）
-	_tree_sig = sig
-	_tree_ui.clear()
-	# 树根 = 最顶层祖先（主对象在路径中，可点击返回）
-	var top := _focus
-	while top.parent:
-		top = top.parent
-	var root_item := _tree_ui.create_item()
-	root_item.set_text(0, _node_label(top))
-	root_item.set_metadata(0, top)
-	# 注意：不要 select()——Tree.select 触发 item_selected → 信号循环崩溃！
-	_add_path_to_focus(root_item, top)
-
-
-## 树结构签名：对象节点（非实体）+ 存活数 + 局部时间（量化）
-func _tree_signature(node: LifecycleNode) -> String:
-	var parts: Array = [str(int(node.local_time * 10)), str(node.alive)]
-	for child in node.children:
-		if not child.is_entity():
-			parts.append(_tree_signature(child))
-	return "|".join(parts)
-
-
-func _add_tree_children(parent_item: TreeItem, node: LifecycleNode) -> void:
-	for child in node.children:
-		if child.is_entity():
-			continue  # 实体（子弹）不进编排树
-		var item := _tree_ui.create_item(parent_item)
-		item.set_text(0, _node_label(child))
-		item.set_metadata(0, child)
-		_add_tree_children(item, child)
-
-
-## 构建"根 → 主对象"路径（路径上节点可点击返回）
-func _add_path_to_focus(item: TreeItem, node: LifecycleNode) -> void:
-	if node == _focus:
-		_add_tree_children(item, node)  # 主对象：展开它的子树
-		return
-	for child in node.children:
-		if _is_ancestor_of(child, _focus):
-			var ci := _tree_ui.create_item(item)
-			ci.set_text(0, _node_label(child))
-			ci.set_metadata(0, child)
-			_add_path_to_focus(ci, child)
-			return
-
-
-func _is_ancestor_of(ancestor: LifecycleNode, node: LifecycleNode) -> bool:
-	var n: LifecycleNode = node
-	while n.parent:
-		if n.parent == ancestor:
-			return true
-		n = n.parent
-	return false
-
-
-func _node_label(node: LifecycleNode) -> String:
-	var script_ref: Script = node.get_script() as Script
-	var label: String = script_ref.resource_path.get_file().get_basename()
-	var state: String = "▶" if node.alive else "✖"
-	var events: Array = node._behavior_events()
-	var beh: String = ""
-	if events.size() > 0:
-		beh = "  [%d 行为]" % events.size()
-	return "%s %s (t=%.1f)%s" % [state, label, node.local_time, beh]
-
-
-func _on_tree_selected() -> void:
-	var item := _tree_ui.get_selected()
-	if item:
-		var node: LifecycleNode = item.get_metadata(0)
-		if node == _focus:
-			return  # 已是主对象：忽略（防信号循环）
-		# Tree 在鼠标选中事件期间禁止 clear/create → 延迟到事件结束后
-		_on_node_selected.call_deferred(node)
+	var bm: Dictionary = _bookmark_list.get_item_metadata(index)
+	_jump_to(bm.t)
