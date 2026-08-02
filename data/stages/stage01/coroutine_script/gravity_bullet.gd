@@ -8,7 +8,7 @@ func _tick(_ctx: StageContext) -> Variant:
 	if not is_instance_valid(target) or not target is Bullet:
 		return false
 	var bullet: Bullet = target
-	var dt := get_physics_process_delta_time()
+	var dt := get_dt()
 	bullet.velocity.y += gravity * dt
 	bullet.global_position += bullet.velocity * dt
 	bullet.rotation = bullet.velocity.angle()

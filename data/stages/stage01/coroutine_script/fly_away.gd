@@ -18,7 +18,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 
 func _tick(_ctx: StageContext) -> Variant:
-	var dt := get_physics_process_delta_time()
+	var dt := get_dt()
 	target.global_position += _dir * _speed * dt
 	_speed += 50.0 * dt
 	# 出屏后自动消除

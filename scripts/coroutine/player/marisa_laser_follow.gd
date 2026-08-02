@@ -27,7 +27,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	tl.every(0).do(func():
 		if not ctx.active() or not is_instance_valid(target):
 			return false
-		var dt := get_physics_process_delta_time()
+		var dt := get_dt()
 
 		# 位置更新：持续向上漂移（包括渐隐期间，激光边淡出边飞走）
 		var extra: Variant = target.get("extra")

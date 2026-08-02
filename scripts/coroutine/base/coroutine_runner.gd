@@ -26,6 +26,13 @@ var is_running: bool = false
 var _paused: bool = false
 var _tasks: Array[Task] = []
 var _clock: float = 0.0  # 游戏内时间（物理帧累积，暂停时冻结）
+var _last_dt: float = 0.0  # 当前帧物理步长（time_scale 生效；节点/无节点模式一致）
+
+
+## 当前帧物理步长（协程脚本用这个代替 get_physics_process_delta_time()：
+## 无节点模式（子弹协程）下引擎不更新树外节点的 delta，直接调会返回 0！）
+func get_dt() -> float:
+	return _last_dt
 
 
 ## 游戏内时间访问器（工作台/调试/Replay 用）
@@ -90,8 +97,26 @@ func _physics_process(_delta: float) -> void:
 		return
 	if _paused:
 		return  # 暂停时不累积时钟
-	_clock += get_physics_process_delta_time()  # 用引擎时钟（time_scale 生效，快进/慢动作正确）
-	
+	_last_dt = get_physics_process_delta_time()  # 用引擎时钟（time_scale 生效，快进/慢动作正确）
+	_clock += _last_dt
+	_advance_tasks()
+
+
+## 宿主驱动模式：由宿主（如 Bullet）每帧手动推进，不依赖引擎 _physics_process 回调
+## 子弹协程用：消除"每颗子弹一个节点 → 每帧引擎回调"的最大开销
+## 返回 false = 已结束（宿主应清理引用）；true = 仍在运行
+func tick_manual(dt: float) -> bool:
+	if not is_running:
+		return false
+	if _paused:
+		return true
+	_last_dt = dt
+	_clock += dt
+	_advance_tasks()
+	return is_running
+
+
+func _advance_tasks() -> void:
 	for i in range(_tasks.size() - 1, -1, -1):
 		var task := _tasks[i]
 		if not task.callable.is_valid():

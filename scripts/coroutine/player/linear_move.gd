@@ -4,5 +4,5 @@ extends CoroutineScript
 
 func _tick(_p_ctx: StageContext):
 	if not target: return false
-	target.global_position += target.velocity * get_physics_process_delta_time()
+	target.global_position += target.velocity * get_dt()
 	return true

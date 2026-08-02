@@ -75,7 +75,7 @@ func _return_to_pool(bullet: Bullet) -> void:
 		return
 	if bullet.coroutine_script and is_instance_valid(bullet.coroutine_script):
 		bullet.coroutine_script.stop()
-		bullet.remove_child(bullet.coroutine_script)
+		# 无节点模式：协程不是子节点，不能 remove_child（会报 parent 错误）
 		bullet.coroutine_script.queue_free()
 		bullet.coroutine_script = null
 	for child in bullet.get_children():

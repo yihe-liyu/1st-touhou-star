@@ -17,7 +17,7 @@ func _tick(p_ctx: StageContext):
 		return false
 	
 	# 移动每帧都做（用引擎时钟：time_scale 快进时弹丸同步加速）
-	target.global_position += target.velocity * get_physics_process_delta_time()
+	target.global_position += target.velocity * get_dt()
 	
 	# 距离检测每 3 帧跑一次，省开销
 	_skip += 1

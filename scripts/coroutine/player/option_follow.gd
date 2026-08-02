@@ -13,7 +13,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
 	if p_target:
 		target = p_target
-	var delta := get_physics_process_delta_time()
+	var delta := get_dt()
 	_lerp_factor = 1.0 - exp(-FOLLOW_SPEED * delta)
 	super.start(ctx, target)
 

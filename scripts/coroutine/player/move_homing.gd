@@ -32,7 +32,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		if not ctx.active() or not is_instance_valid(target):
 			return false
 
-		var dt := get_physics_process_delta_time()
+		var dt := get_dt()
 		_elapsed += dt
 		var turn_factor := _calc_turn_factor()
 		var current_speed := lerpf(min_speed, top_speed, turn_factor)

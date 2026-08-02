@@ -59,7 +59,12 @@ func _reset_state() -> void:
 func bind(data: BulletData, direction: Vector2):
 	is_ready = false
 	_grazed = false
-	# 清理上次残留的子协程
+	# 清理上次残留的协程（无节点模式：不再 add_child，直接停引用）
+	if coroutine_script and is_instance_valid(coroutine_script):
+		coroutine_script.stop()
+		coroutine_script.queue_free()
+		coroutine_script = null
+	# 清理旧方案遗留的子节点协程（兼容）
 	for child in get_children():
 		if child is CoroutineScript:
 			child.stop()
@@ -128,19 +133,27 @@ func _on_fog_ready():
 	is_ready = true
 
 func _physics_process(_delta):
-	if not is_ready or coroutine_script:
+	if not is_ready:
+		return
+	var dt := get_physics_process_delta_time()
+	if coroutine_script:
+		# 快速路径：直接调 _tick（无节点 + 无调度器）
+		if not coroutine_script.tick_fast(dt):
+			# 协程结束：释放孤儿节点 + 清引用
+			coroutine_script.stop()
+			coroutine_script.queue_free()
+			coroutine_script = null
 		return
 	# 匀加速：velocity += accel * dt（世界方向）
-	# 用引擎时钟：time_scale 生效（工作台快进/未来子弹时间）
-	var dt := get_physics_process_delta_time()
 	velocity += accel * dt
 	self.global_position += velocity * dt
 
 func _start_coroutine(data: BulletData):
 	coroutine_script = data.coroutine_script.new()
 	assert(coroutine_script is CoroutineScript, "Bullet: coroutine must be a CoroutineScript")
-	add_child(coroutine_script)
-	coroutine_script.start(StageContext.new(coroutine_script), self)
+	# 无节点 + 快速路径：不 add_child（消除引擎回调）、不建调度 Task（消除 Callable 开销）
+	# 由本子弹 _physics_process 直接调 _tick
+	coroutine_script.start_fast(StageContext.new(coroutine_script), self)
 
 func batch_texture() -> Texture2D:
 	return sprite.texture

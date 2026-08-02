@@ -35,10 +35,45 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	run(_tick.bind(ctx))
 
 
+# ═══ 快速模式（子弹协程专用）═══
+# 常规模式：Task + Callable + 调度循环（wait/并行/暂停 全支持）
+# 快速模式：直接调 _tick，绕过全部调度层（快 2-3 倍）——适合"每帧型"子弹协程
+
+var _fast_wait_left: float = 0.0
+
+
+## 快速模式启动：不创建 Task、不依赖 runner 调度
+func start_fast(p_ctx: StageContext, p_target: Node2D = null) -> void:
+	ctx = p_ctx
+	if p_target != null:
+		target = p_target
+	_fast_wait_left = 0.0
+	is_running = true
+
+
+## 快速模式每帧推进：直接调 _tick（返回约定同 _tick：true=继续 / false=结束 / float=等待）
+func tick_fast(dt: float) -> bool:
+	_last_dt = dt
+	if _fast_wait_left > 0.0:
+		_fast_wait_left -= dt
+		return true
+	var result = _tick(ctx)
+	if typeof(result) == TYPE_FLOAT or typeof(result) == TYPE_INT:
+		if result > 0:
+			_fast_wait_left = result
+			return true
+		is_running = false
+		return false
+	if result == true:
+		return true
+	is_running = false
+	return false
+
+
 ## 每帧回调。覆写此方法可实现自定义逻辑（不用 Timeline）
 func _tick(_ctx: StageContext) -> Variant:
 	if _tl:
-		var alive := _tl.tick(get_physics_process_delta_time())
+		var alive := _tl.tick(get_dt())
 		if not alive and auto_stop:
 			return false
 		return true

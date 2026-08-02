@@ -79,7 +79,7 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		var player: Player = ctx.player.get_player()
 		if not is_instance_valid(player):
 			return ctx.clock.wait_frames(OPTION_INTERVAL)
-		var dt := get_physics_process_delta_time()
+		var dt := get_dt()
 		_spawn_accumulator += LASER_DRIFT_SPEED * dt
 		var spacing: float = SEG_W * LASER_SPACING_OVERLAP
 		while _spawn_accumulator >= spacing:
