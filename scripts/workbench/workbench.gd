@@ -778,7 +778,14 @@ func _build_ui() -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_theme_constant_override("separation", 6)
-	margin.add_child(right)
+	# 面板整体可上下滑动（内容超高时滚动；内部控件改固定高度）
+	var right_scroll := ScrollContainer.new()
+	right_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	right_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_scroll.add_child(right)
+	margin.add_child(right_scroll)
 
 	# 拖拽分割条（面板左边缘）
 	_divider = ColorRect.new()
@@ -895,7 +902,6 @@ func _build_ui() -> void:
 	_wave_tree = Tree.new()
 	_wave_tree.columns = 5
 	_wave_tree.custom_minimum_size = Vector2(0, 120)
-	_wave_tree.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_wave_tree.set_column_title(0, "t")
 	_wave_tree.set_column_title(1, "波次")
 	_wave_tree.set_column_title(2, "敌人")
@@ -911,7 +917,6 @@ func _build_ui() -> void:
 	# （否则表单变高挤压下方书签/日志 → ItemList 滚动重置跳顶）
 	var detail_scroll := ScrollContainer.new()
 	detail_scroll.custom_minimum_size = Vector2(0, 140)
-	detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_wave_section.add_child(detail_scroll)
 	_wave_detail = VBoxContainer.new()
@@ -932,7 +937,6 @@ func _build_ui() -> void:
 	_bm_menu.id_pressed.connect(_on_bm_menu_id_pressed)
 	ui.add_child(_bm_menu)
 	_bookmark_list = ItemList.new()
-	_bookmark_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_bookmark_list.custom_minimum_size = Vector2(0, 120)
 	_bookmark_list.item_clicked.connect(_on_bookmark_clicked)
 	right.add_child(_bookmark_list)
@@ -940,7 +944,6 @@ func _build_ui() -> void:
 	# 事件日志
 	right.add_child(_label("── 事件日志 ──"))
 	_log = RichTextLabel.new()
-	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_log.custom_minimum_size = Vector2(0, 160)
 	_log.fit_content = false
 	_log.scroll_following = true
