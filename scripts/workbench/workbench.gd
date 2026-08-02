@@ -280,7 +280,10 @@ func _clear_container(vb: Node) -> void:
 
 
 ## res:// 路径 → user:// 可写副本路径（开发时编辑保存；运行时 res:// 只读）
+## 注意：_get_timeline_data 可能已返回 user:// 副本（resource_path 已是 user://）
 static func _user_timeline_path(res_path: String) -> String:
+	if res_path.begins_with("user://"):
+		return res_path
 	return "user://" + res_path.trim_prefix("res://")
 
 
