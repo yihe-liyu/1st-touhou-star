@@ -212,15 +212,15 @@ func _load_stage() -> void:
 
 ## 书签：缓存优先；未命中（首次/关卡脚本变了）→ 静默快进收集真实事件时刻
 func _apply_bookmarks_from_cache() -> void:
-	var hash := BOOKMARK_CACHE.stage_content_hash(_stage_data)
-	var cache: Dictionary = BOOKMARK_CACHE.load(_stage_data.stage_id, hash)
+	var content_hash := BOOKMARK_CACHE.stage_content_hash(_stage_data)
+	var cache: Dictionary = BOOKMARK_CACHE.load(_stage_data.stage_id, content_hash)
 	if cache.ok:
 		_collect_attempts = 0  # 收集链路已通，重置防循环计数
 		_apply_bookmarks(cache.auto, cache.manual)
 		_log_line("📖 书签来自缓存（%d 自动 + %d 人工）" % [cache.auto.size(), cache.manual.size()])
 	else:
 		_manual_bookmarks = cache.manual  # 脚本变了也保留人工打点
-		_start_collection(hash)
+		_start_collection(content_hash)
 
 
 ## 显示书签（自动 + 人工合并）
@@ -242,7 +242,7 @@ func _apply_bookmarks(auto: Array, manual: Array) -> void:
 
 
 ## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
-func _start_collection(hash: int) -> void:
+func _start_collection(content_hash: int) -> void:
 	_collect_attempts += 1
 	if _collect_attempts > 2:
 		# 兜底：收集链路异常（缓存写不进等）→ 退回静态提取，避免无限加速循环
@@ -254,7 +254,7 @@ func _start_collection(hash: int) -> void:
 		_apply_bookmarks(auto, _manual_bookmarks)
 		return
 	_collecting = true
-	_collect_hash = hash
+	_collect_hash = content_hash
 	_collect_times.clear()
 	# 注入收集器（stage_script._tl 已在 load_stage 时创建）
 	var script := StageManager.current_stage_script()
