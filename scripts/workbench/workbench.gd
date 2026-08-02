@@ -43,6 +43,8 @@ var _collect_hash := 0
 var _collect_max := 45.0   # 收集到该时刻（非符1 开始后足够；Boss 击破后的事件依赖玩家，不收集）
 var _collect_times: Array = []
 var _collect_attempts := 0  # 防死循环：收集连续失败超限退回静态提取
+var _toast := ""           # 短暂提示（收集完成反馈等）
+var _toast_t := 0.0
 var _manual_bookmarks: Array = []  # 人工打点（缓存保留，第二波做编辑 UI）
 
 var _paused := false
@@ -86,6 +88,10 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	# toast 倒计时
+	if _toast_t > 0.0:
+		_toast_t -= _delta
+		queue_redraw()
 	# 书签收集完成检测（静默快进跑完即收）
 	if _collecting:
 		queue_redraw()  # 遮罩提示持续显示
@@ -288,6 +294,8 @@ func _finish_collection() -> void:
 		auto.append({"t": t_round})
 	BOOKMARK_CACHE.save(_stage_data.stage_id, _collect_hash, auto, _manual_bookmarks)
 	_log_line("📖 收集完成：%d 个书签，已缓存" % auto.size())
+	_toast = "✅ 书签已生成（%d 个）" % auto.size()
+	_toast_t = 1.5
 	# 重跑（现在缓存命中 → 正常速度从 0 开始）
 	_load_stage()
 
