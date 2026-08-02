@@ -42,6 +42,11 @@ var _world: Node2D
 var _ghost: Player
 var _background: Node
 var _hitbox_overlay: Node2D  # 实际是 HitboxOverlay（preload，避免类缓存依赖）
+var _right_panel: VBoxContainer  # 右侧面板（可拖拽调宽）
+var _divider: Control
+var _drag_divider := false
+var _drag_start_x := 0.0
+var _drag_start_off := 0.0
 
 var _paused := false
 var _muted := false
@@ -357,16 +362,30 @@ func _build_ui() -> void:
 	ui.name = "UI"
 	add_child(ui)
 
-	# ── 右侧面板（工具栏 + 状态 + 书签 + 日志）──
-	var right := VBoxContainer.new()
-	right.name = "RightPanel"
-	right.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	right.offset_left = -752.0  # x ≈ 840
-	right.offset_top = 8.0
-	right.offset_right = -8.0
-	right.offset_bottom = 928.0
-	right.add_theme_constant_override("separation", 6)
-	ui.add_child(right)
+	# ── 右侧面板（工具栏 + 状态 + 书签 + 日志）—— 可拖拽调宽 ──
+	_right_panel = VBoxContainer.new()
+	_right_panel.name = "RightPanel"
+	_right_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_right_panel.offset_left = -752.0  # x ≈ 840
+	_right_panel.offset_top = 8.0
+	_right_panel.offset_right = -8.0
+	_right_panel.offset_bottom = 928.0
+	_right_panel.add_theme_constant_override("separation", 6)
+	ui.add_child(_right_panel)
+
+	# 拖拽分割条（面板左边缘）
+	_divider = ColorRect.new()
+	_divider.name = "Divider"
+	_divider.color = Color(1, 1, 1, 0.15)
+	_divider.mouse_default_cursor_shape = Control.CURSOR_HSIZE
+	_divider.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_divider.offset_left = -760.0
+	_divider.offset_right = -752.0
+	_divider.offset_top = 8.0
+	_divider.offset_bottom = 928.0
+	_divider.gui_input.connect(_on_divider_input)
+	ui.add_child(_divider)
+	var right := _right_panel
 
 	# 标题
 	var title := Label.new()
@@ -489,6 +508,25 @@ func _on_bg_toggled(on: bool) -> void:
 
 func _on_difficulty_changed(_i: int) -> void:
 	_restart()
+
+
+## 拖拽分割条：调整右侧面板宽度
+func _on_divider_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		_drag_divider = event.pressed
+		if event.pressed:
+			_drag_start_x = (event as InputEventMouseButton).global_position.x
+			_drag_start_off = _right_panel.offset_left
+	elif event is InputEventMouseMotion and _drag_divider:
+		var mm := event as InputEventMouseMotion
+		var dx: float = mm.global_position.x - _drag_start_x
+		# 宽度范围：面板 300 ~ 窗口-120（offset_left 为负值）
+		var min_w := 300.0
+		var max_w := get_window().size.x - 120.0
+		var new_off := clampf(_drag_start_off + dx, -max_w, -min_w)
+		_right_panel.offset_left = new_off
+		_divider.offset_left = new_off - 8.0
+		_divider.offset_right = new_off
 
 
 func _label(text: String) -> Label:
