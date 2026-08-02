@@ -26,14 +26,17 @@ const HOVER_BG := Color(1, 1, 1, 0.10)
 
 
 func _init() -> void:
-	custom_minimum_size = Vector2(_total_width(), 0)
+	var h := HEADER_H + ROW_H * 4.0 + 4.0  # 默认高度（约 4 行可见，多余滚动）
+	custom_minimum_size = Vector2(_total_width(), h)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_scroll = ScrollContainer.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_scroll.custom_minimum_size = Vector2(_total_width(), 0)
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll.custom_minimum_size = Vector2(_total_width(), h)
 	add_child(_scroll)
 	_rows_box = VBoxContainer.new()
 	_rows_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rows_box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_rows_box.add_theme_constant_override("separation", 0)
 	_scroll.add_child(_rows_box)
 
@@ -50,6 +53,12 @@ func setup(tl: Resource) -> void:
 		return
 	for i in _tl.waves.size():
 		_append_row(i, _tl.waves[i])
+	# 高度 = 内容（列头+行）封顶 5 行，多余内部滚动
+	var rows: int = _tl.waves.size() if _tl != null else 0
+	var h := HEADER_H + ROW_H * float(rows) + 4.0
+	h = minf(h, HEADER_H + ROW_H * 5.0 + 4.0)
+	custom_minimum_size = Vector2(_total_width(), h)
+	_scroll.custom_minimum_size = Vector2(_total_width(), h)
 	_update_highlight()
 
 
