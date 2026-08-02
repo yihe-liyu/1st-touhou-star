@@ -73,6 +73,7 @@ var _diff_sel: OptionButton
 var _time_label: Label
 var _status_label: Label
 var _bookmark_list: ItemList
+var _wave_section: VBoxContainer  # 编排区块（数据关卡才显示）
 var _wave_tree: Tree              # 编排表格（数据关卡波次）
 var _wave_detail: VBoxContainer   # 选中波次的详情表单容器
 var _detail_edits: Array = []     # 详情表单控件（{apply: Callable} 应用时写回）
@@ -306,7 +307,11 @@ func _refresh_wave_table() -> void:
 	_wave_tree.clear()
 	_clear_container(_wave_detail)
 	var timeline = _get_timeline_data()
-	if timeline == null or timeline.waves.is_empty():
+	if timeline == null:
+		_wave_section.visible = false  # 协程关卡：编排区块整体隐藏
+		return
+	_wave_section.visible = true
+	if timeline.waves.is_empty():
 		_wave_tree.visible = false
 		_wave_detail.visible = false
 		return
@@ -865,8 +870,11 @@ func _build_ui() -> void:
 	right.add_child(_status_label)
 
 	# 书签
-	# ── 编排（数据关卡波次表格 + 详情编辑）──
-	right.add_child(_label("── 编排（数据关卡）──"))
+	# ── 编排（数据关卡波次表格 + 详情编辑；协程关卡整体隐藏）──
+	_wave_section = VBoxContainer.new()
+	_wave_section.add_theme_constant_override("separation", 4)
+	right.add_child(_wave_section)
+	_wave_section.add_child(_label("── 编排（数据关卡）──"))
 	var wave_btns := HBoxContainer.new()
 	var add_wave := Button.new()
 	add_wave.text = "＋ 波次"
@@ -880,7 +888,7 @@ func _build_ui() -> void:
 	save_btn.text = "💾 保存"
 	save_btn.pressed.connect(_save_timeline)
 	wave_btns.add_child(save_btn)
-	right.add_child(wave_btns)
+	_wave_section.add_child(wave_btns)
 	_wave_tree = Tree.new()
 	_wave_tree.columns = 5
 	_wave_tree.custom_minimum_size = Vector2(0, 120)
@@ -895,14 +903,14 @@ func _build_ui() -> void:
 	_wave_tree.set_column_expand(3, false)
 	_wave_tree.set_column_expand(4, false)
 	_wave_tree.item_selected.connect(_on_wave_selected)
-	right.add_child(_wave_tree)
+	_wave_section.add_child(_wave_tree)
 	# 详情表单包 ScrollContainer：固定高度，内容超高内部滚动
 	# （否则表单变高挤压下方书签/日志 → ItemList 滚动重置跳顶）
 	var detail_scroll := ScrollContainer.new()
 	detail_scroll.custom_minimum_size = Vector2(0, 140)
 	detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	right.add_child(detail_scroll)
+	_wave_section.add_child(detail_scroll)
 	_wave_detail = VBoxContainer.new()
 	_wave_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_wave_detail.add_theme_constant_override("separation", 4)
