@@ -21,6 +21,7 @@ const GHOST_SCRIPT := preload("res://scripts/workbench/ghost_player.gd")
 const HITBOX_OVERLAY := preload("res://scripts/workbench/hitbox_overlay.gd")
 const BOOKMARK_EXTRACTOR := preload("res://scripts/workbench/bookmark_extractor.gd")
 const BOOKMARK_CACHE := preload("res://scripts/workbench/bookmark_cache.gd")
+const ENEMY_REG := preload("res://scripts/data/enemy_template_registry.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
 const STAGE01 := preload("res://data/stages/stage01/stage_data/stage01.tres")
 const STAGE_DEMO := preload("res://data/stage_demo/stage_demo.tres")
@@ -309,6 +310,55 @@ func _refresh_wave_table() -> void:
 		item.set_text(3, str(w.get("count", 1)))
 		item.set_text(4, str(w.get("interval", 0.5)))
 		item.set_metadata(0, i)
+
+
+## 新增波次：追加默认波次并选中
+func _add_wave() -> void:
+	var timeline = _get_timeline_data()
+	if timeline == null:
+		return
+	var max_t := 0.0
+	for w in timeline.waves:
+		max_t = maxf(max_t, float(w.get("t", 0.0)))
+	var names := ENEMY_REG.names()
+	timeline.waves.append({
+		"t": max_t + 5.0,
+		"name": "新波次",
+		"enemy": names[0] if not names.is_empty() else "",
+		"count": 3,
+		"interval": 0.5,
+		"params": {},
+	})
+	_refresh_wave_table()
+	var root := _wave_tree.get_root()
+	if root and root.get_child_count() > 0:
+		root.get_child(root.get_child_count() - 1).select(0)  # 选中新行
+	_log_line("➕ 添加波次")
+
+
+## 删除选中波次（确认后）
+func _delete_selected_wave() -> void:
+	var item := _wave_tree.get_selected()
+	if item == null:
+		_log_line("ℹ 先选中要删除的波次")
+		return
+	var meta: Variant = item.get_metadata(0)
+	if typeof(meta) != TYPE_INT:
+		return
+	var idx: int = meta
+	var timeline = _get_timeline_data()
+	if timeline == null or idx >= timeline.waves.size():
+		return
+	var name: String = str(timeline.waves[idx].get("name", "波次"))
+	var vb := _make_dialog("🗑 删除波次")
+	var msg := Label.new()
+	msg.text = "确定删除「%s」？" % name
+	vb.add_child(msg)
+	_dialog_add_actions(vb, "✓ 删除", func():
+		timeline.waves.remove_at(idx)
+		_refresh_wave_table()
+		_log_line("🗑 删除波次：%s" % name)
+	)
 
 
 ## 选中波次 → 详情表单（按字段类型动态生成）
@@ -799,6 +849,16 @@ func _build_ui() -> void:
 	# 书签
 	# ── 编排（数据关卡波次表格 + 详情编辑）──
 	right.add_child(_label("── 编排（数据关卡）──"))
+	var wave_btns := HBoxContainer.new()
+	var add_wave := Button.new()
+	add_wave.text = "＋ 波次"
+	add_wave.pressed.connect(_add_wave)
+	wave_btns.add_child(add_wave)
+	var del_wave := Button.new()
+	del_wave.text = "🗑 波次"
+	del_wave.pressed.connect(_delete_selected_wave)
+	wave_btns.add_child(del_wave)
+	right.add_child(wave_btns)
 	_wave_tree = Tree.new()
 	_wave_tree.columns = 5
 	_wave_tree.custom_minimum_size = Vector2(0, 120)
