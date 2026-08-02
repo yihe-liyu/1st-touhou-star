@@ -98,6 +98,12 @@ BulletManager
 4. **出屏回收按东方框**（不是窗口）：工作台 1600 宽窗口下活动子弹 ↓93%（1401→101），真游戏右侧死区同样受益。
 5. MultiMesh 分组 key 从字符串改 int（纹理 RID + region + faction + tint），去掉每帧每弹字符串分配。
 6. 协同时钟/子弹移动/激光统一走 `get_physics_process_delta_time()`（time_scale 生效，为未来子弹时间/Replay 铺路）。
+7. **stretch viewport 布局坑（2026-08 面板盖住游戏框 4 轮排查）**：project.godot 是 `stretch/mode="viewport"`（视口 1280x960 拉伸到窗口 1600x1000）——**Control 布局坐标 = 视口，不是窗口！** `get_window().size` 返回窗口宽（1600），用它算 offset 会让面板在视口坐标 x=528 盖住东方框（64~832）。**布局一律用 `GameConfig.VIEW_WIDTH/HEIGHT`（或视口可见矩形），禁用 get_window().size**。headless 下视口=窗口，测不出此问题（真机才现形）。
+8. **工作台 UI 调试经验**：
+   - 命中框等覆盖层要**独立 CanvasLayer + 高 z**（敌弹 z=10，画在 root z=0 会被实心贴图盖住）
+   - 可开关绘制的节点：`enabled` setter 里必须 `set_process(v)`（否则只画开启帧，_ready 时 set_process(false) 已永久关闭）
+   - 面板拖拽：**初始校正一次即可，别每帧 clamp**（会把用户拖拽值弹回 → 拖不动）
+   - 滚轮也是 `InputEventMouseButton`（WHEEL_UP/DOWN），跳转类交互要显式排除
 
 ### 下一步（候选）
 
