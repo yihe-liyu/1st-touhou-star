@@ -446,8 +446,7 @@ func _build_ui() -> void:
 	)
 	grid.add_child(hitbox_btn)
 
-	# 播放速度（慢放/快进档位）
-	grid.add_child(_label("速度"))
+	# 播放速度（慢放/快进档位）—— 下拉自带 × 前缀，与命中框配对同行
 	var speed_sel := OptionButton.new()
 	for s in SPEEDS:
 		speed_sel.add_item("×" + str(s))
