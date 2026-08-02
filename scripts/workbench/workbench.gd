@@ -807,8 +807,9 @@ func _show_bm_menu(index: int) -> void:
 		_bm_menu.add_item("✏️ 重命名")
 		_bm_menu.add_item("🗑 删除")
 	else:
-		_bm_menu.add_item("自动书签（改关卡脚本才刷新）")
-		_bm_menu.set_item_disabled(0, true)
+		_bm_menu.add_item("✏️ 重命名（转为人工）")
+		_bm_menu.add_item("🗑 删除")
+		_bm_menu.set_item_disabled(1, true)  # 自动书签不可直接删
 	_bm_menu.popup(Rect2i(get_viewport().get_mouse_position(), Vector2i()))
 
 
@@ -820,9 +821,10 @@ func _on_bm_menu_id_pressed(id: int) -> void:
 			_open_delete_confirm(_bm_menu_index)
 
 
-## 重命名弹窗
+## 重命名弹窗（人工改名；自动书签改名 → 转为人工书签）
 func _open_rename(index: int) -> void:
 	var meta: Dictionary = _bookmark_list.get_item_metadata(index)
+	var is_manual: bool = meta.get("is_manual", false)
 	var vb := _make_dialog("✏️ 重命名书签")
 	var line := LineEdit.new()
 	line.text = meta.label
@@ -831,10 +833,17 @@ func _open_rename(index: int) -> void:
 		var new_label := line.text.strip_edges()
 		if new_label.is_empty():
 			return
-		for bm in _manual_bookmarks:
-			if absf(bm.t - meta.t) < 0.01 and bm.get("label", "") == meta.label:
-				bm.label = new_label
-				break
+		if is_manual:
+			for bm in _manual_bookmarks:
+				if absf(bm.t - meta.t) < 0.01 and bm.get("label", "") == meta.label:
+					bm.label = new_label
+					break
+		else:
+			# 自动书签重命名 → 转为人工（移除同 t 的自动项，避免重复显示）
+			for i in range(_auto_bookmarks.size() - 1, -1, -1):
+				if absf(float(_auto_bookmarks[i].t) - meta.t) < 0.01:
+					_auto_bookmarks.remove_at(i)
+			_manual_bookmarks.append({"t": meta.t, "label": new_label})
 		_save_bookmarks()
 		_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
 		_log_line("✏️ 重命名书签：%s" % new_label)
@@ -869,5 +878,3 @@ func _delete_bookmark_at(index: int) -> void:
 	_save_bookmarks()
 	_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
 	_log_line("🗑 删除书签：%s" % meta.label)
-
-
