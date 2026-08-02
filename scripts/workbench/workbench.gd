@@ -876,6 +876,10 @@ func _build_ui() -> void:
 	del_wave.text = "🗑 波次"
 	del_wave.pressed.connect(_delete_selected_wave)
 	wave_btns.add_child(del_wave)
+	var save_btn := Button.new()
+	save_btn.text = "💾 保存"
+	save_btn.pressed.connect(_save_timeline)
+	wave_btns.add_child(save_btn)
 	right.add_child(wave_btns)
 	_wave_tree = Tree.new()
 	_wave_tree.columns = 5
