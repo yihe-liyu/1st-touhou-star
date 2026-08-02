@@ -584,16 +584,12 @@ func _build_ui() -> void:
 
 	# 书签
 	right.add_child(_label("── 书签（点击 = 快进）──"))
-	# 编辑按钮行（添加/删除人工书签）
+	# 编辑按钮行（添加人工书签；删除用列表右键）
 	var bm_row := HBoxContainer.new()
 	var add_btn := Button.new()
 	add_btn.text = "＋ 添加"
 	add_btn.pressed.connect(_open_add_bookmark)
 	bm_row.add_child(add_btn)
-	var del_btn := Button.new()
-	del_btn.text = "🗑 删除"
-	del_btn.pressed.connect(_delete_selected_bookmark)
-	bm_row.add_child(del_btn)
 	right.add_child(bm_row)
 	_bookmark_list = ItemList.new()
 	_bookmark_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -786,20 +782,3 @@ func _delete_bookmark_at(index: int) -> void:
 	_log_line("🗑 删除书签：%s" % meta.label)
 
 
-func _delete_selected_bookmark() -> void:
-	var sel := _bookmark_list.get_selected_items()
-	if sel.is_empty():
-		_log_line("ℹ 先选中要删除的书签")
-		return
-	var meta: Dictionary = _bookmark_list.get_item_metadata(sel[0])
-	if not meta.get("is_manual", false):
-		_log_line("ℹ 自动书签不可删（改关卡脚本才刷新）")
-		return
-	for i in range(_manual_bookmarks.size() - 1, -1, -1):
-		var bm: Dictionary = _manual_bookmarks[i]
-		if absf(bm.t - meta.t) < 0.01 and bm.get("label", "") == meta.label:
-			_manual_bookmarks.remove_at(i)
-			break
-	_save_bookmarks()
-	_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
-	_log_line("🗑 删除书签：%s" % meta.label)
