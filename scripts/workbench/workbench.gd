@@ -216,7 +216,13 @@ func _load_stage() -> void:
 	# 真实加载（跑 stage01.gd 的 Timeline）
 	StageManager.load_stage(_stage_data)
 	# 时间轴 + 书签（缓存优先，未命中则静默收集真实时刻）
-	_timeline.set_window(60.0)
+	# 窗口自适应：数据关卡按最大波次时刻；协程关卡默认 60s
+	var win := 60.0
+	var timeline_data = _get_timeline_data()
+	if timeline_data:
+		for w in timeline_data.waves:
+			win = maxf(win, float(w.get("t", 0.0)) + 10.0)
+	_timeline.set_window(win)
 	_apply_bookmarks_from_cache()
 	_refresh_wave_table()
 	_prev_time = -1.0
