@@ -1,5 +1,5 @@
 extends GutTest
-## 书签提取器测试：从关卡脚本源码提取 tl.at 时刻
+## 书签提取器测试：字面量 + 循环展开
 
 const Extractor = preload("res://scripts/workbench/bookmark_extractor.gd")
 
@@ -10,7 +10,6 @@ func test_extracts_tl_at_literals() -> void:
 func start(ctx):
 	var tl := start_timeline()
 	tl.at(0.0).play_bgm(bgm)
-	tl.at(1.0 + i * 0.1).do(func(): pass)  # 循环基础值
 	tl.at(7.0).do(func(): pass)
 	tl.at(35.0).phase(func(): return null, phase)
 	tl.wait(2.0).do(func(): pass)  # 不应被提取
@@ -19,7 +18,23 @@ func start(ctx):
 	var ts: Array = []
 	for b in bm:
 		ts.append(b.t)
-	assert_eq(ts, [0.0, 1.0, 7.0, 35.0], "应提取字面量时刻且升序去重")
+	assert_eq(ts, [0.0, 7.0, 35.0], "应提取字面量时刻且升序")
+
+
+func test_expands_loop_pattern() -> void:
+	# 循环展开：at(1.0 + i * 0.1) + for i in 7 → 1.0~1.6
+	var script := GDScript.new()
+	script.source_code = """
+	for i in 7:
+		tl.at(1.0 + i * 0.1).do(func(): pass)
+	"""
+	var bm := Extractor.extract_from_script(script)
+	var ts: Array = []
+	for b in bm:
+		ts.append(b.t)
+	# 去重合并后应有 1.0 和 1.3~1.6 一带（0.2s 阈值内相邻合并）
+	assert_true(ts.has(1.0), "应有起点 1.0")
+	assert_true(ts.size() >= 3, "应展开出多个时刻")
 
 
 func test_empty_on_null_script() -> void:
