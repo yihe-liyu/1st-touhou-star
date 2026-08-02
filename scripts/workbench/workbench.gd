@@ -348,7 +348,10 @@ func _on_wave_selected() -> void:
 func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: float, max_v: float, step: float, as_int: bool) -> void:
 	var spin := _make_spin_box(label_text, float(wave.get(key, min_v)), min_v, max_v, step)
 	_detail_edits.append({"apply": func():
-		wave[key] = int(spin.value) if as_int else spin.value
+		if as_int:
+			wave[key] = int(spin.value)
+		else:
+			wave[key] = spin.value
 	})
 
 
@@ -380,7 +383,10 @@ func _add_param_edit(wave: Dictionary, key: String, value: Variant) -> void:
 		var as_int := typeof(value) == TYPE_INT
 		var spin := _make_spin_box(key, float(value), -100000, 100000, 1.0)
 		_detail_edits.append({"apply": func():
-			wave.params[key] = int(spin.value) if as_int else spin.value
+			if as_int:
+				wave.params[key] = int(spin.value)
+			else:
+				wave.params[key] = spin.value
 		})
 	else:
 		# 字符串等：LineEdit
