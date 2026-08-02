@@ -44,9 +44,14 @@ var _background: Node
 var _paused := false
 var _muted := false
 var _show_bg := true
+var _show_hitboxes := false  # 命中框开关（调符卡神器）
+var _speed_idx := 2          # 速度档位索引（SPEEDS）
 var _ff_target := -1.0   # 快进目标时刻（-1 = 不快进）
 var _prev_time := -1.0   # 时间轴刷新去重
 var _log_lines: Array[String] = []
+
+## 播放速度档位（慢放/快进；书签跳转仍用固定 12x）
+const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
 
 # UI 引用
 var _play_btn: Button
@@ -81,6 +86,9 @@ func _process(_delta: float) -> void:
 		var runner := StageManager.current_stage_script()
 		if runner == null or runner.game_time() >= _ff_target:
 			_stop_fast_forward()
+	# 命中框随子弹移动需要每帧重绘（网格/背景是静态的）
+	if _show_hitboxes:
+		queue_redraw()
 	_update_ui()
 
 
@@ -106,6 +114,9 @@ func _draw() -> void:
 		draw_line(Vector2(64, y), Vector2(832, y), Color(1, 1, 1, 0.05))
 	# 幽灵玩家路径参考（纵向漂移中线）
 	draw_line(Vector2(64, 620), Vector2(832, 620), Color(0.3, 0.9, 0.5, 0.15))
+	# 命中框（可选，调符卡用）
+	if _show_hitboxes:
+		_draw_hitboxes()
 
 
 func _exit_tree() -> void:
@@ -251,11 +262,50 @@ func _stop_fast_forward() -> void:
 		return
 	var t := _ff_target
 	_ff_target = -1.0
-	Engine.time_scale = 1.0
+	Engine.time_scale = SPEEDS[_speed_idx]  # 恢复到用户设定的速度档位
 	Engine.max_physics_steps_per_frame = 8  # 恢复默认
 	_apply_audio()
 	AudioManager.set_bgm_pitch(1.0)  # 音乐恢复正常
 	_log_line("▶ 到达 %.1fs" % t)
+
+
+## 速度档位切换（慢放 0.25x ~ 快进 16x）
+func _on_speed_selected(idx: int) -> void:
+	_speed_idx = idx
+	if _ff_target < 0.0:
+		# 不在书签快进中：直接应用（慢放时 BGM 同步变速）
+		Engine.time_scale = SPEEDS[_speed_idx]
+		AudioManager.set_bgm_pitch(Engine.time_scale)
+		_log_line("⏱ 速度 ×%.2f" % SPEEDS[_speed_idx])
+
+
+## 命中框绘制（工作台版，轻量：12 段圆 / 一次 draw_rect）
+func _draw_hitboxes() -> void:
+	# 子弹判定
+	for bullet in BulletManager.active_bullets:
+		if not is_instance_valid(bullet) or not bullet.visible or not bullet.is_ready:
+			continue
+		var center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
+		match bullet.hitbox_shape:
+			BulletData.HitboxShape.CIRCLE:
+				draw_arc(center, bullet.hitbox_radius, 0, TAU, 12, Color.RED, 1.0)
+			BulletData.HitboxShape.RECTANGLE:
+				draw_set_transform(center, bullet.rotation + deg_to_rad(bullet.hitbox_rotation), Vector2.ONE)
+				draw_rect(Rect2(-bullet.hitbox_size / 2.0, bullet.hitbox_size), Color.RED, false, 1.0)
+				draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+	# 敌人判定
+	for enemy in GameState.get_active_enemies():
+		if not is_instance_valid(enemy):
+			continue
+		var er: float = enemy.get("hitbox_radius") if "hitbox_radius" in enemy else 8.0
+		draw_arc(enemy.global_position, er, 0, TAU, 12, Color.GREEN, 1.5)
+	# 玩家判定（命中 + 擦弹范围）
+	var player = GameState.player
+	if is_instance_valid(player):
+		var pr: float = player.get("hitbox_radius") if "hitbox_radius" in player else 2.0
+		var gr: float = player.get("graze_radius") if "graze_radius" in player else 24.0
+		draw_arc(player.global_position, gr, 0, TAU, 24, Color(0.3, 0.6, 1.0, 0.5), 1.0)
+		draw_arc(player.global_position, pr, 0, TAU, 12, Color.CYAN, 2.0)
 
 
 ## 静音合并策略：用户静音 / 暂停 / 快进 任一成立即静音
@@ -393,6 +443,24 @@ func _build_ui() -> void:
 	_bg_btn.button_pressed = true
 	_bg_btn.toggled.connect(_on_bg_toggled)
 	grid.add_child(_bg_btn)
+
+	# 命中框（调符卡神器）
+	var hitbox_btn := CheckButton.new()
+	hitbox_btn.text = "命中框"
+	hitbox_btn.toggled.connect(func(on: bool) -> void:
+		_show_hitboxes = on
+		queue_redraw()
+	)
+	grid.add_child(hitbox_btn)
+
+	# 播放速度（慢放/快进档位）
+	grid.add_child(_label("速度"))
+	var speed_sel := OptionButton.new()
+	for s in SPEEDS:
+		speed_sel.add_item("×" + str(s))
+	speed_sel.selected = _speed_idx
+	speed_sel.item_selected.connect(_on_speed_selected)
+	grid.add_child(speed_sel)
 
 	# 当前时间
 	_time_label = Label.new()
