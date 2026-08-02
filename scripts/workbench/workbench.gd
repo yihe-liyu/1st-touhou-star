@@ -74,7 +74,7 @@ var _status_label: Label
 var _bookmark_list: ItemList
 var _wave_tree: Tree              # 编排表格（数据关卡波次）
 var _wave_detail: VBoxContainer   # 选中波次的详情表单容器
-var _detail_spins: Array = []     # 详情表单控件（应用时读取）
+var _detail_edits: Array = []     # 详情表单控件（{apply: Callable} 应用时写回）
 var _log: RichTextLabel
 var _timeline: TimelineBar
 
@@ -318,24 +318,19 @@ func _on_wave_selected() -> void:
 	if timeline == null or idx >= timeline.waves.size():
 		return
 	var w: Dictionary = timeline.waves[idx]
-	_detail_spins.clear()
+	_detail_edits.clear()
 	_clear_container(_wave_detail)
 	# 基础字段（可编辑）
-	_add_spin_row("t", w, "t", 0.0, 90.0, 0.1)
-	_add_spin_row("数量", w, "count", 1, 60, 1)
-	_add_spin_row("间隔", w, "interval", 0.0, 10.0, 0.1)
-	_add_spin_row("出生x", w, "spawn_x", 0.0, 900.0, 1.0)
-	# 模板参数摘要（只读，S4+ 深度编辑）
+	_add_field_edit("t", w, "t", 0.0, 90.0, 0.1, false)
+	_add_field_edit("数量", w, "count", 1.0, 60.0, 1.0, true)
+	_add_field_edit("间隔", w, "interval", 0.0, 10.0, 0.1, false)
+	_add_field_edit("出生x", w, "spawn_x", 0.0, 900.0, 1.0, false)
+	# 模板参数（按值类型动态生成表单）
 	var params: Dictionary = w.get("params", {})
 	if not params.is_empty():
-		var pl := Label.new()
-		var parts: Array = []
+		_wave_detail.add_child(_label("── 模板参数 ──"))
 		for k in params:
-			parts.append("%s=%s" % [k, str(params[k])])
-		pl.text = "参数: " + "、".join(parts)
-		pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		pl.modulate = Color(0.7, 0.7, 0.8)
-		_wave_detail.add_child(pl)
+			_add_param_edit(w, k, params[k])
 	# 按钮行
 	var row := HBoxContainer.new()
 	var apply := Button.new()
@@ -349,8 +344,60 @@ func _on_wave_selected() -> void:
 	_wave_detail.add_child(row)
 
 
-## 详情表单行：SpinBox + 写回字段
-func _add_spin_row(label_text: String, wave: Dictionary, key: String, min_v: float, max_v: float, step: float) -> void:
+## 详情表单行：基础字段（SpinBox）
+func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: float, max_v: float, step: float, as_int: bool) -> void:
+	var spin := _make_spin_box(label_text, float(wave.get(key, min_v)), min_v, max_v, step)
+	_detail_edits.append({"apply": func():
+		wave[key] = int(spin.value) if as_int else spin.value
+	})
+
+
+## 模板参数行：按值类型生成控件（float/int/Vector2/bool/String）
+func _add_param_edit(wave: Dictionary, key: String, value: Variant) -> void:
+	if value is Vector2:
+		var h := HBoxContainer.new()
+		var l := Label.new()
+		l.text = key
+		l.custom_minimum_size = Vector2(48, 0)
+		h.add_child(l)
+		var sx := _mini_spin(value.x, -10000, 10000)
+		var sy := _mini_spin(value.y, -10000, 10000)
+		h.add_child(sx)
+		h.add_child(sy)
+		_wave_detail.add_child(h)
+		_detail_edits.append({"apply": func():
+			wave.params[key] = Vector2(sx.value, sy.value)
+		})
+	elif value is bool:
+		var cb := CheckButton.new()
+		cb.text = key
+		cb.button_pressed = value
+		_wave_detail.add_child(cb)
+		_detail_edits.append({"apply": func():
+			wave.params[key] = cb.button_pressed
+		})
+	elif typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
+		var as_int := typeof(value) == TYPE_INT
+		var spin := _make_spin_box(key, float(value), -100000, 100000, 1.0)
+		_detail_edits.append({"apply": func():
+			wave.params[key] = int(spin.value) if as_int else spin.value
+		})
+	else:
+		# 字符串等：LineEdit
+		var h := HBoxContainer.new()
+		h.add_child(_label(key))
+		var line := LineEdit.new()
+		line.text = str(value)
+		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.add_child(line)
+		_wave_detail.add_child(h)
+		_detail_edits.append({"apply": func():
+			wave.params[key] = line.text
+		})
+
+
+## 通用 SpinBox 行
+func _make_spin_box(label_text: String, value: float, min_v: float, max_v: float, step: float) -> SpinBox:
 	var h := HBoxContainer.new()
 	var l := Label.new()
 	l.text = label_text
@@ -360,11 +407,22 @@ func _add_spin_row(label_text: String, wave: Dictionary, key: String, min_v: flo
 	spin.min_value = min_v
 	spin.max_value = max_v
 	spin.step = step
-	spin.value = float(wave.get(key, min_v))
+	spin.value = value
 	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(spin)
 	_wave_detail.add_child(h)
-	_detail_spins.append({"key": key, "spin": spin})
+	return spin
+
+
+## 参数行内的小 SpinBox（Vector2 用）
+func _mini_spin(value: float, min_v: float, max_v: float) -> SpinBox:
+	var spin := SpinBox.new()
+	spin.min_value = min_v
+	spin.max_value = max_v
+	spin.step = 1.0
+	spin.value = value
+	spin.custom_minimum_size = Vector2(70, 0)
+	return spin
 
 
 ## 应用：写回 timeline 数据 → 重跑（WaveStage 读同一资源，新参数生效）
@@ -372,14 +430,8 @@ func _apply_wave_changes(idx: int) -> void:
 	var timeline = _get_timeline_data()
 	if timeline == null or idx >= timeline.waves.size():
 		return
-	var w: Dictionary = timeline.waves[idx]
-	for entry in _detail_spins:
-		var spin: SpinBox = entry.spin
-		match entry.key:
-			"count":
-				w[entry.key] = int(spin.value)
-			_:
-				w[entry.key] = spin.value
+	for entry in _detail_edits:
+		entry.apply.call()
 	_log_line("✔ 应用波次参数 → 重跑")
 	_restart()
 
