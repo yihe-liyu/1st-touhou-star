@@ -363,15 +363,22 @@ func _build_ui() -> void:
 	add_child(ui)
 
 	# ── 右侧面板（工具栏 + 状态 + 书签 + 日志）—— 可拖拽调宽 ──
-	_right_panel = VBoxContainer.new()
-	_right_panel.name = "RightPanel"
-	_right_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_right_panel.offset_left = -752.0  # x ≈ 840
-	_right_panel.offset_top = 8.0
-	_right_panel.offset_right = -8.0
-	_right_panel.offset_bottom = 928.0
-	_right_panel.add_theme_constant_override("separation", 6)
-	ui.add_child(_right_panel)
+	# MarginContainer 提供内容左边距（VBox 本身无 padding）
+	var margin := MarginContainer.new()
+	margin.name = "RightPanel"
+	margin.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	margin.offset_left = -752.0  # x ≈ 840
+	margin.offset_top = 8.0
+	margin.offset_right = -8.0
+	margin.offset_bottom = 928.0
+	margin.add_theme_constant_override("margin_left", 10)
+	ui.add_child(margin)
+	_right_panel = margin  # 拖拽改 margin 的 offset
+	var right := VBoxContainer.new()
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right.add_theme_constant_override("separation", 6)
+	margin.add_child(right)
 
 	# 拖拽分割条（面板左边缘）
 	_divider = ColorRect.new()
