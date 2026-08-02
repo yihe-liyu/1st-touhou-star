@@ -77,15 +77,10 @@ var _bookmark_list: ItemList
 var _current_timeline: Resource   # 当前编辑的 timeline（缓存，避免每次 load 缓存不一致）
 var _wave_section: VBoxContainer  # 编排区块（数据关卡才显示）
 var _wave_table                    # WaveTable 表格控件（new class 未进缓存 → preload）
-var _wave_float: PanelContainer   # 悬浮容器（表格+详情浮动在游戏框附近）
+var _wave_win: Window            # 悬浮编排窗（原生 Window：标题栏/拖拽/缩放/关闭全系统级）
 var _float_on := false            # 是否悬浮模式
 var _float_btn: Button            # 悬浮/停靠切换按钮
-var _float_drag := false          # 悬浮面板拖拽中
-var _float_drag_off := Vector2.ZERO
-var _resize_handle: Control      # 右下角 resize 手柄
-var _resizing := false           # resize 拖拽中
-var _resize_off := Vector2.ZERO
-var _float_body: VBoxContainer        # 悬浮容器内容区（表格+详情）
+var _float_body: VBoxContainer        # 悬浮窗内容区（表格+详情）
 var _wave_detail: VBoxContainer   # 选中波次的详情表单容器
 var _detail_scroll: ScrollContainer  # 详情滚动容器（悬浮时随详情移动）
 var _detail_edits: Array = []     # 详情表单控件（{apply: Callable} 应用时写回）
@@ -509,17 +504,17 @@ func _apply_wave_changes(idx: int) -> void:
 	_restart()
 
 
-## 悬浮/停靠切换：表格+详情在面板与悬浮容器间移动（同一实例）
+## 悬浮/停靠切换：表格+详情在面板与悬浮窗（原生 Window）间移动（同一实例）
 func _toggle_wave_float() -> void:
 	_float_on = not _float_on
 	_refresh_float_visibility()
 	_float_btn.text = "⇲ 停靠" if _float_on else "⇱ 悬浮"
-	_log_line("📊 表格悬浮（可拖标题栏；⇲ 停靠回面板）" if _float_on else "📊 表格停靠回面板")
+	_log_line("📊 表格悬浮（原生窗：标题栏拖拽/边角缩放/右上角关闭）" if _float_on else "📊 表格停靠回面板")
 
 
 ## 悬浮显隐 + 内容移动（_wave_table/_detail_scroll 在 _wave_section 与 _float_body 间迁移）
 func _refresh_float_visibility() -> void:
-	if _wave_table == null or _wave_float == null:
+	if _wave_table == null or _wave_win == null:
 		return
 	var in_section: bool = _wave_table.get_parent() == _wave_section
 	if _float_on and in_section:
@@ -527,7 +522,7 @@ func _refresh_float_visibility() -> void:
 		_float_body.add_child(_wave_table)
 		_wave_section.remove_child(_detail_scroll)
 		_float_body.add_child(_detail_scroll)
-		_wave_float.visible = true
+		_wave_win.show()
 	elif not _float_on and not in_section:
 		_float_body.remove_child(_wave_table)
 		_wave_section.add_child(_wave_table)
@@ -535,32 +530,7 @@ func _refresh_float_visibility() -> void:
 		_float_body.remove_child(_detail_scroll)
 		_wave_section.add_child(_detail_scroll)
 		_wave_section.move_child(_detail_scroll, 3)  # 详情(3)
-		_wave_float.visible = false
-
-
-## 悬浮面板标题栏拖拽（stretch 视口坐标系 1280x960）
-func _on_float_title_input(ev: InputEvent) -> void:
-	if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT:
-		_float_drag = ev.pressed
-		_float_drag_off = get_viewport().get_mouse_position() - _wave_float.position
-	elif ev is InputEventMouseMotion and _float_drag:
-		var p := get_viewport().get_mouse_position() - _float_drag_off
-		p.x = clampf(p.x, 0.0, GameConfig.VIEW_WIDTH - _wave_float.size.x)
-		p.y = clampf(p.y, 0.0, GameConfig.VIEW_HEIGHT - _wave_float.size.y)
-		_wave_float.position = p
-
-
-## 悬浮面板右下角手柄拖拽改大小
-func _on_resize_input(ev: InputEvent) -> void:
-	if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT:
-		_resizing = ev.pressed
-		_resize_off = _wave_float.size - get_viewport().get_mouse_position()
-	elif ev is InputEventMouseMotion and _resizing:
-		var mouse := get_viewport().get_mouse_position()
-		var ns := mouse + _resize_off
-		ns.x = clampf(ns.x, 300.0, GameConfig.VIEW_WIDTH - _wave_float.position.x)
-		ns.y = clampf(ns.y, 180.0, GameConfig.VIEW_HEIGHT - _wave_float.position.y)
-		_wave_float.size = ns
+		_wave_win.hide()
 
 
 ## 保存：写回 .tres（user:// 可写副本；运行时 res:// 只读）
@@ -990,66 +960,32 @@ func _build_ui() -> void:
 	_log.scroll_following = true
 	right.add_child(_log)
 
-	# ── 悬浮编排容器（表格+详情；半透明、可拖拽、可调大小）──
-	_wave_float = PanelContainer.new()
-	_wave_float.name = "WaveFloat"
-	_wave_float.visible = false
-	_wave_float.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	# 初始位置：游戏框右上角内侧（面板 x 848+ 不受影响；半透明可拖走）
-	_wave_float.position = Vector2(GameConfig.FIELD_RIGHT - 432.0, 8.0)
-	_wave_float.size = Vector2(424.0, 300.0)
-	_wave_float.mouse_filter = Control.MOUSE_FILTER_STOP
-	var float_bg := StyleBoxFlat.new()
-	float_bg.bg_color = Color(0.05, 0.07, 0.12, 0.82)
-	float_bg.set_border_width_all(1)
-	float_bg.border_color = Color(0.4, 0.65, 1.0, 0.5)
-	float_bg.set_corner_radius_all(6)
-	_wave_float.add_theme_stylebox_override("panel", float_bg)
-	ui.add_child(_wave_float)
-	# 标题栏（STOP 接收鼠标：拖拽移动）
-	var fhead := HBoxContainer.new()
-	fhead.add_theme_constant_override("separation", 6)
-	fhead.custom_minimum_size = Vector2(0, 26)
-	fhead.mouse_filter = Control.MOUSE_FILTER_STOP
-	fhead.gui_input.connect(_on_float_title_input)
-	var ftitle := Label.new()
-	ftitle.text = "📊 波次表"
-	ftitle.add_theme_font_size_override("font_size", 13)
-	ftitle.add_theme_color_override("font_color", Color(0.8, 0.92, 1.0))
-	ftitle.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 不挡拖拽
-	fhead.add_child(ftitle)
-	var fspacer := Control.new()
-	fspacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	fhead.add_child(fspacer)
-	var dock_btn := Button.new()
-	dock_btn.text = "⇲ 停靠"
-	dock_btn.pressed.connect(_toggle_wave_float)
-	fhead.add_child(dock_btn)
-	_wave_float.add_child(fhead)
-	# 内容区：滚动容器（表格+详情超高时内部滚动，防溢出裁剪）
-	var fscroll := ScrollContainer.new()
-	fscroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	fscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_wave_float.add_child(fscroll)
+	# ── 悬浮编排窗（原生 Window：系统级标题栏/拖拽/缩放/关闭）──
+	_wave_win = Window.new()
+	_wave_win.name = "WaveWin"
+	_wave_win.title = "📊 波次表"
+	_wave_win.size = Vector2i(440, 340)  # 默认可缩放（unresizable=false）
+	_wave_win.min_size = Vector2i(320, 220)
+	_wave_win.visible = false  # 常驻节点：show()/hide() 不会 unparent
+	_wave_win.close_requested.connect(func(): _wave_win.hide())
+	# 初始位置：主窗口右侧偏上（屏幕坐标像素，可拖走）
+	_wave_win.position = Vector2i(
+		get_window().position.x + get_window().size.x - 500,
+		get_window().position.y + 120
+	)
+	add_child(_wave_win)
+	# 内容：滚动区 + 表格/详情槽（VBox 铺满窗口）
+	var wbox := VBoxContainer.new()
+	wbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wbox.add_theme_constant_override("separation", 4)
+	wbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_wave_win.add_child(wbox)
 	_float_body = VBoxContainer.new()
 	_float_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_float_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_float_body.add_theme_constant_override("separation", 4)
-	fscroll.add_child(_float_body)
-	# resize 手柄（右下角，拖拽改大小）
-	_resize_handle = Panel.new()
-	_resize_handle.name = "ResizeHandle"
-	_resize_handle.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	_resize_handle.offset_left = -14.0
-	_resize_handle.offset_top = -14.0
-	_resize_handle.offset_right = 0.0
-	_resize_handle.offset_bottom = 0.0
-	_resize_handle.mouse_default_cursor_shape = Control.CURSOR_DRAG
-	var hb := StyleBoxFlat.new()
-	hb.bg_color = Color(0.4, 0.65, 1.0, 0.35)
-	hb.set_corner_radius_all(3)
-	_resize_handle.add_theme_stylebox_override("panel", hb)
-	_resize_handle.gui_input.connect(_on_resize_input)
-	_wave_float.add_child(_resize_handle)
+	wbox.add_child(_float_body)
 
 	# ── 底部时间轴 ──
 	_timeline = TimelineBar.new()
