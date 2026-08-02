@@ -45,7 +45,9 @@ var _collect_times: Array = []
 var _collect_attempts := 0  # 防死循环：收集连续失败超限退回静态提取
 var _toast := ""           # 短暂提示（收集完成反馈等）
 var _toast_t := 0.0
-var _manual_bookmarks: Array = []  # 人工打点（缓存保留，第二波做编辑 UI）
+var _auto_bookmarks: Array = []    # 自动收集时刻（当前缓存，编辑后重存用）
+var _manual_bookmarks: Array = []  # 人工打点（可编辑，持久化）
+var _add_dialog: CanvasLayer      # 添加书签弹窗引用
 
 var _paused := false
 var _muted := false
@@ -231,6 +233,7 @@ func _apply_bookmarks_from_cache() -> void:
 
 ## 显示书签（自动 + 人工合并）
 func _apply_bookmarks(auto: Array, manual: Array) -> void:
+	_auto_bookmarks = auto.duplicate(true)  # 保存（人工编辑后重存缓存用）
 	_timeline.clear_bookmarks()
 	_bookmark_list.clear()
 	for bm in auto:
@@ -238,13 +241,13 @@ func _apply_bookmarks(auto: Array, manual: Array) -> void:
 		var label := "t=%.1fs" % t
 		_timeline.add_bookmark(t, label)
 		var idx := _bookmark_list.add_item(label)
-		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label})
+		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label, "is_manual": false})
 	for bm in manual:
 		var t: float = bm.t if bm is Dictionary else float(bm)
 		var label: String = bm.label if bm is Dictionary and bm.has("label") else "t=%.1fs" % t
 		_timeline.add_bookmark(t, label)
-		var idx := _bookmark_list.add_item(label)
-		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label})
+		var idx := _bookmark_list.add_item("📌 " + label)  # 人工标记
+		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label, "is_manual": true})
 
 
 ## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
@@ -581,6 +584,17 @@ func _build_ui() -> void:
 
 	# 书签
 	right.add_child(_label("── 书签（点击 = 快进）──"))
+	# 编辑按钮行（添加/删除人工书签）
+	var bm_row := HBoxContainer.new()
+	var add_btn := Button.new()
+	add_btn.text = "＋ 添加"
+	add_btn.pressed.connect(_open_add_bookmark)
+	bm_row.add_child(add_btn)
+	var del_btn := Button.new()
+	del_btn.text = "🗑 删除"
+	del_btn.pressed.connect(_delete_selected_bookmark)
+	bm_row.add_child(del_btn)
+	right.add_child(bm_row)
 	_bookmark_list = ItemList.new()
 	_bookmark_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_bookmark_list.custom_minimum_size = Vector2(0, 120)
@@ -667,3 +681,94 @@ func _on_bookmark_clicked(index: int, _pos: Vector2, btn: int) -> void:
 		return
 	var bm: Dictionary = _bookmark_list.get_item_metadata(index)
 	_jump_to(bm.t)
+
+
+# ═══ 人工书签编辑 ═══
+
+## 编辑后重存缓存（auto 不变，manual 更新）
+func _save_bookmarks() -> void:
+	var content_hash := BOOKMARK_CACHE.stage_content_hash(_stage_data)
+	BOOKMARK_CACHE.save(_stage_data.stage_id, content_hash, _auto_bookmarks, _manual_bookmarks)
+
+
+func _open_add_bookmark() -> void:
+	if _add_dialog:
+		return
+	var runner := StageManager.current_stage_script()
+	var cur: float = runner.game_time() if runner else 0.0
+	# 弹窗（CanvasLayer + 遮罩 + 面板）
+	var layer := CanvasLayer.new()
+	layer.layer = 20
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.4)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -170.0
+	panel.offset_right = 170.0
+	panel.offset_top = -80.0
+	panel.offset_bottom = 80.0
+	layer.add_child(panel)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 8)
+	panel.add_child(vb)
+	var info := Label.new()
+	info.text = "📌 添加书签 @ t=%.1fs" % cur
+	vb.add_child(info)
+	var line := LineEdit.new()
+	line.placeholder_text = "名称（如：Boss 最难点）"
+	vb.add_child(line)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_child(row)
+	var ok := Button.new()
+	ok.text = "✓ 添加"
+	row.add_child(ok)
+	var cancel := Button.new()
+	cancel.text = "取消"
+	row.add_child(cancel)
+	ok.pressed.connect(func():
+		var label := line.text.strip_edges()
+		if label.is_empty():
+			label = "t=%.1fs" % cur
+		_add_manual_bookmark(cur, label)
+		_close_add_dialog()
+	)
+	cancel.pressed.connect(_close_add_dialog)
+	line.text_submitted.connect(func(_t: String): ok.pressed.emit())  # 回车确认
+	add_child(layer)
+	_add_dialog = layer
+	line.grab_focus()
+
+
+func _close_add_dialog() -> void:
+	if _add_dialog:
+		_add_dialog.queue_free()
+		_add_dialog = null
+
+
+func _add_manual_bookmark(t: float, label: String) -> void:
+	_manual_bookmarks.append({"t": t, "label": label})
+	_save_bookmarks()
+	_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
+	_log_line("📌 添加书签：%s" % label)
+
+
+func _delete_selected_bookmark() -> void:
+	var sel := _bookmark_list.get_selected_items()
+	if sel.is_empty():
+		_log_line("ℹ 先选中要删除的书签")
+		return
+	var meta: Dictionary = _bookmark_list.get_item_metadata(sel[0])
+	if not meta.get("is_manual", false):
+		_log_line("ℹ 自动书签不可删（改关卡脚本才刷新）")
+		return
+	for i in range(_manual_bookmarks.size() - 1, -1, -1):
+		var bm: Dictionary = _manual_bookmarks[i]
+		if absf(bm.t - meta.t) < 0.01 and bm.get("label", "") == meta.label:
+			_manual_bookmarks.remove_at(i)
+			break
+	_save_bookmarks()
+	_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
+	_log_line("🗑 删除书签：%s" % meta.label)
