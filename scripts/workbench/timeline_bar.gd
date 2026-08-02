@@ -71,8 +71,9 @@ func _draw_tick_label(x: float, sec: int) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
-	# 点击/拖动时间轴任意处 = 快进到该时刻
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+	# 只响应左键点击/拖动（滚轮 WHEEL_UP/DOWN 也是 MouseButton 事件，显式排除）
+	if event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_LEFT:
 		var total := maxf(window_len, 0.001)
 		var t := clampf(event.position.x / maxf(size.x, 1.0), 0.0, 1.0) * total
 		jump_to.emit(t)

@@ -498,7 +498,10 @@ func _label(text: String) -> Label:
 	return l
 
 
-func _on_bookmark_clicked(index: int, _pos: Vector2, _btn: int) -> void:
+func _on_bookmark_clicked(index: int, _pos: Vector2, btn: int) -> void:
+	# 只响应左键（排除滚轮/右键误触）
+	if btn != MOUSE_BUTTON_LEFT:
+		return
 	if index < 0 or index >= _bookmark_list.item_count:
 		return
 	var bm: Dictionary = _bookmark_list.get_item_metadata(index)
