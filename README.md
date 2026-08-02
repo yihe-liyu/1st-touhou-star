@@ -50,6 +50,17 @@ grep -rn "关键词" --include="*.gd" scripts/ data/
 # 添加新符卡 → 见 CONTENT_GUIDE.md 第四章
 ```
 
+### 内容工作台（关卡沙盒）
+
+```bash
+# F6 运行 scenes/workbench.tscn —— 直接预览/调试真实关卡
+```
+
+- 真实运行时沙盒：跑的就是游戏代码（StageManager/BulletManager/协程），非模拟
+- 播放/暂停/重跑 + 点击时间轴/书签**快进跳转** + 难度切换（Easy~Lunatic）
+- 幽灵玩家提供自机狙目标；静音/背景开关/事件日志/实时状态
+- 演进与架构决策见 ARCHITECTURE_ROADMAP.md「内容工作台演进」专节
+
 ---
 
 ## 🎮 操作
