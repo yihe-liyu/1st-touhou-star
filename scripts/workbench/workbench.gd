@@ -370,8 +370,9 @@ func _build_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.name = "RightPanel"
 	margin.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	# 初始面板宽度：不超过游戏框右缘 + 16px 间隙（窗口小于 1600 时自适应）
-	var init_panel_w := minf(752.0, get_window().size.x - GameConfig.FIELD_RIGHT - 16.0)
+	# 初始面板宽度：基于视口宽（stretch viewport 模式下布局坐标 = 视口 1280x960，
+	# 不是窗口 1600！面板左边缘 = 游戏框右 832 + 16，不遮画面）
+	var init_panel_w := minf(752.0, GameConfig.VIEW_WIDTH - GameConfig.FIELD_RIGHT - 16.0)
 	margin.offset_left = -init_panel_w  # x ≈ 840
 	margin.offset_top = 8.0
 	margin.offset_right = -8.0
@@ -522,7 +523,7 @@ func _on_difficulty_changed(_i: int) -> void:
 
 ## 面板初始宽度校正：左边缘不越过游戏框右缘 + 16（仅初始/窗口变化调用）
 func _clamp_panel_width() -> void:
-	var win_w := get_window().size.x
+	var win_w := GameConfig.VIEW_WIDTH
 	var min_left := -(win_w - GameConfig.FIELD_RIGHT - 16.0)
 	if _right_panel and _right_panel.offset_left > min_left:
 		_right_panel.offset_left = min_left
@@ -542,7 +543,7 @@ func _on_divider_input(event: InputEvent) -> void:
 		var dx: float = mm.global_position.x - _drag_start_x
 		# 宽度范围：面板 300 ~ 窗口-120（offset_left 为负值）
 		var min_w := 300.0
-		var max_w := get_window().size.x - 120.0
+		var max_w := GameConfig.VIEW_WIDTH - 120.0
 		var new_off := clampf(_drag_start_off + dx, -max_w, -min_w)
 		_right_panel.offset_left = new_off
 		_divider.offset_left = new_off - 8.0
