@@ -688,7 +688,7 @@ func _build_ui() -> void:
 	margin.offset_left = -init_panel_w  # x ≈ 840
 	margin.offset_top = 8.0
 	margin.offset_right = -8.0
-	margin.offset_bottom = 928.0
+	margin.offset_bottom = 960.0
 	margin.add_theme_constant_override("margin_left", 10)
 	ui.add_child(margin)
 	_right_panel = margin  # 拖拽改 margin 的 offset
@@ -843,12 +843,17 @@ func _build_ui() -> void:
 	# ── 底部时间轴 ──
 	_timeline = TimelineBar.new()
 	_timeline.name = "Timeline"
-	_timeline.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_timeline.offset_left = 8.0
-	_timeline.offset_right = -8.0
-	_timeline.offset_top = -64.0   # y ≈ 936
-	_timeline.offset_bottom = -4.0 # y ≈ 996
-	_timeline.custom_minimum_size = Vector2(0, 56)
+	# 时间轴：只横跨游戏框宽度（64~832），贴游戏框下缘（视口 928~960）
+	# 不挡游戏框/面板（stretch 视口 1280x960 坐标系）
+	_timeline.anchor_left = 0.0
+	_timeline.anchor_top = 1.0
+	_timeline.anchor_right = 0.0
+	_timeline.anchor_bottom = 1.0
+	_timeline.offset_left = GameConfig.FIELD_LEFT
+	_timeline.offset_right = GameConfig.FIELD_RIGHT
+	_timeline.offset_top = -32.0   # y = 928（游戏框下缘）
+	_timeline.offset_bottom = 0.0  # y = 960（视口底）
+	_timeline.custom_minimum_size = Vector2(0, 32)
 	_timeline.jump_to.connect(_jump_to)
 	_timeline.right_clicked.connect(_open_add_bookmark)
 	ui.add_child(_timeline)
