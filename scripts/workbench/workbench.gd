@@ -368,7 +368,9 @@ func _build_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.name = "RightPanel"
 	margin.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	margin.offset_left = -752.0  # x ≈ 840
+	# 初始面板宽度：不超过游戏框右缘 + 16px 间隙（窗口小于 1600 时自适应）
+	var init_panel_w := minf(752.0, get_window().size.x - GameConfig.FIELD_RIGHT - 16.0)
+	margin.offset_left = -init_panel_w  # x ≈ 840
 	margin.offset_top = 8.0
 	margin.offset_right = -8.0
 	margin.offset_bottom = 928.0
@@ -387,8 +389,8 @@ func _build_ui() -> void:
 	_divider.color = Color(1, 1, 1, 0.15)
 	_divider.mouse_default_cursor_shape = Control.CURSOR_HSIZE
 	_divider.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_divider.offset_left = -760.0
-	_divider.offset_right = -752.0
+	_divider.offset_left = margin.offset_left - 8.0
+	_divider.offset_right = margin.offset_left
 	_divider.offset_top = 8.0
 	_divider.offset_bottom = 928.0
 	_divider.gui_input.connect(_on_divider_input)
