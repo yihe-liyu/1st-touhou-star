@@ -47,7 +47,9 @@ var _toast := ""           # 短暂提示（收集完成反馈等）
 var _toast_t := 0.0
 var _auto_bookmarks: Array = []    # 自动收集时刻（当前缓存，编辑后重存用）
 var _manual_bookmarks: Array = []  # 人工打点（可编辑，持久化）
-var _add_dialog: CanvasLayer      # 添加书签弹窗引用
+var _dialog: CanvasLayer           # 通用弹窗（添加/重命名/确认）
+var _bm_menu: PopupMenu            # 书签右键菜单
+var _bm_menu_index := -1           # 右键菜单对应的列表项
 
 var _paused := false
 var _muted := false
@@ -591,6 +593,10 @@ func _build_ui() -> void:
 	add_btn.pressed.connect(_open_add_bookmark)
 	bm_row.add_child(add_btn)
 	right.add_child(bm_row)
+	# 书签右键菜单（重命名/删除）
+	_bm_menu = PopupMenu.new()
+	_bm_menu.id_pressed.connect(_on_bm_menu_id_pressed)
+	ui.add_child(_bm_menu)
 	_bookmark_list = ItemList.new()
 	_bookmark_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_bookmark_list.custom_minimum_size = Vector2(0, 120)
@@ -677,7 +683,7 @@ func _on_bookmark_clicked(index: int, _pos: Vector2, btn: int) -> void:
 	if btn == MOUSE_BUTTON_LEFT:
 		_jump_to(bm.t)  # 左键跳转
 	elif btn == MOUSE_BUTTON_RIGHT:
-		_delete_bookmark_at(index)  # 右键直接删除（无需先选中）
+		_show_bm_menu(index)  # 右键菜单（重命名/删除）
 
 
 # ═══ 人工书签编辑 ═══
@@ -689,33 +695,12 @@ func _save_bookmarks() -> void:
 
 
 func _open_add_bookmark(t: float = -1.0) -> void:
-	if _add_dialog:
-		return
 	# 指定时刻（时间轴右键）或当前播放时刻
 	var cur: float = t
 	if cur < 0.0:
 		var runner := StageManager.current_stage_script()
 		cur = runner.game_time() if runner else 0.0
-	# 弹窗（CanvasLayer + 遮罩 + 面板）
-	var layer := CanvasLayer.new()
-	layer.layer = 20
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.4)
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	layer.add_child(dim)
-	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.offset_left = -170.0
-	panel.offset_right = 170.0
-	panel.offset_top = -90.0
-	panel.offset_bottom = 90.0
-	layer.add_child(panel)
-	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 8)
-	panel.add_child(vb)
-	var info := Label.new()
-	info.text = "📌 添加书签"
-	vb.add_child(info)
+	var vb := _make_dialog("📌 添加书签")
 	# 时刻输入（默认当前/点击处，可自选）
 	var time_row := HBoxContainer.new()
 	time_row.add_child(_label("时刻"))
@@ -726,16 +711,7 @@ func _open_add_bookmark(t: float = -1.0) -> void:
 	var line := LineEdit.new()
 	line.placeholder_text = "名称（如：Boss 最难点）"
 	vb.add_child(line)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vb.add_child(row)
-	var ok := Button.new()
-	ok.text = "✓ 添加"
-	row.add_child(ok)
-	var cancel := Button.new()
-	cancel.text = "取消"
-	row.add_child(cancel)
-	ok.pressed.connect(func():
+	_dialog_add_actions(vb, "✓ 添加", func():
 		var t_use: float = time_edit.text.to_float()
 		if not is_finite(t_use) or t_use < 0.0:
 			t_use = cur
@@ -743,20 +719,76 @@ func _open_add_bookmark(t: float = -1.0) -> void:
 		if label.is_empty():
 			label = "t=%.1fs" % t_use
 		_add_manual_bookmark(t_use, label)
-		_close_add_dialog()
 	)
-	cancel.pressed.connect(_close_add_dialog)
-	line.text_submitted.connect(func(_t: String): ok.pressed.emit())  # 回车确认
-	add_child(layer)
-	_add_dialog = layer
+	line.text_submitted.connect(func(_s: String): _dialog_confirm())  # 回车确认
 	time_edit.grab_focus()
 	time_edit.select_all()
 
 
-func _close_add_dialog() -> void:
-	if _add_dialog:
-		_add_dialog.queue_free()
-		_add_dialog = null
+## 通用弹窗骨架：关闭旧弹窗 → 建遮罩+面板 → 返回内容 VBox
+func _make_dialog(title: String) -> VBoxContainer:
+	_close_dialog()
+	var layer := CanvasLayer.new()
+	layer.layer = 20
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.4)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -180.0
+	panel.offset_right = 180.0
+	panel.offset_top = -80.0
+	panel.offset_bottom = 80.0
+	layer.add_child(panel)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 8)
+	panel.add_child(vb)
+	var info := Label.new()
+	info.text = title
+	vb.add_child(info)
+	_dialog = layer
+	add_child(layer)
+	return vb
+
+
+## 弹窗按钮行：确认（回调）+ 取消
+func _dialog_add_actions(vb: VBoxContainer, ok_text: String, ok_cb: Callable) -> void:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_child(row)
+	var ok := Button.new()
+	ok.text = ok_text
+	ok.pressed.connect(func():
+		ok_cb.call()
+		_close_dialog()
+	)
+	row.add_child(ok)
+	var cancel := Button.new()
+	cancel.text = "取消"
+	cancel.pressed.connect(_close_dialog)
+	row.add_child(cancel)
+
+
+## 当前弹窗的确认按钮（回车触发）
+func _dialog_confirm() -> void:
+	if _dialog:
+		# 找到面板里的确认按钮并触发（简单：全部触发第一个 Button）
+		var panel: PanelContainer = _dialog.get_child(1)
+		if panel:
+			var vb: VBoxContainer = panel.get_child(0)
+			for child in vb.get_children():
+				if child is HBoxContainer:
+					for b in child.get_children():
+						if b is Button and b.text.begins_with("✓"):
+							b.pressed.emit()
+							return
+
+
+func _close_dialog() -> void:
+	if _dialog:
+		_dialog.queue_free()
+		_dialog = null
 
 
 func _add_manual_bookmark(t: float, label: String) -> void:
@@ -766,7 +798,64 @@ func _add_manual_bookmark(t: float, label: String) -> void:
 	_log_line("📌 添加书签：%s" % label)
 
 
-## 删除指定索引的人工书签（右键直接删）
+## 右键菜单（重命名/删除）
+func _show_bm_menu(index: int) -> void:
+	var meta: Dictionary = _bookmark_list.get_item_metadata(index)
+	_bm_menu_index = index
+	_bm_menu.clear()
+	if meta.get("is_manual", false):
+		_bm_menu.add_item("✏️ 重命名")
+		_bm_menu.add_item("🗑 删除")
+	else:
+		_bm_menu.add_item("自动书签（改关卡脚本才刷新）")
+		_bm_menu.set_item_disabled(0, true)
+	_bm_menu.popup(Rect2i(get_viewport().get_mouse_position(), Vector2i()))
+
+
+func _on_bm_menu_id_pressed(id: int) -> void:
+	match id:
+		0:
+			_open_rename(_bm_menu_index)
+		1:
+			_open_delete_confirm(_bm_menu_index)
+
+
+## 重命名弹窗
+func _open_rename(index: int) -> void:
+	var meta: Dictionary = _bookmark_list.get_item_metadata(index)
+	var vb := _make_dialog("✏️ 重命名书签")
+	var line := LineEdit.new()
+	line.text = meta.label
+	vb.add_child(line)
+	_dialog_add_actions(vb, "✓ 保存", func():
+		var new_label := line.text.strip_edges()
+		if new_label.is_empty():
+			return
+		for bm in _manual_bookmarks:
+			if absf(bm.t - meta.t) < 0.01 and bm.get("label", "") == meta.label:
+				bm.label = new_label
+				break
+		_save_bookmarks()
+		_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
+		_log_line("✏️ 重命名书签：%s" % new_label)
+	)
+	line.text_submitted.connect(func(_s: String): _dialog_confirm())
+	line.grab_focus()
+	line.select_all()
+
+
+## 删除确认弹窗
+func _open_delete_confirm(index: int) -> void:
+	var meta: Dictionary = _bookmark_list.get_item_metadata(index)
+	var vb := _make_dialog("🗑 删除书签")
+	var msg := Label.new()
+	msg.text = "确定删除「%s」？" % meta.label
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(msg)
+	_dialog_add_actions(vb, "✓ 删除", func(): _delete_bookmark_at(index))
+
+
+## 删除指定索引的人工书签（确认后调）
 func _delete_bookmark_at(index: int) -> void:
 	var meta: Dictionary = _bookmark_list.get_item_metadata(index)
 	if not meta.get("is_manual", false):
