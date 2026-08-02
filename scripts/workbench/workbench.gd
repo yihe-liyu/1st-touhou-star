@@ -73,6 +73,7 @@ var _diff_sel: OptionButton
 var _time_label: Label
 var _status_label: Label
 var _bookmark_list: ItemList
+var _current_timeline: Resource   # 当前编辑的 timeline（缓存，避免每次 load 缓存不一致）
 var _wave_section: VBoxContainer  # 编排区块（数据关卡才显示）
 var _wave_tree: Tree              # 编排表格（数据关卡波次）
 var _wave_detail: VBoxContainer   # 选中波次的详情表单容器
@@ -226,6 +227,8 @@ func _load_stage() -> void:
 			win = maxf(win, float(w.get("t", 0.0)) + 10.0)
 	_timeline.set_window(win)
 	_apply_bookmarks_from_cache()
+	# 缓存当前编辑对象（表格/删除/保存共用同一实例，杜绝 load 缓存不一致）
+	_current_timeline = _get_timeline_data()
 	_refresh_wave_table()
 	_prev_time = -1.0
 	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
@@ -306,7 +309,7 @@ func _refresh_wave_table() -> void:
 		return
 	_wave_tree.clear()
 	_clear_container(_wave_detail)
-	var timeline = _get_timeline_data()
+	var timeline = _current_timeline
 	if timeline == null:
 		_wave_section.visible = false  # 协程关卡：编排区块整体隐藏
 		return
@@ -331,7 +334,7 @@ func _refresh_wave_table() -> void:
 
 ## 新增波次：追加默认波次并选中
 func _add_wave() -> void:
-	var timeline = _get_timeline_data()
+	var timeline = _current_timeline
 	if timeline == null:
 		return
 	var max_t := 0.0
@@ -363,7 +366,7 @@ func _delete_selected_wave() -> void:
 	if typeof(meta) != TYPE_INT:
 		return
 	var idx: int = meta
-	var timeline = _get_timeline_data()
+	var timeline = _current_timeline
 	if timeline == null or idx >= timeline.waves.size():
 		return
 	var wave_name: String = str(timeline.waves[idx].get("name", "波次"))
@@ -387,7 +390,7 @@ func _on_wave_selected() -> void:
 	if typeof(meta) != TYPE_INT:
 		return  # 根节点/无 metadata（列标题等）
 	var idx: int = meta
-	var timeline = _get_timeline_data()
+	var timeline = _current_timeline
 	if timeline == null or idx >= timeline.waves.size():
 		return
 	var w: Dictionary = timeline.waves[idx]
@@ -518,7 +521,7 @@ func _apply_wave_changes(idx: int) -> void:
 
 ## 保存：写回 .tres（user:// 可写副本；运行时 res:// 只读）
 func _save_timeline() -> void:
-	var timeline = _get_timeline_data()
+	var timeline = _current_timeline
 	if timeline == null:
 		return
 	var user_p := _user_timeline_path(timeline.resource_path)
