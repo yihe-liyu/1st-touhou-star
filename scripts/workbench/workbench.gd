@@ -310,7 +310,10 @@ func _on_wave_selected() -> void:
 	var item := _wave_tree.get_selected()
 	if item == null:
 		return
-	var idx: int = item.get_metadata(0)
+	var meta: Variant = item.get_metadata(0)
+	if typeof(meta) != TYPE_INT:
+		return  # 根节点/无 metadata（列标题等）
+	var idx: int = meta
 	var timeline = _get_timeline_data()
 	if timeline == null or idx >= timeline.waves.size():
 		return
