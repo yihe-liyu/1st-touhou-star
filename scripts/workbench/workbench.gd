@@ -20,6 +20,7 @@ const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const GHOST_SCRIPT := preload("res://scripts/workbench/ghost_player.gd")
 const HITBOX_OVERLAY := preload("res://scripts/workbench/hitbox_overlay.gd")
 const BOOKMARK_EXTRACTOR := preload("res://scripts/workbench/bookmark_extractor.gd")
+const BOOKMARK_CACHE := preload("res://scripts/workbench/bookmark_cache.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
 const STAGE01 := preload("res://data/stages/stage01/stage_data/stage01.tres")
 
@@ -35,6 +36,13 @@ var _divider: Control
 var _drag_divider := false
 var _drag_start_x := 0.0
 var _drag_start_off := 0.0
+
+# 书签收集（静默快进收集真实事件时刻，缓存到 user://）
+var _collecting := false
+var _collect_hash := 0
+var _collect_max := 45.0   # 收集到该时刻（非符1 开始后足够；Boss 击破后的事件依赖玩家，不收集）
+var _collect_times: Array = []
+var _manual_bookmarks: Array = []  # 人工打点（缓存保留，第二波做编辑 UI）
 
 var _paused := false
 var _muted := false
@@ -77,6 +85,11 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	# 书签收集完成检测（静默快进跑完即收）
+	if _collecting:
+		var runner := StageManager.current_stage_script()
+		if runner == null or runner.game_time() >= _collect_max:
+			_finish_collection()
 	# 快进到达检测（UI 是 ALWAYS，暂停中也检测）
 	if _ff_target >= 0.0:
 		var runner := StageManager.current_stage_script()
@@ -180,18 +193,84 @@ func _load_stage() -> void:
 		add_child(_background)
 	# 真实加载（跑 stage01.gd 的 Timeline）
 	StageManager.load_stage(_stage_data)
-	# 时间轴 + 书签
+	# 时间轴 + 书签（缓存优先，未命中则静默收集真实时刻）
 	_timeline.set_window(60.0)
-	# 书签：从关卡脚本自动提取 tl.at 时刻（不再硬编码，任意关卡通用）
+	_apply_bookmarks_from_cache()
+	_prev_time = -1.0
+	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
+
+
+# ═══ 书签缓存 + 静默收集 ═══
+
+## 书签：缓存优先；未命中（首次/关卡脚本变了）→ 静默快进收集真实事件时刻
+func _apply_bookmarks_from_cache() -> void:
+	var hash := _stage_data.create_script.source_code.hash()
+	var cache: Dictionary = BOOKMARK_CACHE.load(_stage_data.stage_id, hash)
+	if cache.ok:
+		_apply_bookmarks(cache.auto, cache.manual)
+		_log_line("📖 书签来自缓存（%d 自动 + %d 人工）" % [cache.auto.size(), cache.manual.size()])
+	else:
+		_manual_bookmarks = cache.manual  # 脚本变了也保留人工打点
+		_start_collection(hash)
+
+
+## 显示书签（自动 + 人工合并）
+func _apply_bookmarks(auto: Array, manual: Array) -> void:
 	_timeline.clear_bookmarks()
 	_bookmark_list.clear()
-	var bookmarks: Array = BOOKMARK_EXTRACTOR.extract_from_script(_stage_data.create_script)
-	for bm in bookmarks:
-		_timeline.add_bookmark(bm.t, bm.label)
-		var idx := _bookmark_list.add_item(bm.label)
-		_bookmark_list.set_item_metadata(idx, bm)
-	_prev_time = -1.0
-	_log_line("▶ 加载 Stage %d（难度 %s）· 书签 %d 个" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected], bookmarks.size()])
+	for bm in auto:
+		var t: float = bm.t if bm is Dictionary else float(bm)
+		var label := "t=%.1fs" % t
+		_timeline.add_bookmark(t, label)
+		var idx := _bookmark_list.add_item(label)
+		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label})
+	for bm in manual:
+		var t: float = bm.t if bm is Dictionary else float(bm)
+		var label: String = bm.label if bm is Dictionary and bm.has("label") else "t=%.1fs" % t
+		_timeline.add_bookmark(t, label)
+		var idx := _bookmark_list.add_item(label)
+		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label})
+
+
+## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
+func _start_collection(hash: int) -> void:
+	_collecting = true
+	_collect_hash = hash
+	_collect_times.clear()
+	# 注入收集器（stage_script._tl 已在 load_stage 时创建）
+	var script := StageManager.current_stage_script()
+	if script and script.get_timeline():
+		script.get_timeline().bookmark_collector = _on_collect_event
+	# 静默快进
+	Engine.time_scale = 40.0
+	Engine.max_physics_steps_per_frame = 32
+	_apply_audio()
+	_log_line("📖 首次运行，静默收集书签（快进到 %.0fs）..." % _collect_max)
+
+
+func _on_collect_event(t: float) -> void:
+	if _collect_times.size() < 3000:
+		_collect_times.append(t)
+
+
+func _finish_collection() -> void:
+	_collecting = false
+	Engine.time_scale = 1.0
+	Engine.max_physics_steps_per_frame = 8
+	# 去重排序
+	var times: Array = _collect_times.duplicate()
+	times.sort()
+	var auto: Array = []
+	var last := -INF
+	for t in times:
+		if t - last < 0.2:
+			continue
+		last = t
+		auto.append({"t": t})
+	BOOKMARK_CACHE.save(_stage_data.stage_id, _collect_hash, auto, _manual_bookmarks)
+	_log_line("📖 收集完成：%d 个书签，已缓存" % auto.size())
+	# 重跑（现在缓存命中 → 正常速度从 0 开始）
+	_load_stage()
 
 
 func _restart() -> void:
@@ -282,7 +361,7 @@ func _on_speed_selected(idx: int) -> void:
 
 ## 命中框绘制（工作台版，轻量：12 段圆 / 一次 draw_rect）
 func _apply_audio() -> void:
-	var m: bool = _muted or _paused or _ff_target >= 0.0
+	var m: bool = _muted or _paused or _ff_target >= 0.0 or _collecting
 	var idx := AudioServer.get_bus_index("Master")
 	if idx >= 0:
 		AudioServer.set_bus_mute(idx, m)
