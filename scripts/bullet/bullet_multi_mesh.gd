@@ -31,12 +31,13 @@ func _sync():
 		var tex = bullet.batch_texture()
 		if not tex:
 			continue
-		# 动态 AtlasTexture 无 resource_path，用 region 区分切片（如分段激光）
-		var region_key := ""
+		# int key：避免每帧每颗子弹拼字符串（1400 次/帧内存分配）
+		# 组合：纹理RID + region(分段激光) + faction(2bit) + tint_mode(1bit) → 唯一
+		var key: int = tex.get_rid().get_id()
 		if tex is AtlasTexture:
 			var r := (tex as AtlasTexture).region
-			region_key = "%d,%d,%d,%d|" % [r.position.x, r.position.y, r.size.x, r.size.y]
-		var key = tex.resource_path + "|" + region_key + str(bullet.faction) + "|" + str(bullet.tint_mode)
+			key = key * 31 + hash(r)
+		key = key * 16 + bullet.faction * 2 + bullet.tint_mode
 		if not active_groups.has(key):
 			active_groups[key] = {tex = tex, faction = bullet.faction, tint_mode = bullet.tint_mode, bullets = []}
 		active_groups[key].bullets.append(bullet)
@@ -69,7 +70,7 @@ func clear():
 			grp.mmi.queue_free()
 	_groups.clear()
 
-func _get_or_create_group(key: String, tex: Texture2D, faction: int, tint_mode: int, min_size: int) -> Dictionary:
+func _get_or_create_group(key: int, tex: Texture2D, faction: int, tint_mode: int, min_size: int) -> Dictionary:
 	if _groups.has(key):
 		var existing = _groups[key]
 		if existing.mm.instance_count < min_size:

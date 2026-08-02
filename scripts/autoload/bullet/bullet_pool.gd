@@ -107,10 +107,11 @@ func clear() -> void:
 		return_bullet(active_bullets[0])
 
 
+## 出屏回收：按东方框判断（真游戏/工作台一致；框外 90px 回收）
+## 之前按整个窗口判断：窗口越宽死区越大（工作台 1600 宽 → 右侧 768px 子弹白跑）
 func is_offscreen(pos: Vector2) -> bool:
-	var r: Rect2 = _parent.get_viewport().get_visible_rect()
-	var margin: float = 90.0
-	return pos.x < -margin or \
-		   pos.x > r.size.x + margin or \
-		   pos.y < -margin or \
-		   pos.y > r.size.y + margin
+	const MARGIN := 90.0
+	return pos.x < GameConfig.FIELD_LEFT - MARGIN or \
+		   pos.x > GameConfig.FIELD_RIGHT + MARGIN or \
+		   pos.y < GameConfig.FIELD_TOP - MARGIN or \
+		   pos.y > GameConfig.FIELD_BOTTOM + MARGIN

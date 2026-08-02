@@ -131,8 +131,10 @@ func _physics_process(_delta):
 	if not is_ready or coroutine_script:
 		return
 	# 匀加速：velocity += accel * dt（世界方向）
-	velocity += accel / Engine.physics_ticks_per_second
-	self.global_position += velocity / Engine.physics_ticks_per_second
+	# 用引擎时钟：time_scale 生效（工作台快进/未来子弹时间）
+	var dt := get_physics_process_delta_time()
+	velocity += accel * dt
+	self.global_position += velocity * dt
 
 func _start_coroutine(data: BulletData):
 	coroutine_script = data.coroutine_script.new()

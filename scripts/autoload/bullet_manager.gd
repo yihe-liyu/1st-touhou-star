@@ -42,16 +42,18 @@ func _ready():
 
 # ═══ 每帧 ═══
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if _processing_paused:
 		return
+	# 统一用引擎时钟：time_scale 生效（工作台快进时激光/清弹同步加速）
+	var dt := get_physics_process_delta_time()
 	_physics.reset_frame()
 	
 	# 死亡清弹
-	_death_clear.process(delta)
+	_death_clear.process(dt)
 	
 	# 激光步进 & 碰撞
-	_lasers.step(delta)
+	_lasers.step(dt)
 	
 	# 子弹碰撞
 	_physics.process_collisions()
