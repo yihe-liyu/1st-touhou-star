@@ -195,7 +195,8 @@ func _load_stage() -> void:
 	_bookmark_list.clear()
 	for bm in STAGE01_BOOKMARKS:
 		_timeline.add_bookmark(bm.t, bm.label)
-		var idx := _bookmark_list.add_item("%.0fs  %s" % [bm.t, bm.label])
+		# label 已含时间戳前缀（"0s 开始 / BGM"），不重复加
+		var idx := _bookmark_list.add_item(bm.label)
 		_bookmark_list.set_item_metadata(idx, bm)
 	_prev_time = -1.0
 	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
