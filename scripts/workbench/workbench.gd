@@ -88,6 +88,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	# 书签收集完成检测（静默快进跑完即收）
 	if _collecting:
+		queue_redraw()  # 遮罩提示持续显示
 		var runner := StageManager.current_stage_script()
 		if runner == null or runner.game_time() >= _collect_max:
 			_finish_collection()
@@ -272,7 +273,6 @@ func _finish_collection() -> void:
 	# 去重排序 + 量化到触发帧：
 	# 事件设计时刻（如 1.0+0.1*3 = 1.3000...003）实际在 ceil(t*60)/60 触发，
 	# 直接存 t 会导致跳转到 t 时实体未生成（对不齐）
-	var fps := float(Engine.physics_ticks_per_second)
 	var times: Array = _collect_times.duplicate()
 	times.sort()
 	var auto: Array = []
@@ -281,7 +281,11 @@ func _finish_collection() -> void:
 		if t - last < 0.2:
 			continue
 		last = t
-		auto.append({"t": ceili(t * fps) / fps})
+		# 只保留整数秒事件：波内小数时刻浮点边界易对不齐，且跳转价值低
+		var t_round := roundf(t)
+		if absf(t - t_round) > 0.05:
+			continue
+		auto.append({"t": t_round})
 	BOOKMARK_CACHE.save(_stage_data.stage_id, _collect_hash, auto, _manual_bookmarks)
 	_log_line("📖 收集完成：%d 个书签，已缓存" % auto.size())
 	# 重跑（现在缓存命中 → 正常速度从 0 开始）

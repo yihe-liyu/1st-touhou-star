@@ -7,10 +7,13 @@ extends RefCounted
 class_name BookmarkCache
 
 
+## 缓存格式版本：书签策略变化（如只留整数时刻）时 +1，强制旧缓存重收集
+const CACHE_VERSION := 2
+
 ## 关卡内容哈希：主脚本 + 关卡目录下所有 .gd 文件文本聚合
 ## （改任何子脚本/敌人/Boss 逻辑都会使书签缓存失效重收集）
 static func stage_content_hash(stage: StageData) -> int:
-	var h := 0
+	var h := CACHE_VERSION
 	if stage and stage.create_script:
 		h = h * 31 + stage.create_script.source_code.hash()
 		var stage_dir: String = stage.create_script.resource_path.get_base_dir().get_base_dir()
