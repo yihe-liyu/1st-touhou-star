@@ -620,6 +620,7 @@ func _build_ui() -> void:
 	_timeline.offset_bottom = -4.0 # y ≈ 996
 	_timeline.custom_minimum_size = Vector2(0, 56)
 	_timeline.jump_to.connect(_jump_to)
+	_timeline.right_clicked.connect(_open_add_bookmark)
 	ui.add_child(_timeline)
 
 
@@ -674,13 +675,13 @@ func _label(text: String) -> Label:
 
 
 func _on_bookmark_clicked(index: int, _pos: Vector2, btn: int) -> void:
-	# 只响应左键（排除滚轮/右键误触）
-	if btn != MOUSE_BUTTON_LEFT:
-		return
 	if index < 0 or index >= _bookmark_list.item_count:
 		return
 	var bm: Dictionary = _bookmark_list.get_item_metadata(index)
-	_jump_to(bm.t)
+	if btn == MOUSE_BUTTON_LEFT:
+		_jump_to(bm.t)  # 左键跳转
+	elif btn == MOUSE_BUTTON_RIGHT:
+		_delete_bookmark_at(index)  # 右键直接删除（无需先选中）
 
 
 # ═══ 人工书签编辑 ═══
@@ -691,11 +692,14 @@ func _save_bookmarks() -> void:
 	BOOKMARK_CACHE.save(_stage_data.stage_id, content_hash, _auto_bookmarks, _manual_bookmarks)
 
 
-func _open_add_bookmark() -> void:
+func _open_add_bookmark(t: float = -1.0) -> void:
 	if _add_dialog:
 		return
-	var runner := StageManager.current_stage_script()
-	var cur: float = runner.game_time() if runner else 0.0
+	# 指定时刻（时间轴右键）或当前播放时刻
+	var cur: float = t
+	if cur < 0.0:
+		var runner := StageManager.current_stage_script()
+		cur = runner.game_time() if runner else 0.0
 	# 弹窗（CanvasLayer + 遮罩 + 面板）
 	var layer := CanvasLayer.new()
 	layer.layer = 20
@@ -707,15 +711,22 @@ func _open_add_bookmark() -> void:
 	panel.set_anchors_preset(Control.PRESET_CENTER)
 	panel.offset_left = -170.0
 	panel.offset_right = 170.0
-	panel.offset_top = -80.0
-	panel.offset_bottom = 80.0
+	panel.offset_top = -90.0
+	panel.offset_bottom = 90.0
 	layer.add_child(panel)
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 8)
 	panel.add_child(vb)
 	var info := Label.new()
-	info.text = "📌 添加书签 @ t=%.1fs" % cur
+	info.text = "📌 添加书签"
 	vb.add_child(info)
+	# 时刻输入（默认当前/点击处，可自选）
+	var time_row := HBoxContainer.new()
+	time_row.add_child(_label("时刻"))
+	var time_edit := LineEdit.new()
+	time_edit.text = "%.1f" % cur
+	time_row.add_child(time_edit)
+	vb.add_child(time_row)
 	var line := LineEdit.new()
 	line.placeholder_text = "名称（如：Boss 最难点）"
 	vb.add_child(line)
@@ -729,17 +740,21 @@ func _open_add_bookmark() -> void:
 	cancel.text = "取消"
 	row.add_child(cancel)
 	ok.pressed.connect(func():
+		var t_use: float = time_edit.text.to_float()
+		if not is_finite(t_use) or t_use < 0.0:
+			t_use = cur
 		var label := line.text.strip_edges()
 		if label.is_empty():
-			label = "t=%.1fs" % cur
-		_add_manual_bookmark(cur, label)
+			label = "t=%.1fs" % t_use
+		_add_manual_bookmark(t_use, label)
 		_close_add_dialog()
 	)
 	cancel.pressed.connect(_close_add_dialog)
 	line.text_submitted.connect(func(_t: String): ok.pressed.emit())  # 回车确认
 	add_child(layer)
 	_add_dialog = layer
-	line.grab_focus()
+	time_edit.grab_focus()
+	time_edit.select_all()
 
 
 func _close_add_dialog() -> void:
@@ -753,6 +768,22 @@ func _add_manual_bookmark(t: float, label: String) -> void:
 	_save_bookmarks()
 	_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
 	_log_line("📌 添加书签：%s" % label)
+
+
+## 删除指定索引的人工书签（右键直接删）
+func _delete_bookmark_at(index: int) -> void:
+	var meta: Dictionary = _bookmark_list.get_item_metadata(index)
+	if not meta.get("is_manual", false):
+		_log_line("ℹ 自动书签不可删（改关卡脚本才刷新）")
+		return
+	for i in range(_manual_bookmarks.size() - 1, -1, -1):
+		var bm: Dictionary = _manual_bookmarks[i]
+		if absf(bm.t - meta.t) < 0.01 and bm.get("label", "") == meta.label:
+			_manual_bookmarks.remove_at(i)
+			break
+	_save_bookmarks()
+	_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
+	_log_line("🗑 删除书签：%s" % meta.label)
 
 
 func _delete_selected_bookmark() -> void:

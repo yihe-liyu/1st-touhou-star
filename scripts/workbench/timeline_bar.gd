@@ -9,6 +9,8 @@ class_name TimelineBar
 
 ## 点击时间轴 = 快进到该时刻（非暂停/seek，见 workbench.gd）
 signal jump_to(t: float)
+## 右键点击时间轴 = 在该时刻添加人工书签
+signal right_clicked(t: float)
 
 var time: float = 0.0                 ## 当前游戏内时间（秒）
 var window_len: float = 60.0          ## 时间窗口（秒）
@@ -71,10 +73,17 @@ func _draw_tick_label(x: float, sec: int) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
-	# 只响应左键点击/拖动（滚轮 WHEEL_UP/DOWN 也是 MouseButton 事件，显式排除）
+	# 左键：跳转（滚轮 WHEEL_UP/DOWN 也是 MouseButton 事件，显式排除）
 	if event is InputEventMouseButton and event.pressed \
 			and event.button_index == MOUSE_BUTTON_LEFT:
 		var total := maxf(window_len, 0.001)
 		var t := clampf(event.position.x / maxf(size.x, 1.0), 0.0, 1.0) * total
 		jump_to.emit(t)
+		accept_event()
+	# 右键：在该时刻添加人工书签
+	elif event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_RIGHT:
+		var total := maxf(window_len, 0.001)
+		var t := clampf(event.position.x / maxf(size.x, 1.0), 0.0, 1.0) * total
+		right_clicked.emit(t)
 		accept_event()
