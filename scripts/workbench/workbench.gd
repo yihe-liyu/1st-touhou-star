@@ -42,7 +42,7 @@ var _world: Node2D
 var _ghost: Player
 var _background: Node
 var _hitbox_overlay: Node2D  # 实际是 HitboxOverlay（preload，避免类缓存依赖）
-var _right_panel: VBoxContainer  # 右侧面板（可拖拽调宽）
+var _right_panel: MarginContainer  # 右侧面板（可拖拽调宽）
 var _divider: Control
 var _drag_divider := false
 var _drag_start_x := 0.0
