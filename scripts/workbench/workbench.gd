@@ -63,6 +63,7 @@ var _log_lines: Array[String] = []
 
 ## 播放速度档位（慢放/快进；书签跳转仍用固定 12x）
 const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
+const _WAVE_TABLE_SCRIPT = preload("res://scripts/workbench/ui/wave_table.gd")
 
 # UI 引用
 var _play_btn: Button
@@ -75,8 +76,15 @@ var _status_label: Label
 var _bookmark_list: ItemList
 var _current_timeline: Resource   # 当前编辑的 timeline（缓存，避免每次 load 缓存不一致）
 var _wave_section: VBoxContainer  # 编排区块（数据关卡才显示）
-var _wave_tree: Tree              # 编排表格（数据关卡波次）
+var _wave_table                    # WaveTable 表格控件（new class 未进缓存 → preload）
+var _wave_float: PanelContainer   # 悬浮容器（表格+详情浮动在游戏框附近）
+var _float_on := false            # 是否悬浮模式
+var _float_btn: Button            # 悬浮/停靠切换按钮
+var _float_drag := false          # 悬浮面板拖拽中
+var _float_drag_off := Vector2.ZERO
+var _float_body: VBoxContainer        # 悬浮容器内容区（表格+详情）
 var _wave_detail: VBoxContainer   # 选中波次的详情表单容器
+var _detail_scroll: ScrollContainer  # 详情滚动容器（悬浮时随详情移动）
 var _detail_edits: Array = []     # 详情表单控件（{apply: Callable} 应用时写回）
 var _log: RichTextLabel
 var _timeline: TimelineBar
@@ -305,9 +313,8 @@ func _get_timeline_data() -> Resource:
 
 ## 刷新编排表格（数据关卡才显示）
 func _refresh_wave_table() -> void:
-	if _wave_tree == null:
+	if _wave_table == null:
 		return
-	_wave_tree.clear()
 	_clear_container(_wave_detail)
 	var timeline = _current_timeline
 	if timeline == null:
@@ -315,21 +322,14 @@ func _refresh_wave_table() -> void:
 		return
 	_wave_section.visible = true
 	if timeline.waves.is_empty():
-		_wave_tree.visible = false
+		_wave_table.visible = false
 		_wave_detail.visible = false
 		return
-	_wave_tree.visible = true
+	_wave_table.visible = true
 	_wave_detail.visible = true
-	var root := _wave_tree.create_item()
-	for i in timeline.waves.size():
-		var w: Dictionary = timeline.waves[i]
-		var item := _wave_tree.create_item(root)
-		item.set_text(0, "%.1f" % float(w.get("t", 0.0)))
-		item.set_text(1, str(w.get("name", "波次")))
-		item.set_text(2, str(w.get("enemy", "")))
-		item.set_text(3, str(w.get("count", 1)))
-		item.set_text(4, str(w.get("interval", 0.5)))
-		item.set_metadata(0, i)
+	_wave_table.setup(timeline)
+	# 悬浮模式下刷新悬浮容器内容（表格/详情已移入 _float_body）
+	_refresh_float_visibility()
 
 
 ## 新增波次：追加默认波次并选中
@@ -350,22 +350,16 @@ func _add_wave() -> void:
 		"params": {},
 	})
 	_refresh_wave_table()
-	var root := _wave_tree.get_root()
-	if root and root.get_child_count() > 0:
-		root.get_child(root.get_child_count() - 1).select(0)  # 选中新行
+	_wave_table.select_row(_wave_table.row_count() - 1)  # 选中新行
 	_log_line("➕ 添加波次")
 
 
 ## 删除选中波次（确认后）
 func _delete_selected_wave() -> void:
-	var item := _wave_tree.get_selected()
-	if item == null:
+	var idx: int = _wave_table.selected_idx()
+	if idx < 0:
 		_log_line("ℹ 先选中要删除的波次")
 		return
-	var meta: Variant = item.get_metadata(0)
-	if typeof(meta) != TYPE_INT:
-		return
-	var idx: int = meta
 	var timeline = _current_timeline
 	if timeline == null or idx >= timeline.waves.size():
 		return
@@ -382,14 +376,7 @@ func _delete_selected_wave() -> void:
 
 
 ## 选中波次 → 详情表单（按字段类型动态生成）
-func _on_wave_selected() -> void:
-	var item := _wave_tree.get_selected()
-	if item == null:
-		return
-	var meta: Variant = item.get_metadata(0)
-	if typeof(meta) != TYPE_INT:
-		return  # 根节点/无 metadata（列标题等）
-	var idx: int = meta
+func _on_wave_selected(idx: int) -> void:
 	var timeline = _current_timeline
 	if timeline == null or idx >= timeline.waves.size():
 		return
@@ -517,6 +504,48 @@ func _apply_wave_changes(idx: int) -> void:
 		entry.apply.call()
 	_log_line("✔ 应用波次参数 → 重跑")
 	_restart()
+
+
+## 悬浮/停靠切换：表格+详情在面板与悬浮容器间移动（同一实例）
+func _toggle_wave_float() -> void:
+	_float_on = not _float_on
+	_refresh_float_visibility()
+	_float_btn.text = "⇲ 停靠" if _float_on else "⇱ 悬浮"
+	_log_line("📊 表格悬浮（可拖标题栏；⇲ 停靠回面板）" if _float_on else "📊 表格停靠回面板")
+
+
+## 悬浮显隐 + 内容移动（_wave_table/_detail_scroll 在 _wave_section 与 _float_body 间迁移）
+func _refresh_float_visibility() -> void:
+	if _wave_table == null or _wave_float == null:
+		return
+	var in_section: bool = _wave_table.get_parent() == _wave_section
+	if _float_on and in_section:
+		_wave_section.remove_child(_wave_table)
+		_float_body.add_child(_wave_table)
+		_wave_section.remove_child(_detail_scroll)
+		_float_body.add_child(_detail_scroll)
+		_wave_float.visible = true
+	elif not _float_on and not in_section:
+		_float_body.remove_child(_wave_table)
+		_wave_section.add_child(_wave_table)
+		_float_body.remove_child(_detail_scroll)
+		_wave_section.add_child(_detail_scroll)
+		_wave_float.visible = false
+
+
+## 悬浮面板标题栏拖拽（stretch 视口坐标系 1280x960）
+func _on_float_title_input(ev: InputEvent) -> void:
+	if ev is InputEventMouseButton:
+		if ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			_float_drag = true
+			_float_drag_off = get_viewport().get_mouse_position() - _wave_float.position
+		elif not ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			_float_drag = false
+	elif ev is InputEventMouseMotion and _float_drag:
+		var p := get_viewport().get_mouse_position() - _float_drag_off
+		p.x = clampf(p.x, 0.0, GameConfig.VIEW_WIDTH - _wave_float.size.x)
+		p.y = clampf(p.y, 0.0, GameConfig.VIEW_HEIGHT - _wave_float.size.y)
+		_wave_float.position = p
 
 
 ## 保存：写回 .tres（user:// 可写副本；运行时 res:// 只读）
@@ -899,30 +928,27 @@ func _build_ui() -> void:
 	save_btn.pressed.connect(_save_timeline)
 	wave_btns.add_child(save_btn)
 	_wave_section.add_child(wave_btns)
-	_wave_tree = Tree.new()
-	_wave_tree.columns = 5
-	_wave_tree.custom_minimum_size = Vector2(0, 120)
-	_wave_tree.set_column_title(0, "t")
-	_wave_tree.set_column_title(1, "波次")
-	_wave_tree.set_column_title(2, "敌人")
-	_wave_tree.set_column_title(3, "数量")
-	_wave_tree.set_column_title(4, "间隔")
-	_wave_tree.set_column_expand(1, true)
-	_wave_tree.set_column_expand(2, false)
-	_wave_tree.set_column_expand(3, false)
-	_wave_tree.set_column_expand(4, false)
-	_wave_tree.item_selected.connect(_on_wave_selected)
-	_wave_section.add_child(_wave_tree)
+	# 波次表：自制行列表格（列头+网格线+选中高亮）
+	_wave_table = _WAVE_TABLE_SCRIPT.new()
+	_wave_table.custom_minimum_size = Vector2(0, 140)
+	_wave_table.wave_selected.connect(_on_wave_selected)
+	_wave_section.add_child(_wave_table)
+	# 悬浮切换按钮（表格停靠/浮动在游戏框上）
+	var float_btn := Button.new()
+	float_btn.text = "⇱ 悬浮"
+	float_btn.pressed.connect(_toggle_wave_float)
+	_float_btn = float_btn
+	wave_btns.add_child(float_btn)
 	# 详情表单包 ScrollContainer：固定高度，内容超高内部滚动
 	# （否则表单变高挤压下方书签/日志 → ItemList 滚动重置跳顶）
-	var detail_scroll := ScrollContainer.new()
-	detail_scroll.custom_minimum_size = Vector2(0, 140)
-	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_wave_section.add_child(detail_scroll)
+	_detail_scroll = ScrollContainer.new()
+	_detail_scroll.custom_minimum_size = Vector2(0, 140)
+	_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_wave_section.add_child(_detail_scroll)
 	_wave_detail = VBoxContainer.new()
 	_wave_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_wave_detail.add_theme_constant_override("separation", 4)
-	detail_scroll.add_child(_wave_detail)
+	_detail_scroll.add_child(_wave_detail)
 
 	right.add_child(_label("── 书签（点击 = 快进）──"))
 	# 编辑按钮行（添加人工书签；删除用列表右键）
@@ -948,6 +974,42 @@ func _build_ui() -> void:
 	_log.fit_content = false
 	_log.scroll_following = true
 	right.add_child(_log)
+
+	# ── 悬浮编排容器（表格+详情浮动在游戏框右侧；半透明可拖拽）──
+	_wave_float = PanelContainer.new()
+	_wave_float.name = "WaveFloat"
+	_wave_float.visible = false
+	_wave_float.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_wave_float.offset_left = GameConfig.FIELD_LEFT + 16.0
+	_wave_float.offset_top = 24.0
+	_wave_float.offset_right = GameConfig.FIELD_LEFT + 436.0
+	_wave_float.offset_bottom = 300.0
+	var float_bg := StyleBoxFlat.new()
+	float_bg.bg_color = Color(0.05, 0.07, 0.12, 0.82)
+	float_bg.set_border_width_all(1)
+	float_bg.border_color = Color(0.4, 0.65, 1.0, 0.5)
+	float_bg.set_corner_radius_all(6)
+	_wave_float.add_theme_stylebox_override("panel", float_bg)
+	ui.add_child(_wave_float)
+	# 标题栏（可拖拽移动）
+	var fhead := HBoxContainer.new()
+	fhead.add_theme_constant_override("separation", 6)
+	fhead.custom_minimum_size = Vector2(0, 24)
+	fhead.gui_input.connect(_on_float_title_input)
+	var ftitle := Label.new()
+	ftitle.text = "📊 编排（悬浮）"
+	ftitle.add_theme_font_size_override("font_size", 13)
+	ftitle.add_theme_color_override("font_color", Color(0.8, 0.92, 1.0))
+	fhead.add_child(ftitle)
+	fhead.add_child(Control.new())  # 撑开
+	var dock_btn := Button.new()
+	dock_btn.text = "⇲ 停靠"
+	dock_btn.pressed.connect(_toggle_wave_float)
+	fhead.add_child(dock_btn)
+	_wave_float.add_child(fhead)
+	_float_body = VBoxContainer.new()
+	_float_body.add_theme_constant_override("separation", 4)
+	_wave_float.add_child(_float_body)
 
 	# ── 底部时间轴 ──
 	_timeline = TimelineBar.new()
