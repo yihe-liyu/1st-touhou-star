@@ -21,8 +21,25 @@ var _multi_mesh: Node2D
 var _processing_paused: bool = false
 const BulletMultiMeshClass = preload("res://scripts/bullet/bullet_multi_mesh.gd")
 
+# 共享子弹上下文：所有子弹协程共用一个 ctx（服务全部无状态）
+# 省掉每弹 new StageContext + 服务对象（REFACTORING P-0 债务）
+var _world_clock: CoroutineRunner
+var _bullet_ctx: StageContext
+
+
+## 子弹协程共享 ctx（active() = 世界时钟恒 true；子弹靠 target 失效停止）
+func get_bullet_ctx() -> StageContext:
+	return _bullet_ctx
+
 
 func _ready():
+	# 世界时钟：永久任务 → is_running 恒 true（子弹协程的 active() 语义 = 世界活跃）
+	_world_clock = CoroutineRunner.new()
+	_world_clock.name = "WorldClock"
+	add_child(_world_clock)
+	_world_clock.run(func() -> bool: return true)
+	_bullet_ctx = StageContext.new(_world_clock)
+
 	_pool = PoolClass.new()
 	_pool.setup(self)
 	_physics = PhysicsClass.new()
@@ -62,6 +79,7 @@ func _physics_process(_delta: float) -> void:
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
 		if _pool.is_offscreen(_pool.active_bullets[i].global_position):
 			_pool.return_bullet(_pool.active_bullets[i])
+	# 出屏回收（完）
 
 
 # ═══ 子弹 API（委托给 pool）═══

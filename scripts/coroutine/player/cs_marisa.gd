@@ -10,6 +10,7 @@ const OPTION_INTERVAL: int = 6
 
 ## 非 focus 分段激光参数
 const SEG_W: float = 64.0              # 每段宽度 —— 唯一需要调的参数！
+const SEG_H: float = 32.0              # 每段高度（贴图高度，判定贴视觉）
 const LASER_FRAME: int = 0             # 所有段公用这一帧（0~段数-1，同图案均匀重复）
 const LASER_DAMAGE: float = 2           # 每段伤害（支持小数，累积到整才扣血）
 const LASER_DRIFT_SPEED: float = 2000.0    # 激光流动速度（px/s）
@@ -27,6 +28,7 @@ const LASER_ANGLES := [
 var _spawn_accumulator: float = 0.0       # 漂移累积量（达到间距即喷一段）
 var _laser_frame_seq: int = 0             # 帧序列（每轮喷射 +1 → 图案随时间变换）
 var _segments: int = -1                   # 段数缓存（由图集自动算）
+var _segment_textures: Array[AtlasTexture] = []  # 切片缓存（省每段 new）
 
 
 func _seg_count() -> int:
@@ -95,12 +97,15 @@ func _option_shoot(_ctx: StageContext, _count: int) -> float:
 		return dt  # 每帧都调用，驱动累积
 
 
-## 把长贴图切成第 i 段（AtlasTexture 切片）
+## 把长贴图切成第 i 段（AtlasTexture 切片）—— 切片缓存复用（省每段 new）
 func _make_laser_segment(i: int) -> AtlasTexture:
-	var at := AtlasTexture.new()
-	at.atlas = LASER_TEX
-	at.region = Rect2(i * SEG_W, 0, SEG_W, 32)
-	return at
+	if _segment_textures.is_empty():
+		for s in _seg_count():
+			var at := AtlasTexture.new()
+			at.atlas = LASER_TEX
+			at.region = Rect2(s * SEG_W, 0, SEG_W, SEG_H)
+			_segment_textures.append(at)
+	return _segment_textures[i % _seg_count()]
 
 
 ## 从指定子机喷出一段激光：段在发射口生成，向上漂移，间距=漂移×间隔（自动无缝）
@@ -116,9 +121,9 @@ func _spawn_laser_segment(player: Player, source: Node2D, frame: int) -> void:
 	b.color(Color(1, 1, 1, 0.5))
 	b.damage = LASER_DAMAGE
 	b.hit_effect = preload("res://scenes/effect/hit_effect_marisa_option01.tscn")  # 激光专用击中特效
-	# 矩形判定覆盖整段（32x32）
+	# 矩形判定覆盖整段（贴视觉：64x32，旋转后 32x64 竖条）
 	b.hitbox_shape = BulletData.HitboxShape.RECTANGLE
-	b.hitbox_size = Vector2(SEG_W, SEG_W)
+	b.hitbox_size = Vector2(SEG_W, SEG_H)
 	b.coroutine_script = LASER_FOLLOW
 
 	# 段在发射口生成（offset=0），drift 从 0 独立累积 → 根部永远在子机

@@ -151,9 +151,9 @@ func _physics_process(_delta):
 func _start_coroutine(data: BulletData):
 	coroutine_script = data.coroutine_script.new()
 	assert(coroutine_script is CoroutineScript, "Bullet: coroutine must be a CoroutineScript")
-	# 无节点 + 快速路径：不 add_child（消除引擎回调）、不建调度 Task（消除 Callable 开销）
+	# 无节点 + 快速路径 + 共享 ctx（不再每弹 new StageContext）
 	# 由本子弹 _physics_process 直接调 _tick
-	coroutine_script.start_fast(StageContext.new(coroutine_script), self)
+	coroutine_script.start_fast(BulletManager.get_bullet_ctx(), self)
 
 func batch_texture() -> Texture2D:
 	return sprite.texture
