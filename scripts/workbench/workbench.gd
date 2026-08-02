@@ -87,6 +87,9 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	# 面板不盖游戏框：无论窗口实际多大，左边缘 ≥ 游戏框右缘 + 16
+	if _right_panel and _right_panel.offset_left > -(_right_panel.get_viewport().get_visible_rect().size.x - GameConfig.FIELD_RIGHT - 16.0):
+		_clamp_panel_width()
 	# 快进到达检测（UI 是 ALWAYS，暂停中也检测）
 	if _ff_target >= 0.0:
 		var runner := StageManager.current_stage_script()
@@ -518,6 +521,16 @@ func _on_difficulty_changed(_i: int) -> void:
 	_restart()
 
 
+## 面板宽度上限：左边缘不越过游戏框右缘 + 16（初始/窗口变化/拖拽统一约束）
+func _clamp_panel_width() -> void:
+	var win_w := _right_panel.get_viewport().get_visible_rect().size.x
+	var min_left := -(win_w - GameConfig.FIELD_RIGHT - 16.0)
+	if _right_panel.offset_left > min_left:
+		_right_panel.offset_left = min_left
+		_divider.offset_left = min_left - 8.0
+		_divider.offset_right = min_left
+
+
 ## 拖拽分割条：调整右侧面板宽度
 func _on_divider_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -530,7 +543,8 @@ func _on_divider_input(event: InputEvent) -> void:
 		var dx: float = mm.global_position.x - _drag_start_x
 		# 宽度范围：面板 300 ~ 窗口-120（offset_left 为负值）
 		var min_w := 300.0
-		var max_w := get_window().size.x - 120.0
+		# 上限 = 面板左边缘不越过游戏框右缘（与初始约束一致）
+		var max_w := _right_panel.get_viewport().get_visible_rect().size.x - GameConfig.FIELD_RIGHT - 16.0
 		var new_off := clampf(_drag_start_off + dx, -max_w, -min_w)
 		_right_panel.offset_left = new_off
 		_divider.offset_left = new_off - 8.0
