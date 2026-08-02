@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1"]
+[ext_resource type="Script" path="res://data/stage_demo/wave_stage.gd" id="2"]
+
+[resource]
+script = ExtResource("1")
+stage_id = 2
+create_script = ExtResource("2")

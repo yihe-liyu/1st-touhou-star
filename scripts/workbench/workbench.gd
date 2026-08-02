@@ -23,6 +23,7 @@ const BOOKMARK_EXTRACTOR := preload("res://scripts/workbench/bookmark_extractor.
 const BOOKMARK_CACHE := preload("res://scripts/workbench/bookmark_cache.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
 const STAGE01 := preload("res://data/stages/stage01/stage_data/stage01.tres")
+const STAGE_DEMO := preload("res://data/stage_demo/stage_demo.tres")
 
 const DIFFICULTIES: Array[String] = ["Easy", "Normal", "Hard", "Lunatic"]
 
@@ -395,6 +396,12 @@ func _stop_fast_forward() -> void:
 
 
 ## 速度档位切换（慢放 0.25x ~ 快进 16x）
+func _on_stage_selected(idx: int) -> void:
+	_stage_data = STAGE01 if idx == 0 else STAGE_DEMO
+	_restart()
+	_log_line("🎚 切换关卡：%s" % (_stage_sel.get_item_text(idx)))
+
+
 func _on_speed_selected(idx: int) -> void:
 	_speed_idx = idx
 	if _ff_target < 0.0:
@@ -530,7 +537,8 @@ func _build_ui() -> void:
 	grid.add_child(_label("关卡"))
 	_stage_sel = OptionButton.new()
 	_stage_sel.add_item("Stage 1 橡树之庭")
-	_stage_sel.disabled = true  # 目前只有一个关卡
+	_stage_sel.add_item("Demo 数据关卡")
+	_stage_sel.item_selected.connect(_on_stage_selected)
 	grid.add_child(_stage_sel)
 
 	# 难度
