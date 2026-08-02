@@ -33,10 +33,10 @@ func set_window(seconds: float) -> void:
 ## 播放跟随：播放头接近窗口边缘时平移窗口
 func _process(_delta: float) -> void:
 	if time > window_start + window_len * 0.95:
-		window_start = time - window_len * 0.5
+		window_start = maxf(0.0, time - window_len * 0.5)
 		queue_redraw()
 	elif time < window_start:
-		window_start = time - window_len * 0.1
+		window_start = maxf(0.0, time - window_len * 0.1)
 		queue_redraw()
 
 
@@ -107,7 +107,7 @@ func _gui_input(event: InputEvent) -> void:
 		var anchor_t := window_start + ratio * window_len  # 鼠标处时刻保持不动
 		var factor := 0.8 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.25
 		window_len = clampf(window_len * factor, 5.0, 600.0)
-		window_start = anchor_t - ratio * window_len
+		window_start = maxf(0.0, anchor_t - ratio * window_len)
 		queue_redraw()
 		accept_event()
 
