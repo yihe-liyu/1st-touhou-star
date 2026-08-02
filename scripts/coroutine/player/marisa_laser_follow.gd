@@ -53,6 +53,9 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var dir := Vector2(sin(drift_angle), -cos(drift_angle))
 		target.global_position = anchor + off + dir * _drift
 		_drift += drift_speed * dt
+		# 击中特效继承激光移动方向（bullet_physics 用 velocity 做特效方向；
+		# HitEffect.set_velocity 只取 normalized 方向，量级无所谓）
+		target.velocity = dir
 
 		# 松开射击 或 进入 focus → 开始渐隐（激光只在"非focus+按住射击"时存在）
 		if not _fading and (not Input.is_action_pressed("shoot") or Input.is_action_pressed("focus")):
