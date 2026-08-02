@@ -236,20 +236,27 @@ func _apply_bookmarks_from_cache() -> void:
 ## 显示书签（自动 + 人工合并）
 func _apply_bookmarks(auto: Array, manual: Array) -> void:
 	_auto_bookmarks = auto.duplicate(true)  # 保存（人工编辑后重存缓存用）
-	_timeline.clear_bookmarks()
-	_bookmark_list.clear()
-	for bm in auto:
-		var t: float = bm.t if bm is Dictionary else float(bm)
-		var label := "t=%.1fs" % t
-		_timeline.add_bookmark(t, label)
-		var idx := _bookmark_list.add_item(label)
-		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label, "is_manual": false})
+	# 合并排序：全部书签按时间混排；人工书签覆盖同 t 的自动项
+	# （自动书签重命名 → 加 manual 但保留 auto → 删除 manual 时自动恢复）
+	var items: Array = []
 	for bm in manual:
 		var t: float = bm.t if bm is Dictionary else float(bm)
 		var label: String = bm.label if bm is Dictionary and bm.has("label") else "t=%.1fs" % t
-		_timeline.add_bookmark(t, label)
-		var idx := _bookmark_list.add_item("📌 " + label)  # 人工标记
-		_bookmark_list.set_item_metadata(idx, {"t": t, "label": label, "is_manual": true})
+		items.append({"t": t, "label": label, "is_manual": true})
+	for bm in auto:
+		var t: float = bm.t if bm is Dictionary else float(bm)
+		if items.any(func(m: Dictionary) -> bool: return absf(m.t - t) < 0.01):
+			continue  # 被人工书签覆盖（改名）
+		items.append({"t": t, "label": "t=%.1fs" % t, "is_manual": false})
+	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.t < b.t)
+	# 显示（时间轴 + 列表）
+	_timeline.clear_bookmarks()
+	_bookmark_list.clear()
+	for it in items:
+		var label: String = ("📌 " + it.label) if it.is_manual else it.label
+		_timeline.add_bookmark(it.t, it.label)
+		var idx := _bookmark_list.add_item(label)
+		_bookmark_list.set_item_metadata(idx, it)
 
 
 ## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
@@ -839,10 +846,8 @@ func _open_rename(index: int) -> void:
 					bm.label = new_label
 					break
 		else:
-			# 自动书签重命名 → 转为人工（移除同 t 的自动项，避免重复显示）
-			for i in range(_auto_bookmarks.size() - 1, -1, -1):
-				if absf(float(_auto_bookmarks[i].t) - meta.t) < 0.01:
-					_auto_bookmarks.remove_at(i)
+			# 自动书签重命名 → 加人工书签（保留 auto；显示时人工覆盖，
+			# 删除人工书签后自动项自动恢复）
 			_manual_bookmarks.append({"t": meta.t, "label": new_label})
 		_save_bookmarks()
 		_apply_bookmarks(_auto_bookmarks, _manual_bookmarks)
