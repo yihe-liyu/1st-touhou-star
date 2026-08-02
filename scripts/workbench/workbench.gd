@@ -392,7 +392,6 @@ func _build_ui() -> void:
 	_divider.offset_bottom = 928.0
 	_divider.gui_input.connect(_on_divider_input)
 	ui.add_child(_divider)
-	var right := _right_panel
 
 	# 标题
 	var title := Label.new()
