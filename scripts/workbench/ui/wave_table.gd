@@ -116,11 +116,6 @@ func _append_row(i: int, w: Dictionary) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
 	row.custom_minimum_size = Vector2(0, ROW_H)
-	# 整行点击选中
-	row.gui_input.connect(func(ev: InputEvent):
-		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
-			select_row(i)
-	)
 	var texts: Array[String] = [
 		"%.1f" % float(w.get("t", 0.0)),
 		str(w.get("name", "波次")),
@@ -132,6 +127,12 @@ func _append_row(i: int, w: Dictionary) -> void:
 		var p := PanelContainer.new()
 		p.custom_minimum_size = Vector2(COL_WIDTHS[c], ROW_H)
 		p.add_theme_stylebox_override("panel", _cell_style(band))
+		p.mouse_filter = Control.MOUSE_FILTER_STOP
+		# 单元格点击 → 选中行（命中即触发，最稳）
+		p.gui_input.connect(func(ev: InputEvent):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				select_row(i)
+		)
 		p.set_meta("row", i)  # 选中高亮时定位
 		var l := Label.new()
 		l.text = texts[c]

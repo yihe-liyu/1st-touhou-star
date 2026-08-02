@@ -528,8 +528,10 @@ func _refresh_float_visibility() -> void:
 	elif not _float_on and not in_section:
 		_float_body.remove_child(_wave_table)
 		_wave_section.add_child(_wave_table)
+		_wave_section.move_child(_wave_table, 2)  # 原顺序：label(0) btns(1) 表格(2)
 		_float_body.remove_child(_detail_scroll)
 		_wave_section.add_child(_detail_scroll)
+		_wave_section.move_child(_detail_scroll, 3)  # 详情(3)
 		_wave_float.visible = false
 
 
@@ -980,10 +982,11 @@ func _build_ui() -> void:
 	_wave_float.name = "WaveFloat"
 	_wave_float.visible = false
 	_wave_float.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_wave_float.offset_left = GameConfig.FIELD_LEFT + 16.0
-	_wave_float.offset_top = 24.0
-	_wave_float.offset_right = GameConfig.FIELD_LEFT + 436.0
-	_wave_float.offset_bottom = 300.0
+	# 初始位置：游戏框右下（避开中央 boss/弹幕区）
+	_wave_float.offset_left = GameConfig.FIELD_RIGHT - 436.0
+	_wave_float.offset_top = GameConfig.VIEW_HEIGHT - 276.0 - 8.0
+	_wave_float.offset_right = GameConfig.FIELD_RIGHT
+	_wave_float.offset_bottom = GameConfig.VIEW_HEIGHT - 8.0
 	var float_bg := StyleBoxFlat.new()
 	float_bg.bg_color = Color(0.05, 0.07, 0.12, 0.82)
 	float_bg.set_border_width_all(1)
@@ -997,7 +1000,7 @@ func _build_ui() -> void:
 	fhead.custom_minimum_size = Vector2(0, 24)
 	fhead.gui_input.connect(_on_float_title_input)
 	var ftitle := Label.new()
-	ftitle.text = "📊 编排（悬浮）"
+	ftitle.text = "📊 波次表"
 	ftitle.add_theme_font_size_override("font_size", 13)
 	ftitle.add_theme_color_override("font_color", Color(0.8, 0.92, 1.0))
 	fhead.add_child(ftitle)
