@@ -111,14 +111,15 @@ func _draw() -> void:
 		draw_rect(Rect2(0, field.end.y, size.x, size.y - field.end.y), Color(0.03, 0.03, 0.05))
 		draw_rect(Rect2(0, field.position.y, field.position.x, field.size.y), Color(0.03, 0.03, 0.05))
 		draw_rect(Rect2(field.end.x, field.position.y, size.x - field.end.x, field.size.y), Color(0.03, 0.03, 0.05))
-	# 东方框边框 + 网格（半透明，不挡 3D 背景）
+	# 东方框边框（保留，提示边界）+ 网格/路径线（仅背景关闭时画，避免浮在 3D 上）
 	draw_rect(field, Color(0.35, 0.45, 0.7, 0.5), false, 2.0)
-	for x in range(64, 833, 64):
-		draw_line(Vector2(x, 32), Vector2(x, 928), Color(1, 1, 1, 0.05))
-	for y in range(32, 929, 64):
-		draw_line(Vector2(64, y), Vector2(832, y), Color(1, 1, 1, 0.05))
-	# 幽灵玩家路径参考（纵向漂移中线）
-	draw_line(Vector2(64, 620), Vector2(832, 620), Color(0.3, 0.9, 0.5, 0.15))
+	if not has_bg:
+		for x in range(64, 833, 64):
+			draw_line(Vector2(x, 32), Vector2(x, 928), Color(1, 1, 1, 0.05))
+		for y in range(32, 929, 64):
+			draw_line(Vector2(64, y), Vector2(832, y), Color(1, 1, 1, 0.05))
+		# 幽灵玩家路径参考（纵向漂移中线）
+		draw_line(Vector2(64, 620), Vector2(832, 620), Color(0.3, 0.9, 0.5, 0.15))
 
 
 func _exit_tree() -> void:
