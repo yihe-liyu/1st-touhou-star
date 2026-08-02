@@ -8,6 +8,7 @@ var enabled: bool = false:
 	set(v):
 		enabled = v
 		visible = v
+		set_process(v)  # 关键：开启时才运行 _process（每帧跟随子弹刷新）
 		if enabled:
 			queue_redraw()
 
