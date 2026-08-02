@@ -1,0 +1,53 @@
+## 命中框覆盖层 —— 工作台调试用
+## 独立 CanvasLayer + 高 z_index（> 敌弹 10 / 特效 50），画在子弹贴图之上
+## 轻量绘制：判定圆 12 段 / 矩形一次 draw_rect
+extends Node2D
+class_name HitboxOverlay
+
+var enabled: bool = false:
+	set(v):
+		enabled = v
+		visible = v
+		if enabled:
+			queue_redraw()
+
+
+func _ready() -> void:
+	# 暂停时冻结（子弹也不动，内容一致即可）
+	process_mode = Node.PROCESS_MODE_PAUSABLE
+	set_process(enabled)
+
+
+func _process(_delta: float) -> void:
+	if enabled:
+		queue_redraw()
+
+
+func _draw() -> void:
+	if not enabled:
+		return
+	# 子弹判定（红）
+	for bullet in BulletManager.active_bullets:
+		if not is_instance_valid(bullet) or not bullet.visible or not bullet.is_ready:
+			continue
+		var center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
+		match bullet.hitbox_shape:
+			BulletData.HitboxShape.CIRCLE:
+				draw_arc(center, bullet.hitbox_radius, 0, TAU, 12, Color.RED, 1.0)
+			BulletData.HitboxShape.RECTANGLE:
+				draw_set_transform(center, bullet.rotation + deg_to_rad(bullet.hitbox_rotation), Vector2.ONE)
+				draw_rect(Rect2(-bullet.hitbox_size / 2.0, bullet.hitbox_size), Color.RED, false, 1.0)
+				draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+	# 敌人判定（绿）
+	for enemy in GameState.get_active_enemies():
+		if not is_instance_valid(enemy):
+			continue
+		var er: float = enemy.get("hitbox_radius") if "hitbox_radius" in enemy else 8.0
+		draw_arc(enemy.global_position, er, 0, TAU, 12, Color.GREEN, 1.5)
+	# 玩家判定（青 = 命中，蓝 = 擦弹范围）
+	var player = GameState.player
+	if is_instance_valid(player):
+		var pr: float = player.get("hitbox_radius") if "hitbox_radius" in player else 2.0
+		var gr: float = player.get("graze_radius") if "graze_radius" in player else 24.0
+		draw_arc(player.global_position, gr, 0, TAU, 24, Color(0.3, 0.6, 1.0, 0.5), 1.0)
+		draw_arc(player.global_position, pr, 0, TAU, 12, Color.CYAN, 2.0)
