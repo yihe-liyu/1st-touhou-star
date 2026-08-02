@@ -22,18 +22,27 @@ static func _hash_dir_files(dir_path: String, h: int) -> int:
 	var d := DirAccess.open(dir_path)
 	if d == null:
 		return h
+	# 先收集再排序：目录遍历顺序不稳定 → 不排序则哈希每次不同 → 缓存永不命中
+	var sub_dirs: Array[String] = []
+	var files: Array[String] = []
 	d.list_dir_begin()
 	var f := d.get_next()
 	while f != "":
 		if d.current_is_dir():
-			h = _hash_dir_files(dir_path + "/" + f, h)
+			sub_dirs.append(f)
 		elif f.ends_with(".gd"):
-			var fa := FileAccess.open(dir_path + "/" + f, FileAccess.READ)
-			if fa:
-				h = h * 31 + fa.get_as_text().hash()
-				fa.close()
+			files.append(f)
 		f = d.get_next()
 	d.list_dir_end()
+	files.sort()
+	sub_dirs.sort()
+	for fn in files:
+		var fa := FileAccess.open(dir_path + "/" + fn, FileAccess.READ)
+		if fa:
+			h = h * 31 + fa.get_as_text().hash()
+			fa.close()
+	for sd in sub_dirs:
+		h = _hash_dir_files(dir_path + "/" + sd, h)
 	return h
 
 

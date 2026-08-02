@@ -42,6 +42,7 @@ var _collecting := false
 var _collect_hash := 0
 var _collect_max := 45.0   # 收集到该时刻（非符1 开始后足够；Boss 击破后的事件依赖玩家，不收集）
 var _collect_times: Array = []
+var _collect_attempts := 0  # 防死循环：收集连续失败超限退回静态提取
 var _manual_bookmarks: Array = []  # 人工打点（缓存保留，第二波做编辑 UI）
 
 var _paused := false
@@ -207,6 +208,7 @@ func _apply_bookmarks_from_cache() -> void:
 	var hash := BOOKMARK_CACHE.stage_content_hash(_stage_data)
 	var cache: Dictionary = BOOKMARK_CACHE.load(_stage_data.stage_id, hash)
 	if cache.ok:
+		_collect_attempts = 0  # 收集链路已通，重置防循环计数
 		_apply_bookmarks(cache.auto, cache.manual)
 		_log_line("📖 书签来自缓存（%d 自动 + %d 人工）" % [cache.auto.size(), cache.manual.size()])
 	else:
@@ -234,6 +236,16 @@ func _apply_bookmarks(auto: Array, manual: Array) -> void:
 
 ## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
 func _start_collection(hash: int) -> void:
+	_collect_attempts += 1
+	if _collect_attempts > 2:
+		# 兜底：收集链路异常（缓存写不进等）→ 退回静态提取，避免无限加速循环
+		_log_line("⚠️ 书签收集异常，退回静态提取")
+		var bm: Array = BOOKMARK_EXTRACTOR.extract_from_script(_stage_data.create_script)
+		var auto: Array = []
+		for b in bm:
+			auto.append({"t": b.t})
+		_apply_bookmarks(auto, _manual_bookmarks)
+		return
 	_collecting = true
 	_collect_hash = hash
 	_collect_times.clear()
