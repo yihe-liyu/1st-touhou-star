@@ -7,6 +7,36 @@ extends RefCounted
 class_name BookmarkCache
 
 
+## 关卡内容哈希：主脚本 + 关卡目录下所有 .gd 文件文本聚合
+## （改任何子脚本/敌人/Boss 逻辑都会使书签缓存失效重收集）
+static func stage_content_hash(stage: StageData) -> int:
+	var h := 0
+	if stage and stage.create_script:
+		h = h * 31 + stage.create_script.source_code.hash()
+		var stage_dir: String = stage.create_script.resource_path.get_base_dir().get_base_dir()
+		h = _hash_dir_files(stage_dir, h)
+	return h
+
+
+static func _hash_dir_files(dir_path: String, h: int) -> int:
+	var d := DirAccess.open(dir_path)
+	if d == null:
+		return h
+	d.list_dir_begin()
+	var f := d.get_next()
+	while f != "":
+		if d.current_is_dir():
+			h = _hash_dir_files(dir_path + "/" + f, h)
+		elif f.ends_with(".gd"):
+			var fa := FileAccess.open(dir_path + "/" + f, FileAccess.READ)
+			if fa:
+				h = h * 31 + fa.get_as_text().hash()
+				fa.close()
+		f = d.get_next()
+	d.list_dir_end()
+	return h
+
+
 static func _path(stage_id: int) -> String:
 	return "user://bookmarks/stage%d.json" % stage_id
 
