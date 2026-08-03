@@ -35,8 +35,9 @@ static func label(text: String) -> Label:
 	return l
 
 
-## SpinBox 行：右对齐标签 + spinbox，挂到 parent，返回 spin
-static func spin_row(parent: Node, label_text: String, value: float, min_v: float, max_v: float, step: float) -> SpinBox:
+## SpinBox 行：右对齐标签 + 固定宽度 spinbox，挂到 parent，返回 spin
+## width：框宽（默认 120px；不撑满行，视觉整齐、面板拖宽也不变形）
+static func spin_row(parent: Node, label_text: String, value: float, min_v: float, max_v: float, step: float, width: float = 120.0) -> SpinBox:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 6)
 	h.add_child(param_label(label_text))
@@ -45,7 +46,7 @@ static func spin_row(parent: Node, label_text: String, value: float, min_v: floa
 	spin.max_value = max_v
 	spin.step = step
 	spin.value = value
-	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spin.custom_minimum_size = Vector2(width, 0)
 	h.add_child(spin)
 	parent.add_child(h)
 	return spin

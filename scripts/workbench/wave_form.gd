@@ -288,13 +288,13 @@ func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 				target[key] = spin.value
 		})
 	else:
-		# 字符串等：LineEdit
+		# 字符串等：LineEdit（固定宽，与 SpinBox 行对齐）
 		var h := HBoxContainer.new()
 		h.add_theme_constant_override("separation", 6)
 		h.add_child(WorkbenchUI.param_key_label(key))
 		var line := LineEdit.new()
 		line.text = str(value)
-		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line.custom_minimum_size = Vector2(140, 0)
 		h.add_child(line)
 		_body.add_child(h)
 		_edits.append({"apply": func():
