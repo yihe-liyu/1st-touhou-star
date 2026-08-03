@@ -329,6 +329,10 @@ func _setup_world() -> void:
 
 ## 加载关卡（start_from >= 0 = 从该时刻续跑，数据关卡专用）
 func _load_stage(start_from: float = -1.0) -> void:
+	# 统一复位运行状态（防残留：收集/快进打断后 time_scale/静音错乱）
+	_cancel_collection()
+	_stop_fast_forward()
+	_apply_audio()
 	# 停止旧关卡 + 清空
 	StageManager.stop_stage()
 	BulletManager.clear_all()
@@ -666,6 +670,7 @@ func _on_wave_applied(idx: int) -> void:
 
 ## 从指定关卡时刻续跑（数据关卡：起点前已结束的波次跳过）
 func _restart_from(t: float) -> void:
+	_cancel_collection()
 	_stop_fast_forward()
 	_load_stage(t)
 	_log_line("▶ 从 %.1fs 续跑" % t)
@@ -1271,6 +1276,14 @@ func _refresh_events_section() -> void:
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		lbl.add_theme_font_size_override("font_size", 12)
 		row.add_child(lbl)
+		# 编辑按钮（改 t/值）
+		var edit_btn := Button.new()
+		edit_btn.text = "✎"
+		edit_btn.add_theme_font_size_override("font_size", 11)
+		edit_btn.custom_minimum_size = Vector2(22, 0)
+		edit_btn.tooltip_text = "编辑演出事件"
+		edit_btn.pressed.connect(func(): _edit_event(i))
+		row.add_child(edit_btn)
 		var del := Button.new()
 		del.text = "×"
 		del.add_theme_font_size_override("font_size", 11)
@@ -1278,6 +1291,7 @@ func _refresh_events_section() -> void:
 		del.pressed.connect(func():
 			timeline.events.remove_at(i)
 			_refresh_events_section()
+			_timeline.set_events(timeline.events)
 			_save_timeline()
 		)
 		row.add_child(del)
@@ -1333,6 +1347,52 @@ func _add_event(etype: String) -> void:
 			"custom":
 				ev["script"] = v_edit.text.strip_edges()
 		timeline.events.append(ev)
+		_refresh_events_section()
+		_timeline.set_events(timeline.events)
+		_save_timeline()
+	)
+	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
+	t_edit.grab_focus()
+
+
+## 编辑演出事件（改 t/值，弹窗）
+func _edit_event(i: int) -> void:
+	var timeline = _current_timeline
+	if timeline == null or i < 0 or i >= timeline.events.size():
+		return
+	var ev: Dictionary = timeline.events[i]
+	var vb := _dialog.open("✎ 编辑演出事件")
+	var t_row := HBoxContainer.new()
+	t_row.add_theme_constant_override("separation", 6)
+	t_row.add_child(WorkbenchUI.label("时刻"))
+	var t_edit := LineEdit.new()
+	t_edit.text = "%.1f" % float(ev.get("t", 0.0))
+	t_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t_row.add_child(t_edit)
+	vb.add_child(t_row)
+	var v_row := HBoxContainer.new()
+	v_row.add_theme_constant_override("separation", 6)
+	v_row.add_child(WorkbenchUI.label("值"))
+	var v_edit := LineEdit.new()
+	v_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	match str(ev.get("type", "")):
+		"bgm":
+			v_edit.text = str(ev.get("bgm", ""))
+		"dialogue":
+			v_edit.text = str(ev.get("dialogue", ""))
+		"custom":
+			v_edit.text = str(ev.get("script", ""))
+	v_row.add_child(v_edit)
+	vb.add_child(v_row)
+	_dialog.add_actions("确定", func():
+		ev["t"] = t_edit.text.to_float()
+		match str(ev.get("type", "")):
+			"bgm":
+				ev["bgm"] = v_edit.text.strip_edges()
+			"dialogue":
+				ev["dialogue"] = v_edit.text.strip_edges()
+			"custom":
+				ev["script"] = v_edit.text.strip_edges()
 		_refresh_events_section()
 		_timeline.set_events(timeline.events)
 		_save_timeline()
