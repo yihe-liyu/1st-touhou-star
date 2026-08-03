@@ -142,3 +142,24 @@ func test_enemy_template_suggest():
 	assert_true(tpl.has("rate"), "反射出 enemy01 的 rate")
 	assert_false(tpl.has("ctx"), "不应包含基类 ctx")
 	assert_false(tpl.has("_tl"), "不应包含私有 _tl")
+
+
+## 数据/行为分离：同数据换行为（外观血量判定相同、脚本不同）；同行为换数据
+func test_template_data_behavior_separation():
+	var a := EnemyTemplateRegistry.build("red_little")
+	var b := EnemyTemplateRegistry.build("sway_red_little")
+	assert_not_null(a, "red_little 应构建")
+	assert_not_null(b, "sway_red_little 应构建")
+	# 同数据：外观/血量/判定相同
+	assert_eq(a.visual_scene, b.visual_scene, "同数据：外观相同")
+	assert_eq(a.max_hp, b.max_hp, "同数据：血量相同")
+	assert_eq(a.hitbox_radius, b.hitbox_radius, "同数据：判定相同")
+	# 不同行为：脚本不同
+	assert_ne(a.get_enemy_script(), b.get_enemy_script(), "换行为：脚本不同")
+	# 同行为换数据：外观不同、脚本相同
+	var c := EnemyTemplateRegistry.build("aim_blue_middle")
+	assert_ne(c.visual_scene, a.visual_scene, "换数据：外观不同")
+	assert_eq(c.get_enemy_script(), a.get_enemy_script(), "同行为：脚本相同")
+	# 默认参数来自行为层 defaults
+	assert_almost_eq(float(a.get_params().get("target_y")), 300.0, 0.001, "默认参数来自行为")
+	assert_almost_eq(float(b.get_params().get("sway")), 80.0, 0.001, "sway 行为默认参数")
