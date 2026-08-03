@@ -9,7 +9,7 @@ var _lines: Array[String] = []
 
 func _init() -> void:
 	add_theme_constant_override("separation", 4)
-	add_child(WorkbenchUI.label("── 事件日志 ──"))
+	add_child(WorkbenchUI.section_title("── 事件日志 ──"))
 	_log = RichTextLabel.new()
 	_log.custom_minimum_size = Vector2(0, 160)
 	_log.fit_content = false

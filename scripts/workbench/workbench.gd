@@ -103,6 +103,9 @@ func _ready() -> void:
 	# UI 在暂停/快进时也要活着
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# 主题：东方风深色面板（中文字体 + 卡片 + 控件样式）
+	theme = WorkbenchTheme.build()
+	%Title.add_theme_color_override("font_color", WorkbenchUI.ACCENT)
 	# 工作台专用窗口：给右侧面板腾位置（东方框 64,32~832,928 完整可见）
 	get_window().size = Vector2i(1600, 1000)
 	%Title.text = "内容工作台 %s" % VERSION
@@ -202,7 +205,7 @@ func _build_ui() -> void:
 	%StatusSlot.add_child(_status)
 
 	# ── 编排（数据关卡波次表格 + 详情编辑；协程关卡整体隐藏）──
-	_wave_section.add_child(WorkbenchUI.label("── 编排（数据关卡）──"))
+	_wave_section.add_child(WorkbenchUI.section_title("── 编排（数据关卡）──"))
 	var wave_btns := HBoxContainer.new()
 	var add_wave := Button.new()
 	add_wave.text = "＋ 波次"

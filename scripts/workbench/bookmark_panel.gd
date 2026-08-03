@@ -23,7 +23,7 @@ var _menu_index := -1
 
 func _init() -> void:
 	add_theme_constant_override("separation", 4)
-	add_child(WorkbenchUI.label("── 书签（点击 = 快进）──"))
+	add_child(WorkbenchUI.section_title("── 书签（点击 = 快进）──"))
 	var row := HBoxContainer.new()
 	var add_btn := Button.new()
 	add_btn.text = "＋ 添加"

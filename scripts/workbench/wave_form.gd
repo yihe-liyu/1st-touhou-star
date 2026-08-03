@@ -205,7 +205,8 @@ func _parse_param_value(type_idx: int, text: String) -> Variant:
 ## 下拉选择行（敌人模板/弹幕模式等），写回 wave[key]
 func _add_enum_edit(label_text: String, wave: Dictionary, key: String, options: Array, allow_empty: bool) -> void:
 	var h := HBoxContainer.new()
-	h.add_child(WorkbenchUI.label(label_text))
+	h.add_theme_constant_override("separation", 6)
+	h.add_child(WorkbenchUI.param_label(label_text))
 	var opt := OptionButton.new()
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if allow_empty:
@@ -246,8 +247,8 @@ func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: f
 func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 	if value is Vector2:
 		var h := HBoxContainer.new()
-		var l := WorkbenchUI.label(key)
-		l.custom_minimum_size = Vector2(48, 0)
+		h.add_theme_constant_override("separation", 6)
+		var l := WorkbenchUI.param_key_label(key)
 		h.add_child(l)
 		var sx := WorkbenchUI.mini_spin(value.x, -10000, 10000)
 		var sy := WorkbenchUI.mini_spin(value.y, -10000, 10000)
@@ -267,7 +268,8 @@ func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 		})
 	elif value is Color:
 		var h := HBoxContainer.new()
-		h.add_child(WorkbenchUI.label(key))
+		h.add_theme_constant_override("separation", 6)
+		h.add_child(WorkbenchUI.param_key_label(key))
 		var picker := ColorPickerButton.new()
 		picker.color = value
 		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -288,7 +290,8 @@ func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 	else:
 		# 字符串等：LineEdit
 		var h := HBoxContainer.new()
-		h.add_child(WorkbenchUI.label(key))
+		h.add_theme_constant_override("separation", 6)
+		h.add_child(WorkbenchUI.param_key_label(key))
 		var line := LineEdit.new()
 		line.text = str(value)
 		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
