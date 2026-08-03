@@ -10,6 +10,8 @@ extends ScrollContainer
 signal applied(idx: int)
 signal save_requested
 
+const ENEMY_REG = preload("res://scripts/data/enemy_template_registry.gd")
+
 var _tl: Resource
 var _idx: int = -1
 var _edits: Array = []
@@ -58,14 +60,32 @@ func show_wave(tl: Resource, idx: int) -> void:
 	_add_field_edit("t", w, "t", 0.0, 90.0, 0.1, false)
 	_add_field_edit("数量", w, "count", 1.0, 60.0, 1.0, true)
 	_add_field_edit("间隔", w, "interval", 0.0, 10.0, 0.1, false)
+	# 敌人模板下拉（注册表）
+	_add_enum_edit("敌人", w, "enemy", ENEMY_REG.names(), false)
 	_add_field_edit("出生x", w, "spawn_x", 0.0, 900.0, 1.0, false)
 	_add_field_edit("出生y", w, "spawn_y", -100.0, 1000.0, 1.0, false)
+	# 弹幕模式（可选：追加到敌人模板弹幕之上）
+	_add_enum_edit("弹幕", w, "pattern", PatternRegistry.names(), true)
+	if not str(w.get("pattern", "")).is_empty():
+		_add_field_edit("弹幕间隔", w, "pattern_interval", 0.05, 10.0, 0.05, false)
+		# 弹幕参数（复用值类型动态表单）
+		var pparams: Dictionary = w.get("pattern_params", {})
+		if not pparams.is_empty():
+			_body.add_child(WorkbenchUI.label("── 弹幕参数 ──"))
+			for k in pparams:
+				_add_param_edit(pparams, k, pparams[k])
+		# 弹丸配置
+		var bparams: Dictionary = w.get("bullet_params", {})
+		if not bparams.is_empty():
+			_body.add_child(WorkbenchUI.label("── 弹丸配置 ──"))
+			for k in bparams:
+				_add_param_edit(bparams, k, bparams[k])
 	# 模板参数（按值类型动态生成表单）
 	var params: Dictionary = w.get("params", {})
 	if not params.is_empty():
 		_body.add_child(WorkbenchUI.label("── 模板参数 ──"))
 		for k in params:
-			_add_param_edit(w, k, params[k])
+			_add_param_edit(w.params, k, params[k])
 	# 按钮行
 	var row := HBoxContainer.new()
 	var apply := Button.new()
@@ -90,6 +110,34 @@ func apply_changes() -> void:
 
 # ═══ 表单生成 ═══
 
+## 下拉选择行（敌人模板/弹幕模式等），写回 wave[key]
+func _add_enum_edit(label_text: String, wave: Dictionary, key: String, options: Array, allow_empty: bool) -> void:
+	var h := HBoxContainer.new()
+	h.add_child(WorkbenchUI.label(label_text))
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if allow_empty:
+		opt.add_item("无")
+	var current := str(wave.get(key, ""))
+	var cur_idx := -1
+	for o in options:
+		opt.add_item(str(o))
+		if str(o) == current:
+			cur_idx = opt.item_count - 1
+	if cur_idx >= 0:
+		opt.selected = cur_idx
+	elif not allow_empty and opt.item_count > 0:
+		opt.selected = 0
+	h.add_child(opt)
+	_body.add_child(h)
+	_edits.append({"apply": func():
+		if allow_empty and opt.selected == 0:
+			wave[key] = ""
+		else:
+			wave[key] = str(opt.get_item_text(opt.selected))
+	})
+
+
 ## 基础字段行（SpinBox）
 func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: float, max_v: float, step: float, as_int: bool) -> void:
 	var spin := WorkbenchUI.spin_row(_body, label_text, float(wave.get(key, min_v)), min_v, max_v, step)
@@ -101,8 +149,9 @@ func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: f
 	})
 
 
-## 模板参数行：按值类型生成控件（float/int/Vector2/bool/String）
-func _add_param_edit(wave: Dictionary, key: String, value: Variant) -> void:
+## 参数行：按值类型生成控件（float/int/Vector2/bool/Color/String）
+## target 是写回的字典（模板参数/弹幕参数/弹丸配置通用）
+func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 	if value is Vector2:
 		var h := HBoxContainer.new()
 		var l := WorkbenchUI.label(key)
@@ -114,7 +163,7 @@ func _add_param_edit(wave: Dictionary, key: String, value: Variant) -> void:
 		h.add_child(sy)
 		_body.add_child(h)
 		_edits.append({"apply": func():
-			wave.params[key] = Vector2(sx.value, sy.value)
+			target[key] = Vector2(sx.value, sy.value)
 		})
 	elif value is bool:
 		var cb := CheckButton.new()
@@ -122,16 +171,27 @@ func _add_param_edit(wave: Dictionary, key: String, value: Variant) -> void:
 		cb.button_pressed = value
 		_body.add_child(cb)
 		_edits.append({"apply": func():
-			wave.params[key] = cb.button_pressed
+			target[key] = cb.button_pressed
+		})
+	elif value is Color:
+		var h := HBoxContainer.new()
+		h.add_child(WorkbenchUI.label(key))
+		var picker := ColorPickerButton.new()
+		picker.color = value
+		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.add_child(picker)
+		_body.add_child(h)
+		_edits.append({"apply": func():
+			target[key] = picker.color
 		})
 	elif typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
 		var as_int := typeof(value) == TYPE_INT
 		var spin := WorkbenchUI.spin_row(_body, key, float(value), -100000, 100000, 1.0)
 		_edits.append({"apply": func():
 			if as_int:
-				wave.params[key] = int(spin.value)
+				target[key] = int(spin.value)
 			else:
-				wave.params[key] = spin.value
+				target[key] = spin.value
 		})
 	else:
 		# 字符串等：LineEdit
@@ -143,5 +203,5 @@ func _add_param_edit(wave: Dictionary, key: String, value: Variant) -> void:
 		h.add_child(line)
 		_body.add_child(h)
 		_edits.append({"apply": func():
-			wave.params[key] = line.text
+			target[key] = line.text
 		})

@@ -118,3 +118,23 @@ func test_start_from_default_full():
 	assert_almost_eq(times[0], 1.0, 0.001, "A 时刻不变")
 	assert_almost_eq(times[3], 12.0, 0.001, "D 时刻不变")
 	assert_almost_eq(_stage.game_time(), 0.0, 0.001, "默认时钟从 0 起步")
+
+
+## 波次弹幕配置 → 蓝图构造（纯函数）：pattern 字段映射 + 默认值
+func test_build_pattern_from_wave():
+	var wave := {
+		"pattern": "ring",
+		"pattern_interval": 0.4,
+		"pattern_params": {"n": 8, "speed": 300, "aim": false},
+		"bullet_params": {"tex": "小玉", "color": Color.RED},
+	}
+	var bp: BulletPattern = _stage.build_pattern_from_wave(wave)
+	assert_eq(bp.pattern, "ring", "模式名映射")
+	assert_almost_eq(bp.interval, 0.4, 0.001, "间隔映射")
+	assert_eq(int(bp.params.get("n")), 8, "模式参数映射")
+	assert_eq(str(bp.bullet_params.get("tex")), "小玉", "弹丸配置映射")
+	# 默认值（无 pattern 字段）
+	var bp2: BulletPattern = _stage.build_pattern_from_wave({})
+	assert_eq(bp2.pattern, "ring", "默认模式 ring")
+	assert_almost_eq(bp2.interval, 0.3, 0.001, "默认间隔 0.3")
+	assert_eq(bp2.params.size(), 0, "默认无模式参数")

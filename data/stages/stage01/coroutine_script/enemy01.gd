@@ -31,7 +31,9 @@ func _init_enemy() -> void:
 	tl.at(0.0).every(2.5).times(3).do(func():
 		bullet.tex("小玉").color(Color.RED)
 		var player := ctx.player.get_player()
-		var dir := (player.global_position - target.position).normalized()
+		var dir := Vector2.DOWN
+		if is_instance_valid(player):
+			dir = (player.global_position - target.position).normalized()
 		var bullet_speed: int = 350
 
 		for i in diff_pick([1, 3, 5, 8]) / rate:
