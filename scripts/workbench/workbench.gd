@@ -542,8 +542,10 @@ func _refresh_wave_table() -> void:
 	_wave_form.clear()
 	var timeline = _current_timeline
 	_timeline.set_waves(timeline.waves if timeline else [])
-	# ＋ Boss 按钮：数据关卡且无 Boss 时可用
-	_add_boss_btn.visible = _stage_data != null and _stage_data.boss == null
+	# ＋Boss/＋阶段：数据关卡常驻显示（无 Boss 添加，有 Boss 追加阶段）
+	var has_boss: bool = _stage_data != null and _stage_data.boss != null
+	_add_boss_btn.visible = timeline != null
+	_add_boss_btn.text = "＋ 阶段" if has_boss else "＋ Boss"
 	if timeline == null:
 		_wave_section.visible = false  # 协程关卡：编排区块整体隐藏
 		return
@@ -885,9 +887,12 @@ func _on_timeline_boss_moved(t: float) -> void:
 	_log_line("↔ Boss 出现时刻 → t=%.1fs（保存后生效）" % t)
 
 
-## 添加 Boss：数据关卡无 Boss 时，创建默认 Boss + 一个非符阶段并保存
+## 添加 Boss/阶段：无 Boss 创建默认 Boss + 非符阶段；有 Boss 追加阶段
 func _add_boss() -> void:
-	if _stage_data == null or _stage_data.boss != null:
+	if _stage_data == null:
+		return
+	if _stage_data.boss != null:
+		_add_phase()  # 按钮文字已是"＋ 阶段"
 		return
 	var boss := BossData.new()
 	boss.boss_name = "新 Boss"
@@ -895,6 +900,7 @@ func _add_boss() -> void:
 	_stage_data.boss = boss
 	_stage_data.boss_time = 20.0
 	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+	_refresh_wave_table()
 	_refresh_spell_section()
 	_update_edit_mode()
 	if err == OK:
