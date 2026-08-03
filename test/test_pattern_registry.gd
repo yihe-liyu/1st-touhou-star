@@ -145,19 +145,21 @@ func test_enemy_template_suggest():
 
 
 ## 数据/行为分离：同数据换行为（外观血量判定相同、脚本不同）；同行为换数据
+## 用 build_from 直接组合（模板只是旧数据兼容层，新内容不造模板）
 func test_template_data_behavior_separation():
 	var a := EnemyTemplateRegistry.build("red_little")
-	var b := EnemyTemplateRegistry.build("sway_red_little")
+	# 同数据换行为：red_little_fairy × aim_scatter vs red_little_fairy × sway_aim
+	var b := EnemyTemplateRegistry.build_from("red_little_fairy", "sway_aim")
 	assert_not_null(a, "red_little 应构建")
-	assert_not_null(b, "sway_red_little 应构建")
+	assert_not_null(b, "build_from 应构建")
 	# 同数据：外观/血量/判定相同
 	assert_eq(a.visual_scene, b.visual_scene, "同数据：外观相同")
 	assert_eq(a.max_hp, b.max_hp, "同数据：血量相同")
 	assert_eq(a.hitbox_radius, b.hitbox_radius, "同数据：判定相同")
 	# 不同行为：脚本不同
 	assert_ne(a.get_enemy_script(), b.get_enemy_script(), "换行为：脚本不同")
-	# 同行为换数据：外观不同、脚本相同
-	var c := EnemyTemplateRegistry.build("aim_blue_middle")
+	# 同行为换数据：外观不同、脚本相同（blue_middle_fairy × aim_scatter）
+	var c := EnemyTemplateRegistry.build_from("blue_middle_fairy", "aim_scatter")
 	assert_ne(c.visual_scene, a.visual_scene, "换数据：外观不同")
 	assert_eq(c.get_enemy_script(), a.get_enemy_script(), "同行为：脚本相同")
 	# 默认参数来自行为层 defaults

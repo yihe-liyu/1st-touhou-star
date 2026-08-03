@@ -25,15 +25,13 @@ const BEHAVIORS := {
 }
 
 ## 模板层：{模板名: {data(EnemyData 预设方法), behavior(行为名)}}
-## data 来自 enemy_data.gd 的构造链预设；behavior 来自 BEHAVIORS
+## 仅用于兼容旧 wave 数据（demo 早期用 enemy="red_little" 模板名）；
+## 新内容一律用「数据名 + 行为名」自由组合（wave.enemy=数据 / wave.behavior=行为），
+## 不要新增模板。
 const TEMPLATES := {
 	"red_little": {"data": "red_little_fairy", "behavior": "aim_scatter"},
 	"red_middle": {"data": "red_middle_fairy", "behavior": "middle_sweep"},
-	"blue_middle": {"data": "blue_middle_fairy", "behavior": "middle_sweep"},
 	"sway_fairy": {"data": "blue_middle_fairy", "behavior": "sway_aim"},
-	# ── 组合示例：同数据换行为 / 同行为换数据 ──
-	"sway_red_little": {"data": "red_little_fairy", "behavior": "sway_aim"},
-	"aim_blue_middle": {"data": "blue_middle_fairy", "behavior": "aim_scatter"},
 }
 
 
