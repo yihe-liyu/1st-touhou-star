@@ -200,9 +200,9 @@ func _die() -> void:
 
 func _drop_items() -> void:
 	# 定位日志：掉道具触发原因（游戏跑时看控制台，反馈给开发者）
-	var t := StageManager.current_stage_script().game_time() if StageManager.current_stage_script() else -1.0
+	var log_t := StageManager.current_stage_script().game_time() if StageManager.current_stage_script() else -1.0
 	push_warning("[Boss掉道具] t=%.1f hp=%d elapsed=%.1f invincible=%s captured=%s phase=%s" % [
-		t, hp, _elapsed, _invincible, _cleared, _current_phase.name if _current_phase else "无"])
+		log_t, hp, _elapsed, _invincible, _cleared, _current_phase.name if _current_phase else "无"])
 	if not _current_phase: return
 	if GameState.is_practice_mode: return
 	var pos := global_position
