@@ -22,7 +22,7 @@ signal right_clicked(t: float)
 signal wave_selected(idx: int)
 signal wave_moved(idx: int, t: float)
 signal boss_selected
-signal boss_moved(t: float)
+signal boss_moved(idx: int, t: float)
 
 var time: float = 0.0                 ## 当前游戏内时间（秒）
 var window_start: float = 0.0         ## 时间窗口起点（滚动/缩放后）
@@ -31,9 +31,8 @@ var bookmarks: Array[Dictionary] = [] ## [{t, label}]，升序
 
 ## 波次数据（StageTimeline.waves 的浅拷贝；元素是共享引用 → 拖拽写回即改数据源）
 var waves: Array = []
-## Boss 条带（时间轴上的 Boss 实体；boss_time < 0 = 无 Boss）
-var boss_time: float = -1.0
-var boss_duration: float = 20.0
+## Boss 条带列表（多 Boss；每项 {t, duration}，时间轴第 0 行，红色）
+var _boss_bands: Array = []
 ## 演出事件标记（bgm=绿 / dialogue=紫 / custom=黄）
 var events: Array = []
 var expanded: bool = false:
@@ -69,8 +68,8 @@ var _drag_mouse_start := 0.0
 var _drag_t_start := 0.0
 var _drag_t_preview := -1.0
 var _moved := false
-# Boss 条带状态
-var _drag_boss := false
+# Boss 条带状态（_drag_boss_idx >= 0 = 正在拖第几条）
+var _drag_boss_idx: int = -1
 var _boss_drag_preview := -1.0
 var _boss_selected_flag := false
 # 平移状态（空白拖动浏览时间窗口）
@@ -116,11 +115,19 @@ func set_waves(w: Array) -> void:
 
 
 ## 设置 Boss 条带（有 Boss 时传时刻+阶段总时长；无 Boss 传 t<0）
-func set_boss(t: float, duration: float = 20.0) -> void:
-	boss_time = t
-	boss_duration = maxf(duration, 1.0)
+## 设置 Boss 条带列表（多 Boss）：[{t, duration}]（自动按 t 排序）
+func set_bosses(list: Array) -> void:
+	_boss_bands.clear()
+	for e in list:
+		_boss_bands.append({"t": float(e.get("t", 0.0)), "duration": maxf(float(e.get("duration", 20.0)), 1.0)})
+	_boss_bands.sort_custom(func(a: Dictionary, b: Dictionary): return a["t"] < b["t"])
 	_boss_selected_flag = false
 	queue_redraw()
+
+
+## 兼容：单 Boss 设置
+func set_boss(t: float, duration: float = 20.0) -> void:
+	set_bosses([{"t": t, "duration": duration}])
 
 
 ## 设置演出事件（StageTimeline.events）
@@ -205,8 +212,7 @@ func _draw_events(w: float, y0: float, y1: float) -> void:
 ## 第 0 行固定给 Boss 条带（红色），敌波从第 1 行起
 ## 拖拽中的条带用预览位置绘制（_drag_t_preview，不写回数据源）
 func _draw_tracks(w: float) -> void:
-	if boss_time >= 0.0:
-		_draw_boss_band(w)
+	_draw_boss_bands(w)
 	var rows := _visible_rows()
 	for r in rows.size():
 		var y := TRACK_TOP + TRACK_ROW_H + r * TRACK_ROW_H
@@ -242,22 +248,24 @@ func _draw_tracks(w: float) -> void:
 
 
 ## Boss 条带：第 0 行红色（拖拽中显示实时 t）
-func _draw_boss_band(w: float) -> void:
-	var t := _boss_drag_preview if _drag_boss and _boss_drag_preview >= 0.0 else boss_time
-	var x := _x(t, w)
-	var bw := maxf(boss_duration / maxf(window_len, 0.001) * w, 4.0)
-	var y := TRACK_TOP
-	var rect := Rect2(x, y, bw, TRACK_BAND_H)
-	if x + bw < -2.0 or x > w + 2.0:
-		return
-	draw_rect(rect, Color(1.0, 0.32, 0.25, 0.85))
-	if _boss_selected_flag or _drag_boss:
-		draw_rect(rect, Color(1, 1, 1, 0.95), false, 1.5)
+func _draw_boss_bands(w: float) -> void:
 	var font: Font = _font()
-	if font and bw > 34.0:
-		var label: String = "Boss %.1fs" % t if _drag_boss else "Boss"
-		draw_string(font, Vector2(x + 4.0, y + 11.0), label,
-			HORIZONTAL_ALIGNMENT_LEFT, bw - 6.0, 10, Color(1, 1, 1, 0.95))
+	for bi in _boss_bands.size():
+		var band: Dictionary = _boss_bands[bi]
+		var t := _boss_drag_preview if (_drag_boss_idx == bi and _boss_drag_preview >= 0.0) else float(band["t"])
+		var x := _x(t, w)
+		var bw := maxf(float(band["duration"]) / maxf(window_len, 0.001) * w, 4.0)
+		var y := TRACK_TOP
+		var rect := Rect2(x, y, bw, TRACK_BAND_H)
+		if x + bw < -2.0 or x > w + 2.0:
+			continue
+		draw_rect(rect, Color(1.0, 0.32, 0.25, 0.85))
+		if _boss_selected_flag or _drag_boss_idx == bi:
+			draw_rect(rect, Color(1, 1, 1, 0.95), false, 1.5)
+		if font and bw > 34.0:
+			var label: String = "Boss%d %.1fs" % [bi + 1, t] if _drag_boss_idx == bi else "Boss%d" % (bi + 1)
+			draw_string(font, Vector2(x + 4.0, y + 11.0), label,
+				HORIZONTAL_ALIGNMENT_LEFT, bw - 6.0, 10, Color(1, 1, 1, 0.95))
 
 
 ## 条带行布局：贪心分行（不与上一行重叠）
@@ -323,16 +331,20 @@ func _hit_band(pos: Vector2) -> int:
 	return -1
 
 
-## Boss 条带命中（第 0 行）
-func _boss_hit(pos: Vector2) -> bool:
-	if not expanded or boss_time < 0.0:
-		return false
+## Boss 条带命中（第 0 行）：返回条带索引，无则 -1
+func _boss_hit(pos: Vector2) -> int:
+	if not expanded:
+		return -1
 	var y := TRACK_TOP
 	if pos.y < y or pos.y > y + TRACK_BAND_H:
-		return false
-	var x := _x(boss_time, size.x)
-	var bw := maxf(boss_duration / maxf(window_len, 0.001) * size.x, 4.0)
-	return pos.x >= x and pos.x <= x + bw
+		return -1
+	for bi in _boss_bands.size():
+		var band: Dictionary = _boss_bands[bi]
+		var x := _x(float(band["t"]), size.x)
+		var bw := maxf(float(band["duration"]) / maxf(window_len, 0.001) * size.x, 4.0)
+		if pos.x >= x and pos.x <= x + bw:
+			return bi
+	return -1
 
 
 ## 敌人类型 → 条带颜色（按模板名前缀分类）
@@ -400,7 +412,7 @@ func _x(t: float, w: float) -> float:
 func _gui_input(event: InputEvent) -> void:
 	# 拖拽中（motion）：Boss 条带 / 敌波条带 / 空白平移
 	if event is InputEventMouseMotion:
-		if _drag_boss:
+		if _drag_boss_idx >= 0:
 			var bm := event as InputEventMouseMotion
 			var bdx: float = bm.position.x - _drag_mouse_start
 			var bdt: float = bdx / maxf(size.x, 1.0) * window_len
@@ -432,14 +444,15 @@ func _gui_input(event: InputEvent) -> void:
 			return
 	# 松开：Boss/条带写回或选中；空白 pan 结束或点击跳转
 	if event is InputEventMouseButton and not event.pressed:
-		if _drag_boss:
+		if _drag_boss_idx >= 0:
 			var bmoved := _moved
 			var bpreview := _boss_drag_preview
-			_drag_boss = false
+			var bidx := _drag_boss_idx
+			_drag_boss_idx = -1
 			_boss_drag_preview = -1.0
 			_moved = false
 			if bmoved and bpreview >= 0.0:
-				boss_moved.emit(snappedf(bpreview, 0.5))
+				boss_moved.emit(bidx, snappedf(bpreview, 0.5))
 			else:
 				boss_selected.emit()
 			accept_event()
@@ -473,10 +486,11 @@ func _gui_input(event: InputEvent) -> void:
 		MOUSE_BUTTON_LEFT:
 			if expanded:
 				# Boss 条带优先（第 0 行）
-				if _boss_hit(event.position):
-					_drag_boss = true
+				var bhit := _boss_hit(event.position)
+				if bhit >= 0:
+					_drag_boss_idx = bhit
 					_drag_mouse_start = event.position.x
-					_drag_t_start = boss_time
+					_drag_t_start = float(_boss_bands[bhit]["t"])
 					_boss_drag_preview = -1.0
 					_moved = false
 					_boss_selected_flag = true  # 高亮先行

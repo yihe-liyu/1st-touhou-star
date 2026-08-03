@@ -57,6 +57,9 @@ var _spell_section: VBoxContainer
 var _spell_form_box: VBoxContainer
 var _phase_sel: OptionButton
 var _add_boss_btn: Button
+## 多 Boss 编辑：当前关卡 Boss 列表（{boss, t, src}）+ 当前编辑索引
+var _boss_entries: Array = []
+var _boss_cur: int = 0
 @onready var _world: Node2D = $World
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
@@ -331,6 +334,8 @@ func _load_stage(start_from: float = -1.0) -> void:
 	_cancel_collection()
 	_stop_fast_forward()
 	_apply_audio()
+	# 重建多 Boss 列表（Boss 条带/表单依赖）
+	_rebuild_boss_entries()
 	# 停止旧关卡 + 清空
 	StageManager.stop_stage()
 	BulletManager.clear_all()
@@ -377,16 +382,16 @@ func _load_stage(start_from: float = -1.0) -> void:
 	_current_timeline = _get_timeline_data()
 	_refresh_wave_table()
 	_refresh_spell_section()
-	# Boss 条带（时间轴第 0 行）；宽度 = 阶段总时长（当前难度）
-	var bs := -1.0
-	var bdur := 0.0
-	if _stage_data and _stage_data.boss:
-		bs = _stage_data.boss_time
-		for p in _boss_phases():
+	# Boss 条带（时间轴第 0 行，多 Boss）：各自宽度 = 该 Boss 阶段总时长（当前难度）
+	var bands: Array = []
+	for be in _boss_entries:
+		var bd: BossData = be["boss"]
+		var dur := 0.0
+		for p in bd.phases_for_difficulty(_diff_sel.selected if _diff_sel else 1):
 			if p:
-				bdur += p.time_limit
-		bdur = maxf(bdur, 1.0)
-	_timeline.set_boss(bs, bdur)
+				dur += p.time_limit
+		bands.append({"t": be["t"], "duration": maxf(dur, 1.0)})
+	_timeline.set_bosses(bands)
 	_edit_mode = "wave"  # 每次加载默认敌波编辑
 	_timeline.set_boss_selected(false)
 	_update_edit_mode()
@@ -544,9 +549,9 @@ func _refresh_wave_table() -> void:
 	_timeline.set_waves(timeline.waves if timeline else [])
 	_timeline.set_events(timeline.events if timeline else [])
 	# ＋Boss/＋阶段：数据关卡常驻显示（无 Boss 添加，有 Boss 追加阶段）
-	var has_boss: bool = _stage_data != null and _stage_data.boss != null
+	var has_boss: bool = _stage_data != null and (_stage_data.boss != null or not _stage_data.bosses.is_empty())
 	_add_boss_btn.visible = timeline != null
-	_add_boss_btn.text = "＋ 阶段" if has_boss else "＋ Boss"
+	_add_boss_btn.text = "＋ Boss"
 	if timeline == null:
 		_wave_section.visible = false  # 协程关卡：编排区块整体隐藏
 		return
@@ -557,7 +562,7 @@ func _refresh_wave_table() -> void:
 		return
 	_wave_table.visible = true
 	_wave_form.visible = true
-	_wave_table.setup(timeline, _stage_data.boss if _stage_data else null)
+	_wave_table.setup(timeline, _current_boss())
 	_refresh_events_section()
 	_update_edit_mode()
 
@@ -871,8 +876,7 @@ func _on_divider_input(event: InputEvent) -> void:
 
 ## 统一编辑模型：表格常驻（敌波行 + Boss 行），详情表单原位切换
 func _update_edit_mode() -> void:
-	var has_boss: bool = _stage_data != null and _stage_data.boss != null \
-		and _stage_data.boss.phases.size() > 0
+	var has_boss: bool = not _boss_entries.is_empty() and not _boss_phases().is_empty()
 	_wave_form.visible = (_edit_mode == "wave")
 	_spell_section.visible = (_edit_mode == "boss") and has_boss
 
@@ -891,47 +895,94 @@ func _on_timeline_boss_selected() -> void:
 	_wave_table.select_boss_row()
 
 
-## Boss 条带拖拽松手 → 写回 boss_time（保存后生效）
-func _on_timeline_boss_moved(t: float) -> void:
-	if _stage_data:
+## Boss 条带拖拽松手 → 写回对应 Boss 出现时刻（保存后生效）
+func _on_timeline_boss_moved(idx: int, t: float) -> void:
+	if _stage_data == null or idx < 0 or idx >= _boss_entries.size():
+		return
+	var e: Dictionary = _boss_entries[idx]
+	e["t"] = t
+	if e["src"] == "legacy":
 		_stage_data.boss_time = t
-	_log_line("↔ Boss 出现时刻 → t=%.1fs（保存后生效）" % t)
+	else:
+		var arr_idx: int = e["src"]["arr"]
+		_stage_data.bosses[arr_idx]["t"] = t
+	_log_line("↔ Boss%d 出现时刻 → t=%.1fs（保存后生效）" % [idx + 1, t])
 
 
-## 添加 Boss/阶段：无 Boss 创建默认 Boss + 非符阶段；有 Boss 追加阶段
+## 重建当前关卡 Boss 列表（{boss, t, src}；legacy=旧单 Boss 字段，arr=多 Boss 数组项）
+func _rebuild_boss_entries() -> void:
+	_boss_entries.clear()
+	if _stage_data == null:
+		return
+	if _stage_data.boss:
+		_boss_entries.append({"boss": _stage_data.boss, "t": _stage_data.boss_time, "src": "legacy"})
+	for i in _stage_data.bosses.size():
+		var e: Dictionary = _stage_data.bosses[i]
+		if e and e.get("boss") != null:
+			if e["boss"] == _stage_data.boss:
+				continue  # 与 legacy 重复
+			_boss_entries.append({"boss": e["boss"], "t": float(e.get("t", 0.0)), "src": {"arr": i}})
+	_boss_entries.sort_custom(func(a: Dictionary, b: Dictionary): return a["t"] < b["t"])
+	if _boss_cur >= _boss_entries.size():
+		_boss_cur = maxi(0, _boss_entries.size() - 1)
+
+
+## 当前编辑的 BossData（多 Boss：_boss_cur 指向）
+func _current_boss() -> BossData:
+	if _boss_entries.is_empty() or _boss_cur >= _boss_entries.size():
+		return null
+	return _boss_entries[_boss_cur]["boss"]
+
+
+## 添加 Boss/阶段：无 Boss 创建默认 Boss + 非符阶段；有 Boss 追加新 Boss（多 Boss）
 func _add_boss() -> void:
 	if _stage_data == null:
 		return
-	if _stage_data.boss != null:
-		_add_phase()  # 按钮文字已是"＋ 阶段"
+	if _stage_data.boss != null or not _stage_data.bosses.is_empty():
+		# 追加新 Boss（多 Boss）：出现时刻 = 最后一个 Boss 之后 20s
+		var nb := BossData.new()
+		nb.boss_name = "新 Boss%d" % (_boss_entries.size() + 1)
+		nb.phases.append(_make_default_phase(0))
+		var last_t: float = _boss_entries[_boss_entries.size() - 1]["t"] if not _boss_entries.is_empty() else 0.0
+		_stage_data.bosses.append({"boss": nb, "t": last_t + 20.0})
+		_rebuild_boss_entries()
+		_boss_cur = _boss_entries.size() - 1
+		var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+		_refresh_wave_table()
+		_refresh_spell_section()
+		_update_edit_mode()
+		_log_line("➕ 追加 Boss%d：%s（t=%.0fs，时间轴拖红条带改）" % [_boss_entries.size(), nb.boss_name, last_t + 20.0] if err == OK else "⚠️ Boss 保存失败：%d" % err)
 		return
+	# 第一个 Boss（legacy 字段）
 	var boss := BossData.new()
 	boss.boss_name = "新 Boss"
 	boss.phases.append(_make_default_phase(0))
 	_stage_data.boss = boss
 	_stage_data.boss_time = 20.0
-	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+	_rebuild_boss_entries()
+	var err2 := ResourceSaver.save(_stage_data, _stage_data.resource_path)
 	_refresh_wave_table()
 	_refresh_spell_section()
 	_update_edit_mode()
-	if err == OK:
+	if err2 == OK:
 		_log_line("➕ 添加 Boss：%s（时间轴上拖红色条带调出现时刻）" % boss.boss_name)
 	else:
-		_log_line("⚠️ Boss 保存失败：%d" % err)
+		_log_line("⚠️ Boss 保存失败：%d" % err2)
 
 
 ## 当前难度阶段数组（可变引用：append/修改直接落对应难度组）
-## 难度取顶部全局下拉（与预览难度一致）
+## 难度取顶部全局下拉（与预览难度一致）；Boss 取当前编辑的 _boss_cur
 func _boss_phases() -> Array:
-	if _stage_data == null or _stage_data.boss == null:
+	var boss := _current_boss()
+	if boss == null:
 		return []
 	var diff := _diff_sel.selected if _diff_sel else 1
-	return _stage_data.boss.phases_for_difficulty(diff)
+	return boss.phases_for_difficulty(diff)
 
 
 ## 添加阶段：Boss 追加一个默认阶段（当前难度）并保存
 func _add_phase() -> void:
-	var boss: BossData = _stage_data.boss if _stage_data else null
+	var boss := _current_boss()
 	if boss == null:
 		return
 	var arr := _boss_phases()
@@ -974,7 +1025,7 @@ func _refresh_spell_section() -> void:
 	for c in _spell_section.get_children():
 		c.queue_free()
 	_phase_sel = null
-	var boss: BossData = _stage_data.boss if _stage_data else null
+	var boss: BossData = _current_boss()
 	if boss == null or _boss_phases().is_empty():
 		_spell_section.visible = false
 		return
@@ -983,8 +1034,20 @@ func _refresh_spell_section() -> void:
 	var boss_row := HBoxContainer.new()
 	boss_row.add_theme_constant_override("separation", 6)
 	boss_row.add_child(WorkbenchUI.param_label("Boss"))
+	# Boss 选择（多 Boss：切换编辑哪个）
+	var boss_opt := OptionButton.new()
+	boss_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for i in _boss_entries.size():
+		var be: Dictionary = _boss_entries[i]
+		boss_opt.add_item("%d: %s (t=%.0fs)" % [i + 1, str(be["boss"].boss_name), be["t"]])
+	boss_opt.selected = _boss_cur
+	boss_opt.item_selected.connect(func(i: int):
+		_boss_cur = i
+		_refresh_spell_section()
+	)
+	boss_row.add_child(boss_opt)
 	var boss_l := Label.new()
-	boss_l.text = boss.boss_name
+	boss_l.text = str(boss.boss_name)
 	boss_row.add_child(boss_l)
 	# 难度提示（顶部全局难度下拉控制编辑/预览，无需 Boss 区重复）
 	boss_row.add_child(_add_phase_btn())
@@ -1008,7 +1071,7 @@ func _refresh_spell_section() -> void:
 func _refresh_spell_form() -> void:
 	for c in _spell_form_box.get_children():
 		c.queue_free()
-	var boss: BossData = _stage_data.boss if _stage_data else null
+	var boss := _current_boss()
 	if boss == null or _phase_sel == null or _phase_sel.selected < 0 \
 			or _phase_sel.selected >= _boss_phases().size():
 		return
@@ -1142,7 +1205,7 @@ func _spell_apply(phase: PhaseData, fields: Dictionary) -> void:
 	var shoot_name: String = fields["shoot"].get_item_text(fields["shoot"].selected)
 	phase.shoot_script = BossScriptRegistry.shoot_script(shoot_name) if shoot_name != "无" else null
 	# 入场/退场（BossData 级）
-	var boss: BossData = _stage_data.boss if _stage_data else null
+	var boss := _current_boss()
 	if boss:
 		var enter_name: String = fields["enter"].get_item_text(fields["enter"].selected)
 		boss.enter_script = BossScriptRegistry.enter_script(enter_name) if enter_name != "无" else null
@@ -1150,17 +1213,28 @@ func _spell_apply(phase: PhaseData, fields: Dictionary) -> void:
 		boss.exit_script = BossScriptRegistry.exit_script(exit_name) if exit_name != "无" else null
 
 
-## 保存符卡数据（Boss 内联在关卡里 → 只保存关卡；boss 是独立 .tres 时单独保存）
+## 保存符卡数据（多 Boss：写回出现时刻 + 保存关卡 + 各 Boss 独立 .tres）
 func _save_spell() -> void:
-	if _stage_data == null or _stage_data.boss == null:
+	if _stage_data == null:
 		return
-	# boss.resource_path 若是内联 sub_resource（路径带 ::子资源ID）不能单独保存
-	var bp := str(_stage_data.boss.resource_path)
+	# 写回 Boss 出现时刻（legacy → boss_time；arr → bosses[i].t）
+	for e in _boss_entries:
+		if e["src"] == "legacy":
+			_stage_data.boss_time = e["t"]
+		else:
+			var arr_idx: int = e["src"]["arr"]
+			_stage_data.bosses[arr_idx]["t"] = e["t"]
 	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-	if err == OK and not bp.is_empty() and not bp.contains("::"):
-		err = ResourceSaver.save(_stage_data.boss, bp)
+	# 各 Boss 独立 .tres（若有路径；内联 sub_resource 路径带 :: 不能单独保存）
+	for e in _boss_entries:
+		var bd: BossData = e["boss"]
+		var bp := str(bd.resource_path)
+		if err == OK and not bp.is_empty() and not bp.contains("::"):
+			var e2 := ResourceSaver.save(bd, bp)
+			if e2 != OK:
+				err = e2
 	if err == OK:
-		_log_line("💾 符卡数据已保存")
+		_log_line("💾 符卡数据已保存（%d 个 Boss）" % _boss_entries.size())
 	else:
 		_log_line("⚠️ 符卡保存失败：%d" % err)
 
