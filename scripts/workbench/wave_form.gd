@@ -90,12 +90,14 @@ func show_wave(tl: Resource, idx: int) -> void:
 	_add_enum_edit("弹幕", w, "pattern", PatternRegistry.names(), true)
 	if not str(w.get("pattern", "")).is_empty():
 		_add_field_edit("弹幕间隔", w, "pattern_interval", 0.05, 10.0, 0.05, false)
-		# 弹幕参数（空也可添加；复用值类型动态表单）
-	if not str(w.get("pattern", "")).is_empty():
-		_add_param_section("── 弹幕参数 ──", w, "pattern_params")
-		_add_param_section("── 弹丸配置 ──", w, "bullet_params")
-	# 模板参数
-	_add_param_section("── 模板参数 ──", w, "params")
+		# 弹幕参数（建议按钮直接点，自定义兜底）
+		var pattern_name := str(w.get("pattern", ""))
+		_add_param_section("── 弹幕参数 ──", w, "pattern_params",
+			"形状：n 弹数 / speed 速度 / aim 自机狙", PatternRegistry.suggest_params(pattern_name))
+		_add_param_section("── 弹丸配置 ──", w, "bullet_params",
+			"子弹外观：tex 贴图 / color 颜色 / behavior 飞行行为", ["tex", "color", "blend", "speed"])
+	# 模板参数（敌人模板自带，通常已在）
+	_add_param_section("── 模板参数 ──", w, "params", "敌人模板参数（如 target_y / target_pos）")
 
 
 ## 写回数据 + 通知主控制器重跑
@@ -118,24 +120,74 @@ func flush() -> void:
 
 # ═══ 表单生成 ═══
 
-## 参数区：动态表单；空字典显示提示 + 「＋ 添加参数」按钮（新波次选弹幕后可配参数）
-func _add_param_section(title: String, wave: Dictionary, key: String) -> void:
-	_body.add_child(WorkbenchUI.label(title))
+## 参数区：建议参数按钮（点击即添加）+ 已添加参数行（可删）+ 自定义入口
+## suggest：该栏推荐属性名（如弹幕参数的 n/speed/aim）
+func _add_param_section(title: String, wave: Dictionary, key: String, desc: String = "", suggest: Array = []) -> void:
+	_body.add_child(WorkbenchUI.section_title(title))
+	if not desc.is_empty():
+		var d := Label.new()
+		d.text = desc
+		d.add_theme_font_size_override("font_size", 11)
+		d.modulate = Color(0.55, 0.58, 0.66)
+		_body.add_child(d)
 	var dict: Dictionary = wave.get(key, {})
+	# 建议参数按钮：点一下立即添加该键（默认值），已存在则禁用
+	if not suggest.is_empty():
+		var sug_row := HBoxContainer.new()
+		sug_row.add_theme_constant_override("separation", 4)
+		var sug_label := Label.new()
+		sug_label.text = "建议："
+		sug_label.add_theme_font_size_override("font_size", 11)
+		sug_label.modulate = Color(0.55, 0.58, 0.66)
+		sug_row.add_child(sug_label)
+		for sk in suggest:
+			var sb := Button.new()
+			sb.text = str(sk)
+			sb.add_theme_font_size_override("font_size", 11)
+			sb.disabled = dict.has(str(sk))
+			sb.tooltip_text = "添加 %s 参数" % sk
+			sb.pressed.connect(func(): _add_suggest_param(wave, key, str(sk)))
+			sug_row.add_child(sb)
+		_body.add_child(sug_row)
+	# 已添加参数行（带删除按钮）
 	if dict.is_empty():
-		var row := HBoxContainer.new()
 		var hint := Label.new()
-		hint.text = "（空，使用默认值）"
+		hint.text = "（空，使用默认值；可点上方建议或下方自定义添加）"
+		hint.add_theme_font_size_override("font_size", 11)
 		hint.modulate = Color(0.5, 0.5, 0.6)
-		row.add_child(hint)
-		row.add_child(_add_param_btn(wave, key))
-		_body.add_child(row)
-		return
-	for k in dict:
-		_add_param_edit(dict, k, dict[k])
+		_body.add_child(hint)
+	else:
+		for k in dict:
+			_add_param_edit(dict, k, dict[k])
+	# 自定义参数入口（弹窗：键名 + 值自动识别类型）
 	var add_row := HBoxContainer.new()
 	add_row.add_child(_add_param_btn(wave, key))
 	_body.add_child(add_row)
+
+
+## 建议按钮点击：给该键添加默认值并重建表单
+func _add_suggest_param(wave: Dictionary, key: String, pname: String) -> void:
+	var dict: Dictionary = wave.get(key, {})
+	dict[pname] = _suggest_default(pname)
+	wave[key] = dict
+	show_wave(_tl, _idx)
+
+
+## 建议参数的默认值（合理起步，改一次就记住）
+func _suggest_default(pname: String) -> Variant:
+	match pname:
+		"n": return 24
+		"arms": return 2
+		"speed": return 300.0
+		"spread": return 30.0
+		"step": return 12.0
+		"aim": return false
+		"random_start": return false
+		"tex": return "小玉"
+		"blend": return true
+		"color": return Color(1, 1, 1, 1)
+		"behavior": return ""
+	return 0.0
 
 
 func _add_param_btn(wave: Dictionary, key: String) -> Button:
@@ -275,37 +327,50 @@ func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: f
 	})
 
 
-## 参数行：按值类型生成控件（float/int/Vector2/bool/Color/String）
+## 参数行：按值类型生成控件（float/int/Vector2/bool/Color/String）+ 行尾删除按钮
 ## target 是写回的字典（模板参数/弹幕参数/弹丸配置通用）
 func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	# ── 内容控件按类型填充 ──
 	if value is Vector2:
-		var spins: Array = WorkbenchUI.vec2_row(_body, key, value)
+		row.add_child(WorkbenchUI.param_key_label(key))
+		row.add_child(_axis_label("x"))
+		var sx := WorkbenchUI.mini_spin(value.x, -10000, 10000)
+		row.add_child(sx)
+		row.add_child(_axis_label("y"))
+		var sy := WorkbenchUI.mini_spin(value.y, -10000, 10000)
+		row.add_child(sy)
 		_edits.append({"apply": func():
-			target[key] = Vector2(spins[0].value, spins[1].value)
+			target[key] = Vector2(sx.value, sy.value)
 		})
 	elif value is bool:
 		var cb := CheckButton.new()
 		cb.text = key
 		cb.button_pressed = value
-		_body.add_child(cb)
+		row.add_child(cb)
 		_edits.append({"apply": func():
 			target[key] = cb.button_pressed
 		})
 	elif value is Color:
-		var h := HBoxContainer.new()
-		h.add_theme_constant_override("separation", 6)
-		h.add_child(WorkbenchUI.param_key_label(key))
+		row.add_child(WorkbenchUI.param_key_label(key))
 		var picker := ColorPickerButton.new()
 		picker.color = value
-		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		h.add_child(picker)
-		_body.add_child(h)
+		picker.custom_minimum_size = Vector2(72, 0)
+		row.add_child(picker)
 		_edits.append({"apply": func():
 			target[key] = picker.color
 		})
 	elif typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
 		var as_int := typeof(value) == TYPE_INT
-		var spin := WorkbenchUI.spin_row(_body, key, float(value), -100000, 100000, 1.0)
+		row.add_child(WorkbenchUI.param_key_label(key))
+		var spin := SpinBox.new()
+		spin.min_value = -100000
+		spin.max_value = 100000
+		spin.step = 1.0
+		spin.value = value
+		spin.custom_minimum_size = Vector2(120, 0)
+		row.add_child(spin)
 		_edits.append({"apply": func():
 			if as_int:
 				target[key] = int(spin.value)
@@ -313,15 +378,34 @@ func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 				target[key] = spin.value
 		})
 	else:
-		# 字符串等：LineEdit（固定宽，与 SpinBox 行对齐）
-		var h := HBoxContainer.new()
-		h.add_theme_constant_override("separation", 6)
-		h.add_child(WorkbenchUI.param_key_label(key))
+		# 字符串等：LineEdit（固定宽，与数值行对齐）
+		row.add_child(WorkbenchUI.param_key_label(key))
 		var line := LineEdit.new()
 		line.text = str(value)
 		line.custom_minimum_size = Vector2(140, 0)
-		h.add_child(line)
-		_body.add_child(h)
+		row.add_child(line)
 		_edits.append({"apply": func():
 			target[key] = line.text
 		})
+	# ── 统一：行尾删除按钮（移除该参数并重建表单）──
+	var del := Button.new()
+	del.text = "×"
+	del.add_theme_font_size_override("font_size", 11)
+	del.custom_minimum_size = Vector2(22, 0)
+	del.tooltip_text = "删除参数 %s" % key
+	del.pressed.connect(func():
+		target.erase(key)
+		show_wave(_tl, _idx)  # 重建表单
+	)
+	row.add_child(del)
+	_body.add_child(row)
+
+
+## x/y 轴小标签（坐标行用）
+func _axis_label(axis: String) -> Label:
+	var l := Label.new()
+	l.text = axis
+	l.custom_minimum_size = Vector2(12, 0)
+	l.add_theme_color_override("font_color", Color(0.45, 0.50, 0.60))
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return l

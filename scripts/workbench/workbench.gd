@@ -522,7 +522,10 @@ func _delete_selected_wave() -> void:
 	var timeline = _current_timeline
 	if timeline == null or idx >= timeline.waves.size():
 		return
-	var wave_name: String = str(timeline.waves[idx].get("name", "波次"))
+	var wave_name: String = str(timeline.waves[idx].get("name", ""))
+	if wave_name.is_empty():
+		# 无名字时给足信息：波次#索引 (t=时刻)
+		wave_name = "波次#%d (t=%.1fs)" % [idx, float(timeline.waves[idx].get("t", 0.0))]
 	var vb := _dialog.open("🗑 删除波次")
 	var msg := Label.new()
 	msg.text = "确定删除「%s」？" % wave_name

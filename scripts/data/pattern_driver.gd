@@ -143,7 +143,9 @@ static func build_bullet(bp: BulletPattern) -> BulletData:
 		var a: Vector2 = p.get("accelerate")
 		data.accelerate(a.x, a.y)
 	if p.has("behavior"):
-		var s: Script = load(str(p.get("behavior")))
-		if s:
-			data.behavior(s)
+		var b_path := str(p.get("behavior"))
+		if not b_path.is_empty():
+			var s: Script = load(b_path)
+			if s:
+				data.behavior(s)
 	return data
