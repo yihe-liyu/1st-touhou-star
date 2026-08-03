@@ -7,7 +7,14 @@ const USER_TIMELINE_PATH = "user://data/stage_demo/stage_timeline.tres"  # 工�
 
 
 ## 优先读工作台保存的 user:// 副本，否则用 res:// 默认
+## 数据关卡优先用 StageData.timeline（各关卡自己的编排数据）
 static func current_timeline() -> StageTimeline:
+	var stage := StageManager.current_stage
+	if stage and stage.timeline:
+		var user_p := "user://" + stage.timeline.resource_path.trim_prefix("res://")
+		if FileAccess.file_exists(user_p):
+			return load(user_p)
+		return stage.timeline
 	if FileAccess.file_exists(USER_TIMELINE_PATH):
 		return load(USER_TIMELINE_PATH)
 	return TIMELINE

@@ -38,6 +38,7 @@ const ENEMY_REG := preload("res://scripts/data/enemy_template_registry.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
 const STAGE01 := preload("res://data/stages/stage01/stage_data/stage01.tres")
 const STAGE_DEMO := preload("res://data/stage_demo/stage_demo.tres")
+const STAGE1_DATA := preload("res://data/stages/stage1_data/stage1_data.tres")
 const _WAVE_TABLE_SCRIPT = preload("res://scripts/workbench/ui/wave_table.gd")
 
 const DIFFICULTIES: Array[String] = ["Easy", "Normal", "Hard", "Lunatic"]
@@ -191,6 +192,7 @@ func _build_ui() -> void:
 	_stage_sel = OptionButton.new()
 	_stage_sel.add_item("Stage 1 橡树之庭")
 	_stage_sel.add_item("Demo 数据关卡")
+	_stage_sel.add_item("Stage 1 数据版")
 	_stage_sel.item_selected.connect(_on_stage_selected)
 	_stage_grid.add_child(WorkbenchUI.label("关卡"))
 	_stage_grid.add_child(_stage_sel)
@@ -531,8 +533,13 @@ static func _user_timeline_path(res_path: String) -> String:
 
 
 ## 当前关卡的时间线数据（协程关卡返回 null）
-## 优先读 user:// 副本（工作台保存的），否则用 res:// 默认
+## 优先读关卡自己的 timeline（StageData.timeline，含 user:// 副本），否则脚本常量
 func _get_timeline_data() -> Resource:
+	if _stage_data and _stage_data.timeline:
+		var user_p := _user_timeline_path(_stage_data.timeline.resource_path)
+		if FileAccess.file_exists(user_p):
+			return load(user_p)
+		return _stage_data.timeline
 	var scr: Script = _stage_data.create_script
 	if scr and "TIMELINE" in scr:
 		var user_p := _user_timeline_path(scr.TIMELINE.resource_path)
@@ -766,7 +773,13 @@ func _stop_fast_forward() -> void:
 # ═══ 选项回调 ═══
 
 func _on_stage_selected(idx: int) -> void:
-	_stage_data = STAGE01 if idx == 0 else STAGE_DEMO
+	match idx:
+		0:
+			_stage_data = STAGE01
+		1:
+			_stage_data = STAGE_DEMO
+		2:
+			_stage_data = STAGE1_DATA
 	_restart()
 	_log_line("🎚 切换关卡：%s" % (_stage_sel.get_item_text(idx)))
 

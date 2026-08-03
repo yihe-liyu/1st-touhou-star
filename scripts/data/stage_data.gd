@@ -6,6 +6,9 @@ class_name StageData
 @export var stage_id: int = 1
 @export var create_script: Script
 @export var background_scene: PackedScene
+## 数据关卡的编排数据（波次表 + 演出事件；协程关卡忽略）
+## 数据关卡用它替代 create_script 里的 TIMELINE 常量
+@export var timeline: StageTimeline
 ## 数据关卡的 Boss（可选；协程关卡在代码里编排，忽略此字段）
 @export var boss: BossData
 @export var boss_time: float = 35.0   ## Boss 出现时刻（秒）

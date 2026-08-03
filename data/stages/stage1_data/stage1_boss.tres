@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="BossData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/boss_scripts/enter_side.gd" id="1_rxw0d"]
+[ext_resource type="Script" path="res://scripts/data/boss_scripts/exit_top.gd" id="2_isg1l"]
+[ext_resource type="Script" path="res://scripts/data/phase_data.gd" id="3_8gtjr"]
+[ext_resource type="Resource" path="res://data/stages/stage01/phase/non_01.tres" id="4_164u6"]
+[ext_resource type="Script" path="res://scripts/data/boss_data.gd" id="5_7ccwp"]
+[ext_resource type="PackedScene" path="res://data/enemy_visual/boss/stage01/kamorui.tscn" id="6_63w5b"]
+
+[resource]
+script = ExtResource("5_7ccwp")
+boss_name = "卡摩瑞"
+visual = ExtResource("6_63w5b")
+phases = Array[ExtResource("3_8gtjr")]([ExtResource("4_164u6")])
+enter_script = ExtResource("1_rxw0d")
+exit_script = ExtResource("2_isg1l")
