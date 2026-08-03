@@ -110,8 +110,9 @@ func _ready() -> void:
 	# 主题：东方风深色面板（中文字体 + 卡片 + 控件样式）
 	theme = WorkbenchTheme.build()
 	%Title.add_theme_color_override("font_color", WorkbenchUI.ACCENT)
-	# 工作台专用窗口：给右侧面板腾位置（东方框 64,32~832,928 完整可见）
-	get_window().size = Vector2i(1600, 1000)
+	# 工作台专用窗口：纵向 1:1（1600x960 对 1280x960 视口纵向无拉伸 → 文字清晰）
+	# 横向 1.25x 给右侧面板腾位置（东方框 64,32~832,928 完整可见）
+	get_window().size = Vector2i(1600, 960)
 	%Title.text = "内容工作台 %s" % VERSION
 	_build_ui()
 	_setup_world()

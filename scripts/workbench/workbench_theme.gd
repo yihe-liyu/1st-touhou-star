@@ -34,7 +34,7 @@ static func build() -> Theme:
 	])
 	font.font_weight = 400
 	t.default_font = font
-	t.default_font_size = 13
+	t.default_font_size = 14
 
 	# ── 卡片（PanelContainer：区块/弹窗面板）──
 	t.set_stylebox("panel", "PanelContainer", _card())

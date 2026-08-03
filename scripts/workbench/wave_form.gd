@@ -90,16 +90,13 @@ func show_wave(tl: Resource, idx: int) -> void:
 	_add_enum_edit("弹幕", w, "pattern", PatternRegistry.names(), true)
 	if not str(w.get("pattern", "")).is_empty():
 		_add_field_edit("弹幕间隔", w, "pattern_interval", 0.05, 10.0, 0.05, false)
-		# 弹幕参数（建议按钮直接点，自定义兜底）
+		# 弹幕参数（建议按钮直接点）
 		var pattern_name := str(w.get("pattern", ""))
-		_add_param_section("── 弹幕参数 ──", w, "pattern_params",
-			"形状：n 弹数 / speed 速度 / aim 自机狙", PatternRegistry.suggest_params(pattern_name))
+		_add_param_section("── 弹幕参数 ──", w, "pattern_params", PatternRegistry.suggest_params(pattern_name))
 		_add_param_section("── 弹丸配置 ──", w, "bullet_params",
-			"子弹外观：tex 贴图 / color 颜色 / behavior 飞行行为",
 			{"tex": "小玉", "color": Color.WHITE, "blend": true, "speed": 300.0})
 	# 模板参数（敌人模板自带，通常已在）
-	_add_param_section("── 模板参数 ──", w, "params",
-		"敌人模板参数（如 target_y / target_pos）", ENEMY_REG.suggest_params(str(w.get("enemy", ""))))
+	_add_param_section("── 模板参数 ──", w, "params", ENEMY_REG.suggest_params(str(w.get("enemy", ""))))
 
 
 ## 写回数据 + 通知主控制器重跑
@@ -124,46 +121,38 @@ func flush() -> void:
 
 ## 参数区：建议参数按钮（点击即添加）+ 已添加参数行（可删）
 ## suggest：该栏推荐属性（Dictionary：键 → 默认值，来自模式/模板 schema）
-func _add_param_section(title: String, wave: Dictionary, key: String, desc: String = "", suggest: Dictionary = {}) -> void:
+func _add_param_section(title: String, wave: Dictionary, key: String, suggest: Dictionary = {}) -> void:
 	_body.add_child(WorkbenchUI.section_title(title))
-	if not desc.is_empty():
-		var d := Label.new()
-		d.text = desc
-		d.add_theme_font_size_override("font_size", 11)
-		d.modulate = Color(0.55, 0.58, 0.66)
-		_body.add_child(d)
 	var dict: Dictionary = wave.get(key, {})
-	# 建议参数按钮：点一下立即添加该键（默认值），已存在则禁用
+	# 参数区卡片（theme PanelContainer 卡片样式，视觉分组）
+	var card := PanelContainer.new()
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
+	card.add_child(vb)
+	_body.add_child(card)
+	# 建议参数按钮（点一下添加该键，已存在则禁用）
 	if not suggest.is_empty():
 		var sug_row := HBoxContainer.new()
 		sug_row.add_theme_constant_override("separation", 4)
-		var sug_label := Label.new()
-		sug_label.text = "建议："
-		sug_label.add_theme_font_size_override("font_size", 11)
-		sug_label.modulate = Color(0.55, 0.58, 0.66)
-		sug_row.add_child(sug_label)
 		for sk in suggest:
 			var sb := Button.new()
 			sb.text = str(sk)
-			sb.add_theme_font_size_override("font_size", 11)
+			sb.add_theme_font_size_override("font_size", 12)
 			sb.disabled = dict.has(str(sk))
 			sb.tooltip_text = "添加 %s 参数" % sk
 			sb.pressed.connect(func(): _add_suggest_param(wave, key, str(sk), suggest[str(sk)]))
 			sug_row.add_child(sb)
-		_body.add_child(sug_row)
+		vb.add_child(sug_row)
 	# 已添加参数行（带删除按钮）
 	if dict.is_empty():
 		var hint := Label.new()
-		hint.text = "（空，使用默认值；可点上方建议或下方自定义添加）"
-		hint.add_theme_font_size_override("font_size", 11)
+		hint.text = "空（点上方参数添加）"
+		hint.add_theme_font_size_override("font_size", 12)
 		hint.modulate = Color(0.5, 0.5, 0.6)
-		_body.add_child(hint)
+		vb.add_child(hint)
 	else:
 		for k in dict:
-			_add_param_edit(dict, k, dict[k])
-
-
-## 建议按钮点击：给该键添加默认值并重建表单
+			_add_param_edit(dict, k, dict[k], vb)
 func _add_suggest_param(wave: Dictionary, key: String, pname: String, default_value: Variant) -> void:
 	var dict: Dictionary = wave.get(key, {})
 	dict[pname] = default_value
@@ -211,8 +200,9 @@ func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: f
 
 
 ## 参数行：按值类型生成控件（float/int/Vector2/bool/Color/String）+ 行尾删除按钮
-## target 是写回的字典（模板参数/弹幕参数/弹丸配置通用）
-func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
+## target 是写回的字典（模板参数/弹幕参数/弹丸配置通用）；parent 默认 _body
+func _add_param_edit(target: Dictionary, key: String, value: Variant, parent: Node = null) -> void:
+	parent = parent if parent != null else _body
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	# ── 内容控件按类型填充 ──
@@ -281,7 +271,7 @@ func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 		show_wave(_tl, _idx)  # 重建表单
 	)
 	row.add_child(del)
-	_body.add_child(row)
+	parent.add_child(row)
 
 
 ## x/y 轴小标签（坐标行用）
