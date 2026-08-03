@@ -48,10 +48,10 @@ func test_hit_band():
 	])
 	_bar.window_len = 60.0
 	# B 在 t=0（idx 0），x = 0，宽 1.5/60*768 = 19.2 → [0, 19.2]，第一行 y=3~17
-	var hit_b: int = _bar._hit_band(Vector2(10, 10))
+	var hit_b: int = _bar._hit_band(Vector2(10, 24))
 	assert_eq(hit_b, 0, "应命中 B（idx 0）")
 	# A 在 t=1（idx 1，第二行），x = 12.8，宽 32 → 第二行 y=20~34 命中 A
-	var hit_a: int = _bar._hit_band(Vector2(30, 27))
+	var hit_a: int = _bar._hit_band(Vector2(30, 41))
 	assert_eq(hit_a, 1, "应命中 A（idx 1）")
 	# 空白：t=35 处无条带
 	var miss: int = _bar._hit_band(Vector2(35.0 / 60.0 * 768.0, 10))
@@ -74,7 +74,7 @@ func test_drag_writes_back_to_shared_ref():
 	var moved: Array = []
 	_bar.wave_moved.connect(func(idx: int, t: float): moved.append([idx, t]))
 	# 直接走组件内部逻辑（等价于拖拽松手路径）
-	var idx := _bar._hit_band(Vector2(10.0 / 60.0 * 768.0, 10))
+	var idx := _bar._hit_band(Vector2(10.0 / 60.0 * 768.0, 24))
 	assert_eq(idx, 0, "应命中唯一条带")
 	_bar.waves[idx]["t"] = 14.0   # 组件松手时写回共享引用
 	_bar.wave_moved.emit(idx, 14.0)
@@ -98,14 +98,14 @@ func test_click_selects_wave():
 	var down := InputEventMouseButton.new()
 	down.button_index = MOUSE_BUTTON_LEFT
 	down.pressed = true
-	down.position = Vector2(10, 10)
+	down.position = Vector2(10, 24)
 	_bar._gui_input(down)
 	assert_eq(_bar.selected_wave, 0, "按下时应立即高亮")
 	# 松开（无拖拽）→ 点击选中
 	var up := InputEventMouseButton.new()
 	up.button_index = MOUSE_BUTTON_LEFT
 	up.pressed = false
-	up.position = Vector2(10, 10)
+	up.position = Vector2(10, 24)
 	_bar._gui_input(up)
 	assert_eq(selected.size(), 1, "应发出 wave_selected")
 	assert_eq(selected[0], 0, "应选中 B（idx 0）")
@@ -124,17 +124,17 @@ func test_drag_moves_wave():
 	var down := InputEventMouseButton.new()
 	down.button_index = MOUSE_BUTTON_LEFT
 	down.pressed = true
-	down.position = Vector2(10, 10)
+	down.position = Vector2(10, 24)
 	_bar._gui_input(down)
 	# 拖 +100px → dt = 100/768*60 ≈ 7.8125s → 吸附 0.5 → 8.0
 	var motion := InputEventMouseMotion.new()
-	motion.position = Vector2(110, 10)
+	motion.position = Vector2(110, 24)
 	_bar._gui_input(motion)
 	# 松开 → 写回
 	var up := InputEventMouseButton.new()
 	up.button_index = MOUSE_BUTTON_LEFT
 	up.pressed = false
-	up.position = Vector2(110, 10)
+	up.position = Vector2(110, 24)
 	_bar._gui_input(up)
 	assert_eq(moved.size(), 1, "应发出 wave_moved")
 	assert_eq(moved[0][0], 0)
@@ -164,8 +164,8 @@ func test_many_overlaps_overflow():
 			"count": 5, "interval": 0.5})
 	_bar.set_waves(waves)
 	assert_eq(_bar._layout_rows().size(), 6, "贪心应分 6 行")
-	assert_eq(_bar._visible_rows().size(), 5, "只显示 MAX_TRACKS 行")
-	assert_eq(_bar._overflow_count(), 1, "溢出 1 行")
+	assert_eq(_bar._visible_rows().size(), 4, "只显示 MAX_TRACKS 行")
+	assert_eq(_bar._overflow_count(), 2, "溢出 2 行")
 
 
 ## 命中测试不越界：溢出行位置（超出轨道区）返回 -1，不误触刻度区
@@ -176,7 +176,7 @@ func test_hit_band_ignores_overflow_rows():
 			"count": 5, "interval": 0.5})
 	_bar.set_waves(waves)
 	_bar.window_len = 60.0
-	# 第 5 行（可见最后一行 r=4）y = 3 + 4*17 = 71~85，条带 x=0~32（t=0, dur 2.5）
+	# 第 4 行（可见最后一行 r=3）y = 3+17+3*17 = 71~85，条带 x=0~32
 	var hit_last_visible := _bar._hit_band(Vector2(10, 75))
 	assert_true(hit_last_visible >= 0, "第 5 行应能命中条带")
 	# 溢出行（第 6 行 r=5）y = 88+ 已在刻度区 → 应返回 -1（不误触）
@@ -202,12 +202,12 @@ func test_pan_moves_window():
 	_bar._gui_input(down)
 	# 左拖 50px → 窗口向未来移动
 	var motion := InputEventMouseMotion.new()
-	motion.position = Vector2(50, 10)
+	motion.position = Vector2(50, 24)
 	_bar._gui_input(motion)
 	var up := InputEventMouseButton.new()
 	up.button_index = MOUSE_BUTTON_LEFT
 	up.pressed = false
-	up.position = Vector2(50, 10)
+	up.position = Vector2(50, 24)
 	_bar._gui_input(up)
 	# dt = -50/768*60 = -3.90625 → window_start = 30 - (-3.906) = 33.906
 	assert_almost_eq(_bar.window_start, 33.90625, 0.01, "左拖应让窗口向未来移动")

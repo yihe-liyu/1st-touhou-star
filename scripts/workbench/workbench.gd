@@ -100,6 +100,8 @@ var _speed_idx := 2          # 速度档位索引（SPEEDS）
 var _ff_target := -1.0   # 快进目标时刻（-1 = 不快进）
 var _prev_time := -1.0   # 时间轴刷新去重
 var _current_timeline: Resource   # 当前编辑的 timeline（缓存，避免每次 load 缓存不一致）
+# 统一编辑模型：选中敌波编辑波次（wave）/ 选中 Boss 编辑符卡（boss）
+var _edit_mode := "wave"
 
 # UI 控件（关卡/难度下拉）
 var _stage_sel: OptionButton
@@ -257,12 +259,15 @@ func _build_ui() -> void:
 	form_divider.gui_input.connect(func(ev: InputEvent): _on_form_divider_input(ev))
 	_wave_section.add_child(form_divider)
 	# ── 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）──
+	# 独立于波次编辑区（统一编辑模型：选 Boss 时替换显示）
 	_spell_section = VBoxContainer.new()
 	_spell_section.add_theme_constant_override("separation", 4)
 	_spell_form_box = VBoxContainer.new()
 	_spell_form_box.add_theme_constant_override("separation", 4)
 	_spell_section.add_child(_spell_form_box)
-	_wave_section.add_child(_spell_section)
+	# 挂到右侧面板（WaveSection 之后），不与波次编辑嵌套
+	%WaveSection.get_parent().add_child(_spell_section)
+	_update_edit_mode()
 
 	# ── 书签（数据自持，编辑后 data_changed 回主控制器持久化）──
 	_bookmarks = BookmarkPanel.new()
@@ -280,6 +285,8 @@ func _build_ui() -> void:
 	_timeline.right_clicked.connect(_bookmarks.open_add)
 	_timeline.wave_selected.connect(_on_wave_selected)
 	_timeline.wave_moved.connect(_on_wave_moved)
+	_timeline.boss_selected.connect(_on_timeline_boss_selected)
+	_timeline.boss_moved.connect(_on_timeline_boss_moved)
 
 	# ── 通用弹窗（删除波次确认等）──
 	_dialog = DialogHost.new()
@@ -354,6 +361,19 @@ func _load_stage(start_from: float = -1.0) -> void:
 	_current_timeline = _get_timeline_data()
 	_refresh_wave_table()
 	_refresh_spell_section()
+	# Boss 条带（时间轴第 0 行）；宽度 = 阶段总时长
+	var bs := -1.0
+	var bdur := 0.0
+	if _stage_data and _stage_data.boss:
+		bs = _stage_data.boss_time
+		for p in _stage_data.boss.phases:
+			if p:
+				bdur += p.time_limit
+		bdur = maxf(bdur, 1.0)
+	_timeline.set_boss(bs, bdur)
+	_edit_mode = "wave"  # 每次加载默认敌波编辑
+	_timeline.set_boss_selected(false)
+	_update_edit_mode()
 	_prev_time = -1.0
 	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
 
@@ -585,6 +605,9 @@ func _delete_selected_wave() -> void:
 	# 选中波次 → 详情表单（WaveForm 按字段类型动态生成）
 	# 表格/时间轴双向联动：任何一方的选中都同步另一方高亮
 func _on_wave_selected(idx: int) -> void:
+	_edit_mode = "wave"
+	_timeline.set_boss_selected(false)
+	_update_edit_mode()
 	_wave_form.show_wave(_current_timeline, idx)
 	_timeline.selected_wave = idx
 	_wave_table.select_row(idx)
@@ -827,8 +850,33 @@ func _on_divider_input(event: InputEvent) -> void:
 
 # ═══ 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）═══
 
-## 刷新符卡编辑区（数据关卡有 Boss 时显示）
-## 清空重建整个区（标题/下拉/表单容器），避免重复累积出现多个符卡栏
+## 统一编辑模型：编辑区互斥（选敌波 → 波次表单 / 选 Boss → 符卡表单）
+func _update_edit_mode() -> void:
+	if _edit_mode == "boss":
+		_wave_section.visible = false
+		_spell_section.visible = _stage_data != null and _stage_data.boss != null \
+			and _stage_data.boss.phases.size() > 0
+	else:
+		_spell_section.visible = false
+		_wave_section.visible = _get_timeline_data() != null  # 数据关卡才显示
+
+
+## 时间轴选中 Boss → 编辑符卡（替换敌波编辑）
+func _on_timeline_boss_selected() -> void:
+	_edit_mode = "boss"
+	_refresh_spell_section()
+	_update_edit_mode()
+	_log_line("🎴 选中 Boss，编辑符卡阶段")
+
+
+## Boss 条带拖拽松手 → 写回 boss_time（保存后生效）
+func _on_timeline_boss_moved(t: float) -> void:
+	if _stage_data:
+		_stage_data.boss_time = t
+	_log_line("↔ Boss 出现时刻 → t=%.1fs（保存后生效）" % t)
+
+
+## 刷新符卡编辑区（清空重建，避免重复累积）
 func _refresh_spell_section() -> void:
 	for c in _spell_section.get_children():
 		c.queue_free()
@@ -837,7 +885,7 @@ func _refresh_spell_section() -> void:
 	if boss == null or boss.phases.is_empty():
 		_spell_section.visible = false
 		return
-	_spell_section.visible = true
+	_spell_section.visible = (_edit_mode == "boss")  # 由编辑模式控制
 	_spell_section.add_child(WorkbenchUI.section_title("── 符卡（Boss 阶段）──"))
 	var boss_row := HBoxContainer.new()
 	boss_row.add_theme_constant_override("separation", 6)
