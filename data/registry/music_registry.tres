@@ -34,6 +34,8 @@ music_id = 3
 title = "洞窟蝙蝠"
 comment = "洞窟蝙蝠
 卡摩瑞的主题曲"
+audio_path = "res://assets/Music/THq01_03.洞窟蝙蝠.mp3"
+unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
 
 [sub_resource type="Resource" id="MusicRecord_03"]
@@ -46,6 +48,14 @@ comment = "就在那里的不思议宇宙
 audio_path = "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3"
 unlocked = true
 
+[sub_resource type="Resource" id="Resource_lemic"]
+script = ExtResource("1")
+music_id = 10
+title = "寂寥记忆界"
+audio_path = "res://assets/Music/THq01_10.寂寥记忆界.mp3"
+unlocked = true
+metadata/_custom_type_script = "uid://be08pe8s61ass"
+
 [sub_resource type="Resource" id="MusicRecord_04"]
 script = ExtResource("1")
 music_id = 12
@@ -56,6 +66,22 @@ comment = "不尽记忆的天空
 audio_path = "res://assets/Music/THq01_12.不尽记忆的天空.mp3"
 unlocked = true
 
+[sub_resource type="Resource" id="Resource_mnbxo"]
+script = ExtResource("1")
+music_id = 17
+title = "朝夕之阳，在远在洋"
+audio_path = "res://assets/Music/THq01_17.朝夕之阳，在远在洋.mp3"
+unlocked = true
+metadata/_custom_type_script = "uid://be08pe8s61ass"
+
+[sub_resource type="Resource" id="Resource_immyd"]
+script = ExtResource("1")
+music_id = 18
+title = "以空为核，抽丝剥茧"
+audio_path = "res://assets/Music/THq01_18.以空为核，抽丝剥茧.mp3"
+unlocked = true
+metadata/_custom_type_script = "uid://be08pe8s61ass"
+
 [resource]
 script = ExtResource("2")
-records = Array[ExtResource("1")]([SubResource("MusicRecord_01"), SubResource("MusicRecord_02"), SubResource("Resource_n7uf7"), SubResource("MusicRecord_03"), SubResource("MusicRecord_04")])
+records = Array[ExtResource("1")]([SubResource("MusicRecord_01"), SubResource("MusicRecord_02"), SubResource("Resource_n7uf7"), SubResource("MusicRecord_03"), SubResource("Resource_lemic"), SubResource("MusicRecord_04"), SubResource("Resource_mnbxo"), SubResource("Resource_immyd")])
