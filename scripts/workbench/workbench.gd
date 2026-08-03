@@ -82,6 +82,7 @@ var _collect_hash := 0
 var _collect_max := 45.0   # 收集到该时刻（非符1 开始后足够；Boss 击破后的事件依赖玩家，不收集）
 var _collect_times: Array = []
 var _collect_attempts := 0  # 防死循环：收集连续失败超限退回静态提取
+var _skip_next_collection := false  # 收集完成后重跑跳过（防 hash 异常导致连环收集）
 var _toast := ""           # 短暂提示（收集完成反馈等）
 var _toast_t := 0.0
 var _auto_bookmarks: Array = []    # 自动收集时刻（当前缓存，编辑后重存用）
@@ -349,6 +350,20 @@ func _load_stage(start_from: float = -1.0) -> void:
 
 ## 书签：缓存优先；未命中（首次/关卡脚本变了）→ 静默快进收集真实事件时刻
 func _apply_bookmarks_from_cache() -> void:
+	# 协程关卡（无 TIMELINE 数据）：直接静态提取，不做运行时收集
+	# （否则每次进工作台 Stage1 都收集，切走即打断 → 缓存永不建立 → 每次重复）
+	if not _is_data_stage():
+		_auto_bookmarks = _static_extract()
+		_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
+		_refresh_timeline_bookmarks()
+		_log_line("📖 书签（静态提取 %d 个）" % _auto_bookmarks.size())
+		return
+	# 刚收集完成的重跑：直接应用已收集结果，不再收集
+	if _skip_next_collection:
+		_skip_next_collection = false
+		_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
+		_refresh_timeline_bookmarks()
+		return
 	var content_hash := BOOKMARK_CACHE.stage_content_hash(_stage_data)
 	var cache: Dictionary = BOOKMARK_CACHE.load(_stage_data.stage_id, content_hash)
 	if cache.ok:
@@ -361,6 +376,20 @@ func _apply_bookmarks_from_cache() -> void:
 	else:
 		_manual_bookmarks = cache.manual  # 脚本变了也保留人工打点
 		_start_collection(content_hash)
+
+
+## 是否数据关卡（有 StageTimeline 数据，可运行时收集书签）
+func _is_data_stage() -> bool:
+	return _get_timeline_data() != null
+
+
+## 静态提取书签（协程关卡/收集兜底）：扫描 tl.at() 时刻
+func _static_extract() -> Array:
+	var bm: Array = BOOKMARK_EXTRACTOR.extract_from_script(_stage_data.create_script)
+	var auto: Array = []
+	for b in bm:
+		auto.append({"t": b.t})
+	return auto
 
 
 ## 时间轴书签刷新（自动 + 人工合并；与 BookmarkPanel 同源静态合并函数）
@@ -378,13 +407,10 @@ func _start_collection(content_hash: int) -> void:
 	if _collect_attempts > 2:
 		# 兜底：收集链路异常（缓存写不进等）→ 退回静态提取，避免无限加速循环
 		_log_line("⚠️ 书签收集异常，退回静态提取")
-		var bm: Array = BOOKMARK_EXTRACTOR.extract_from_script(_stage_data.create_script)
-		var auto: Array = []
-		for b in bm:
-			auto.append({"t": b.t})
-		_auto_bookmarks = auto
+		_auto_bookmarks = _static_extract()
 		_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
 		_refresh_timeline_bookmarks()
+		_skip_next_collection = true  # 本会话不再自动收集
 		return
 	_collecting = true
 	_collect_hash = content_hash
@@ -431,6 +457,7 @@ func _finish_collection() -> void:
 	_log_line("📖 收集完成：%d 个书签，已缓存" % auto.size())
 	_toast = "✅ 书签已生成（%d 个）" % auto.size()
 	_toast_t = 1.5
+	_skip_next_collection = true  # 重跑直接应用结果，不再收集（防 hash 异常连环收集）
 	# 重跑（现在缓存命中 → 正常速度从 0 开始）
 	_load_stage()
 
@@ -608,6 +635,7 @@ func _cancel_collection() -> void:
 		Engine.time_scale = SPEEDS[_speed_idx]
 		Engine.max_physics_steps_per_frame = 8
 		_apply_audio()
+		_collect_attempts = 0  # 打断的收集不计入防循环计数
 
 
 func _toggle_play() -> void:
