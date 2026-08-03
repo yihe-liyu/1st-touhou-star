@@ -20,7 +20,7 @@ func spawn(pos: Vector2, type: int) -> Item:
 	# 定位日志：任何道具生成都记录（游戏时间/位置/类型）——用户跑游戏贴日志定位
 	if StageManager.current_stage_script():
 		var log_t := StageManager.current_stage_script().game_time()
-		var type_name := Item.Type.keys()[type] if type >= 0 and type < Item.Type.keys().size() else "?%d" % type
+		var type_name: String = Item.Type.keys()[type] if type >= 0 and type < Item.Type.keys().size() else "?%d" % type
 		print("[Item生成] t=%.1f pos=%s type=%s" % [log_t, pos, type_name])
 	var item: Item
 	if _pool.is_empty():
