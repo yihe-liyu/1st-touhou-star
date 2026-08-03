@@ -551,8 +551,7 @@ func _refresh_wave_table() -> void:
 	var timeline = _current_timeline
 	_timeline.set_waves(timeline.waves if timeline else [])
 	_timeline.set_events(timeline.events if timeline else [])
-	# ＋Boss/＋阶段：数据关卡常驻显示（无 Boss 添加，有 Boss 追加阶段）
-	var has_boss: bool = _stage_data != null and (_stage_data.boss != null or not _stage_data.bosses.is_empty())
+	# ＋Boss：无 Boss 创建，有 Boss 追加新 Boss（多 Boss）
 	_add_boss_btn.visible = timeline != null
 	_add_boss_btn.text = "＋ Boss"
 	if timeline == null:
@@ -1570,6 +1569,10 @@ func _edit_event(i: int) -> void:
 			v_edit.text = str(ev.get("script", ""))
 	v_row.add_child(v_edit)
 	vb.add_child(v_row)
+	# custom 演出事件：脚本参数编辑（反射脚本 var，可覆盖默认值）
+	var param_edits := {}
+	if str(ev.get("type", "")) == "custom":
+		param_edits = _event_param_edits(vb, v_edit.text.strip_edges(), ev.get("params", {}))
 	_dialog.add_actions("确定", func():
 		ev["t"] = t_edit.text.to_float()
 		match str(ev.get("type", "")):
@@ -1579,9 +1582,64 @@ func _edit_event(i: int) -> void:
 				ev["dialogue"] = v_edit.text.strip_edges()
 			"custom":
 				ev["script"] = v_edit.text.strip_edges()
+				# 写回脚本参数（反射的类型解析）
+				if not param_edits.is_empty():
+					var scr: Script = load(v_edit.text.strip_edges())
+					var suggest: Dictionary = BossScriptRegistry.suggest_params(scr) if scr else {}
+					var params: Dictionary = {}
+					for k in param_edits:
+						params[k] = _parse_param_value(param_edits[k].text, suggest.get(k, ""))
+					ev["params"] = params
 		_refresh_events_section()
 		_timeline.set_events(timeline.events)
 		_save_timeline()
 	)
 	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
 	t_edit.grab_focus()
+
+
+## custom 演出事件：脚本参数编辑行（反射 suggest；返回 {key: LineEdit}）
+func _event_param_edits(vb: VBoxContainer, scr_path: String, cur: Dictionary) -> Dictionary:
+	var edits := {}
+	if scr_path.is_empty() or not ResourceLoader.exists(scr_path):
+		return edits
+	var scr: Script = load(scr_path)
+	var suggest: Dictionary = BossScriptRegistry.suggest_params(scr)
+	if suggest.is_empty():
+		return edits
+	vb.add_child(WorkbenchUI.section_title("── 脚本参数 ──"))
+	for k in suggest:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		row.add_child(WorkbenchUI.param_label(str(k)))
+		var le := LineEdit.new()
+		le.text = str(cur.get(k, suggest[k]))
+		le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		le.tooltip_text = "类型 %s（默认 %s）" % [type_string(typeof(suggest[k])), str(suggest[k])]
+		row.add_child(le)
+		vb.add_child(row)
+		edits[k] = le
+	return edits
+
+
+## 参数文本 → 建议类型（Vector2/Color/bool/float/int/字符串）
+func _parse_param_value(text: String, template: Variant) -> Variant:
+	if template is Vector2:
+		var parts := text.split(",")
+		if parts.size() == 2:
+			return Vector2(parts[0].to_float(), parts[1].to_float())
+		return template
+	if template is Color:
+		var parts := text.split(",")
+		if parts.size() == 3:
+			return Color(parts[0].to_float(), parts[1].to_float(), parts[2].to_float())
+		if parts.size() == 4:
+			return Color(parts[0].to_float(), parts[1].to_float(), parts[2].to_float(), parts[3].to_float())
+		return template
+	if template is bool:
+		return text == "true" or text == "1"
+	if template is float:
+		return text.to_float()
+	if template is int:
+		return int(text.to_float())
+	return text

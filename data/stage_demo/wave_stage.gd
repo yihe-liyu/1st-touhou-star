@@ -175,4 +175,8 @@ func _run_event(ev: Dictionary, etype: String) -> void:
 				if scr and scr.new() is CoroutineScript:
 					var inst: CoroutineScript = scr.new()
 					add_child(inst)
+					# 工作台参数注入（events 的 params → 脚本同名属性；无则用脚本默认值）
+					for k in ev.get("params", {}):
+						if k in inst:
+							inst.set(k, ev["params"][k])
 					inst.start(ctx)
