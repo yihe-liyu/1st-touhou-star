@@ -76,7 +76,7 @@ func _append_boss_row() -> void:
 	row.add_theme_constant_override("separation", 0)
 	row.custom_minimum_size = Vector2(0, ROW_H)
 	var texts: Array[String] = [
-		"%.1f" % _boss_time_or(20.0),
+		"—",
 		"Boss: %s" % _boss.boss_name,
 		"Boss", "—", "—",
 	]
@@ -116,8 +116,7 @@ func clear_boss_selection() -> void:
 
 
 ## Boss 行时间（boss_time，表格显示用；无则默认）
-func _boss_time_or(default_v: float) -> float:
-	return 20.0  # 简化为固定显示（精确时刻由时间轴条带体现）
+## （简化为固定显示：精确时刻由时间轴 Boss 条带体现）
 
 
 func boss_selected_state() -> bool:
