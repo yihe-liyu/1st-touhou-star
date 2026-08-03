@@ -249,10 +249,11 @@ func _build_ui() -> void:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.custom_minimum_size = Vector2(0, 28)
 	_wave_section.add_child(wave_btns)
-	# 波次表：自制行列表格（列头+网格线+选中高亮）
+	# 波次表：自制行列表格（列头+网格线+选中高亮；含 Boss 行）
 	_wave_table = _WAVE_TABLE_SCRIPT.new()
 	_wave_table.custom_minimum_size = Vector2(0, 140)
 	_wave_table.wave_selected.connect(_on_wave_selected)
+	_wave_table.boss_row_selected.connect(_on_wave_boss_selected)
 	_wave_section.add_child(_wave_table)
 	# 详情表单（自带滚动容器，固定高度防挤布局）
 	_wave_form = WaveForm.new()
@@ -265,15 +266,13 @@ func _build_ui() -> void:
 	form_divider.mouse_default_cursor_shape = Control.CURSOR_VSIZE
 	form_divider.gui_input.connect(func(ev: InputEvent): _on_form_divider_input(ev))
 	_wave_section.add_child(form_divider)
-	# ── 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）──
-	# 独立于波次编辑区（统一编辑模型：选 Boss 时替换显示）
+	# ── 符卡编辑（Boss 阶段）── 挂到波次编辑区详情位置（表格下方，与敌人表单同位置互斥）
 	_spell_section = VBoxContainer.new()
 	_spell_section.add_theme_constant_override("separation", 4)
 	_spell_form_box = VBoxContainer.new()
 	_spell_form_box.add_theme_constant_override("separation", 4)
 	_spell_section.add_child(_spell_form_box)
-	# 挂到右侧面板（WaveSection 之后），不与波次编辑嵌套
-	%WaveSection.get_parent().add_child(_spell_section)
+	_wave_section.add_child(_spell_section)
 	_update_edit_mode()
 
 	# ── 书签（数据自持，编辑后 data_changed 回主控制器持久化）──
@@ -556,7 +555,8 @@ func _refresh_wave_table() -> void:
 		return
 	_wave_table.visible = true
 	_wave_form.visible = true
-	_wave_table.setup(timeline)
+	_wave_table.setup(timeline, _stage_data.boss if _stage_data else null)
+	_update_edit_mode()
 
 
 ## 应用选中波次参数（上边栏按钮；表单在 WaveForm 内已写回）
@@ -618,6 +618,7 @@ func _delete_selected_wave() -> void:
 func _on_wave_selected(idx: int) -> void:
 	_edit_mode = "wave"
 	_timeline.set_boss_selected(false)
+	_wave_table.clear_boss_selection()
 	_update_edit_mode()
 	_wave_form.show_wave(_current_timeline, idx)
 	_timeline.selected_wave = idx
@@ -861,23 +862,26 @@ func _on_divider_input(event: InputEvent) -> void:
 
 # ═══ 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）═══
 
-## 统一编辑模型：编辑区互斥（选敌波 → 波次表单 / 选 Boss → 符卡表单）
+## 统一编辑模型：表格常驻（敌波行 + Boss 行），详情表单原位切换
 func _update_edit_mode() -> void:
-	if _edit_mode == "boss":
-		_wave_section.visible = false
-		_spell_section.visible = _stage_data != null and _stage_data.boss != null \
-			and _stage_data.boss.phases.size() > 0
-	else:
-		_spell_section.visible = false
-		_wave_section.visible = _get_timeline_data() != null  # 数据关卡才显示
+	var has_boss: bool = _stage_data != null and _stage_data.boss != null \
+		and _stage_data.boss.phases.size() > 0
+	_wave_form.visible = (_edit_mode == "wave")
+	_spell_section.visible = (_edit_mode == "boss") and has_boss
 
 
-## 时间轴选中 Boss → 编辑符卡（替换敌波编辑）
-func _on_timeline_boss_selected() -> void:
+## 表格 Boss 行点击 → 符卡编辑（详情表单原位替换）
+func _on_wave_boss_selected() -> void:
 	_edit_mode = "boss"
+	_timeline.set_boss_selected(true)
 	_refresh_spell_section()
 	_update_edit_mode()
 	_log_line("🎴 选中 Boss，编辑符卡阶段")
+
+
+## 时间轴选中 Boss → 同步表格 Boss 行高亮（emit 幂等）
+func _on_timeline_boss_selected() -> void:
+	_wave_table.select_boss_row()
 
 
 ## Boss 条带拖拽松手 → 写回 boss_time（保存后生效）
