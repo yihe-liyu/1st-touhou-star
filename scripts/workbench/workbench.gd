@@ -210,7 +210,13 @@ func _build_ui() -> void:
 
 	# ── 编排（数据关卡波次表格 + 详情编辑；协程关卡整体隐藏）──
 	_wave_section.add_child(WorkbenchUI.section_title("── 编排（数据关卡）──"))
+	# 操作栏：应用 / ＋波次 / 🗑波次 / 💾保存（统一等宽对齐）
 	var wave_btns := HBoxContainer.new()
+	wave_btns.add_theme_constant_override("separation", 4)
+	var apply_btn := Button.new()
+	apply_btn.text = "✔ 应用"
+	apply_btn.pressed.connect(_apply_wave)
+	wave_btns.add_child(apply_btn)
 	var add_wave := Button.new()
 	add_wave.text = "＋ 波次"
 	add_wave.pressed.connect(_add_wave)
@@ -223,6 +229,10 @@ func _build_ui() -> void:
 	save_btn.text = "💾 保存"
 	save_btn.pressed.connect(_save_timeline)
 	wave_btns.add_child(save_btn)
+	# 四个按钮等宽均分，视觉对齐
+	for b in [apply_btn, add_wave, del_wave, save_btn]:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.custom_minimum_size = Vector2(0, 28)
 	_wave_section.add_child(wave_btns)
 	# 波次表：自制行列表格（列头+网格线+选中高亮）
 	_wave_table = _WAVE_TABLE_SCRIPT.new()
@@ -232,7 +242,6 @@ func _build_ui() -> void:
 	# 详情表单（自带滚动容器，固定高度防挤布局）
 	_wave_form = WaveForm.new()
 	_wave_form.applied.connect(_on_wave_applied)
-	_wave_form.save_requested.connect(_save_timeline)
 	_wave_section.add_child(_wave_form)
 	# 高度拖拽条：在表单底部（拖底边 = 底边跟手变长，符合直觉）
 	var form_divider := ColorRect.new()
@@ -472,6 +481,14 @@ func _refresh_wave_table() -> void:
 	_wave_table.visible = true
 	_wave_form.visible = true
 	_wave_table.setup(timeline)
+
+
+## 应用选中波次参数（上边栏按钮；表单在 WaveForm 内已写回）
+func _apply_wave() -> void:
+	if _wave_form._idx < 0:
+		_log_line("ℹ 先选中要应用的波次")
+		return
+	_wave_form.apply_changes()
 
 
 ## 新增波次：追加默认波次并选中

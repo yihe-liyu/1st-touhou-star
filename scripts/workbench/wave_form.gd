@@ -8,7 +8,6 @@ extends ScrollContainer
 ##   save_requested   —— 请求保存 .tres
 
 signal applied(idx: int)
-signal save_requested
 
 const ENEMY_REG = preload("res://scripts/data/enemy_template_registry.gd")
 
@@ -71,23 +70,12 @@ func show_wave(tl: Resource, idx: int) -> void:
 	_add_enum_edit("弹幕", w, "pattern", PatternRegistry.names(), true)
 	if not str(w.get("pattern", "")).is_empty():
 		_add_field_edit("弹幕间隔", w, "pattern_interval", 0.05, 10.0, 0.05, false)
-	# 弹幕参数（空也可添加；复用值类型动态表单）
+		# 弹幕参数（空也可添加；复用值类型动态表单）
 	if not str(w.get("pattern", "")).is_empty():
 		_add_param_section("── 弹幕参数 ──", w, "pattern_params")
 		_add_param_section("── 弹丸配置 ──", w, "bullet_params")
 	# 模板参数
 	_add_param_section("── 模板参数 ──", w, "params")
-	# 按钮行
-	var row := HBoxContainer.new()
-	var apply := Button.new()
-	apply.text = "✔ 应用"
-	apply.pressed.connect(func(): apply_changes())
-	row.add_child(apply)
-	var save := Button.new()
-	save.text = "💾 保存"
-	save.pressed.connect(func(): save_requested.emit())
-	row.add_child(save)
-	_body.add_child(row)
 
 
 ## 写回数据 + 通知主控制器重跑
@@ -137,39 +125,59 @@ func _add_param_btn(wave: Dictionary, key: String) -> Button:
 	return btn
 
 
-## 添加参数弹窗：键名 + 值类型 + 值 → 写回 wave[key] 并重建表单
+## 添加参数弹窗：键名（可点常用快捷按钮）+ 值（类型自动识别）→ 写回并重建表单
 func _open_add_param(wave: Dictionary, key: String) -> void:
 	var vb := _dialog.open("＋ 添加参数")
-	var name_row := HBoxContainer.new()
-	name_row.add_child(WorkbenchUI.label("键名"))
+	# 输入控件（先声明，供下方 lambda 闭包引用）
 	var name_edit := LineEdit.new()
 	name_edit.placeholder_text = "如 n / speed / aim"
+	var val_edit := LineEdit.new()
+	val_edit.placeholder_text = "24 / true / 100,200 / 1,0,0,1"
+	# 常用键名快捷按钮（按当前弹幕模式建议）
+	var pattern_name := ""
+	if _tl and _idx >= 0 and _idx < _tl.waves.size():
+		pattern_name = str(_tl.waves[_idx].get("pattern", ""))
+	var common := PatternRegistry.suggest_params(pattern_name)
+	if not common.is_empty():
+		var hint := Label.new()
+		hint.text = "点一下填入键名："
+		hint.add_theme_font_size_override("font_size", 11)
+		hint.modulate = Color(0.5, 0.5, 0.6)
+		vb.add_child(hint)
+		var common_row := HBoxContainer.new()
+		common_row.add_theme_constant_override("separation", 4)
+		for name in common:
+			var b := Button.new()
+			b.text = str(name)
+			b.add_theme_font_size_override("font_size", 11)
+			b.pressed.connect(func(): name_edit.text = str(name))
+			common_row.add_child(b)
+		vb.add_child(common_row)
+	# 键名行
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 6)
+	name_row.add_child(WorkbenchUI.label("键名"))
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_row.add_child(name_edit)
 	vb.add_child(name_row)
-	var type_row := HBoxContainer.new()
-	type_row.add_child(WorkbenchUI.label("类型"))
-	var type_opt := OptionButton.new()
-	for t in ["float", "int", "bool", "String", "Vector2", "Color"]:
-		type_opt.add_item(t)
-	type_row.add_child(type_opt)
-	vb.add_child(type_row)
+	# 值行（类型自动识别）
 	var val_row := HBoxContainer.new()
+	val_row.add_theme_constant_override("separation", 6)
 	val_row.add_child(WorkbenchUI.label("值"))
-	var val_edit := LineEdit.new()
-	val_edit.placeholder_text = "24 / true / 100,200 / 1,0,0,1"
 	val_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	val_row.add_child(val_edit)
 	vb.add_child(val_row)
+	var info := Label.new()
+	info.text = "类型自动识别：数字 / true,false / x,y 坐标 / r,g,b,a 颜色"
+	info.add_theme_font_size_override("font_size", 11)
+	info.modulate = Color(0.5, 0.5, 0.6)
+	vb.add_child(info)
 	_dialog.add_actions("✓ 添加", func():
 		var k := name_edit.text.strip_edges()
 		if k.is_empty():
 			return
-		var parsed: Variant = _parse_param_value(type_opt.selected, val_edit.text)
-		if parsed == null and type_opt.selected != 3:
-			return  # 解析失败（String 允许空）
 		var dict: Dictionary = wave.get(key, {})
-		dict[k] = parsed
+		dict[k] = _infer_param_value(val_edit.text)
 		wave[key] = dict
 		show_wave(_tl, _idx)  # 重建表单
 	)
@@ -177,29 +185,34 @@ func _open_add_param(wave: Dictionary, key: String) -> void:
 	name_edit.grab_focus()
 
 
-## 按类型解析输入文本
-func _parse_param_value(type_idx: int, text: String) -> Variant:
-	match type_idx:
-		0:  # float
-			return text.to_float()
-		1:  # int
-			return int(text.to_float())
-		2:  # bool
-			return text == "true" or text == "1" or text == "yes"
-		3:  # String
-			return text
-		4:  # Vector2 "x,y"
-			var parts := text.split(",")
-			if parts.size() >= 2:
-				return Vector2(float(parts[0].strip_edges()), float(parts[1].strip_edges()))
-			return null
-		5:  # Color "r,g,b[,a]"
-			var cparts := text.split(",")
-			if cparts.size() >= 3:
-				return Color(float(cparts[0].strip_edges()), float(cparts[1].strip_edges()),
-					float(cparts[2].strip_edges()), float(cparts[3].strip_edges()) if cparts.size() > 3 else 1.0)
-			return null
-	return null
+## 从输入文本自动识别参数类型：int/float/bool/Vector2/Color/String
+func _infer_param_value(text: String) -> Variant:
+	var t := text.strip_edges()
+	if t.is_empty():
+		return ""
+	var lower := t.to_lower()
+	if lower == "true":
+		return true
+	if lower == "false":
+		return false
+	if "," in t:
+		var parts := t.split(",")
+		var nums: Array[float] = []
+		for p in parts:
+			var f := p.strip_edges().to_float()
+			if not is_finite(f):
+				return t  # 含非数字 → 当字符串
+			nums.append(f)
+		if nums.size() == 2:
+			return Vector2(nums[0], nums[1])
+		if nums.size() >= 3:
+			return Color(nums[0], nums[1], nums[2], nums[3] if nums.size() > 3 else 1.0)
+		return t
+	if t.is_valid_float():
+		if t.is_valid_int():
+			return int(t)
+		return t.to_float()
+	return t
 
 
 ## 下拉选择行（敌人模板/弹幕模式等），写回 wave[key]
@@ -246,17 +259,9 @@ func _add_field_edit(label_text: String, wave: Dictionary, key: String, min_v: f
 ## target 是写回的字典（模板参数/弹幕参数/弹丸配置通用）
 func _add_param_edit(target: Dictionary, key: String, value: Variant) -> void:
 	if value is Vector2:
-		var h := HBoxContainer.new()
-		h.add_theme_constant_override("separation", 6)
-		var l := WorkbenchUI.param_key_label(key)
-		h.add_child(l)
-		var sx := WorkbenchUI.mini_spin(value.x, -10000, 10000)
-		var sy := WorkbenchUI.mini_spin(value.y, -10000, 10000)
-		h.add_child(sx)
-		h.add_child(sy)
-		_body.add_child(h)
+		var spins: Array = WorkbenchUI.vec2_row(_body, key, value)
 		_edits.append({"apply": func():
-			target[key] = Vector2(sx.value, sy.value)
+			target[key] = Vector2(spins[0].value, spins[1].value)
 		})
 	elif value is bool:
 		var cb := CheckButton.new()

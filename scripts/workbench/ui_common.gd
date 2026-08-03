@@ -70,3 +70,36 @@ static func param_key_label(text: String) -> Label:
 	l.custom_minimum_size = Vector2(48, 0)
 	l.add_theme_color_override("font_color", TEXT_DIM)
 	return l
+
+
+## Vector2 参数行：x [ ] y [ ]（带 x/y 小标签，仿 Inspector 坐标编辑器）
+## 返回 [sx: SpinBox, sy: SpinBox] 供写回
+static func vec2_row(parent: Node, key: String, value: Vector2) -> Array:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 4)
+	h.add_child(param_key_label(key))
+	var sx := _axis_spin(value.x, "x")
+	var sy := _axis_spin(value.y, "y")
+	h.add_child(sx.row)
+	h.add_child(sy.row)
+	parent.add_child(h)
+	return [sx.spin, sy.spin]
+
+
+static func _axis_spin(v: float, axis: String) -> Dictionary:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 2)
+	var l := Label.new()
+	l.text = axis
+	l.custom_minimum_size = Vector2(12, 0)
+	l.add_theme_color_override("font_color", Color(0.45, 0.50, 0.60))
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(l)
+	var spin := SpinBox.new()
+	spin.min_value = -10000
+	spin.max_value = 10000
+	spin.step = 1.0
+	spin.value = v
+	spin.custom_minimum_size = Vector2(72, 0)
+	row.add_child(spin)
+	return {"row": row, "spin": spin}

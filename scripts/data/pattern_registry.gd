@@ -37,6 +37,20 @@ static func names() -> Array:
 	return n
 
 
+## 常用参数建议（工作台"添加参数"弹窗的快捷按钮）
+static func suggest_params(pattern_name: String) -> Array:
+	match pattern_name:
+		"ring":
+			return ["n", "speed", "aim", "random_start"]
+		"aim":
+			return ["n", "spread", "speed"]
+		"fan":
+			return ["n", "spread", "speed"]
+		"spiral":
+			return ["arms", "step", "speed"]
+	return ["n", "speed", "aim"]
+
+
 static func has(name: String) -> bool:
 	return BUILTINS.has(name) or _all_scripts().has(name)
 
