@@ -16,6 +16,7 @@ var _tl: Resource
 var _idx: int = -1
 var _edits: Array = []
 var _body: VBoxContainer
+var _dialog: DialogHost
 
 
 func _init() -> void:
@@ -25,6 +26,8 @@ func _init() -> void:
 	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body.add_theme_constant_override("separation", 4)
 	add_child(_body)
+	_dialog = DialogHost.new()
+	add_child(_dialog)
 
 
 ## 滚轮事件全部吞掉：内层表单滚到底时不触发外层面板滚动（嵌套滚动穿透）
@@ -68,24 +71,12 @@ func show_wave(tl: Resource, idx: int) -> void:
 	_add_enum_edit("弹幕", w, "pattern", PatternRegistry.names(), true)
 	if not str(w.get("pattern", "")).is_empty():
 		_add_field_edit("弹幕间隔", w, "pattern_interval", 0.05, 10.0, 0.05, false)
-		# 弹幕参数（复用值类型动态表单）
-		var pparams: Dictionary = w.get("pattern_params", {})
-		if not pparams.is_empty():
-			_body.add_child(WorkbenchUI.label("── 弹幕参数 ──"))
-			for k in pparams:
-				_add_param_edit(pparams, k, pparams[k])
-		# 弹丸配置
-		var bparams: Dictionary = w.get("bullet_params", {})
-		if not bparams.is_empty():
-			_body.add_child(WorkbenchUI.label("── 弹丸配置 ──"))
-			for k in bparams:
-				_add_param_edit(bparams, k, bparams[k])
-	# 模板参数（按值类型动态生成表单）
-	var params: Dictionary = w.get("params", {})
-	if not params.is_empty():
-		_body.add_child(WorkbenchUI.label("── 模板参数 ──"))
-		for k in params:
-			_add_param_edit(w.params, k, params[k])
+	# 弹幕参数（空也可添加；复用值类型动态表单）
+	if not str(w.get("pattern", "")).is_empty():
+		_add_param_section("── 弹幕参数 ──", w, "pattern_params")
+		_add_param_section("── 弹丸配置 ──", w, "bullet_params")
+	# 模板参数
+	_add_param_section("── 模板参数 ──", w, "params")
 	# 按钮行
 	var row := HBoxContainer.new()
 	var apply := Button.new()
@@ -109,6 +100,98 @@ func apply_changes() -> void:
 
 
 # ═══ 表单生成 ═══
+
+## 参数区：动态表单；空字典显示提示 + 「＋ 添加参数」按钮（新波次选弹幕后可配参数）
+func _add_param_section(title: String, wave: Dictionary, key: String) -> void:
+	_body.add_child(WorkbenchUI.label(title))
+	var dict: Dictionary = wave.get(key, {})
+	if dict.is_empty():
+		var row := HBoxContainer.new()
+		var hint := Label.new()
+		hint.text = "（空，使用默认值）"
+		hint.modulate = Color(0.5, 0.5, 0.6)
+		row.add_child(hint)
+		row.add_child(_add_param_btn(wave, key))
+		_body.add_child(row)
+		return
+	for k in dict:
+		_add_param_edit(dict, k, dict[k])
+	var add_row := HBoxContainer.new()
+	add_row.add_child(_add_param_btn(wave, key))
+	_body.add_child(add_row)
+
+
+func _add_param_btn(wave: Dictionary, key: String) -> Button:
+	var btn := Button.new()
+	btn.text = "＋ 添加参数"
+	btn.pressed.connect(func(): _open_add_param(wave, key))
+	return btn
+
+
+## 添加参数弹窗：键名 + 值类型 + 值 → 写回 wave[key] 并重建表单
+func _open_add_param(wave: Dictionary, key: String) -> void:
+	var vb := _dialog.open("＋ 添加参数")
+	var name_row := HBoxContainer.new()
+	name_row.add_child(WorkbenchUI.label("键名"))
+	var name_edit := LineEdit.new()
+	name_edit.placeholder_text = "如 n / speed / aim"
+	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_row.add_child(name_edit)
+	vb.add_child(name_row)
+	var type_row := HBoxContainer.new()
+	type_row.add_child(WorkbenchUI.label("类型"))
+	var type_opt := OptionButton.new()
+	for t in ["float", "int", "bool", "String", "Vector2", "Color"]:
+		type_opt.add_item(t)
+	type_row.add_child(type_opt)
+	vb.add_child(type_row)
+	var val_row := HBoxContainer.new()
+	val_row.add_child(WorkbenchUI.label("值"))
+	var val_edit := LineEdit.new()
+	val_edit.placeholder_text = "24 / true / 100,200 / 1,0,0,1"
+	val_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	val_row.add_child(val_edit)
+	vb.add_child(val_row)
+	_dialog.add_actions("✓ 添加", func():
+		var k := name_edit.text.strip_edges()
+		if k.is_empty():
+			return
+		var parsed: Variant = _parse_param_value(type_opt.selected, val_edit.text)
+		if parsed == null and type_opt.selected != 3:
+			return  # 解析失败（String 允许空）
+		var dict: Dictionary = wave.get(key, {})
+		dict[k] = parsed
+		wave[key] = dict
+		show_wave(_tl, _idx)  # 重建表单
+	)
+	name_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
+	name_edit.grab_focus()
+
+
+## 按类型解析输入文本
+func _parse_param_value(type_idx: int, text: String) -> Variant:
+	match type_idx:
+		0:  # float
+			return text.to_float()
+		1:  # int
+			return int(text.to_float())
+		2:  # bool
+			return text == "true" or text == "1" or text == "yes"
+		3:  # String
+			return text
+		4:  # Vector2 "x,y"
+			var parts := text.split(",")
+			if parts.size() >= 2:
+				return Vector2(float(parts[0].strip_edges()), float(parts[1].strip_edges()))
+			return null
+		5:  # Color "r,g,b[,a]"
+			var cparts := text.split(",")
+			if cparts.size() >= 3:
+				return Color(float(cparts[0].strip_edges()), float(cparts[1].strip_edges()),
+					float(cparts[2].strip_edges()), float(cparts[3].strip_edges()) if cparts.size() > 3 else 1.0)
+			return null
+	return null
+
 
 ## 下拉选择行（敌人模板/弹幕模式等），写回 wave[key]
 func _add_enum_edit(label_text: String, wave: Dictionary, key: String, options: Array, allow_empty: bool) -> void:

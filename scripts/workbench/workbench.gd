@@ -348,6 +348,8 @@ func _refresh_timeline_bookmarks() -> void:
 
 ## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
 func _start_collection(content_hash: int) -> void:
+	if _collecting:
+		return  # 防重入：已有收集在进行（切换关卡时旧收集未完成）
 	_collect_attempts += 1
 	if _collect_attempts > 2:
 		# 兜底：收集链路异常（缓存写不进等）→ 退回静态提取，避免无限加速循环
@@ -558,9 +560,19 @@ func _save_timeline() -> void:
 # ═══ 播放 / 暂停 / 快进 ═══
 
 func _restart() -> void:
+	_cancel_collection()
 	_stop_fast_forward()
 	_load_stage()
 	_log_line("↺ 重跑")
+
+
+## 取消进行中的书签收集（切换关卡/重跑时调用，避免旧收集与新流程重叠）
+func _cancel_collection() -> void:
+	if _collecting:
+		_collecting = false
+		Engine.time_scale = SPEEDS[_speed_idx]
+		Engine.max_physics_steps_per_frame = 8
+		_apply_audio()
 
 
 func _toggle_play() -> void:
