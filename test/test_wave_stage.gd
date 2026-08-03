@@ -16,6 +16,17 @@ class MockWaveStage:
 var _stage: MockWaveStage
 
 
+func _make_timeline() -> StageTimeline:
+	var tl := StageTimeline.new()
+	tl.waves = [
+		{"t": 1.0, "name": "A", "enemy": "red_little", "count": 5, "interval": 0.5},   # dur 2.5
+		{"t": 4.0, "name": "B", "enemy": "red_little", "count": 5, "interval": 0.5},   # dur 2.5
+		{"t": 8.0, "name": "C", "enemy": "red_little", "count": 5, "interval": 0.5},
+		{"t": 12.0, "name": "D", "enemy": "red_little", "count": 5, "interval": 0.5},
+	]
+	return tl
+
+
 func before_each():
 	_stage = MockWaveStage.new()
 	add_child_autofree(_stage)
@@ -69,3 +80,39 @@ func test_start_wave_registers_independent_tasks():
 	assert_eq(_stage._tasks.size(), 2, "两波应注册两个并行 Task")
 	_stage.stop()
 	assert_eq(_stage._tasks.size(), 0, "stop 应清空")
+
+
+## E3 续跑：起点前已结束的波次跳过，跨起点/后续波次按相对时刻注册
+func test_start_from_skips_and_shifts():
+	_stage.timeline_override = _make_timeline()
+	StageManager.pending_start_from = 8.0  # 从 t=5 起跑（前 3 秒）
+	var runner := CoroutineRunner.new()
+	add_child_autofree(runner)
+	_stage.start(StageContext.new(runner))
+	var evs: Array = _stage._tl._events
+	assert_eq(evs.size(), 3, "t=1（起点前已结束）应跳过，共 4-1=3 个")
+	var times: Array = []
+	for ev in evs:
+		times.append(float(ev.time))
+	times.sort()
+	assert_almost_eq(times[0], 0.0, 0.001, "B（跨起点 dur 覆盖 5s）应从起点立即生成")
+	assert_almost_eq(times[1], 3.0, 0.001, "C 相对起点 3s")
+	assert_almost_eq(times[2], 7.0, 0.001, "D 相对起点 7s")
+	StageManager.pending_start_from = -1.0
+
+
+## E3 默认（-1）：全部注册、时刻不变（从 0 跑）
+func test_start_from_default_full():
+	_stage.timeline_override = _make_timeline()
+	StageManager.pending_start_from = -1.0
+	var runner := CoroutineRunner.new()
+	add_child_autofree(runner)
+	_stage.start(StageContext.new(runner))
+	var evs: Array = _stage._tl._events
+	assert_eq(evs.size(), 4, "默认全部注册")
+	var times: Array = []
+	for ev in evs:
+		times.append(float(ev.time))
+	times.sort()
+	assert_almost_eq(times[0], 1.0, 0.001, "A 时刻不变")
+	assert_almost_eq(times[3], 12.0, 0.001, "D 时刻不变")

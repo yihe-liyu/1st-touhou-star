@@ -62,8 +62,8 @@ script = ExtResource("1_nyj52")
 stage = 0
 phase_index = 0
 name = "测试符卡"
-attempts = 1458
-captures = 1093
+attempts = 1462
+captures = 1096
 best_score = 10000
 best_time = 5.01
 

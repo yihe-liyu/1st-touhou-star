@@ -270,7 +270,8 @@ func _setup_world() -> void:
 
 # ═══ 关卡加载 / 重跑 ═══
 
-func _load_stage() -> void:
+## 加载关卡（start_from >= 0 = 从该时刻续跑，数据关卡专用）
+func _load_stage(start_from: float = -1.0) -> void:
 	# 停止旧关卡 + 清空
 	StageManager.stop_stage()
 	BulletManager.clear_all()
@@ -303,7 +304,7 @@ func _load_stage() -> void:
 		_background.process_mode = Node.PROCESS_MODE_PAUSABLE
 		add_child(_background)
 	# 真实加载（跑 stage01.gd 的 Timeline）
-	StageManager.load_stage(_stage_data)
+	StageManager.load_stage(_stage_data, start_from)
 	# 时间轴 + 书签（缓存优先，未命中则静默收集真实时刻）
 	# 窗口自适应：数据关卡按最大波次时刻；协程关卡默认 60s
 	var win := 60.0
@@ -519,10 +520,25 @@ func _on_wave_moved(idx: int, t: float) -> void:
 	_log_line("↔ 波次「%s」→ t=%.1fs" % [name_str, t])
 
 
-## 应用：WaveForm 已写回 timeline 数据 → 重跑（WaveStage 读同一资源，新参数生效）
-func _on_wave_applied(_idx: int) -> void:
-	_log_line("✔ 应用波次参数 → 重跑")
-	_restart()
+## 应用：WaveForm 已写回 timeline 数据 → 从该波次前 3 秒续跑验证
+## （不需要从头跑：改参即看效果的核心循环）
+func _on_wave_applied(idx: int) -> void:
+	var t_from := -1.0
+	if _current_timeline and idx >= 0 and idx < _current_timeline.waves.size():
+		t_from = float(_current_timeline.waves[idx].get("t", 0.0))
+	if t_from >= 0.0:
+		_log_line("✔ 应用波次参数 → 从 %.1fs 续跑" % t_from)
+		_restart_from(t_from)
+	else:
+		_log_line("✔ 应用波次参数 → 重跑")
+		_restart()
+
+
+## 从指定关卡时刻续跑（数据关卡：起点前已结束的波次跳过）
+func _restart_from(t: float) -> void:
+	_stop_fast_forward()
+	_load_stage(t)
+	_log_line("▶ 从 %.1fs 续跑" % t)
 
 
 ## 保存：写回 .tres（user:// 可写副本；运行时 res:// 只读）

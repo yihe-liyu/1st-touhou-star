@@ -12,15 +12,32 @@ static func current_timeline() -> StageTimeline:
 		return load(USER_TIMELINE_PATH)
 	return TIMELINE
 
+## 测试/编辑器注入用：优先返回此 timeline（否则回退 static 默认读取）
+var timeline_override: StageTimeline
+
+func _current_timeline() -> StageTimeline:
+	if timeline_override:
+		return timeline_override
+	return current_timeline()
+
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
 	if p_target:
 		target = p_target
 	var tl := start_timeline()
-	for wave in current_timeline().waves:
+	# 续跑起点（工作台 E3）：从目标时刻前 3 秒起跑，起点前已结束的波次跳过
+	var from := StageManager.pending_start_from
+	var t0 := maxf(from - 3.0, 0.0) if from >= 0.0 else 0.0
+	for wave in _current_timeline().waves:
 		var w: Dictionary = wave  # 循环捕获：GDScript 闭包要复制
-		tl.at(float(w.t)).do(func():
+		var wt := float(w.t)
+		if from >= 0.0:
+			var dur := maxf(float(w.get("count", 1)) * float(w.get("interval", 0.5)), 1.0)
+			if wt + dur < t0 - 0.05:
+				continue  # 起点前已完全结束的波次：跳过（跨起点的保留，从起点继续生成）
+		# 注册时刻相对起点（tick 的 _elapsed 从 0 开始 → 等效"从 t0 起跑"）
+		tl.at(maxf(wt, t0) - t0).do(func():
 			_start_wave(w)
 		)
 	super.start(ctx, target)
