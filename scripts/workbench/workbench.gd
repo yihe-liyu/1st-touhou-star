@@ -60,6 +60,9 @@ var _add_boss_btn: Button
 ## 多 Boss 编辑：当前关卡 Boss 列表（{boss, t, src}）+ 当前编辑索引
 var _boss_entries: Array = []
 var _boss_cur: int = 0
+## 未保存改动标记（切关卡前确认）；当前编辑阶段索引（表单刷新后恢复选中）
+var _dirty: bool = false
+var _phase_cur: int = 0
 @onready var _world: Node2D = $World
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
@@ -595,6 +598,7 @@ func _add_wave() -> void:
 	})
 	_refresh_wave_table()
 	_wave_table.select_row(_wave_table.row_count() - 1)  # 选中新行
+	_dirty = true
 	_log_line("➕ 添加波次")
 
 
@@ -618,6 +622,7 @@ func _delete_selected_wave() -> void:
 	_dialog.add_actions("确定", func():
 		timeline.waves.remove_at(idx)
 		_refresh_wave_table()
+		_dirty = true
 		_log_line("🗑 删除波次：%s" % wave_name)
 	)
 
@@ -641,6 +646,7 @@ func _on_wave_moved(idx: int, t: float) -> void:
 		name_str = str(_current_timeline.waves[idx].get("name", ""))
 	_refresh_wave_table()
 	_wave_table.select_row(idx)
+	_dirty = true
 	_log_line("↔ 波次「%s」→ t=%.1fs" % [name_str, t])
 
 
@@ -674,6 +680,7 @@ func _save_timeline() -> void:
 	_wave_form.flush()  # 表单当前值写回数据，避免保存旧值
 	var err := ResourceSaver.save(timeline, timeline.resource_path)
 	if err == OK:
+		_dirty = false
 		_log_line("💾 编排数据已保存 → " + timeline.resource_path)
 	else:
 		_log_line("⚠️ 保存失败：%s（err=%d）" % [timeline.resource_path, err])
@@ -766,13 +773,23 @@ func _stop_fast_forward() -> void:
 # ═══ 选项回调 ═══
 
 func _on_stage_selected(idx: int) -> void:
-	match idx:
-		0:
-			_stage_data = STAGE_DEMO
-		1:
-			_stage_data = STAGE1_DATA
-	_restart()
-	_log_line("🎚 切换关卡：%s" % (_stage_sel.get_item_text(idx)))
+	var do_switch := func():
+		match idx:
+			0:
+				_stage_data = STAGE_DEMO
+			1:
+				_stage_data = STAGE1_DATA
+		_dirty = false
+		_restart()
+		_log_line("🎚 切换关卡：%s" % (_stage_sel.get_item_text(idx)))
+	if _dirty:
+		var vb := _dialog.open("⚠️ 未保存的改动")
+		var msg := Label.new()
+		msg.text = "当前关卡的改动尚未保存，切换关卡将丢失。确定切换？"
+		vb.add_child(msg)
+		_dialog.add_actions("仍要切换", do_switch)
+	else:
+		do_switch.call()
 
 
 func _on_speed_selected(idx: int) -> void:
@@ -906,6 +923,7 @@ func _on_timeline_boss_moved(idx: int, t: float) -> void:
 	else:
 		var arr_idx: int = e["src"]["arr"]
 		_stage_data.bosses[arr_idx]["t"] = t
+	_dirty = true
 	_log_line("↔ Boss%d 出现时刻 → t=%.1fs（保存后生效）" % [idx + 1, t])
 
 
@@ -951,6 +969,7 @@ func _add_boss() -> void:
 		_refresh_wave_table()
 		_refresh_spell_section()
 		_update_edit_mode()
+		_dirty = true
 		_log_line("➕ 追加 Boss%d：%s（t=%.0fs，时间轴拖红条带改）" % [_boss_entries.size(), nb.boss_name, last_t + 20.0] if err == OK else "⚠️ Boss 保存失败：%d" % err)
 		return
 	# 第一个 Boss（legacy 字段）
@@ -964,6 +983,7 @@ func _add_boss() -> void:
 	_refresh_wave_table()
 	_refresh_spell_section()
 	_update_edit_mode()
+	_dirty = true
 	if err2 == OK:
 		_log_line("➕ 添加 Boss：%s（时间轴上拖红色条带调出现时刻）" % boss.boss_name)
 	else:
@@ -990,6 +1010,7 @@ func _add_phase() -> void:
 	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
 	_refresh_spell_section()
 	if err == OK:
+		_dirty = true
 		_log_line("➕ 添加阶段（%s 难度，共 %d 个，击破后自动进入下一阶段）" % [BossData.difficulty_name(_diff_sel.selected if _diff_sel else 1), arr.size()])
 	else:
 		_log_line("⚠️ 阶段保存失败：%d" % err)
@@ -1043,12 +1064,50 @@ func _refresh_spell_section() -> void:
 	boss_opt.selected = _boss_cur
 	boss_opt.item_selected.connect(func(i: int):
 		_boss_cur = i
+		_phase_cur = 0
+		_refresh_wave_table()  # 表格 Boss 行同步当前编辑的 Boss
 		_refresh_spell_section()
 	)
 	boss_row.add_child(boss_opt)
 	var boss_l := Label.new()
 	boss_l.text = str(boss.boss_name)
 	boss_row.add_child(boss_l)
+	# ── Boss 级（独立于阶段）：入场/退场演出脚本 + 删除 Boss + 应用续跑 ──
+	var boss_meta := HBoxContainer.new()
+	boss_meta.add_theme_constant_override("separation", 4)
+	boss_meta.add_child(WorkbenchUI.param_label("入场"))
+	var enter_opt := _spell_script_opt(BossScriptRegistry.enter_names(), boss.enter_script)
+	enter_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	enter_opt.item_selected.connect(func(_i: int):
+		var n := enter_opt.get_item_text(enter_opt.selected)
+		boss.enter_script = BossScriptRegistry.enter_script(n) if n != "无" else null
+		_dirty = true
+		_log_line("✔ 入场脚本 → %s（保存后生效）" % n)
+	)
+	boss_meta.add_child(enter_opt)
+	boss_meta.add_child(WorkbenchUI.param_label("退场"))
+	var exit_opt := _spell_script_opt(BossScriptRegistry.exit_names(), boss.exit_script)
+	exit_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	exit_opt.item_selected.connect(func(_i: int):
+		var n := exit_opt.get_item_text(exit_opt.selected)
+		boss.exit_script = BossScriptRegistry.exit_script(n) if n != "无" else null
+		_dirty = true
+		_log_line("✔ 退场脚本 → %s（保存后生效）" % n)
+	)
+	boss_meta.add_child(exit_opt)
+	var apply_meta := Button.new()
+	apply_meta.text = "▶ 应用并续跑"
+	apply_meta.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	apply_meta.pressed.connect(func():
+		_restart_from(maxf(float(_boss_entries[_boss_cur]["t"]) - 3.0, 0.0))
+	)
+	boss_meta.add_child(apply_meta)
+	var del_boss := Button.new()
+	del_boss.text = "🗑 Boss"
+	del_boss.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	del_boss.pressed.connect(_delete_boss)
+	boss_meta.add_child(del_boss)
+	_spell_section.add_child(boss_meta)
 	# 难度提示（顶部全局难度下拉控制编辑/预览，无需 Boss 区重复）
 	boss_row.add_child(_add_phase_btn())
 	_spell_section.add_child(boss_row)
@@ -1058,7 +1117,11 @@ func _refresh_spell_section() -> void:
 	for i in arr.size():
 		var p: PhaseData = arr[i]
 		_phase_sel.add_item("%d: %s" % [i, p.name if not p.name.is_empty() else "非符"])
-	_phase_sel.item_selected.connect(func(_i: int): _refresh_spell_form())
+	_phase_sel.selected = clampi(_phase_cur, 0, maxi(0, arr.size() - 1))
+	_phase_sel.item_selected.connect(func(i: int):
+		_phase_cur = i
+		_refresh_spell_form()
+	)
 	_spell_section.add_child(_phase_sel)
 	# 重建表单容器（上一轮清空后需重建）
 	_spell_form_box = VBoxContainer.new()
@@ -1099,14 +1162,7 @@ func _refresh_spell_form() -> void:
 	var shoot_opt := _spell_script_opt(BossScriptRegistry.shoot_names(), phase.shoot_script)
 	fields["shoot"] = shoot_opt
 	_spell_form_box.add_child(_spell_row("弹幕", shoot_opt))
-	# 入场/退场演出脚本（Boss 战斗外行为；BossData 级，boss 已在函数开头声明）
-	if boss:
-		var enter_opt := _spell_script_opt(BossScriptRegistry.enter_names(), boss.enter_script)
-		fields["enter"] = enter_opt
-		_spell_form_box.add_child(_spell_row("入场", enter_opt))
-		var exit_opt := _spell_script_opt(BossScriptRegistry.exit_names(), boss.exit_script)
-		fields["exit"] = exit_opt
-		_spell_form_box.add_child(_spell_row("退场", exit_opt))
+	# 注意：入场/退场是 Boss 级设置，已在 Boss 选择行下编辑（此处不重复）
 	# 脚本参数（移动+弹幕反射合并建议 + 已加参数行）
 	_spell_form_box.add_child(WorkbenchUI.section_title("── 脚本参数 ──"))
 	var suggest: Dictionary = {}
@@ -1151,7 +1207,11 @@ func _refresh_spell_form() -> void:
 	apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	apply.pressed.connect(func():
 		_spell_apply(phase, fields)
-		_log_line("✔ 符卡阶段已应用（重跑生效）")
+		_dirty = true
+		# 与波次一致：改参即续跑（从 Boss 出现前 3s，到阶段立刻看效果）
+		var boss_t: float = float(_boss_entries[_boss_cur]["t"]) if not _boss_entries.is_empty() else 0.0
+		_log_line("✔ 符卡阶段已应用 → 从 Boss 前 3s 续跑")
+		_restart_from(maxf(boss_t - 3.0, 0.0))
 	)
 	btn_row.add_child(apply)
 	var save := Button.new()
@@ -1162,7 +1222,68 @@ func _refresh_spell_form() -> void:
 		_save_spell()
 	)
 	btn_row.add_child(save)
+	var del_phase := Button.new()
+	del_phase.text = "🗑 阶段"
+	del_phase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	del_phase.pressed.connect(_delete_phase)
+	btn_row.add_child(del_phase)
 	_spell_form_box.add_child(btn_row)
+
+
+## 删除当前选中阶段（确认后从当前难度数组移除并保存）
+func _delete_phase() -> void:
+	var arr := _boss_phases()
+	if _phase_sel == null or _phase_sel.selected < 0 or _phase_sel.selected >= arr.size():
+		_log_line("ℹ 先选中要删除的阶段")
+		return
+	var idx := _phase_sel.selected
+	var pname: String = str(arr[idx].name)
+	if pname.is_empty():
+		pname = "非符#%d" % idx
+	var vb := _dialog.open("🗑 删除阶段")
+	var msg := Label.new()
+	msg.text = "确定删除「%s」？" % pname
+	vb.add_child(msg)
+	_dialog.add_actions("确定", func():
+		arr.remove_at(idx)
+		_phase_cur = 0
+		var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+		_refresh_spell_section()
+		_dirty = false
+		if err == OK:
+			_log_line("🗑 删除阶段：%s" % pname)
+		else:
+			_log_line("⚠️ 删除阶段保存失败：%d" % err)
+	)
+
+
+## 删除当前 Boss（确认后移除并保存）
+func _delete_boss() -> void:
+	if _boss_entries.is_empty() or _boss_cur < 0 or _boss_cur >= _boss_entries.size():
+		return
+	var e: Dictionary = _boss_entries[_boss_cur]
+	var bname: String = str(e["boss"].boss_name)
+	var vb := _dialog.open("🗑 删除 Boss")
+	var msg := Label.new()
+	msg.text = "确定删除 Boss「%s」？（其全部阶段/符卡将移除）" % bname
+	vb.add_child(msg)
+	_dialog.add_actions("确定", func():
+		if e["src"] == "legacy":
+			_stage_data.boss = null
+		else:
+			_stage_data.bosses.remove_at(e["src"]["arr"])
+		_rebuild_boss_entries()
+		_phase_cur = 0
+		var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+		_refresh_wave_table()
+		_refresh_spell_section()
+		_update_edit_mode()
+		_dirty = false
+		if err == OK:
+			_log_line("🗑 删除 Boss：%s" % bname)
+		else:
+			_log_line("⚠️ 删除 Boss 保存失败：%d" % err)
+	)
 
 
 ## 阶段表单行（label + control）
@@ -1204,13 +1325,7 @@ func _spell_apply(phase: PhaseData, fields: Dictionary) -> void:
 	phase.move_script = BossScriptRegistry.move_script(move_name) if move_name != "无" else null
 	var shoot_name: String = fields["shoot"].get_item_text(fields["shoot"].selected)
 	phase.shoot_script = BossScriptRegistry.shoot_script(shoot_name) if shoot_name != "无" else null
-	# 入场/退场（BossData 级）
-	var boss := _current_boss()
-	if boss:
-		var enter_name: String = fields["enter"].get_item_text(fields["enter"].selected)
-		boss.enter_script = BossScriptRegistry.enter_script(enter_name) if enter_name != "无" else null
-		var exit_name: String = fields["exit"].get_item_text(fields["exit"].selected)
-		boss.exit_script = BossScriptRegistry.exit_script(exit_name) if exit_name != "无" else null
+	# 注意：入场/退场是 Boss 级设置，在 Boss 选择行下编辑（BossData 级，此处不处理）
 
 
 ## 保存符卡数据（多 Boss：写回出现时刻 + 保存关卡 + 各 Boss 独立 .tres）
@@ -1234,6 +1349,7 @@ func _save_spell() -> void:
 			if e2 != OK:
 				err = e2
 	if err == OK:
+		_dirty = false
 		_log_line("💾 符卡数据已保存（%d 个 Boss）" % _boss_entries.size())
 	else:
 		_log_line("⚠️ 符卡保存失败：%d" % err)
