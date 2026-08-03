@@ -67,7 +67,10 @@ func selected_idx() -> int:
 
 
 ## 选中某行（外部：新增/刷新后恢复选中）
+## 同 idx 守卫：表格/时间轴双向联动时避免递归触发 wave_selected
 func select_row(idx: int) -> void:
+	if idx == _selected_idx:
+		return
 	_selected_idx = idx
 	_update_highlight()
 	wave_selected.emit(idx)

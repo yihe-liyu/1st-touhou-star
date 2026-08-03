@@ -12,8 +12,6 @@ static func current_timeline() -> StageTimeline:
 		return load(USER_TIMELINE_PATH)
 	return TIMELINE
 
-var _wave_state: Dictionary = {}  # {wave, remaining, interval} 当前波次生成状态
-
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
@@ -29,24 +27,24 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 
 func _start_wave(wave: Dictionary) -> void:
-	_wave_state = {
+	# 每波次独立状态（闭包局部，不能放成员变量）：
+	# 两个波次同 t 同时触发时，成员变量会被覆盖 → 丢波次 + 弹幕参数错乱
+	var state := {
 		"wave": wave,
 		"remaining": int(wave.get("count", 1)),
 		"interval": float(wave.get("interval", 0.5)),
 	}
-	run_parallel(_wave_step.bind(ctx))
+	run_parallel(_wave_step.bind(ctx, state))
 
 
 ## 每帧驱动：生成一个敌人 → 等 interval → 再生成
-func _wave_step(_p_ctx: StageContext) -> Variant:
-	if _wave_state.is_empty():
+## state 是闭包局部：多波次并行（含同 t）互不干扰
+func _wave_step(_p_ctx: StageContext, state: Dictionary) -> Variant:
+	if int(state.remaining) <= 0:
 		return false
-	if int(_wave_state.remaining) <= 0:
-		_wave_state = {}
-		return false
-	_spawn_one(_wave_state.wave)
-	_wave_state.remaining = int(_wave_state.remaining) - 1
-	return float(_wave_state.interval)
+	_spawn_one(state.wave)
+	state.remaining = int(state.remaining) - 1
+	return float(state.interval)
 
 
 func _spawn_one(wave: Dictionary) -> void:

@@ -1,27 +1,107 @@
-## 时间轴条带 —— 工作台 v2（关卡沙盒版）
+## 时间轴 —— 工作台（关卡沙盒版）
+##
+## 双态：
+##   折叠（32px）：细条，刻度 + 播放头 + 书签菱形 + 点击跳转（预览友好）
+##   展开（88px）：总谱视图，波次条带 + 重叠自动分行 + 选中高亮 + 拖拽改 t
 ##
 ## 真实关卡不支持任意 seek（协程/状态机/玩家交互），时间轴只做两件事：
-##   1. 显示当前游戏内时间（播放头）+ 书签标记（tl.at 时刻）
-##   2. 点击任意处 = 快进到该时刻（工作台收到 jump_to 后重跑+加速）
+##   1. 显示当前游戏内时间（播放头）+ 书签标记 + 波次分布
+##   2. 点击 = 快进到该时刻；点条带 = 选中波次；拖条带 = 改 t
+##
+## 信号：
+##   jump_to(t)          —— 点击空白/折叠态点击 → 快进
+##   right_clicked(t)    —— 右键 → 添加人工书签
+##   wave_selected(idx)  —— 点击波次条带 → 选中（表格/表单联动）
+##   wave_moved(idx, t)  —— 拖拽松手 → 已写回 waves[idx].t，请求刷新表格
 @tool
 extends Control
 class_name TimelineBar
 
-## 点击时间轴 = 快进到该时刻（非暂停/seek，见 workbench.gd）
 signal jump_to(t: float)
-## 右键点击时间轴 = 在该时刻添加人工书签
 signal right_clicked(t: float)
+signal wave_selected(idx: int)
+signal wave_moved(idx: int, t: float)
 
 var time: float = 0.0                 ## 当前游戏内时间（秒）
 var window_start: float = 0.0         ## 时间窗口起点（滚动/缩放后）
 var window_len: float = 60.0          ## 时间窗口（秒）
 var bookmarks: Array[Dictionary] = [] ## [{t, label}]，升序
 
+## 波次数据（StageTimeline.waves 的浅拷贝；元素是共享引用 → 拖拽写回即改数据源）
+var waves: Array = []
+var expanded: bool = false:
+	set(v):
+		if expanded == v:
+			return
+		expanded = v
+		_refresh_layout()
+		if _toggle:
+			_toggle.button_pressed = v
+			_toggle.text = "⏶ 收起" if v else "⏷ 总谱"
+## 选中的波次索引（表格/时间轴双向联动）
+var selected_wave: int = -1:
+	set(v):
+		selected_wave = v
+		queue_redraw()
+
+const COLLAPSED_H := 32.0
+const EXPANDED_H := 120.0
 const PAD := 8.0
+## 条带轨道区参数（展开态）
+const TRACK_TOP := 3.0
+const TRACK_ROW_H := 17.0
+const TRACK_BAND_H := 14.0
+## 最多可见轨道行（超出折叠为溢出提示；固定面板高度避免拖拽时 UI 跳变）
+const MAX_TRACKS := 5
+const TICK_Y := 88.0   # 展开态刻度区起点（轨道区之下）
+
+var _toggle: Button
+# 拖拽状态（条带）
+var _drag_idx := -1
+var _drag_mouse_start := 0.0
+var _drag_t_start := 0.0
+var _drag_t_preview := -1.0
+var _moved := false
+# 平移状态（空白拖动浏览时间窗口）
+var _panning := false
+var _pan_mouse_start := 0.0
+var _pan_start_ws := 0.0
+var _pan_moved := false
+const PAN_CLICK_TOLERANCE := 4.0  # 超过该像素位移才算拖动（否则视为点击）
 
 
 func _ready() -> void:
 	set_process(true)  # 播放跟随窗口平移
+	_toggle = Button.new()
+	_toggle.toggle_mode = true
+	_toggle.text = "⏷ 总谱"
+	_toggle.button_pressed = expanded
+	_toggle.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_toggle.offset_left = -66.0
+	_toggle.offset_right = -4.0
+	_toggle.offset_top = 4.0
+	_toggle.offset_bottom = 24.0
+	_toggle.toggled.connect(func(on: bool): expanded = on)
+	add_child(_toggle)
+	_refresh_layout()
+
+
+## 折叠/展开布局：高度切换（锚点底部固定，向上生长）
+func _refresh_layout() -> void:
+	var h := EXPANDED_H if expanded else COLLAPSED_H
+	custom_minimum_size = Vector2(0, h)
+	offset_top = -h
+	queue_redraw()
+
+
+## 设置波次数据（数据关卡传 timeline.waves；协程关卡传 [] → 总谱禁用）
+func set_waves(w: Array) -> void:
+	waves = w.duplicate()
+	if expanded and waves.is_empty():
+		expanded = false
+	if _toggle:
+		_toggle.disabled = waves.is_empty()
+	queue_redraw()
 
 
 func set_window(seconds: float) -> void:
@@ -51,65 +131,285 @@ func clear_bookmarks() -> void:
 	queue_redraw()
 
 
+# ═══ 绘制 ═══
+
 func _draw() -> void:
 	var w := size.x
-	var total := maxf(window_len, 0.001)
 	var cy := size.y / 2.0
 	# 轨道背景
 	draw_rect(Rect2(0, 0, w, size.y), Color(0.07, 0.07, 0.11))
-	# 刻度（每 1s 细线，每 5s 标数字）
+	if expanded:
+		_draw_tracks(w)
+		_draw_ticks(w, TICK_Y, size.y - 2.0)
+		_draw_bookmark_diamonds(w, TICK_Y + (size.y - 2.0 - TICK_Y) / 2.0)
+	else:
+		_draw_ticks(w, 0.0, size.y)
+		_draw_bookmark_diamonds(w, cy)
+	# 播放头（唯一移动的东西，贯穿全高）
+	var hx := clampf((time - window_start) / maxf(window_len, 0.001), 0.0, 1.0) * w
+	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.95), 2.0)
+
+
+## 波次条带：重叠自动分行（贪心），颜色按敌人类型分类
+## 只画可见轨道（MAX_TRACKS 行），超出画溢出提示
+## 拖拽中的条带用预览位置绘制（_drag_t_preview，不写回数据源）
+func _draw_tracks(w: float) -> void:
+	var rows := _visible_rows()
+	for r in rows.size():
+		var y := TRACK_TOP + r * TRACK_ROW_H
+		for band in rows[r]:
+			var t: float = float(band.t)
+			var is_dragging: bool = band.idx == _drag_idx and _drag_t_preview >= 0.0
+			if is_dragging:
+				t = _drag_t_preview
+			var x := _x(t, w)
+			var bw := maxf(band.dur / maxf(window_len, 0.001) * w, 3.0)
+			var col := _band_color(band.enemy)
+			var rect := Rect2(x, y, bw, TRACK_BAND_H)
+			# 部分在窗口外也画（裁切交给 Godot），但完全在左侧外的不画
+			if x + bw < -2.0 or x > w + 2.0:
+				continue
+			draw_rect(rect, col)
+			if band.idx == selected_wave or is_dragging:
+				draw_rect(rect, Color(1, 1, 1, 0.95), false, 1.5)
+			if bw > 26.0:
+				var font: Font = _font()
+				if font:
+					# 拖拽中显示实时 t 值，方便对齐
+					var label: String = "%.1fs" % t if is_dragging else band.name
+					draw_string(font, Vector2(x + 4.0, y + 11.0), label,
+						HORIZONTAL_ALIGNMENT_LEFT, bw - 6.0, 10, Color(1, 1, 1, 0.92))
+	# 溢出提示
+	var overflow := _overflow_count()
+	if overflow > 0:
+		var font: Font = _font()
+		if font:
+			draw_string(font, Vector2(w - 118.0, 13.0), "⚠ +%d 重叠未显示" % overflow,
+				HORIZONTAL_ALIGNMENT_LEFT, 108.0, 10, Color(1.0, 0.7, 0.3, 0.95))
+
+
+## 条带行布局：贪心分行（不与上一行重叠）
+func _layout_rows() -> Array:
+	if waves.is_empty():
+		return []
+	# 带原始索引排序（拖拽/选中需要 waves 数组序）
+	var sorted: Array = []
+	for i in waves.size():
+		sorted.append({"idx": i, "data": waves[i]})
+	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a.data.get("t", 0.0)) < float(b.data.get("t", 0.0)))
+	var rows: Array = []
+	for s in sorted:
+		var t := float(s.data.get("t", 0.0))
+		var dur := maxf(float(s.data.get("count", 1)) * float(s.data.get("interval", 0.5)), 1.0)
+		var band := {"idx": s.idx, "t": t, "dur": dur,
+			"name": str(s.data.get("name", "")), "enemy": str(s.data.get("enemy", ""))}
+		var placed := false
+		for row in rows:
+			var ok := true
+			for b in row:
+				if t < b.t + b.dur + 0.15 and t + dur > b.t - 0.15:
+					ok = false
+					break
+			if ok:
+				row.append(band)
+				placed = true
+				break
+		if not placed:
+			rows.append([band])
+	return rows
+
+
+## 可见轨道行：最多 MAX_TRACKS 行（超出折叠为溢出提示）
+func _visible_rows() -> Array:
+	var rows := _layout_rows()
+	if rows.size() <= MAX_TRACKS:
+		return rows
+	return rows.slice(0, MAX_TRACKS)
+
+
+## 溢出（未显示）的波次行数
+func _overflow_count() -> int:
+	return maxi(_layout_rows().size() - MAX_TRACKS, 0)
+
+
+## 命中测试：位置 → 波次索引（-1 = 空白）
+## 只测可见行：溢出行不参与命中（避免刻度区误触）
+func _hit_band(pos: Vector2) -> int:
+	if not expanded or waves.is_empty():
+		return -1
+	for r in _visible_rows().size():
+		var y := TRACK_TOP + r * TRACK_ROW_H
+		if pos.y < y or pos.y > y + TRACK_BAND_H:
+			continue
+		for band in _visible_rows()[r]:
+			var x := _x(band.t, size.x)
+			var bw := maxf(band.dur / maxf(window_len, 0.001) * size.x, 3.0)
+			if pos.x >= x and pos.x <= x + bw:
+				return band.idx
+	return -1
+
+
+## 敌人类型 → 条带颜色（按模板名前缀分类）
+func _band_color(enemy: String) -> Color:
+	var e := enemy.to_lower()
+	if e.contains("boss"):
+		return Color(1.0, 0.35, 0.3, 0.8)
+	if e.contains("red"):
+		return Color(0.95, 0.4, 0.35, 0.7)
+	if e.contains("blue"):
+		return Color(0.4, 0.65, 1.0, 0.7)
+	if e.contains("green"):
+		return Color(0.4, 0.9, 0.5, 0.7)
+	if e.contains("gold") or e.contains("yellow"):
+		return Color(1.0, 0.85, 0.3, 0.7)
+	if e.contains("white"):
+		return Color(0.9, 0.9, 0.95, 0.7)
+	if e.contains("purple") or e.contains("jade"):
+		return Color(0.75, 0.5, 1.0, 0.7)
+	return Color(0.6, 0.75, 0.9, 0.6)
+
+
+func _draw_ticks(w: float, y0: float, y1: float) -> void:
 	var ticks := int(ceil(window_len))
 	for i in ticks + 1:
-		var x := i / total * w
-		draw_line(Vector2(x, 0), Vector2(x, size.y), Color(1, 1, 1, 0.04))
+		var x := i / maxf(window_len, 0.001) * w
+		draw_line(Vector2(x, y0), Vector2(x, y1), Color(1, 1, 1, 0.04))
 		if i % 5 == 0:
 			_draw_tick_label(x, int(window_start) + i)
-	# 书签：菱形标记（颜色区分：前段敌波=蓝，Boss=红）
+
+
+func _draw_bookmark_diamonds(w: float, cy: float) -> void:
 	for bm in bookmarks:
-		var x := (float(bm.t) - window_start) / total * w
+		var x := (float(bm.t) - window_start) / maxf(window_len, 0.001) * w
 		if x < -6.0 or x > w + 6.0:
 			continue
 		var is_boss: bool = float(bm.t) >= 35.0
 		var col: Color = Color(1.0, 0.4, 0.3, 0.9) if is_boss else Color(0.4, 0.8, 1.0, 0.9)
 		draw_colored_polygon(PackedVector2Array([
-			Vector2(x, 5), Vector2(x + 6, cy), Vector2(x, size.y - 5), Vector2(x - 6, cy)
+			Vector2(x, cy - 5), Vector2(x + 5, cy), Vector2(x, cy + 5), Vector2(x - 5, cy)
 		]), col)
-	# 播放头（唯一移动的东西）
-	var hx := clampf((time - window_start) / total, 0.0, 1.0) * w
-	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.95), 2.0)
 
 
 func _draw_tick_label(x: float, sec: int) -> void:
-	var font: Font = ThemeDB.fallback_font
-	if font == null:
-		font = get_theme_default_font()
+	var font: Font = _font()
 	if font == null:
 		return
 	draw_string(font, Vector2(x + 2, 10), str(sec), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.6, 0.6, 0.7))
 
 
+func _font() -> Font:
+	var font: Font = ThemeDB.fallback_font
+	if font == null:
+		font = get_theme_default_font()
+	return font
+
+
+## 时刻 → 像素 x（当前窗口）
+func _x(t: float, w: float) -> float:
+	return (t - window_start) / maxf(window_len, 0.001) * w
+
+
+# ═══ 输入 ═══
+
 func _gui_input(event: InputEvent) -> void:
-	# 左键：跳转
-	if event is InputEventMouseButton and event.pressed \
-			and event.button_index == MOUSE_BUTTON_LEFT:
-		jump_to.emit(_x_to_time(event.position.x))
-		accept_event()
-	# 右键：在该时刻添加人工书签
-	elif event is InputEventMouseButton and event.pressed \
-			and event.button_index == MOUSE_BUTTON_RIGHT:
-		right_clicked.emit(_x_to_time(event.position.x))
-		accept_event()
-	# 滚轮：缩放时间窗口（上=放大局部，下=缩小回全貌），以鼠标位置为中心
-	elif event is InputEventMouseButton and event.pressed \
-			and (event.button_index == MOUSE_BUTTON_WHEEL_UP \
-				or event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
-		var ratio := clampf(event.position.x / maxf(size.x, 1.0), 0.0, 1.0)
-		var anchor_t := window_start + ratio * window_len  # 鼠标处时刻保持不动
-		var factor := 0.8 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.25
-		window_len = clampf(window_len * factor, 5.0, 600.0)
-		window_start = maxf(0.0, anchor_t - ratio * window_len)
-		queue_redraw()
-		accept_event()
+	# 拖拽中（motion）：条带改 t / 空白平移窗口
+	if event is InputEventMouseMotion:
+		if _drag_idx >= 0:
+			var mm := event as InputEventMouseMotion
+			var dx: float = mm.position.x - _drag_mouse_start
+			var dt: float = dx / maxf(size.x, 1.0) * window_len
+			_drag_t_preview = clampf(_drag_t_start + dt, 0.0, 9999.0)  # 预览平滑跟随（不吸附，跟手）
+			_moved = true
+			queue_redraw()
+			accept_event()
+			return
+		if _panning:
+			var pm := event as InputEventMouseMotion
+			if absf(pm.position.x - _pan_mouse_start) > PAN_CLICK_TOLERANCE:
+				_pan_moved = true
+			if _pan_moved:
+				var pdx: float = pm.position.x - _pan_mouse_start
+				var pdt: float = pdx / maxf(size.x, 1.0) * window_len
+				# 右拖 → 窗口向过去移（内容跟随鼠标向右）
+				window_start = maxf(0.0, _pan_start_ws - pdt)
+				queue_redraw()
+			accept_event()
+			return
+	# 松开：条带写回/选中；空白 pan 结束或点击跳转
+	if event is InputEventMouseButton and not event.pressed:
+		if _drag_idx >= 0:
+			var idx := _drag_idx
+			var moved := _moved
+			var preview := _drag_t_preview
+			_drag_idx = -1
+			_drag_t_preview = -1.0
+			_moved = false
+			if moved and preview >= 0.0 and idx < waves.size():
+				waves[idx]["t"] = snappedf(preview, 0.5)  # 松手才吸附 0.5s 网格（共享引用 → 数据源已更新）
+				wave_moved.emit(idx, snappedf(preview, 0.5))
+			elif not moved:
+				wave_selected.emit(idx)
+			accept_event()
+			return
+		if _panning:
+			var pan_moved := _pan_moved
+			var pos: Vector2 = (event as InputEventMouseButton).position
+			_stop_pan()
+			if not pan_moved:
+				jump_to.emit(_x_to_time(pos.x))  # 轻点（无拖动）= 快进跳转
+			accept_event()
+			return
+		return
+	if not (event is InputEventMouseButton and event.pressed):
+		return
+	match event.button_index:
+		MOUSE_BUTTON_LEFT:
+			if expanded and not waves.is_empty():
+				var hit := _hit_band(event.position)
+				if hit >= 0:
+					_drag_idx = hit
+					_drag_mouse_start = event.position.x
+					_drag_t_start = float(waves[hit].get("t", 0.0))
+					_drag_t_preview = -1.0
+					_moved = false
+					selected_wave = hit  # 高亮先行，表格等释放后跟随
+					accept_event()
+					return
+			# 空白：按住拖动 = 平移时间窗口；轻点 = 快进（松开时判定）
+			_start_pan(event.position.x)
+			accept_event()
+		MOUSE_BUTTON_RIGHT:
+			right_clicked.emit(_x_to_time(event.position.x))
+			accept_event()
+		MOUSE_BUTTON_WHEEL_UP:
+			_zoom(event.position.x, 0.8)
+			accept_event()
+		MOUSE_BUTTON_WHEEL_DOWN:
+			_zoom(event.position.x, 1.25)
+			accept_event()
+
+
+## 空白按下：开始平移（记录起点，松手判定点击/拖动）
+func _start_pan(mouse_x: float) -> void:
+	_panning = true
+	_pan_mouse_start = mouse_x
+	_pan_start_ws = window_start
+	_pan_moved = false
+
+
+func _stop_pan() -> void:
+	_panning = false
+	_pan_moved = false
+
+
+## 滚轮缩放：以鼠标位置为中心缩放时间窗口
+func _zoom(mouse_x: float, factor: float) -> void:
+	var ratio := clampf(mouse_x / maxf(size.x, 1.0), 0.0, 1.0)
+	var anchor_t := window_start + ratio * window_len  # 鼠标处时刻保持不动
+	window_len = clampf(window_len * factor, 5.0, 600.0)
+	window_start = maxf(0.0, anchor_t - ratio * window_len)
+	queue_redraw()
 
 
 ## 像素 x → 时刻（含窗口起点）
