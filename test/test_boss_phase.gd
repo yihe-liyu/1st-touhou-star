@@ -179,3 +179,40 @@ func test_no_drops_in_practice_mode():
 	GameState.is_practice_mode = original
 
 	assert_eq(ctx.calls.size(), 0, "练习模式不应掉落")
+
+## ── 难度差分 ──
+
+func _mk_phase(p_name: String) -> PhaseData:
+	var pd := PhaseData.new()
+	pd.name = p_name
+	pd.time_limit = 30.0
+	pd.hp = 1000
+	pd.shoot_script = load("res://scripts/coroutine/timeline/timeline.gd")
+	return pd
+
+func test_phases_for_difficulty_groups():
+	var bd := BossData.new()
+	bd.phase(_mk_phase("N1")).easy_phase(_mk_phase("E1")).hard_phase(_mk_phase("H1")).lunatic_phase(_mk_phase("L1"))
+	assert_eq(bd.phases_for_difficulty(1)[0].name, "N1", "Normal 取 phases")
+	assert_eq(bd.phases_for_difficulty(0)[0].name, "E1", "Easy 取 phases_easy")
+	assert_eq(bd.phases_for_difficulty(2)[0].name, "H1", "Hard 取 phases_hard")
+	assert_eq(bd.phases_for_difficulty(3)[0].name, "L1", "Lunatic 取 phases_lunatic")
+
+func test_phases_for_difficulty_fallback():
+	var bd := BossData.new()
+	bd.phase(_mk_phase("N1"))
+	# 其他难度未配置 → 回退 Normal/phases
+	assert_eq(bd.phases_for_difficulty(0)[0].name, "N1", "Easy 空回退 Normal")
+	assert_eq(bd.phases_for_difficulty(2)[0].name, "N1", "Hard 空回退 Normal")
+	assert_eq(bd.phases_for_difficulty(3)[0].name, "N1", "Lunatic 空回退 Normal")
+	assert_eq(bd.phases_for_difficulty(99)[0].name, "N1", "未知难度回退 Normal")
+
+func test_validate_checks_all_difficulty_groups():
+	var bd := BossData.new()
+	bd.phase(_mk_phase("N1"))
+	var bad := PhaseData.new()
+	bad.name = "坏符"
+	bad.time_limit = 0.0  # 非法时限 → 校验应报错
+	bd.lunatic_phase(bad)
+	var errs := bd.validate()
+	assert_true(errs.size() >= 1, "Lunatic 组非法阶段应被校验捕获")

@@ -49,7 +49,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			_run_event(e, etype)
 		)	# 数据关卡的 Boss（StageData.boss）：到 boss_time 生成 + 依次启动阶段
 	var stage_data: StageData = StageManager.current_stage
-	if stage_data and stage_data.boss and stage_data.boss.phases.size() > 0:
+	if stage_data and stage_data.boss and stage_data.boss.phases_for_difficulty(GameState.selected_difficulty).size() > 0:
 		var boss_data: BossData = stage_data.boss
 		var boss_t := stage_data.boss_time
 		tl.at(boss_t).do(func():
@@ -131,7 +131,8 @@ func _spawn_and_run_boss(boss_data: BossData) -> void:
 
 ## 启动阶段：冻结关卡时间直到击破，然后下一阶段；全部打完退场
 func run_phase(boss: Boss, boss_data: BossData, idx: int) -> void:
-	if idx >= boss_data.phases.size():
+	var phases: Array = boss_data.phases_for_difficulty(GameState.selected_difficulty)
+	if idx >= phases.size():
 		# 全部击破：自定义退场脚本或默认
 		if boss_data.exit_script:
 			var exit: CoroutineScript = boss_data.exit_script.new()
@@ -141,7 +142,7 @@ func run_phase(boss: Boss, boss_data: BossData, idx: int) -> void:
 			boss.set_exit_controlled()
 			boss.die()
 		return
-	var phase: PhaseData = boss_data.phases[idx]
+	var phase: PhaseData = phases[idx]
 	if _tl:
 		_tl.pause()  # 阶段期间冻结关卡编排（Boss 战专属）
 	boss.start_phase(phase)

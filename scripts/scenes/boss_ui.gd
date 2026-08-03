@@ -56,8 +56,8 @@ func _on_boss_spawned(boss: Node) -> void:
 	_dots.clear()
 	_phase_idx = 0
 	
-	for i in range(boss_data.phases.size() - 1, -1, -1):
-		var phase := boss_data.phases[i]
+	for i in range(boss_data.phases_for_difficulty(GameState.selected_difficulty).size() - 1, -1, -1):
+		var phase: PhaseData = boss_data.phases_for_difficulty(GameState.selected_difficulty)[i]
 		var dot := ColorRect.new()
 		dot.custom_minimum_size = Vector2(DOT_SIZE, DOT_SIZE)
 		dot.color = GRAY if phase.uid == 0 else GREEN
