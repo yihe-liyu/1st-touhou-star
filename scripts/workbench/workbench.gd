@@ -71,6 +71,10 @@ var _hitbox_overlay: Node2D  # 实际是 HitboxOverlay（preload，避免类缓�
 var _drag_divider := false
 var _drag_start_x := 0.0
 var _drag_start_off := 0.0
+# 详情表单高度拖拽
+var _form_drag := false
+var _form_drag_start_y := 0.0
+var _form_drag_start_h := 0.0
 
 # 书签收集（静默快进收集真实事件时刻，缓存到 user://）
 var _collecting := false
@@ -226,6 +230,13 @@ func _build_ui() -> void:
 	_wave_table.wave_selected.connect(_on_wave_selected)
 	_wave_section.add_child(_wave_table)
 	# 详情表单（自带滚动容器，固定高度防挤布局）
+	# 高度拖拽条：上下拖动调整表单可视区高度（80~400px）
+	var form_divider := ColorRect.new()
+	form_divider.custom_minimum_size = Vector2(0, 5)
+	form_divider.color = Color(1, 1, 1, 0.12)
+	form_divider.mouse_default_cursor_shape = Control.CURSOR_VSIZE
+	form_divider.gui_input.connect(func(ev: InputEvent): _on_form_divider_input(ev))
+	_wave_section.add_child(form_divider)
 	_wave_form = WaveForm.new()
 	_wave_form.applied.connect(_on_wave_applied)
 	_wave_form.save_requested.connect(_save_timeline)
@@ -714,6 +725,19 @@ func _clamp_panel_width() -> void:
 		_right_panel.offset_left = min_left
 		_divider.offset_left = min_left - 8.0
 		_divider.offset_right = min_left
+
+
+## 详情表单高度拖拽：上下拖动调整可视区高度（80~400px，内部滚动跟随）
+func _on_form_divider_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		_form_drag = event.pressed
+		if event.pressed:
+			_form_drag_start_y = (event as InputEventMouseButton).global_position.y
+			_form_drag_start_h = _wave_form.custom_minimum_size.y
+	elif event is InputEventMouseMotion and _form_drag:
+		var mm := event as InputEventMouseMotion
+		var dy: float = mm.global_position.y - _form_drag_start_y
+		_wave_form.custom_minimum_size.y = clampf(_form_drag_start_h + dy, 80.0, 400.0)
 
 
 ## 拖拽分割条：调整右侧面板宽度
