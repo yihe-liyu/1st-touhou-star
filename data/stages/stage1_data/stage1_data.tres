@@ -8,7 +8,6 @@
 
 [resource]
 script = ExtResource("4_xlxuu")
-stage_id = 11
 create_script = ExtResource("3_xh4fg")
 background_scene = ExtResource("1_mt2fa")
 timeline = ExtResource("5_8vfmc")

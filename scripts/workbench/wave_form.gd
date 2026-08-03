@@ -76,7 +76,6 @@ func show_wave(tl: Resource, idx: int) -> void:
 	_add_field_edit("数量", w, "count", 1.0, 60.0, 1.0, true)
 	_add_field_edit("间隔", w, "interval", 0.0, 10.0, 0.1, false)
 	# 数据预设（.tres：外观/血量/判定/掉落）+ 行为（移动+发弹脚本）自由组合
-	var data_name := str(w.get("enemy", ""))
 	var behavior_name := str(w.get("behavior", ""))
 	_add_enum_edit("数据", w, "enemy", EnemyTemplateRegistry.data_names(), false)
 	_add_enum_edit("行为", w, "behavior", EnemyTemplateRegistry.behavior_names(), false)

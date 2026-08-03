@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="StageRegistry" format=3 uid="uid://uw4akmjmbdbo"]
+[gd_resource type="Resource" script_class="StageRegistry" format=3]
 
-[ext_resource type="Script" uid="uid://b1aoagjxfaud2" path="res://scripts/data/stage_registry.gd" id="1"]
-[ext_resource type="Script" uid="uid://bvlmm7m3gtwc0" path="res://scripts/data/stage_data.gd" id="2"]
-[ext_resource type="Resource" uid="uid://crjdq5vsmukn7" path="res://data/stages/stage01/stage_data/stage01.tres" id="3"]
+[ext_resource type="Script" path="res://scripts/data/stage_registry.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="2"]
+[ext_resource type="Resource" path="res://data/stages/stage1_data/stage1_data.tres" id="3_63qft"]
 
 [resource]
 script = ExtResource("1")
-stages = Array[ExtResource("2")]([ExtResource("3")])
+stages = Array[ExtResource("2")]([ExtResource("3_63qft")])
