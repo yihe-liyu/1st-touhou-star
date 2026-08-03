@@ -51,6 +51,12 @@ func do(cb: Callable) -> Timeline:
 	return self
 
 
+## 时钟起点偏移（工作台续跑用）：_elapsed 从 offset 起步，事件时刻保持绝对
+## 状态栏/时间轴显示关卡绝对时刻（而非相对起点），避免"像从头开始"的错觉
+func start_at(offset: float) -> void:
+	_elapsed = maxf(offset, 0.0)
+
+
 ## 等上一个 blocking 事件结束后 N 秒执行（运行时计算）
 func wait(n: float) -> Timeline:
 	_time = -1.0  # 标记为相对事件，tick 时用 _cursor + n

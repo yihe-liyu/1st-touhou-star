@@ -35,12 +35,16 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		if from >= 0.0:
 			var dur := maxf(float(w.get("count", 1)) * float(w.get("interval", 0.5)), 1.0)
 			if wt + dur < t0 - 0.05:
-				continue  # 起点前已完全结束的波次：跳过（跨起点的保留，从起点继续生成）
-		# 注册时刻相对起点（tick 的 _elapsed 从 0 开始 → 等效"从 t0 起跑"）
-		tl.at(maxf(wt, t0) - t0).do(func():
+				continue  # 起点前已完全结束的波次：跳过（跨起点的保留，启动瞬间继续生成）
+		# 事件注册绝对时刻；Timeline 时钟从 t0 起步 → 自然在正确时刻触发
+		tl.at(wt).do(func():
 			_start_wave(w)
 		)
+	# 时钟从续跑起点起步：状态栏/时间轴显示绝对关卡时刻
+	tl.start_at(t0)
 	super.start(ctx, target)
+	if t0 > 0.0:
+		set_game_time(t0)  # 在 run()（会重置 _clock=0）之后设置
 
 
 func _start_wave(wave: Dictionary) -> void:

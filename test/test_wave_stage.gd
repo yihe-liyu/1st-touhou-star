@@ -82,7 +82,7 @@ func test_start_wave_registers_independent_tasks():
 	assert_eq(_stage._tasks.size(), 0, "stop 应清空")
 
 
-## E3 续跑：起点前已结束的波次跳过，跨起点/后续波次按相对时刻注册
+## E3 续跑：起点前已结束的波次跳过，跨起点/后续波次按绝对时刻注册
 func test_start_from_skips_and_shifts():
 	_stage.timeline_override = _make_timeline()
 	StageManager.pending_start_from = 8.0  # 从 t=5 起跑（前 3 秒）
@@ -95,9 +95,10 @@ func test_start_from_skips_and_shifts():
 	for ev in evs:
 		times.append(float(ev.time))
 	times.sort()
-	assert_almost_eq(times[0], 0.0, 0.001, "B（跨起点 dur 覆盖 5s）应从起点立即生成")
-	assert_almost_eq(times[1], 3.0, 0.001, "C 相对起点 3s")
-	assert_almost_eq(times[2], 7.0, 0.001, "D 相对起点 7s")
+	assert_almost_eq(times[0], 4.0, 0.001, "B（跨起点）注册绝对时刻 4s（启动瞬间触发）")
+	assert_almost_eq(times[1], 8.0, 0.001, "C 绝对时刻 8s")
+	assert_almost_eq(times[2], 12.0, 0.001, "D 绝对时刻 12s")
+	assert_almost_eq(_stage.game_time(), 5.0, 0.001, "时钟应从续跑起点 t0=5 起步（显示绝对时刻）")
 	StageManager.pending_start_from = -1.0
 
 
@@ -116,3 +117,4 @@ func test_start_from_default_full():
 	times.sort()
 	assert_almost_eq(times[0], 1.0, 0.001, "A 时刻不变")
 	assert_almost_eq(times[3], 12.0, 0.001, "D 时刻不变")
+	assert_almost_eq(_stage.game_time(), 0.0, 0.001, "默认时钟从 0 起步")
