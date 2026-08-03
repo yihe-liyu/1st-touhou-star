@@ -40,7 +40,14 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tl.at(wt).do(func():
 			_start_wave(w)
 		)
-	# 数据关卡的 Boss（StageData.boss）：到 boss_time 生成 + 依次启动阶段
+	# 演出事件（音乐/对话/自定义演出脚本）
+	for ev in _current_timeline().events:
+		var e: Dictionary = ev
+		var et := float(e.get("t", 0.0))
+		var etype := str(e.get("type", ""))
+		tl.at(et).do(func():
+			_run_event(e, etype)
+		)	# 数据关卡的 Boss（StageData.boss）：到 boss_time 生成 + 依次启动阶段
 	var stage_data: StageData = StageManager.current_stage
 	if stage_data and stage_data.boss and stage_data.boss.phases.size() > 0:
 		var boss_data: BossData = stage_data.boss
@@ -106,22 +113,34 @@ func _build_enemy(wave: Dictionary) -> EnemyData:
 
 # ═══ Boss 阶段驱动（数据关卡）═══
 
-## 生成 Boss + 入场 + 依次启动阶段（击破一个接下一个）
+## 生成 Boss + 入场（自定义脚本或默认顶部飞入）+ 依次启动阶段
 func _spawn_and_run_boss(boss_data: BossData) -> void:
 	var boss: Boss = StageManager.spawn_boss(boss_data, Vector2(GameConfig.FIELD_CENTER_X, -60), ctx)
 	if boss == null:
 		return
-	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(boss, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 200), 1.5)
+	if boss_data.enter_script:
+		var enter: CoroutineScript = boss_data.enter_script.new()
+		boss.add_child(enter)
+		enter.start(ctx, boss)
+	else:
+		# 默认入场：顶部飞入
+		var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(boss, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 200), 1.5)
 	run_phase(boss, boss_data, 0)
 
 
-## 启动阶段：冻结关卡时间直到击破，然后下一阶段；全部打完 Boss 退场
+## 启动阶段：冻结关卡时间直到击破，然后下一阶段；全部打完退场
 func run_phase(boss: Boss, boss_data: BossData, idx: int) -> void:
 	if idx >= boss_data.phases.size():
-		boss.set_exit_controlled()
-		boss.die()
+		# 全部击破：自定义退场脚本或默认
+		if boss_data.exit_script:
+			var exit: CoroutineScript = boss_data.exit_script.new()
+			boss.add_child(exit)
+			exit.start(ctx, boss)
+		else:
+			boss.set_exit_controlled()
+			boss.die()
 		return
 	var phase: PhaseData = boss_data.phases[idx]
 	if _tl:
@@ -132,3 +151,26 @@ func run_phase(boss: Boss, boss_data: BossData, idx: int) -> void:
 			_tl.resume()
 		run_phase(boss, boss_data, idx + 1)
 	, CONNECT_ONE_SHOT)
+
+
+## 演出事件执行（bgm/dialogue/custom 脚本逃逸口）
+func _run_event(ev: Dictionary, etype: String) -> void:
+	match etype:
+		"bgm":
+			var bgm: AudioStream = AssetRegistry.get_bgm(str(ev.get("bgm", "")))
+			if bgm:
+				ctx.audio.play_bgm(bgm)
+		"dialogue":
+			var path := str(ev.get("dialogue", ""))
+			if not path.is_empty() and ResourceLoader.exists(path):
+				var data: Resource = load(path)
+				if data and data.get("lines") != null:
+					ctx.play_dialogue(data.get("lines"))
+		"custom":
+			var spath := str(ev.get("script", ""))
+			if not spath.is_empty() and ResourceLoader.exists(spath):
+				var scr: Script = load(spath)
+				if scr and scr.new() is CoroutineScript:
+					var inst: CoroutineScript = scr.new()
+					add_child(inst)
+					inst.start(ctx)

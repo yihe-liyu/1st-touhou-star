@@ -34,6 +34,8 @@ var waves: Array = []
 ## Boss 条带（时间轴上的 Boss 实体；boss_time < 0 = 无 Boss）
 var boss_time: float = -1.0
 var boss_duration: float = 20.0
+## 演出事件标记（bgm=绿 / dialogue=紫 / custom=黄）
+var events: Array = []
 var expanded: bool = false:
 	set(v):
 		if expanded == v:
@@ -121,6 +123,12 @@ func set_boss(t: float, duration: float = 20.0) -> void:
 	queue_redraw()
 
 
+## 设置演出事件（StageTimeline.events）
+func set_events(evs: Array) -> void:
+	events = evs.duplicate()
+	queue_redraw()
+
+
 ## Boss 选中状态（workbench 编辑切换用）
 func set_boss_selected(selected: bool) -> void:
 	_boss_selected_flag = selected
@@ -164,13 +172,32 @@ func _draw() -> void:
 	if expanded:
 		_draw_tracks(w)
 		_draw_ticks(w, TICK_Y, size.y - 2.0)
+		_draw_events(w, TICK_Y, size.y - 2.0)
 		_draw_bookmark_diamonds(w, TICK_Y + (size.y - 2.0 - TICK_Y) / 2.0)
 	else:
 		_draw_ticks(w, 0.0, size.y)
+		_draw_events(w, 0.0, size.y)
 		_draw_bookmark_diamonds(w, cy)
 	# 播放头（唯一移动的东西，贯穿全高）
 	var hx := clampf((time - window_start) / maxf(window_len, 0.001), 0.0, 1.0) * w
 	draw_line(Vector2(hx, 0), Vector2(hx, size.y), Color(1.0, 0.9, 0.4, 0.95), 2.0)
+
+
+## 演出事件标记（小方块：bgm 绿 / 对话 紫 / 自定义 黄）
+func _draw_events(w: float, y0: float, y1: float) -> void:
+	var cy := y0 + (y1 - y0) / 2.0
+	for ev in events:
+		var t := float(ev.get("t", 0.0))
+		var x := (t - window_start) / maxf(window_len, 0.001) * w
+		if x < -6.0 or x > w + 6.0:
+			continue
+		var col := Color(0.4, 1.0, 0.5, 0.9)
+		match str(ev.get("type", "")):
+			"dialogue":
+				col = Color(0.75, 0.5, 1.0, 0.9)
+			"custom":
+				col = Color(1.0, 0.8, 0.3, 0.9)
+		draw_rect(Rect2(x - 3, cy - 3, 6, 6), col)
 
 
 ## 波次条带：重叠自动分行（贪心），颜色按敌人类型分类

@@ -50,6 +50,8 @@ const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
 @onready var _timeline: TimelineBar = %Timeline
 @onready var _stage_grid: GridContainer = %StageGrid
 @onready var _wave_section: VBoxContainer = %WaveSection
+# 演出事件编辑（音乐/对话/自定义演出）
+var _events_section: VBoxContainer
 # 符卡编辑（Boss 阶段）
 var _spell_section: VBoxContainer
 var _spell_form_box: VBoxContainer
@@ -249,6 +251,10 @@ func _build_ui() -> void:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.custom_minimum_size = Vector2(0, 28)
 	_wave_section.add_child(wave_btns)
+	# ── 演出事件（音乐/对话/自定义演出）──
+	_events_section = VBoxContainer.new()
+	_events_section.add_theme_constant_override("separation", 4)
+	_wave_section.add_child(_events_section)
 	# 波次表：自制行列表格（列头+网格线+选中高亮；含 Boss 行）
 	_wave_table = _WAVE_TABLE_SCRIPT.new()
 	_wave_table.custom_minimum_size = Vector2(0, 140)
@@ -541,6 +547,7 @@ func _refresh_wave_table() -> void:
 	_wave_form.clear()
 	var timeline = _current_timeline
 	_timeline.set_waves(timeline.waves if timeline else [])
+	_timeline.set_events(timeline.events if timeline else [])
 	# ＋Boss/＋阶段：数据关卡常驻显示（无 Boss 添加，有 Boss 追加阶段）
 	var has_boss: bool = _stage_data != null and _stage_data.boss != null
 	_add_boss_btn.visible = timeline != null
@@ -556,6 +563,7 @@ func _refresh_wave_table() -> void:
 	_wave_table.visible = true
 	_wave_form.visible = true
 	_wave_table.setup(timeline, _stage_data.boss if _stage_data else null)
+	_refresh_events_section()
 	_update_edit_mode()
 
 
@@ -1017,6 +1025,14 @@ func _refresh_spell_form() -> void:
 	var shoot_opt := _spell_script_opt(BossScriptRegistry.shoot_names(), phase.shoot_script)
 	fields["shoot"] = shoot_opt
 	_spell_form_box.add_child(_spell_row("弹幕", shoot_opt))
+	# 入场/退场演出脚本（Boss 战斗外行为；BossData 级，boss 已在函数开头声明）
+	if boss:
+		var enter_opt := _spell_script_opt(BossScriptRegistry.enter_names(), boss.enter_script)
+		fields["enter"] = enter_opt
+		_spell_form_box.add_child(_spell_row("入场", enter_opt))
+		var exit_opt := _spell_script_opt(BossScriptRegistry.exit_names(), boss.exit_script)
+		fields["exit"] = exit_opt
+		_spell_form_box.add_child(_spell_row("退场", exit_opt))
 	# 脚本参数（移动+弹幕反射合并建议 + 已加参数行）
 	_spell_form_box.add_child(WorkbenchUI.section_title("── 脚本参数 ──"))
 	var suggest: Dictionary = {}
@@ -1094,6 +1110,10 @@ func _spell_script_opt(names: Array, current_script: Script) -> OptionButton:
 		var s: Script = BossScriptRegistry.move_script(str(n))
 		if s == null:
 			s = BossScriptRegistry.shoot_script(str(n))
+		if s == null:
+			s = BossScriptRegistry.enter_script(str(n))
+		if s == null:
+			s = BossScriptRegistry.exit_script(str(n))
 		if s == current_script:
 			opt.selected = opt.item_count - 1
 	return opt
@@ -1110,6 +1130,13 @@ func _spell_apply(phase: PhaseData, fields: Dictionary) -> void:
 	phase.move_script = BossScriptRegistry.move_script(move_name) if move_name != "无" else null
 	var shoot_name: String = fields["shoot"].get_item_text(fields["shoot"].selected)
 	phase.shoot_script = BossScriptRegistry.shoot_script(shoot_name) if shoot_name != "无" else null
+	# 入场/退场（BossData 级）
+	var boss: BossData = _stage_data.boss if _stage_data else null
+	if boss:
+		var enter_name: String = fields["enter"].get_item_text(fields["enter"].selected)
+		boss.enter_script = BossScriptRegistry.enter_script(enter_name) if enter_name != "无" else null
+		var exit_name: String = fields["exit"].get_item_text(fields["exit"].selected)
+		boss.exit_script = BossScriptRegistry.exit_script(exit_name) if exit_name != "无" else null
 
 
 ## 保存符卡数据（BossData + 关卡，res:// 开发可写）
@@ -1186,3 +1213,116 @@ func _spell_param_row(phase: PhaseData, key: String, value: Variant) -> Control:
 	)
 	row.add_child(del)
 	return row
+
+
+# ═══ 演出事件编辑（音乐/对话/自定义演出）═══
+
+## 刷新演出事件列表
+func _refresh_events_section() -> void:
+	for c in _events_section.get_children():
+		c.queue_free()
+	var timeline = _current_timeline
+	if timeline == null:
+		_events_section.visible = false
+		return
+	_events_section.visible = true
+	_events_section.add_child(WorkbenchUI.section_title("── 演出事件 ──"))
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 4)
+	var b1 := Button.new()
+	b1.text = "＋ 音乐"
+	b1.pressed.connect(func(): _add_event("bgm"))
+	var b2 := Button.new()
+	b2.text = "＋ 对话"
+	b2.pressed.connect(func(): _add_event("dialogue"))
+	var b3 := Button.new()
+	b3.text = "＋ 演出"
+	b3.pressed.connect(func(): _add_event("custom"))
+	for b in [b1, b2, b3]:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_row.add_child(b)
+	_events_section.add_child(btn_row)
+	if timeline.events.is_empty():
+		var hint := Label.new()
+		hint.text = "无演出事件（音乐/对话在时间轴刻度区显示为彩色方块）"
+		hint.add_theme_font_size_override("font_size", 12)
+		hint.modulate = Color(0.5, 0.5, 0.6)
+		_events_section.add_child(hint)
+		return
+	for i in timeline.events.size():
+		var ev: Dictionary = timeline.events[i]
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 4)
+		var lbl := Label.new()
+		lbl.text = "t=%.1f  %s" % [float(ev.get("t", 0.0)), _event_desc(ev)]
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.add_theme_font_size_override("font_size", 12)
+		row.add_child(lbl)
+		var del := Button.new()
+		del.text = "×"
+		del.add_theme_font_size_override("font_size", 11)
+		del.custom_minimum_size = Vector2(22, 0)
+		del.pressed.connect(func():
+			timeline.events.remove_at(i)
+			_refresh_events_section()
+			_save_timeline()
+		)
+		row.add_child(del)
+		_events_section.add_child(row)
+
+
+func _event_desc(ev: Dictionary) -> String:
+	match str(ev.get("type", "")):
+		"bgm":
+			return "音乐: %s" % ev.get("bgm", "?")
+		"dialogue":
+			return "对话: %s" % ev.get("dialogue", "?")
+		"custom":
+			return "演出: %s" % ev.get("script", "?")
+	return "?"
+
+
+## 添加演出事件（弹窗：时刻 + 值）
+func _add_event(etype: String) -> void:
+	var timeline = _current_timeline
+	if timeline == null:
+		return
+	var vb := _dialog.open("＋ 演出事件")
+	var t_row := HBoxContainer.new()
+	t_row.add_theme_constant_override("separation", 6)
+	t_row.add_child(WorkbenchUI.label("时刻"))
+	var t_edit := LineEdit.new()
+	t_edit.text = "%.1f" % (timeline.events.size() * 10.0)
+	t_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t_row.add_child(t_edit)
+	vb.add_child(t_row)
+	var v_row := HBoxContainer.new()
+	v_row.add_theme_constant_override("separation", 6)
+	v_row.add_child(WorkbenchUI.label("值"))
+	var v_edit := LineEdit.new()
+	match etype:
+		"bgm":
+			v_edit.placeholder_text = "音乐名（如 stage1）"
+		"dialogue":
+			v_edit.placeholder_text = "对话 .tres 路径（res://...）"
+		"custom":
+			v_edit.placeholder_text = "演出脚本 .gd 路径（res://...）"
+	v_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v_row.add_child(v_edit)
+	vb.add_child(v_row)
+	_dialog.add_actions("确定", func():
+		var ev := {"t": t_edit.text.to_float(), "type": etype}
+		match etype:
+			"bgm":
+				ev["bgm"] = v_edit.text.strip_edges()
+			"dialogue":
+				ev["dialogue"] = v_edit.text.strip_edges()
+			"custom":
+				ev["script"] = v_edit.text.strip_edges()
+		timeline.events.append(ev)
+		_refresh_events_section()
+		_timeline.set_events(timeline.events)
+		_save_timeline()
+	)
+	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
+	t_edit.grab_focus()

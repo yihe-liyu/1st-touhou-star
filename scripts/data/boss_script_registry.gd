@@ -10,6 +10,13 @@ const MOVE_SCRIPTS := {
 const SHOOT_SCRIPTS := {
 	"非符·圆环弹": preload("res://data/stages/stage01/coroutine_script/boss/non_01_shoot.gd"),
 }
+## 入场/退场演出脚本（Boss 战斗外的行为自由度）
+const ENTER_SCRIPTS := {
+	"侧面入场（stage01风）": preload("res://scripts/data/boss_scripts/enter_side.gd"),
+}
+const EXIT_SCRIPTS := {
+	"退场·右飞出": preload("res://scripts/data/boss_scripts/exit_side.gd"),
+}
 
 
 static func move_names() -> Array:
@@ -30,6 +37,26 @@ static func move_script(name: String) -> Script:
 
 static func shoot_script(name: String) -> Script:
 	return SHOOT_SCRIPTS.get(name, null)
+
+
+static func enter_names() -> Array:
+	var keys := ENTER_SCRIPTS.keys()
+	keys.sort()
+	return keys
+
+
+static func exit_names() -> Array:
+	var keys := EXIT_SCRIPTS.keys()
+	keys.sort()
+	return keys
+
+
+static func enter_script(name: String) -> Script:
+	return ENTER_SCRIPTS.get(name, null)
+
+
+static func exit_script(name: String) -> Script:
+	return EXIT_SCRIPTS.get(name, null)
 
 
 ## 脚本参数建议（反射脚本变量，排除私有/基类运行时变量）

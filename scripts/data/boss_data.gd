@@ -7,6 +7,9 @@ class_name BossData
 @export var phases: Array[PhaseData] = []
 @export var score_value: int = 10000
 @export var hitbox_radius: float = 36.0
+## 入场/退场演出脚本（可选；无则默认顶部飞入/直接退场）
+@export var enter_script: Script
+@export var exit_script: Script
 
 ## ── 构造链 ──
 

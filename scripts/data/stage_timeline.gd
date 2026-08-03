@@ -5,3 +5,9 @@ extends Resource
 
 ## 波次：{t, name, enemy(模板名), count, interval, params(模板自定义参数), spawn_x}
 @export var waves: Array[Dictionary] = []
+
+## 演出事件（音乐/对话/自定义演出）：[{t, type, ...}]
+##   type="bgm"      → {bgm: 音乐名(AssetRegistry)}
+##   type="dialogue" → {dialogue: 对话 .tres 路径}
+##   type="custom"   → {script: 演出脚本 .gd 路径}（脚本逃逸口）
+@export var events: Array[Dictionary] = []
