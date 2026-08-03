@@ -26,7 +26,7 @@ func _init() -> void:
 	add_child(WorkbenchUI.section_title("── 书签（点击 = 快进）──"))
 	var row := HBoxContainer.new()
 	var add_btn := Button.new()
-	add_btn.text = "＋ 添加"
+	add_btn.text = "添加书签"
 	add_btn.pressed.connect(func(): open_add())
 	row.add_child(add_btn)
 	add_child(row)
@@ -119,7 +119,7 @@ func open_add(t: float = -1.0) -> void:
 	var line := LineEdit.new()
 	line.placeholder_text = "名称（如：Boss 最难点）"
 	vb.add_child(line)
-	_dialog.add_actions("✓ 添加", func():
+	_dialog.add_actions("确定", func():
 		var t_use: float = time_edit.text.to_float()
 		if not is_finite(t_use) or t_use < 0.0:
 			t_use = cur
@@ -142,7 +142,7 @@ func _open_rename(index: int) -> void:
 	var line := LineEdit.new()
 	line.text = meta.label
 	vb.add_child(line)
-	_dialog.add_actions("✓ 保存", func():
+	_dialog.add_actions("确定", func():
 		var new_label := line.text.strip_edges()
 		if new_label.is_empty():
 			return
@@ -169,7 +169,7 @@ func _open_delete_confirm(index: int) -> void:
 	msg.text = "确定删除「%s」？" % meta.label
 	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(msg)
-	_dialog.add_actions("✓ 删除", func(): _delete_at(index))
+	_dialog.add_actions("确定", func(): _delete_at(index))
 
 
 func _delete_at(index: int) -> void:

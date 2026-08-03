@@ -26,11 +26,11 @@ const SELECT := Color(0.35, 0.55, 0.95, 0.35)
 ## 构建主题（每次调用新实例；workbench 只调一次）
 static func build() -> Theme:
 	var t := Theme.new()
-	# ── 中文字体（SystemFont 按系统名 fallback）──
+	# ── 中文字体（SystemFont 按系统名 fallback；emoji 兜底显示日志装饰）──
 	var font := SystemFont.new()
 	font.font_names = PackedStringArray([
 		"Noto Sans CJK JP", "Noto Sans CJK SC", "Noto Sans CJK TC",
-		"WenQuanYi Micro Hei", "Noto Sans",
+		"WenQuanYi Micro Hei", "Noto Sans", "Noto Color Emoji",
 	])
 	font.font_weight = 400
 	t.default_font = font

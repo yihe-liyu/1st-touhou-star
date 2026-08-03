@@ -33,3 +33,12 @@ static func names() -> Array:
 	var keys := TEMPLATES.keys()
 	keys.sort()
 	return keys
+
+
+## 模板支持的参数名（工作台"建议"按钮用，来自模板 defaults）
+static func suggest_params(name: String) -> Array:
+	var t: Dictionary = TEMPLATES.get(name, {})
+	var d: Dictionary = t.get("defaults", {})
+	var keys := d.keys()
+	keys.sort()
+	return keys

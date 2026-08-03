@@ -43,6 +43,7 @@ func open(title: String) -> VBoxContainer:
 
 
 ## 追加按钮行：确认（回调）+ 取消
+## 确认按钮文字固定 "确定"（confirm() 按此匹配；不用 emoji 避免字体缺失）
 func add_actions(ok_text: String, ok_cb: Callable) -> void:
 	if _content == null:
 		return
@@ -70,7 +71,7 @@ func confirm() -> void:
 	for child in vb.get_children():
 		if child is HBoxContainer:
 			for b in child.get_children():
-				if b is Button and b.text.begins_with("✓"):
+				if b is Button and b.text == "确定":
 					b.pressed.emit()
 					return
 

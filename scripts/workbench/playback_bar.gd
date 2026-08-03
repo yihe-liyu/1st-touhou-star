@@ -25,13 +25,13 @@ func _init() -> void:
 
 	grid.add_child(WorkbenchUI.label("播放"))
 	_play_btn = Button.new()
-	_play_btn.text = "⏸ 暂停"
+	_play_btn.text = "暂停"
 	_play_btn.pressed.connect(func(): play_toggled.emit())
 	grid.add_child(_play_btn)
 
 	grid.add_child(WorkbenchUI.label("重跑"))
 	var restart := Button.new()
-	restart.text = "↺ 重跑"
+	restart.text = "重跑"
 	restart.pressed.connect(func(): restart_requested.emit())
 	grid.add_child(restart)
 
@@ -61,4 +61,4 @@ func _init() -> void:
 
 ## 播放状态同步（主控制器调用：按钮文字跟随）
 func set_playing(playing: bool) -> void:
-	_play_btn.text = "⏸ 暂停" if playing else "▶ 播放"
+	_play_btn.text = "暂停" if playing else "播放"

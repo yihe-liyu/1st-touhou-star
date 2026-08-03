@@ -214,19 +214,19 @@ func _build_ui() -> void:
 	var wave_btns := HBoxContainer.new()
 	wave_btns.add_theme_constant_override("separation", 4)
 	var apply_btn := Button.new()
-	apply_btn.text = "✔ 应用"
+	apply_btn.text = "应用"
 	apply_btn.pressed.connect(_apply_wave)
 	wave_btns.add_child(apply_btn)
 	var add_wave := Button.new()
-	add_wave.text = "＋ 波次"
+	add_wave.text = "添加波次"
 	add_wave.pressed.connect(_add_wave)
 	wave_btns.add_child(add_wave)
 	var del_wave := Button.new()
-	del_wave.text = "🗑 波次"
+	del_wave.text = "删除波次"
 	del_wave.pressed.connect(_delete_selected_wave)
 	wave_btns.add_child(del_wave)
 	var save_btn := Button.new()
-	save_btn.text = "💾 保存"
+	save_btn.text = "保存"
 	save_btn.pressed.connect(_save_timeline)
 	wave_btns.add_child(save_btn)
 	# 四个按钮等宽均分，视觉对齐
@@ -530,7 +530,7 @@ func _delete_selected_wave() -> void:
 	var msg := Label.new()
 	msg.text = "确定删除「%s」？" % wave_name
 	vb.add_child(msg)
-	_dialog.add_actions("✓ 删除", func():
+	_dialog.add_actions("确定", func():
 		timeline.waves.remove_at(idx)
 		_refresh_wave_table()
 		_log_line("🗑 删除波次：%s" % wave_name)

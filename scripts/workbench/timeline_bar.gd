@@ -37,7 +37,7 @@ var expanded: bool = false:
 		_refresh_layout()
 		if _toggle:
 			_toggle.button_pressed = v
-			_toggle.text = "⏶ 收起" if v else "⏷ 总谱"
+			_toggle.text = "收起" if v else "总谱"
 ## 选中的波次索引（表格/时间轴双向联动）
 var selected_wave: int = -1:
 	set(v):
@@ -74,7 +74,7 @@ func _ready() -> void:
 	set_process(true)  # 播放跟随窗口平移
 	_toggle = Button.new()
 	_toggle.toggle_mode = true
-	_toggle.text = "⏷ 总谱"
+	_toggle.text = "总谱"
 	_toggle.button_pressed = expanded
 	_toggle.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_toggle.offset_left = -66.0

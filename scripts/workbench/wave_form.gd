@@ -97,7 +97,8 @@ func show_wave(tl: Resource, idx: int) -> void:
 		_add_param_section("── 弹丸配置 ──", w, "bullet_params",
 			"子弹外观：tex 贴图 / color 颜色 / behavior 飞行行为", ["tex", "color", "blend", "speed"])
 	# 模板参数（敌人模板自带，通常已在）
-	_add_param_section("── 模板参数 ──", w, "params", "敌人模板参数（如 target_y / target_pos）")
+	_add_param_section("── 模板参数 ──", w, "params",
+		"敌人模板参数（如 target_y / target_pos）", ENEMY_REG.suggest_params(str(w.get("enemy", ""))))
 
 
 ## 写回数据 + 通知主控制器重跑
@@ -159,10 +160,6 @@ func _add_param_section(title: String, wave: Dictionary, key: String, desc: Stri
 	else:
 		for k in dict:
 			_add_param_edit(dict, k, dict[k])
-	# 自定义参数入口（弹窗：键名 + 值自动识别类型）
-	var add_row := HBoxContainer.new()
-	add_row.add_child(_add_param_btn(wave, key))
-	_body.add_child(add_row)
 
 
 ## 建议按钮点击：给该键添加默认值并重建表单
@@ -190,104 +187,6 @@ func _suggest_default(pname: String) -> Variant:
 	return 0.0
 
 
-func _add_param_btn(wave: Dictionary, key: String) -> Button:
-	var btn := Button.new()
-	btn.text = "＋ 添加参数"
-	btn.pressed.connect(func(): _open_add_param(wave, key))
-	return btn
-
-
-## 添加参数弹窗：键名（可点常用快捷按钮）+ 值（类型自动识别）→ 写回并重建表单
-func _open_add_param(wave: Dictionary, key: String) -> void:
-	var vb := _dialog.open("＋ 添加参数")
-	# 输入控件（先声明，供下方 lambda 闭包引用）
-	var name_edit := LineEdit.new()
-	name_edit.placeholder_text = "如 n / speed / aim"
-	var val_edit := LineEdit.new()
-	val_edit.placeholder_text = "24 / true / 100,200 / 1,0,0,1"
-	# 常用键名快捷按钮（按当前弹幕模式建议）
-	var pattern_name := ""
-	if _tl and _idx >= 0 and _idx < _tl.waves.size():
-		pattern_name = str(_tl.waves[_idx].get("pattern", ""))
-	var common := PatternRegistry.suggest_params(pattern_name)
-	if not common.is_empty():
-		var hint := Label.new()
-		hint.text = "点一下填入键名："
-		hint.add_theme_font_size_override("font_size", 11)
-		hint.modulate = Color(0.5, 0.5, 0.6)
-		vb.add_child(hint)
-		var common_row := HBoxContainer.new()
-		common_row.add_theme_constant_override("separation", 4)
-		for pname in common:
-			var b := Button.new()
-			b.text = str(pname)
-			b.add_theme_font_size_override("font_size", 11)
-			b.pressed.connect(func(): name_edit.text = str(pname))
-			common_row.add_child(b)
-		vb.add_child(common_row)
-	# 键名行
-	var name_row := HBoxContainer.new()
-	name_row.add_theme_constant_override("separation", 6)
-	name_row.add_child(WorkbenchUI.label("键名"))
-	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_row.add_child(name_edit)
-	vb.add_child(name_row)
-	# 值行（类型自动识别）
-	var val_row := HBoxContainer.new()
-	val_row.add_theme_constant_override("separation", 6)
-	val_row.add_child(WorkbenchUI.label("值"))
-	val_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	val_row.add_child(val_edit)
-	vb.add_child(val_row)
-	var info := Label.new()
-	info.text = "类型自动识别：数字 / true,false / x,y 坐标 / r,g,b,a 颜色"
-	info.add_theme_font_size_override("font_size", 11)
-	info.modulate = Color(0.5, 0.5, 0.6)
-	vb.add_child(info)
-	_dialog.add_actions("✓ 添加", func():
-		var k := name_edit.text.strip_edges()
-		if k.is_empty():
-			return
-		var dict: Dictionary = wave.get(key, {})
-		dict[k] = _infer_param_value(val_edit.text)
-		wave[key] = dict
-		show_wave(_tl, _idx)  # 重建表单
-	)
-	name_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
-	name_edit.grab_focus()
-
-
-## 从输入文本自动识别参数类型：int/float/bool/Vector2/Color/String
-func _infer_param_value(text: String) -> Variant:
-	var t := text.strip_edges()
-	if t.is_empty():
-		return ""
-	var lower := t.to_lower()
-	if lower == "true":
-		return true
-	if lower == "false":
-		return false
-	if "," in t:
-		var parts := t.split(",")
-		var nums: Array[float] = []
-		for p in parts:
-			var f := p.strip_edges().to_float()
-			if not is_finite(f):
-				return t  # 含非数字 → 当字符串
-			nums.append(f)
-		if nums.size() == 2:
-			return Vector2(nums[0], nums[1])
-		if nums.size() >= 3:
-			return Color(nums[0], nums[1], nums[2], nums[3] if nums.size() > 3 else 1.0)
-		return t
-	if t.is_valid_float():
-		if t.is_valid_int():
-			return int(t)
-		return t.to_float()
-	return t
-
-
-## 下拉选择行（敌人模板/弹幕模式等），写回 wave[key]
 func _add_enum_edit(label_text: String, wave: Dictionary, key: String, options: Array, allow_empty: bool) -> void:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 6)
