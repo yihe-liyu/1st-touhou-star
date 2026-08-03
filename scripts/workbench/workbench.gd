@@ -230,17 +230,17 @@ func _build_ui() -> void:
 	_wave_table.wave_selected.connect(_on_wave_selected)
 	_wave_section.add_child(_wave_table)
 	# 详情表单（自带滚动容器，固定高度防挤布局）
-	# 高度拖拽条：上下拖动调整表单可视区高度（80~400px）
+	_wave_form = WaveForm.new()
+	_wave_form.applied.connect(_on_wave_applied)
+	_wave_form.save_requested.connect(_save_timeline)
+	_wave_section.add_child(_wave_form)
+	# 高度拖拽条：在表单底部（拖底边 = 底边跟手变长，符合直觉）
 	var form_divider := ColorRect.new()
 	form_divider.custom_minimum_size = Vector2(0, 5)
 	form_divider.color = Color(1, 1, 1, 0.12)
 	form_divider.mouse_default_cursor_shape = Control.CURSOR_VSIZE
 	form_divider.gui_input.connect(func(ev: InputEvent): _on_form_divider_input(ev))
 	_wave_section.add_child(form_divider)
-	_wave_form = WaveForm.new()
-	_wave_form.applied.connect(_on_wave_applied)
-	_wave_form.save_requested.connect(_save_timeline)
-	_wave_section.add_child(_wave_form)
 
 	# ── 书签（数据自持，编辑后 data_changed 回主控制器持久化）──
 	_bookmarks = BookmarkPanel.new()
