@@ -5,6 +5,7 @@ const ITEM_SCENE = preload("res://scenes/item.tscn")
 const POOL_SIZE := 64
 
 var _pool: Array[Item] = []
+var _debug_stack_printed := false
 
 
 func _ready() -> void:
@@ -22,6 +23,13 @@ func spawn(pos: Vector2, type: int) -> Item:
 		var log_t := StageManager.current_stage_script().game_time()
 		var type_name: String = Item.Type.keys()[type] if type >= 0 and type < Item.Type.keys().size() else "?%d" % type
 		print("[Item生成] t=%.1f pos=%s type=%s" % [log_t, pos, type_name])
+		# 第一次生成时打印调用栈（谁在掉道具）
+		if not _debug_stack_printed:
+			_debug_stack_printed = true
+			var st := get_stack()
+			print("[Item调用栈]")
+			for i in range(mini(6, st.size())):
+				print("  <- ", st[i].source, " : ", st[i].function, " : ", st[i].line)
 	var item: Item
 	if _pool.is_empty():
 		item = ITEM_SCENE.instantiate() as Item

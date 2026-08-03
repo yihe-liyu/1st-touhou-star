@@ -228,24 +228,9 @@ func _drop_items() -> void:
 
 
 ## 阶段脚本参数注入（工作台编辑的 PhaseData.params → 脚本同名属性）
+## 注意：这里只有参数注入，掉落逻辑在 _drop_items（_clear_phase 击破时）——
+## 曾经残留过一份掉落代码导致 start_phase 时误掉道具（已删，勿再贴回）
 func _apply_phase_params(script: Node, params: Dictionary) -> void:
 	for k in params:
 		if k in script:  # 脚本有该属性才设置（避免乱设）
 			script.set(k, params[k])
-	if not _current_phase: return
-	if GameState.is_practice_mode: return
-	var pos := global_position
-	var phase := _current_phase
-	var scatter := 50.0
-	
-	var drops: Array[int] = []
-	for _i in range(phase.item_power): drops.append(Item.Type.POWER)
-	for _i in range(phase.item_point): drops.append(Item.Type.POINT)
-	for _i in range(phase.item_life): drops.append(Item.Type.LIFE_FRAGMENT)
-	for _i in range(phase.item_bomb): drops.append(Item.Type.BOMB_FRAGMENT)
-	for _i in range(phase.item_life_full): drops.append(Item.Type.LIFE_FULL)
-	for _i in range(phase.item_bomb_full): drops.append(Item.Type.BOMB_FULL)
-	
-	for t in drops:
-		var offset := Vector2(RNG.randf_range(-scatter, scatter), RNG.randf_range(-scatter, scatter))
-		if _ctx: _ctx.spawn_item(t, pos + offset)
