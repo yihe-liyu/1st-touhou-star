@@ -18,6 +18,15 @@ static func stage_content_hash(stage: StageData) -> int:
 		h = h * 31 + stage.create_script.source_code.hash()
 		var stage_dir: String = stage.create_script.resource_path.get_base_dir().get_base_dir()
 		h = _hash_dir_files(stage_dir, h)
+		# 数据关卡：哈希实际生效的 timeline 数据（user:// 副本优先）
+		# 否则改波次数据（工作台保存）不会使缓存失效 → 书签与实际波次不匹配
+		if "TIMELINE" in stage.create_script:
+			var tl: Resource = stage.create_script.TIMELINE
+			var user_p := "user://" + tl.resource_path.trim_prefix("res://")
+			if FileAccess.file_exists(user_p):
+				tl = load(user_p)
+			if tl:
+				h = h * 31 + var_to_str(tl.get("waves")).hash()
 	return h
 
 

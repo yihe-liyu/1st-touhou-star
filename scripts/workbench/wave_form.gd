@@ -99,6 +99,15 @@ func apply_changes() -> void:
 	applied.emit(_idx)
 
 
+## 把表单当前值写回数据（不重跑、不发信号）
+## 保存前调用：避免"改了没点应用就保存"丢改动（表单值与数据脱节）
+func flush() -> void:
+	if _tl == null or _idx < 0 or _idx >= _tl.waves.size():
+		return
+	for entry in _edits:
+		entry.apply.call()
+
+
 # ═══ 表单生成 ═══
 
 ## 参数区：动态表单；空字典显示提示 + 「＋ 添加参数」按钮（新波次选弹幕后可配参数）

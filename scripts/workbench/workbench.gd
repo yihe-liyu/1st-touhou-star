@@ -543,11 +543,12 @@ func _restart_from(t: float) -> void:
 	_log_line("▶ 从 %.1fs 续跑" % t)
 
 
-## 保存：写回 .tres（user:// 可写副本；运行时 res:// 只读）
+## 保存：先同步表单值（没点应用的改动也保存）→ 写回 .tres（user:// 可写副本）
 func _save_timeline() -> void:
 	var timeline = _current_timeline
 	if timeline == null:
 		return
+	_wave_form.flush()  # 表单当前值写回数据，避免保存旧值
 	var user_p := _user_timeline_path(timeline.resource_path)
 	DirAccess.make_dir_recursive_absolute(user_p.get_base_dir())
 	var err := ResourceSaver.save(timeline, user_p)

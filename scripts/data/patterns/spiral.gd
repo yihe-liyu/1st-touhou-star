@@ -19,13 +19,15 @@ var _angle := 0.0
 func _tick(_ctx: StageContext) -> Variant:
 	if not is_instance_valid(target):
 		return false
-	var arms := int(diff_pick(pattern_params().get("arms", 2)))
-	var step := deg_to_rad(float(diff_pick(pattern_params().get("step", 12))))
+	# 注意：用 PatternRegistry.diff_pick（支持标量+难度数组），
+	# 不要用继承的 CoroutineScript.diff_pick（只收 Array）
+	var arms := int(PatternRegistry.diff_pick(pattern_params().get("arms", 2)))
+	var step := deg_to_rad(float(PatternRegistry.diff_pick(pattern_params().get("step", 12))))
 	var b := bullet_data()
 	if b == null:
 		return pattern_interval()
 	if pattern_params().has("speed"):
-		b.speed(float(diff_pick(pattern_params().get("speed"))))
+		b.speed(float(PatternRegistry.diff_pick(pattern_params().get("speed"))))
 	# 经典螺旋：每臂沿当前角度发 1 颗，整体逐步旋转
 	for i in arms:
 		var dir := Vector2.DOWN.rotated(_angle + TAU * float(i) / float(arms))
