@@ -86,16 +86,7 @@ func show_wave(tl: Resource, idx: int) -> void:
 		w["spawn_x"] = spawn_spins[0].value
 		w["spawn_y"] = spawn_spins[1].value
 	})
-	# 弹幕模式（可选：追加到敌人模板弹幕之上）
-	_add_enum_edit("弹幕", w, "pattern", PatternRegistry.names(), true)
-	if not str(w.get("pattern", "")).is_empty():
-		_add_field_edit("弹幕间隔", w, "pattern_interval", 0.05, 10.0, 0.05, false)
-		# 弹幕参数（建议按钮直接点）
-		var pattern_name := str(w.get("pattern", ""))
-		_add_param_section("── 弹幕参数 ──", w, "pattern_params", PatternRegistry.suggest_params(pattern_name))
-		_add_param_section("── 弹丸配置 ──", w, "bullet_params",
-			{"tex": "小玉", "color": Color.WHITE, "blend": true, "speed": 300.0})
-	# 模板参数（敌人模板自带，通常已在）
+	# 模板参数（脚本 var 反射暴露，改参即续跑）
 	_add_param_section("── 模板参数 ──", w, "params", ENEMY_REG.suggest_params(str(w.get("enemy", ""))))
 
 

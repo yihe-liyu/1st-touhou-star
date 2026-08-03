@@ -83,27 +83,4 @@ func _spawn_one(wave: Dictionary) -> void:
 		sx = sp.x
 		sy = sp.y
 	data.pos(Vector2(sx, sy))
-	var enemy: Enemy = data.spawn(ctx)
-	# 波次指定弹幕模式：追加挂弹幕驱动（敌人脚本管移动，driver 管弹幕）
-	if enemy and not str(wave.get("pattern", "")).is_empty():
-		_attach_pattern(enemy, wave)
-
-
-## 从波次字典构造弹幕蓝图（纯函数，测试友好）
-static func build_pattern_from_wave(wave: Dictionary) -> BulletPattern:
-	var bp := BulletPattern.new()
-	bp.pattern = str(wave.get("pattern", "ring"))
-	bp.interval = float(wave.get("pattern_interval", 0.3))
-	bp.params = wave.get("pattern_params", {})
-	bp.bullet_params = wave.get("bullet_params", {})
-	return bp
-
-
-## 给敌人挂弹幕驱动（随敌人销毁；origin=self 从敌人位置发弹）
-func _attach_pattern(enemy: Node, wave: Dictionary) -> void:
-	if enemy == null:
-		return
-	var driver := PatternDriver.new()
-	driver.patterns = [build_pattern_from_wave(wave)]
-	enemy.add_child(driver)
-	driver.start(ctx, enemy)
+	data.spawn(ctx)
