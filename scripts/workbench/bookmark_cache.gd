@@ -26,14 +26,7 @@ static func stage_content_hash(stage: StageData) -> int:
 		elif "TIMELINE" in stage.create_script:
 			tl = stage.create_script.TIMELINE
 		if tl:
-			# 内联 sub_resource 路径带 ::子资源ID，取 :: 前的真实文件路径
-			var rp := tl.resource_path
-			var sep := rp.find("::")
-			if sep >= 0:
-				rp = rp.left(sep)
-			var user_p := "user://" + rp.trim_prefix("res://")
-			if FileAccess.file_exists(user_p):
-				tl = load(user_p)
+			# 直接读 res:// 数据（开发可写；编辑即默认，无 user:// 副本）
 			if tl:
 				h = h * 31 + _stable_waves_hash(tl.get("waves"))
 	return h

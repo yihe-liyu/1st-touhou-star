@@ -121,20 +121,17 @@ func test_start_from_default_full():
 
 
 ## 书签缓存哈希：timeline 数据变化应使 hash 变化（改波次后缓存失效重收集）
+## 无副本机制：直接改 res:// 资源（缓存实例共享），hash 随之变化
 func test_bookmark_hash_includes_timeline_data():
 	var stage: StageData = load("res://data/stage_demo/stage_demo.tres")
-	# 确保 user:// 副本不存在（清理残留）
-	DirAccess.remove_absolute("user://data/stage_demo/stage_timeline.tres")
-	var h1 := BookmarkCache.stage_content_hash(stage)
-	# 模拟工作台保存：写一个数据不同的 user:// 副本
 	var tl := load("res://data/stage_demo/stage_timeline.tres")
-	tl.waves.append({"t": 99.0, "name": "X", "enemy": "red_little", "count": 1, "interval": 0.5})
-	DirAccess.make_dir_recursive_absolute("user://data/stage_demo")
-	ResourceSaver.save(tl, "user://data/stage_demo/stage_timeline.tres")
+	var n: int = tl.waves.size()
+	var h1 := BookmarkCache.stage_content_hash(stage)
+	tl.waves.append({"t": 99.0, "name": "X", "enemy": "red_little_fairy",
+		"behavior": "aim_scatter", "count": 1, "interval": 0.5, "params": {}})
 	var h2 := BookmarkCache.stage_content_hash(stage)
 	assert_ne(h1, h2, "波次数据变化应使书签缓存哈希变化")
-	# 清理（避免影响其他测试）
-	DirAccess.remove_absolute("user://data/stage_demo/stage_timeline.tres")
+	tl.waves.resize(n)  # 还原（避免影响其他测试）
 
 
 ## 规范化哈希：键序无关 / 波次顺序无关 / 值变化仍敏感

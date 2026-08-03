@@ -2,21 +2,14 @@
 ## 波次 = 敌人模板（注册表）+ 参数；复用现有 EnemyData/spawn_enemy_data
 extends CoroutineScript
 
-const TIMELINE = preload("res://data/stage_demo/stage_timeline.tres")  # 默认（res:// 只读）
-const USER_TIMELINE_PATH = "user://data/stage_demo/stage_timeline.tres"  # 工作台保存的可写副本
+const TIMELINE = preload("res://data/stage_demo/stage_timeline.tres")  # 默认（stage_demo 专用；其他关卡用 StageData.timeline）
 
 
-## 优先读工作台保存的 user:// 副本，否则用 res:// 默认
-## 数据关卡优先用 StageData.timeline（各关卡自己的编排数据）
+## 当前关卡的编排数据：数据关卡用 StageData.timeline（编辑即默认，res:// 可写）
 static func current_timeline() -> StageTimeline:
 	var stage := StageManager.current_stage
 	if stage and stage.timeline:
-		var user_p := "user://" + stage.timeline.resource_path.trim_prefix("res://")
-		if FileAccess.file_exists(user_p):
-			return load(user_p)
 		return stage.timeline
-	if FileAccess.file_exists(USER_TIMELINE_PATH):
-		return load(USER_TIMELINE_PATH)
 	return TIMELINE
 
 ## 测试/编辑器注入用：优先返回此 timeline（否则回退 static 默认读取）

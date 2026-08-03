@@ -242,20 +242,14 @@ func _build_ui() -> void:
 	save_btn.text = "保存"
 	save_btn.pressed.connect(_save_timeline)
 	wave_btns.add_child(save_btn)
-	# 重置默认：删 user:// 副本，回到 res:// 默认（迁移后刷新用）
-	var reset_btn := Button.new()
-	reset_btn.text = "重置默认"
-	reset_btn.tooltip_text = "删除 user:// 编辑副本，回到 res:// 默认数据"
-	reset_btn.pressed.connect(_reset_stage_data)
-	wave_btns.add_child(reset_btn)
 	# ＋ Boss（数据关卡且无 Boss 时可用：添加 Boss + 默认阶段）
 	_add_boss_btn = Button.new()
 	_add_boss_btn.text = "＋ Boss"
 	_add_boss_btn.pressed.connect(_add_boss)
 	_add_boss_btn.visible = false
 	wave_btns.add_child(_add_boss_btn)
-	# 六个按钮等宽均分，视觉对齐
-	for b in [apply_btn, add_wave, del_wave, save_btn, reset_btn, _add_boss_btn]:
+	# 五个按钮等宽均分，视觉对齐
+	for b in [apply_btn, add_wave, del_wave, save_btn, _add_boss_btn]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.custom_minimum_size = Vector2(0, 28)
 	_wave_section.add_child(wave_btns)
@@ -534,27 +528,13 @@ func _on_bookmarks_changed(auto: Array, manual: Array) -> void:
 
 # ═══ 编排表格（数据关卡波次）═══
 
-## res:// 路径 → user:// 可写副本路径（开发时编辑保存；运行时 res:// 只读）
-## 注意：_get_timeline_data 可能已返回 user:// 副本（resource_path 已是 user://）
-static func _user_timeline_path(res_path: String) -> String:
-	if res_path.begins_with("user://"):
-		return res_path
-	return "user://" + res_path.trim_prefix("res://")
-
-
 ## 当前关卡的时间线数据（协程关卡返回 null）
-## 优先读关卡自己的 timeline（StageData.timeline，含 user:// 副本），否则脚本常量
+## 直接读关卡数据（res:// 开发可写；编辑即默认，无 user:// 副本）
 func _get_timeline_data() -> Resource:
 	if _stage_data and _stage_data.timeline:
-		var user_p := _user_timeline_path(_stage_data.timeline.resource_path)
-		if FileAccess.file_exists(user_p):
-			return load(user_p)
 		return _stage_data.timeline
 	var scr: Script = _stage_data.create_script
 	if scr and "TIMELINE" in scr:
-		var user_p := _user_timeline_path(scr.TIMELINE.resource_path)
-		if FileAccess.file_exists(user_p):
-			return load(user_p)
 		return scr.TIMELINE
 	return null
 
@@ -682,19 +662,17 @@ func _restart_from(t: float) -> void:
 	_log_line("▶ 从 %.1fs 续跑" % t)
 
 
-## 保存：先同步表单值（没点应用的改动也保存）→ 写回 .tres（user:// 可写副本）
+## 保存：直接写回 .tres（开发模式 res:// 可写；编辑即默认，无副本）
 func _save_timeline() -> void:
 	var timeline = _current_timeline
 	if timeline == null:
 		return
 	_wave_form.flush()  # 表单当前值写回数据，避免保存旧值
-	var user_p := _user_timeline_path(timeline.resource_path)
-	DirAccess.make_dir_recursive_absolute(user_p.get_base_dir())
-	var err := ResourceSaver.save(timeline, user_p)
+	var err := ResourceSaver.save(timeline, timeline.resource_path)
 	if err == OK:
-		_log_line("💾 编排数据已保存 → " + user_p)
+		_log_line("💾 编排数据已保存 → " + timeline.resource_path)
 	else:
-		_log_line("⚠️ 保存失败：%s" % user_p)
+		_log_line("⚠️ 保存失败：%s（err=%d）" % [timeline.resource_path, err])
 
 
 # ═══ 播放 / 暂停 / 快进 ═══
@@ -1409,17 +1387,3 @@ func _edit_event(i: int) -> void:
 	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
 	t_edit.grab_focus()
 
-
-## 重置关卡数据：删除 user:// 编辑副本，回到 res:// 默认
-## （迁移/数据更新后，旧副本会盖住新数据——点此刷新）
-func _reset_stage_data() -> void:
-	var timeline = _get_timeline_data()
-	if timeline == null:
-		return
-	var user_p := _user_timeline_path(timeline.resource_path)
-	if FileAccess.file_exists(user_p):
-		DirAccess.remove_absolute(user_p)
-		_log_line("↺ 已删除 user:// 副本，重载 res:// 默认数据")
-		_restart()
-	else:
-		_log_line("ℹ 无 user:// 副本（已在用 res:// 默认）")
