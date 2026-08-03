@@ -147,12 +147,10 @@ func run_phase(boss: Boss, boss_data: BossData, idx: int) -> void:
 			boss.die()
 		return
 	var phase: PhaseData = phases[idx]
-	if _tl:
-		_tl.pause()  # 阶段期间冻结关卡编排（Boss 战专属）
+	# 注意：Boss 战期间关卡时钟不冻结（用户选型 2）——波次/演出照常按时间触发，
+	# 多 Boss 衔接无需等待补跑；Boss 战内容（弹幕/超时）用自身计时不受影响
 	boss.start_phase(phase)
 	boss.phase_cleared.connect(func(_captured: bool, _bonus: int):
-		if _tl:
-			_tl.resume()
 		run_phase(boss, boss_data, idx + 1)
 	, CONNECT_ONE_SHOT)
 
