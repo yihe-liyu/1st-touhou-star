@@ -75,8 +75,17 @@ func show_wave(tl: Resource, idx: int) -> void:
 	_add_field_edit("t", w, "t", 0.0, 90.0, 0.1, false)
 	_add_field_edit("数量", w, "count", 1.0, 60.0, 1.0, true)
 	_add_field_edit("间隔", w, "interval", 0.0, 10.0, 0.1, false)
-	# 敌人模板下拉（注册表）
-	_add_enum_edit("敌人", w, "enemy", ENEMY_REG.names(), false)
+	# 数据预设（EnemyData 构造链：外观/血量/判定/掉落）+ 行为（移动+发弹脚本）
+	# 自由组合；旧数据（enemy=模板名、无 behavior）自动解析成 数据+行为
+	var data_name := str(w.get("enemy", ""))
+	var behavior_name := str(w.get("behavior", ""))
+	if behavior_name.is_empty():
+		var tpl := EnemyTemplateRegistry.template_of(data_name)
+		if not tpl.is_empty():
+			data_name = str(tpl.get("data", data_name))
+			behavior_name = str(tpl.get("behavior", ""))
+	_add_enum_edit("数据", w, "enemy", EnemyTemplateRegistry.data_names(), false)
+	_add_enum_edit("行为", w, "behavior", EnemyTemplateRegistry.behavior_names(), false)
 	# 出生坐标（x/y 一行，带轴标签，不再分两行）
 	var spawn_spins: Array = WorkbenchUI.coord_row(_body, "出生",
 		float(w.get("spawn_x", GameConfig.FIELD_CENTER_X)),
@@ -86,8 +95,9 @@ func show_wave(tl: Resource, idx: int) -> void:
 		w["spawn_x"] = spawn_spins[0].value
 		w["spawn_y"] = spawn_spins[1].value
 	})
-	# 模板参数（脚本 var 反射暴露，改参即续跑）
-	_add_param_section("── 模板参数 ──", w, "params", ENEMY_REG.suggest_params(str(w.get("enemy", ""))))
+	# 模板参数（行为脚本 var 反射暴露，改参即续跑）
+	_add_param_section("── 模板参数 ──", w, "params",
+		EnemyTemplateRegistry.suggest_params(data_name, behavior_name))
 
 
 ## 写回数据 + 通知主控制器重跑

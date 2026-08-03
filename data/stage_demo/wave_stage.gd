@@ -69,7 +69,7 @@ func _wave_step(_p_ctx: StageContext, state: Dictionary) -> Variant:
 
 
 func _spawn_one(wave: Dictionary) -> void:
-	var data := EnemyTemplateRegistry.build(str(wave.get("enemy", "")))
+	var data := _build_enemy(wave)
 	if data == null:
 		return
 	var params: Dictionary = wave.get("params", {})
@@ -84,3 +84,13 @@ func _spawn_one(wave: Dictionary) -> void:
 		sy = sp.y
 	data.pos(Vector2(sx, sy))
 	data.spawn(ctx)
+
+
+## 敌人构建：有 behavior 字段 → 数据预设 × 行为自由组合；
+## 只有 enemy 字段（旧数据）→ 当模板名构建（兼容）
+func _build_enemy(wave: Dictionary) -> EnemyData:
+	var enemy_name := str(wave.get("enemy", ""))
+	var behavior := str(wave.get("behavior", ""))
+	if not behavior.is_empty():
+		return EnemyTemplateRegistry.build_from(enemy_name, behavior)
+	return EnemyTemplateRegistry.build(enemy_name)

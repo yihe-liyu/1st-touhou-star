@@ -14,6 +14,7 @@ extends RefCounted
 const ENEMY01 := preload("res://data/stages/stage01/coroutine_script/enemy01.gd")
 const ENEMY02 := preload("res://data/stages/stage01/coroutine_script/enemy02.gd")
 const SWAY_FAIRY := preload("res://scripts/data/enemy_templates/sway_fairy.gd")
+const ENEMY_DATA_SCRIPT := preload("res://scripts/data/enemy_data.gd")
 
 ## 行为层：{行为名: {script, defaults(脚本参数默认)}}
 const BEHAVIORS := {
@@ -62,13 +63,57 @@ static func names() -> Array:
 	return keys
 
 
+## 数据预设名列表（EnemyData 构造链预设，反射自动发现：新增预设自动出现）
+static func data_names() -> Array:
+	var names: Array = []
+	var scr: Script = ENEMY_DATA_SCRIPT
+	for m in scr.get_script_method_list():
+		var mn: String = m.name
+		if mn.ends_with("_fairy") or mn.ends_with("_jade"):
+			names.append(mn)
+	names.sort()
+	return names
+
+
+## 行为名列表
+static func behavior_names() -> Array:
+	var keys := BEHAVIORS.keys()
+	keys.sort()
+	return keys
+
+
+## 模板解析（旧 wave 数据兼容：模板名 → 数据+行为）
+static func template_of(name: String) -> Dictionary:
+	return TEMPLATES.get(name, {})
+
+
+## 自由组合：数据预设 × 行为（工作台两个下拉任意搭配）
+static func build_from(data_name: String, behavior_name: String) -> EnemyData:
+	var data := EnemyData.new()
+	if not data.has_method(data_name):
+		push_warning("EnemyTemplateRegistry: 未知数据预设 %s" % data_name)
+		return null
+	data.call(data_name)
+	var b: Dictionary = BEHAVIORS.get(behavior_name, {})
+	if b.is_empty():
+		push_warning("EnemyTemplateRegistry: 未知行为 %s" % behavior_name)
+		return data
+	if b.has("script"):
+		data.script(b.script)
+	for k in b.get("defaults", {}):
+		data.param(k, b.defaults[k])
+	return data
+
+
 ## 模板支持的参数（工作台"建议"按钮用）：行为 defaults 优先 + 反射脚本变量补全
-static func suggest_params(name: String) -> Dictionary:
-	var t: Dictionary = TEMPLATES.get(name, {})
+## 兼容旧调用：只传模板名（如 red_little）时自动解析出数据+行为
+static func suggest_params(name: String, behavior_name: String = "") -> Dictionary:
+	if behavior_name.is_empty():
+		var tpl: Dictionary = TEMPLATES.get(name, {})
+		if not tpl.is_empty():
+			behavior_name = str(tpl.get("behavior", ""))
 	var result: Dictionary = {}
-	if t.is_empty():
-		return result
-	var b: Dictionary = BEHAVIORS.get(t.get("behavior", ""), {})
+	var b: Dictionary = BEHAVIORS.get(behavior_name, {})
 	if b.is_empty():
 		return result
 	var d: Dictionary = b.get("defaults", {})

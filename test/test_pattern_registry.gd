@@ -163,3 +163,23 @@ func test_template_data_behavior_separation():
 	# 默认参数来自行为层 defaults
 	assert_almost_eq(float(a.get_params().get("target_y")), 300.0, 0.001, "默认参数来自行为")
 	assert_almost_eq(float(b.get_params().get("sway")), 80.0, 0.001, "sway 行为默认参数")
+
+
+## 数据/行为自由组合：build_from 任意搭配 + 预设反射
+func test_build_from_free_combine():
+	var a := EnemyTemplateRegistry.build_from("red_little_fairy", "sway_aim")
+	assert_not_null(a, "红小妖精数据 × 摆荡行为 应构建")
+	assert_eq(a.max_hp, 45, "数据层生效：45 血")
+	assert_eq(a.hitbox_radius, 25, "数据层生效：25 判定")
+	assert_eq(a.get_enemy_script(), preload("res://scripts/data/enemy_templates/sway_fairy.gd"),
+		"行为层生效：sway_fairy 脚本")
+	# 数据预设反射（新增预设自动出现）
+	var names := EnemyTemplateRegistry.data_names()
+	assert_true(names.has("red_little_fairy"), "预设应被反射出来")
+	assert_true(names.has("purple_YY_jade"), "jade 预设也在")
+	assert_false(names.has("build"), "不应包含普通方法")
+	# 行为名列表
+	assert_true(EnemyTemplateRegistry.behavior_names().has("sway_aim"), "行为名列表")
+	# 未知组合防护
+	var bad := EnemyTemplateRegistry.build_from("not_a_preset", "sway_aim")
+	assert_null(bad, "未知数据预设应返回 null")
