@@ -29,6 +29,7 @@ const BEHAVIORS := {
 const TEMPLATES := {
 	"red_little": {"data": "red_little_fairy", "behavior": "aim_scatter"},
 	"red_middle": {"data": "red_middle_fairy", "behavior": "middle_sweep"},
+	"blue_middle": {"data": "blue_middle_fairy", "behavior": "middle_sweep"},
 	"sway_fairy": {"data": "blue_middle_fairy", "behavior": "sway_aim"},
 	# ── 组合示例：同数据换行为 / 同行为换数据 ──
 	"sway_red_little": {"data": "red_little_fairy", "behavior": "sway_aim"},
