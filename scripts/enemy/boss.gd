@@ -119,10 +119,12 @@ func start_phase(data: PhaseData) -> void:
 		if data.move_script:
 			_move = data.move_script.new()
 			add_child(_move)
+			_apply_phase_params(_move, data.params)
 			_move.start(_ctx, self)
 		if data.shoot_script:
 			_shoot = data.shoot_script.new()
 			add_child(_shoot)
+			_apply_phase_params(_shoot, data.params)
 			_shoot.start(_ctx, self)
 		elif not data.patterns.is_empty():
 			# 弹幕蓝图驱动（E5）：shoot_script 优先，蓝图次之（向后兼容）
@@ -204,6 +206,30 @@ func _die() -> void:
 
 
 func _drop_items() -> void:
+	if not _current_phase: return
+	if GameState.is_practice_mode: return
+	var pos := global_position
+	var phase := _current_phase
+	var scatter := 50.0
+
+	var drops: Array[int] = []
+	for _i in range(phase.item_power): drops.append(Item.Type.POWER)
+	for _i in range(phase.item_point): drops.append(Item.Type.POINT)
+	for _i in range(phase.item_life): drops.append(Item.Type.LIFE_FRAGMENT)
+	for _i in range(phase.item_bomb): drops.append(Item.Type.BOMB_FRAGMENT)
+	for _i in range(phase.item_life_full): drops.append(Item.Type.LIFE_FULL)
+	for _i in range(phase.item_bomb_full): drops.append(Item.Type.BOMB_FULL)
+
+	for t in drops:
+		var offset := Vector2(RNG.randf_range(-scatter, scatter), RNG.randf_range(-scatter, scatter))
+		if _ctx: _ctx.spawn_item(t, pos + offset)
+
+
+## 阶段脚本参数注入（工作台编辑的 PhaseData.params → 脚本同名属性）
+func _apply_phase_params(script: Node, params: Dictionary) -> void:
+	for k in params:
+		if k in script:  # 脚本有该属性才设置（避免乱设）
+			script.set(k, params[k])
 	if not _current_phase: return
 	if GameState.is_practice_mode: return
 	var pos := global_position

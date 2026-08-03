@@ -1,12 +1,12 @@
-## Boss 定义：名称 + 视觉 + 阶段列表（构造链）
+## Boss 定义：名称 + 视觉 + 阶段列表（构造链 + 数据 .tres）
 extends Resource
 class_name BossData
 
-var boss_name: String = ""
-var visual: PackedScene
-var phases: Array[PhaseData] = []
-var score_value: int = 10000
-var hitbox_radius: float = 36.0
+@export var boss_name: String = ""
+@export var visual: PackedScene
+@export var phases: Array[PhaseData] = []
+@export var score_value: int = 10000
+@export var hitbox_radius: float = 36.0
 
 ## ── 构造链 ──
 

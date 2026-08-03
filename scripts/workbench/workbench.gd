@@ -50,6 +50,10 @@ const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
 @onready var _timeline: TimelineBar = %Timeline
 @onready var _stage_grid: GridContainer = %StageGrid
 @onready var _wave_section: VBoxContainer = %WaveSection
+# 符卡编辑（Boss 阶段）
+var _spell_section: VBoxContainer
+var _spell_form_box: VBoxContainer
+var _phase_sel: OptionButton
 @onready var _world: Node2D = $World
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
@@ -252,6 +256,13 @@ func _build_ui() -> void:
 	form_divider.mouse_default_cursor_shape = Control.CURSOR_VSIZE
 	form_divider.gui_input.connect(func(ev: InputEvent): _on_form_divider_input(ev))
 	_wave_section.add_child(form_divider)
+	# ── 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）──
+	_spell_section = VBoxContainer.new()
+	_spell_section.add_theme_constant_override("separation", 4)
+	_spell_form_box = VBoxContainer.new()
+	_spell_form_box.add_theme_constant_override("separation", 4)
+	_spell_section.add_child(_spell_form_box)
+	_wave_section.add_child(_spell_section)
 
 	# ── 书签（数据自持，编辑后 data_changed 回主控制器持久化）──
 	_bookmarks = BookmarkPanel.new()
@@ -342,6 +353,7 @@ func _load_stage(start_from: float = -1.0) -> void:
 	# 缓存当前编辑对象（表格/删除/保存共用同一实例，杜绝 load 缓存不一致）
 	_current_timeline = _get_timeline_data()
 	_refresh_wave_table()
+	_refresh_spell_section()
 	_prev_time = -1.0
 	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
 
@@ -811,3 +823,233 @@ func _on_divider_input(event: InputEvent) -> void:
 		_right_panel.offset_left = new_off
 		_divider.offset_left = new_off - 8.0
 		_divider.offset_right = new_off
+
+
+# ═══ 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）═══
+
+## 刷新符卡编辑区（数据关卡有 Boss 时显示）
+func _refresh_spell_section() -> void:
+	_spell_section.visible = false
+	for c in _spell_form_box.get_children():
+		c.queue_free()
+	_phase_sel = null
+	var boss: BossData = _stage_data.boss if _stage_data else null
+	if boss == null or boss.phases.is_empty():
+		return
+	_spell_section.visible = true
+	_spell_section.add_child(WorkbenchUI.section_title("── 符卡（Boss 阶段）──"))
+	var boss_row := HBoxContainer.new()
+	boss_row.add_theme_constant_override("separation", 6)
+	boss_row.add_child(WorkbenchUI.param_label("Boss"))
+	var boss_l := Label.new()
+	boss_l.text = boss.boss_name
+	boss_row.add_child(boss_l)
+	_spell_section.add_child(boss_row)
+	_phase_sel = OptionButton.new()
+	_phase_sel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for i in boss.phases.size():
+		var p: PhaseData = boss.phases[i]
+		_phase_sel.add_item("%d: %s" % [i, p.name if not p.name.is_empty() else "非符"])
+	_phase_sel.item_selected.connect(func(_i: int): _refresh_spell_form())
+	_spell_section.add_child(_phase_sel)
+	_refresh_spell_form()
+
+
+## 重建选中阶段的编辑表单
+func _refresh_spell_form() -> void:
+	for c in _spell_form_box.get_children():
+		c.queue_free()
+	var boss: BossData = _stage_data.boss if _stage_data else null
+	if boss == null or _phase_sel == null or _phase_sel.selected < 0 \
+			or _phase_sel.selected >= boss.phases.size():
+		return
+	var phase: PhaseData = boss.phases[_phase_sel.selected]
+	var fields := {}
+	# 名字
+	var name_edit := LineEdit.new()
+	name_edit.text = phase.name
+	name_edit.custom_minimum_size = Vector2(140, 0)
+	fields["name"] = name_edit
+	_spell_form_box.add_child(_spell_row("名字", name_edit))
+	# 数据
+	fields["hp"] = WorkbenchUI.spin_row(_spell_form_box, "血量", float(phase.hp), 1.0, 100000.0, 50.0)
+	fields["time_limit"] = WorkbenchUI.spin_row(_spell_form_box, "时限", phase.time_limit, 1.0, 999.0, 1.0)
+	fields["bonus"] = WorkbenchUI.spin_row(_spell_form_box, "奖励", float(phase.bonus), 0.0, 1000000.0, 1000.0)
+	var timeout_cb := CheckButton.new()
+	timeout_cb.text = "时符（无敌时限）"
+	timeout_cb.button_pressed = phase.is_timeout_only
+	fields["timeout"] = timeout_cb
+	_spell_form_box.add_child(timeout_cb)
+	# 移动/弹幕脚本
+	var move_opt := _spell_script_opt(BossScriptRegistry.move_names(), phase.move_script)
+	fields["move"] = move_opt
+	_spell_form_box.add_child(_spell_row("移动", move_opt))
+	var shoot_opt := _spell_script_opt(BossScriptRegistry.shoot_names(), phase.shoot_script)
+	fields["shoot"] = shoot_opt
+	_spell_form_box.add_child(_spell_row("弹幕", shoot_opt))
+	# 脚本参数（移动+弹幕反射合并建议 + 已加参数行）
+	_spell_form_box.add_child(WorkbenchUI.section_title("── 脚本参数 ──"))
+	var suggest: Dictionary = {}
+	var move_script: Script = BossScriptRegistry.move_script(move_opt.get_item_text(move_opt.selected)) \
+		if move_opt.selected >= 0 else null
+	var shoot_script: Script = BossScriptRegistry.shoot_script(shoot_opt.get_item_text(shoot_opt.selected)) \
+		if shoot_opt.selected >= 0 else null
+	var m_suggest := BossScriptRegistry.suggest_params(move_script)
+	var s_suggest := BossScriptRegistry.suggest_params(shoot_script)
+	for k in m_suggest:
+		suggest[k] = m_suggest[k]
+	for k in s_suggest:
+		suggest[k] = s_suggest[k]
+	if not suggest.is_empty():
+		var sug_row := HBoxContainer.new()
+		sug_row.add_theme_constant_override("separation", 4)
+		for sk in suggest:
+			var sb := Button.new()
+			sb.text = str(sk)
+			sb.add_theme_font_size_override("font_size", 12)
+			sb.disabled = phase.params.has(str(sk))
+			sb.pressed.connect(func():
+				phase.params[str(sk)] = suggest[str(sk)]
+				_refresh_spell_form()
+			)
+			sug_row.add_child(sb)
+		_spell_form_box.add_child(sug_row)
+	if phase.params.is_empty():
+		var hint := Label.new()
+		hint.text = "空（点上方参数添加）"
+		hint.add_theme_font_size_override("font_size", 12)
+		hint.modulate = Color(0.5, 0.5, 0.6)
+		_spell_form_box.add_child(hint)
+	else:
+		for k in phase.params:
+			_spell_form_box.add_child(_spell_param_row(phase, k, phase.params[k]))
+	# 应用/保存
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 4)
+	var apply := Button.new()
+	apply.text = "应用"
+	apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	apply.pressed.connect(func():
+		_spell_apply(phase, fields)
+		_log_line("✔ 符卡阶段已应用（重跑生效）")
+	)
+	btn_row.add_child(apply)
+	var save := Button.new()
+	save.text = "保存"
+	save.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	save.pressed.connect(func():
+		_spell_apply(phase, fields)
+		_save_spell()
+	)
+	btn_row.add_child(save)
+	_spell_form_box.add_child(btn_row)
+
+
+## 阶段表单行（label + control）
+func _spell_row(label_text: String, control: Control) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 6)
+	h.add_child(WorkbenchUI.param_label(label_text))
+	h.add_child(control)
+	return h
+
+
+## 脚本下拉（带"无"；按当前脚本匹配选中）
+func _spell_script_opt(names: Array, current_script: Script) -> OptionButton:
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	opt.add_item("无")
+	for n in names:
+		opt.add_item(str(n))
+		var s: Script = BossScriptRegistry.move_script(str(n))
+		if s == null:
+			s = BossScriptRegistry.shoot_script(str(n))
+		if s == current_script:
+			opt.selected = opt.item_count - 1
+	return opt
+
+
+## 应用表单 → PhaseData（脚本参数已在行内写回）
+func _spell_apply(phase: PhaseData, fields: Dictionary) -> void:
+	phase.name = fields["name"].text
+	phase.hp = int(fields["hp"].value)
+	phase.time_limit = fields["time_limit"].value
+	phase.bonus = int(fields["bonus"].value)
+	phase.is_timeout_only = fields["timeout"].button_pressed
+	var move_name: String = fields["move"].get_item_text(fields["move"].selected)
+	phase.move_script = BossScriptRegistry.move_script(move_name) if move_name != "无" else null
+	var shoot_name: String = fields["shoot"].get_item_text(fields["shoot"].selected)
+	phase.shoot_script = BossScriptRegistry.shoot_script(shoot_name) if shoot_name != "无" else null
+
+
+## 保存符卡数据（BossData + 关卡，res:// 开发可写）
+func _save_spell() -> void:
+	if _stage_data == null or _stage_data.boss == null:
+		return
+	var err1 := ResourceSaver.save(_stage_data.boss, _stage_data.boss.resource_path)
+	var err2 := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+	if err1 == OK and err2 == OK:
+		_log_line("💾 符卡数据已保存")
+	else:
+		_log_line("⚠️ 符卡保存失败（boss=%d stage=%d）" % [err1, err2])
+
+
+## x/y 轴小标签（坐标行用）
+func _spell_axis_label(axis: String) -> Label:
+	var l := Label.new()
+	l.text = axis
+	l.custom_minimum_size = Vector2(12, 0)
+	l.add_theme_color_override("font_color", Color(0.45, 0.50, 0.60))
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return l
+
+
+## 脚本参数行（值类型控件 + 行内写回 + 删除）
+func _spell_param_row(phase: PhaseData, key: String, value: Variant) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.add_child(WorkbenchUI.param_key_label(key))
+	var control: Control
+	if value is bool:
+		var cb := CheckButton.new()
+		cb.button_pressed = value
+		cb.toggled.connect(func(on: bool): phase.params[key] = on)
+		control = cb
+	elif typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
+		var spin := SpinBox.new()
+		spin.value = value
+		spin.custom_minimum_size = Vector2(120, 0)
+		var as_int := typeof(value) == TYPE_INT
+		spin.value_changed.connect(func(v: float):
+			phase.params[key] = int(v) if as_int else v
+		)
+		control = spin
+	elif value is Vector2:
+		control = null
+		# Vector2 用两个小框（x/y 标签）
+		row.add_child(_spell_axis_label("x"))
+		var sx := WorkbenchUI.mini_spin(value.x, -10000, 10000)
+		var sy := WorkbenchUI.mini_spin(value.y, -10000, 10000)
+		row.add_child(sx)
+		row.add_child(_spell_axis_label("y"))
+		row.add_child(sy)
+		sx.value_changed.connect(func(v: float): phase.params[key] = Vector2(v, phase.params[key].y))
+		sy.value_changed.connect(func(v: float): phase.params[key] = Vector2(phase.params[key].x, v))
+	else:
+		var line := LineEdit.new()
+		line.text = str(value)
+		line.custom_minimum_size = Vector2(140, 0)
+		line.text_submitted.connect(func(t: String): phase.params[key] = t)
+		control = line
+	if control != null:
+		row.add_child(control)
+	var del := Button.new()
+	del.text = "×"
+	del.add_theme_font_size_override("font_size", 11)
+	del.custom_minimum_size = Vector2(22, 0)
+	del.pressed.connect(func():
+		phase.params.erase(key)
+		_refresh_spell_form()
+	)
+	row.add_child(del)
+	return row

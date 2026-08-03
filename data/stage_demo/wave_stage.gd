@@ -40,6 +40,14 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tl.at(wt).do(func():
 			_start_wave(w)
 		)
+	# 数据关卡的 Boss（StageData.boss）：到 boss_time 生成 + 依次启动阶段
+	var stage_data: StageData = StageManager.current_stage
+	if stage_data and stage_data.boss and stage_data.boss.phases.size() > 0:
+		var boss_data: BossData = stage_data.boss
+		var boss_t := stage_data.boss_time
+		tl.at(boss_t).do(func():
+			_spawn_and_run_boss(boss_data)
+		)
 	# 时钟从续跑起点起步：状态栏/时间轴显示绝对关卡时刻
 	tl.start_at(t0)
 	super.start(ctx, target)
@@ -94,3 +102,33 @@ func _build_enemy(wave: Dictionary) -> EnemyData:
 	if not behavior.is_empty():
 		return EnemyTemplateRegistry.build_from(enemy_name, behavior)
 	return EnemyTemplateRegistry.build(enemy_name)
+
+
+# ═══ Boss 阶段驱动（数据关卡）═══
+
+## 生成 Boss + 入场 + 依次启动阶段（击破一个接下一个）
+func _spawn_and_run_boss(boss_data: BossData) -> void:
+	var boss: Boss = StageManager.spawn_boss(boss_data, Vector2(GameConfig.FIELD_CENTER_X, -60), ctx)
+	if boss == null:
+		return
+	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(boss, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 200), 1.5)
+	run_phase(boss, boss_data, 0)
+
+
+## 启动阶段：冻结关卡时间直到击破，然后下一阶段；全部打完 Boss 退场
+func run_phase(boss: Boss, boss_data: BossData, idx: int) -> void:
+	if idx >= boss_data.phases.size():
+		boss.set_exit_controlled()
+		boss.die()
+		return
+	var phase: PhaseData = boss_data.phases[idx]
+	if _tl:
+		_tl.pause()  # 阶段期间冻结关卡编排（Boss 战专属）
+	boss.start_phase(phase)
+	boss.phase_cleared.connect(func(_captured: bool, _bonus: int):
+		if _tl:
+			_tl.resume()
+		run_phase(boss, boss_data, idx + 1)
+	, CONNECT_ONE_SHOT)

@@ -20,6 +20,8 @@ class_name PhaseData
 @export var item_bomb: int = 0          ## 击破掉落 Bomb 碎片
 @export var item_life_full: int = 0     ## 击破掉落整残
 @export var item_bomb_full: int = 0     ## 击破掉落整 B
+## 移动/弹幕脚本参数（工作台编辑，运行时注入脚本同名属性）
+@export var params: Dictionary = {}
 
 
 ## 配置校验：返回错误列表（空 = 合法）。加载/开战前调用，防除零
