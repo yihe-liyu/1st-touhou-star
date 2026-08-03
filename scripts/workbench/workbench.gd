@@ -1157,16 +1157,19 @@ func _spell_apply(phase: PhaseData, fields: Dictionary) -> void:
 		boss.exit_script = BossScriptRegistry.exit_script(exit_name) if exit_name != "无" else null
 
 
-## 保存符卡数据（BossData + 关卡，res:// 开发可写）
+## 保存符卡数据（Boss 内联在关卡里 → 只保存关卡；boss 是独立 .tres 时单独保存）
 func _save_spell() -> void:
 	if _stage_data == null or _stage_data.boss == null:
 		return
-	var err1 := ResourceSaver.save(_stage_data.boss, _stage_data.boss.resource_path)
-	var err2 := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-	if err1 == OK and err2 == OK:
+	# boss.resource_path 若是内联 sub_resource（路径带 ::子资源ID）不能单独保存
+	var bp := str(_stage_data.boss.resource_path)
+	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+	if err == OK and not bp.is_empty() and not bp.contains("::"):
+		err = ResourceSaver.save(_stage_data.boss, bp)
+	if err == OK:
 		_log_line("💾 符卡数据已保存")
 	else:
-		_log_line("⚠️ 符卡保存失败（boss=%d stage=%d）" % [err1, err2])
+		_log_line("⚠️ 符卡保存失败：%d" % err)
 
 
 ## x/y 轴小标签（坐标行用）
