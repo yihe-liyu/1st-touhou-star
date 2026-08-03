@@ -1,21 +1,21 @@
-## 敌人配置：外观、血量、判定、掉落（构造链）
+## 敌人配置：外观、血量、判定、掉落（构造链 + 数据预设 .tres）
 extends Resource
 class_name EnemyData
 
-var visual_scene: PackedScene   ## 外观场景
-var max_hp: int = 100           ## 最大生命
-var hitbox_radius: float = 8.0  ## 判定半径（像素）
-var score_value: int = 100      ## 击破分数
-var death_effect: PackedScene = preload("res://data/enemy_visual/death_effect.tscn")  ## 死亡特效
+@export var visual_scene: PackedScene   ## 外观场景
+@export var max_hp: int = 100           ## 最大生命
+@export var hitbox_radius: float = 8.0  ## 判定半径（像素）
+@export var score_value: int = 100      ## 击破分数
+@export var death_effect: PackedScene = preload("res://data/enemy_visual/death_effect.tscn")  ## 死亡特效
 var boss_data: BossData         ## Boss 数据
 
-var item_power: int = 0         ## 掉落P道具数
-var item_point: int = 0         ## 掉落点道具数
-var item_life: int = 0          ## 掉落命碎片数
-var item_bomb: int = 0          ## 掉落雷碎片数
-var item_life_full: int = 0     ## 掉落整命数
-var item_bomb_full: int = 0     ## 掉落整雷数
-var item_scatter: float = 50.0  ## 掉落散布范围（像素）
+@export var item_power: int = 0         ## 掉落P道具数
+@export var item_point: int = 0         ## 掉落点道具数
+@export var item_life: int = 0          ## 掉落命碎片数
+@export var item_bomb: int = 0          ## 掉落雷碎片数
+@export var item_life_full: int = 0     ## 掉落整命数
+@export var item_bomb_full: int = 0     ## 掉落整雷数
+@export var item_scatter: float = 50.0  ## 掉落散布范围（像素）
 
 ## ── 构造链 ──
 
@@ -23,7 +23,7 @@ var _script: Script
 var _pos: Vector2 = Vector2.ZERO
 var _params: Dictionary = {}
 
-func script(s: Script) -> EnemyData:   _script = s; return self
+func with_script(s: Script) -> EnemyData:   _script = s; return self
 func pos(p: Vector2) -> EnemyData:     _pos = p; return self
 func hp(v: int) -> EnemyData:          max_hp = v; return self
 func hbox(v: float) -> EnemyData:      hitbox_radius = v; return self

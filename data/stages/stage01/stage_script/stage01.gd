@@ -21,13 +21,13 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	# 1~3s: 妖精波 (左右交替)
 	for i in 7:
 		tl.at(1.0 + i * 0.1).do(func():
-			EnemyData.new().script(ENEMY01)\
+			EnemyData.new().with_script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 150 + i * 50).spawn(ctx)
 		)
 	for i in 7:
 		tl.at(4.0 + i * 0.1).do(func():
-			EnemyData.new().script(ENEMY01)\
+			EnemyData.new().with_script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 150 + i * 50).spawn(ctx)
 		)
@@ -51,7 +51,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# 11~26s: 中线妖精波
 	for i in 6:
-		var local_enemy = EnemyData.new().script(ENEMY02)
+		var local_enemy = EnemyData.new().with_script(ENEMY02)
 		var target_y = 175 + i * 50
 		if i % 2 == 0:
 			tl.at(11.0 + i * 3.0).do(func():
@@ -68,22 +68,22 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	for i in 7:
 		tl.at(17.0 + i * 0.5).do(func():
-			EnemyData.new().script(ENEMY01)\
+			EnemyData.new().with_script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
 				.param("rate", 4).param("heavy_wave", false).spawn(ctx)
-			EnemyData.new().script(ENEMY01)\
+			EnemyData.new().with_script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 360 + i * 40)\
 				.param("rate", 4).param("heavy_wave", false).spawn(ctx)
 		)
 	for i in 7:
 		tl.at(24.0 + i * 0.5).do(func():
-			EnemyData.new().script(ENEMY01)\
+			EnemyData.new().with_script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X + 300 - i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
 				.param("rate", 4).param("heavy_wave", false).spawn(ctx)
-			EnemyData.new().script(ENEMY01)\
+			EnemyData.new().with_script(ENEMY01)\
 				.pos(Vector2(GameConfig.FIELD_CENTER_X - 300 + i * 90, 0)).red_little_fairy()\
 				.param("target_y", 200 + i * 40)\
 				.param("rate", 4).param("heavy_wave", false).spawn(ctx)

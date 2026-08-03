@@ -92,7 +92,7 @@ func spawn_wave(data: BulletData, count: int, spread: float, dir: Vector2, at_po
 	return do(func(): ctx.bullets.shoot_spread(data, count, spread, dir, at_pos))
 
 func spawn_enemy(script: Script, pos: Vector2) -> Timeline:
-	return do(func(): EnemyData.new().script(script).pos(pos).spawn(ctx))
+	return do(func(): EnemyData.new().with_script(script).pos(pos).spawn(ctx))
 
 func spawn_boss(data: BossData, pos: Vector2) -> Timeline:
 	return do(func(): StageManager.spawn_boss(data, pos, ctx))

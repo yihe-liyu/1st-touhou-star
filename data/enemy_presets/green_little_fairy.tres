@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="PackedScene" path="res://data/enemy_visual/death_effect.tscn" id="1_jd4ij"]
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="2_fg58d"]
+[ext_resource type="PackedScene" path="res://data/enemy_visual/green_little_fairy.tscn" id="3_ctpmb"]
+
+[resource]
+script = ExtResource("2_fg58d")
+visual_scene = ExtResource("3_ctpmb")
+max_hp = 45
+hitbox_radius = 25.0
+item_power = 1
+item_point = 1

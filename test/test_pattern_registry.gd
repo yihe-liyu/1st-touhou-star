@@ -183,3 +183,18 @@ func test_build_from_free_combine():
 	# 未知组合防护
 	var bad := EnemyTemplateRegistry.build_from("not_a_preset", "sway_aim")
 	assert_null(bad, "未知数据预设应返回 null")
+
+
+## .tres 数据预设：目录读取 + 加载（script 字段正确序列化）
+func test_tres_presets():
+	var names := EnemyTemplateRegistry.data_names()
+	assert_true(names.has("red_little_fairy"), ".tres 预设应从目录读出")
+	assert_true(names.has("purple_YY_jade"), "jade 预设也在目录")
+	# 加载 .tres 预设
+	var data := EnemyTemplateRegistry._load_preset("red_little_fairy")
+	assert_not_null(data)
+	assert_eq(data.max_hp, 45, "预设血量 45")
+	assert_eq(data.hitbox_radius, 25, "预设判定 25")
+	assert_not_null(data.visual_scene, "外观场景已序列化")
+	assert_eq(data.get_script(), preload("res://scripts/data/enemy_data.gd"),
+		"script 字段应为 EnemyData 脚本（修复 Callable bug 后）")

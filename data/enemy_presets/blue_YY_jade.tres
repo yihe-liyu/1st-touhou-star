@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="PackedScene" path="res://data/enemy_visual/death_effect.tscn" id="1_xu0ma"]
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="2_ihoej"]
+[ext_resource type="PackedScene" path="res://data/enemy_visual/blue_YY_jade.tscn" id="3_0csid"]
+
+[resource]
+script = ExtResource("2_ihoej")
+visual_scene = ExtResource("3_0csid")
+max_hp = 150
+hitbox_radius = 40.0
+item_point = 5
