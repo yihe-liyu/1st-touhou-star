@@ -3,7 +3,6 @@ class_name Boss
 extends Area2D
 
 const HPRingClass = preload("res://scripts/scenes/boss_hp_ring.gd")
-const PATTERN_DRIVER = preload("res://scripts/data/pattern_driver.gd")
 
 signal phase_cleared(captured: bool, bonus: int)
 
@@ -125,12 +124,6 @@ func start_phase(data: PhaseData) -> void:
 			_shoot = data.shoot_script.new()
 			add_child(_shoot)
 			_apply_phase_params(_shoot, data.params)
-			_shoot.start(_ctx, self)
-		elif not data.patterns.is_empty():
-			# 弹幕蓝图驱动（E5）：shoot_script 优先，蓝图次之（向后兼容）
-			_shoot = PATTERN_DRIVER.new()
-			_shoot.patterns = data.patterns
-			add_child(_shoot)
 			_shoot.start(_ctx, self)
 	)
 

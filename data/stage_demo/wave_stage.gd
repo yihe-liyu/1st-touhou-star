@@ -101,14 +101,10 @@ func _spawn_one(wave: Dictionary) -> void:
 	data.spawn(ctx)
 
 
-## 敌人构建：有 behavior 字段 → 数据预设 × 行为自由组合；
-## 只有 enemy 字段（旧数据）→ 当模板名构建（兼容）
+## 敌人构建：数据名 + 行为名 自由组合（behavior 必须有；无模板兜底）
 func _build_enemy(wave: Dictionary) -> EnemyData:
-	var enemy_name := str(wave.get("enemy", ""))
-	var behavior := str(wave.get("behavior", ""))
-	if not behavior.is_empty():
-		return EnemyTemplateRegistry.build_from(enemy_name, behavior)
-	return EnemyTemplateRegistry.build(enemy_name)
+	return EnemyTemplateRegistry.build_from(
+		str(wave.get("enemy", "")), str(wave.get("behavior", "")))
 
 
 # ═══ Boss 阶段驱动（数据关卡）═══

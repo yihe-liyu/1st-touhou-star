@@ -580,11 +580,12 @@ func _add_wave() -> void:
 	var max_t := 0.0
 	for w in timeline.waves:
 		max_t = maxf(max_t, float(w.get("t", 0.0)))
-	var names := ENEMY_REG.names()
+	var presets := EnemyTemplateRegistry.data_names()
 	timeline.waves.append({
 		"t": max_t + 5.0,
 		"name": "新波次",
-		"enemy": names[0] if not names.is_empty() else "",
+		"enemy": presets[0] if not presets.is_empty() else "",
+		"behavior": "aim_scatter",
 		"count": 3,
 		"interval": 0.5,
 		"params": {},
@@ -1386,4 +1387,3 @@ func _edit_event(i: int) -> void:
 	)
 	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
 	t_edit.grab_focus()
-
