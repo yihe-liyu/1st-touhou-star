@@ -54,6 +54,7 @@ const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
 var _spell_section: VBoxContainer
 var _spell_form_box: VBoxContainer
 var _phase_sel: OptionButton
+var _add_boss_btn: Button
 @onready var _world: Node2D = $World
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
@@ -237,8 +238,14 @@ func _build_ui() -> void:
 	save_btn.text = "保存"
 	save_btn.pressed.connect(_save_timeline)
 	wave_btns.add_child(save_btn)
-	# 四个按钮等宽均分，视觉对齐
-	for b in [apply_btn, add_wave, del_wave, save_btn]:
+	# ＋ Boss（数据关卡且无 Boss 时可用：添加 Boss + 默认阶段）
+	_add_boss_btn = Button.new()
+	_add_boss_btn.text = "＋ Boss"
+	_add_boss_btn.pressed.connect(_add_boss)
+	_add_boss_btn.visible = false
+	wave_btns.add_child(_add_boss_btn)
+	# 五个按钮等宽均分，视觉对齐
+	for b in [apply_btn, add_wave, del_wave, save_btn, _add_boss_btn]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.custom_minimum_size = Vector2(0, 28)
 	_wave_section.add_child(wave_btns)
@@ -535,6 +542,8 @@ func _refresh_wave_table() -> void:
 	_wave_form.clear()
 	var timeline = _current_timeline
 	_timeline.set_waves(timeline.waves if timeline else [])
+	# ＋ Boss 按钮：数据关卡且无 Boss 时可用
+	_add_boss_btn.visible = _stage_data != null and _stage_data.boss == null
 	if timeline == null:
 		_wave_section.visible = false  # 协程关卡：编排区块整体隐藏
 		return
@@ -876,6 +885,63 @@ func _on_timeline_boss_moved(t: float) -> void:
 	_log_line("↔ Boss 出现时刻 → t=%.1fs（保存后生效）" % t)
 
 
+## 添加 Boss：数据关卡无 Boss 时，创建默认 Boss + 一个非符阶段并保存
+func _add_boss() -> void:
+	if _stage_data == null or _stage_data.boss != null:
+		return
+	var boss := BossData.new()
+	boss.boss_name = "新 Boss"
+	boss.phases.append(_make_default_phase(0))
+	_stage_data.boss = boss
+	_stage_data.boss_time = 20.0
+	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+	_refresh_spell_section()
+	_update_edit_mode()
+	if err == OK:
+		_log_line("➕ 添加 Boss：%s（时间轴上拖红色条带调出现时刻）" % boss.boss_name)
+	else:
+		_log_line("⚠️ Boss 保存失败：%d" % err)
+
+
+## 添加阶段：Boss 追加一个默认阶段并保存
+func _add_phase() -> void:
+	var boss: BossData = _stage_data.boss if _stage_data else null
+	if boss == null:
+		return
+	boss.phases.append(_make_default_phase(boss.phases.size()))
+	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
+	_refresh_spell_section()
+	if err == OK:
+		_log_line("➕ 添加阶段（共 %d 个，击破后自动进入下一阶段）" % boss.phases.size())
+	else:
+		_log_line("⚠️ 阶段保存失败：%d" % err)
+
+
+## 默认阶段（名字/血量/时限 + 挂首个移动/弹幕脚本）
+func _make_default_phase(idx: int) -> PhaseData:
+	var phase := PhaseData.new()
+	phase.name = "非符 %d" % (idx + 1)
+	phase.hp = 1000
+	phase.time_limit = 30.0
+	phase.bonus = 0
+	var m_names := BossScriptRegistry.move_names()
+	if not m_names.is_empty():
+		phase.move_script = BossScriptRegistry.move_script(str(m_names[0]))
+	var s_names := BossScriptRegistry.shoot_names()
+	if not s_names.is_empty():
+		phase.shoot_script = BossScriptRegistry.shoot_script(str(s_names[0]))
+	return phase
+
+
+## "＋ 阶段"按钮（符卡区 Boss 行）
+func _add_phase_btn() -> Button:
+	var b := Button.new()
+	b.text = "＋ 阶段"
+	b.add_theme_font_size_override("font_size", 12)
+	b.pressed.connect(_add_phase)
+	return b
+
+
 ## 刷新符卡编辑区（清空重建，避免重复累积）
 func _refresh_spell_section() -> void:
 	for c in _spell_section.get_children():
@@ -893,6 +959,7 @@ func _refresh_spell_section() -> void:
 	var boss_l := Label.new()
 	boss_l.text = boss.boss_name
 	boss_row.add_child(boss_l)
+	boss_row.add_child(_add_phase_btn())
 	_spell_section.add_child(boss_row)
 	_phase_sel = OptionButton.new()
 	_phase_sel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
