@@ -36,7 +36,6 @@ const BOOKMARK_EXTRACTOR := preload("res://scripts/workbench/bookmark_extractor.
 const BOOKMARK_CACHE := preload("res://scripts/workbench/bookmark_cache.gd")
 const ENEMY_REG := preload("res://scripts/data/enemy_template_registry.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
-const STAGE01 := preload("res://data/stages/stage01/stage_data/stage01.tres")
 const STAGE_DEMO := preload("res://data/stage_demo/stage_demo.tres")
 const STAGE1_DATA := preload("res://data/stages/stage1_data/stage1_data.tres")
 const _WAVE_TABLE_SCRIPT = preload("res://scripts/workbench/ui/wave_table.gd")
@@ -72,7 +71,7 @@ var _wave_form: WaveForm
 var _dialog: DialogHost
 
 # 关卡状态
-var _stage_data: StageData = STAGE01
+var _stage_data: StageData = STAGE1_DATA
 var _ghost: Player
 var _background: Node
 var _hitbox_overlay: Node2D  # 实际是 HitboxOverlay（preload，避免类缓存依赖）
@@ -192,7 +191,6 @@ func _exit_tree() -> void:
 func _build_ui() -> void:
 	# ── 关卡/难度（.tscn 的 StageGrid，代码填控件）──
 	_stage_sel = OptionButton.new()
-	_stage_sel.add_item("Stage 1 橡树之庭")
 	_stage_sel.add_item("Demo 数据关卡")
 	_stage_sel.add_item("Stage 1 数据版")
 	_stage_sel.item_selected.connect(_on_stage_selected)
@@ -769,10 +767,8 @@ func _stop_fast_forward() -> void:
 func _on_stage_selected(idx: int) -> void:
 	match idx:
 		0:
-			_stage_data = STAGE01
-		1:
 			_stage_data = STAGE_DEMO
-		2:
+		1:
 			_stage_data = STAGE1_DATA
 	_restart()
 	_log_line("🎚 切换关卡：%s" % (_stage_sel.get_item_text(idx)))
