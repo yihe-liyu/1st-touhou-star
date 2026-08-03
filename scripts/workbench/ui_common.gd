@@ -75,11 +75,21 @@ static func param_key_label(text: String) -> Label:
 ## Vector2 参数行：x [ ] y [ ]（带 x/y 小标签，仿 Inspector 坐标编辑器）
 ## 返回 [sx: SpinBox, sy: SpinBox] 供写回
 static func vec2_row(parent: Node, key: String, value: Vector2) -> Array:
+	return coord_row(parent, key, value.x, value.y, -10000, 10000, -10000, 10000)
+
+
+## 坐标行：label x[ ] y[ ]（带轴标签；x/y 的 min/max 可分别设）
+static func coord_row(parent: Node, label_text: String, x_val: float, y_val: float,
+		x_min: float, x_max: float, y_min: float, y_max: float) -> Array:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 4)
-	h.add_child(param_key_label(key))
-	var sx := _axis_spin(value.x, "x")
-	var sy := _axis_spin(value.y, "y")
+	h.add_child(param_label(label_text))
+	var sx := _axis_spin(x_val, "x")
+	var sy := _axis_spin(y_val, "y")
+	sx.spin.min_value = x_min
+	sx.spin.max_value = x_max
+	sy.spin.min_value = y_min
+	sy.spin.max_value = y_max
 	h.add_child(sx.row)
 	h.add_child(sy.row)
 	parent.add_child(h)

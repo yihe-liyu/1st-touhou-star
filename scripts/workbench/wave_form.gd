@@ -58,14 +58,34 @@ func show_wave(tl: Resource, idx: int) -> void:
 	if tl == null or idx < 0 or idx >= tl.waves.size():
 		return
 	var w: Dictionary = tl.waves[idx]
+	# 名称（波次名：表格/删除弹窗显示用，可编辑）
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 6)
+	name_row.add_child(WorkbenchUI.param_label("名称"))
+	var name_edit := LineEdit.new()
+	name_edit.text = str(w.get("name", ""))
+	name_edit.placeholder_text = "波次名"
+	name_edit.custom_minimum_size = Vector2(140, 0)
+	name_row.add_child(name_edit)
+	_body.add_child(name_row)
+	_edits.append({"apply": func():
+		w["name"] = name_edit.text
+	})
 	# 基础字段（可编辑）
 	_add_field_edit("t", w, "t", 0.0, 90.0, 0.1, false)
 	_add_field_edit("数量", w, "count", 1.0, 60.0, 1.0, true)
 	_add_field_edit("间隔", w, "interval", 0.0, 10.0, 0.1, false)
 	# 敌人模板下拉（注册表）
 	_add_enum_edit("敌人", w, "enemy", ENEMY_REG.names(), false)
-	_add_field_edit("出生x", w, "spawn_x", 0.0, 900.0, 1.0, false)
-	_add_field_edit("出生y", w, "spawn_y", -100.0, 1000.0, 1.0, false)
+	# 出生坐标（x/y 一行，带轴标签，不再分两行）
+	var spawn_spins: Array = WorkbenchUI.coord_row(_body, "出生",
+		float(w.get("spawn_x", GameConfig.FIELD_CENTER_X)),
+		float(w.get("spawn_y", -40.0)),
+		0.0, 900.0, -100.0, 1000.0)
+	_edits.append({"apply": func():
+		w["spawn_x"] = spawn_spins[0].value
+		w["spawn_y"] = spawn_spins[1].value
+	})
 	# 弹幕模式（可选：追加到敌人模板弹幕之上）
 	_add_enum_edit("弹幕", w, "pattern", PatternRegistry.names(), true)
 	if not str(w.get("pattern", "")).is_empty():
@@ -146,11 +166,11 @@ func _open_add_param(wave: Dictionary, key: String) -> void:
 		vb.add_child(hint)
 		var common_row := HBoxContainer.new()
 		common_row.add_theme_constant_override("separation", 4)
-		for name in common:
+		for pname in common:
 			var b := Button.new()
-			b.text = str(name)
+			b.text = str(pname)
 			b.add_theme_font_size_override("font_size", 11)
-			b.pressed.connect(func(): name_edit.text = str(name))
+			b.pressed.connect(func(): name_edit.text = str(pname))
 			common_row.add_child(b)
 		vb.add_child(common_row)
 	# 键名行
