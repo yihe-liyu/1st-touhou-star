@@ -1,47 +1,51 @@
-[gd_resource type="Resource" script_class="StageTimeline" format=3 uid="uid://stage_timeline_demo"]
+[gd_resource type="Resource" script_class="StageTimeline" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/stage_timeline.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/stage_timeline.gd" id="1_wky1v"]
 
 [resource]
-script = ExtResource("1")
-waves = [{
-"t": 1.0,
+script = ExtResource("1_wky1v")
+waves = Array[Dictionary]([{
+"behavior": "aim_scatter",
+"count": 5,
+"enemy": "red_little_fairy",
+"interval": 0.2,
 "name": "红妖精波（左）",
-"enemy": "red_little",
-"count": 5,
-"interval": 0.2,
+"params": {
+"target_y": 200.0
+},
 "spawn_x": 748.0,
-"params": {
-"target_y": 200.0
-}
+"t": 1.0
 }, {
-"t": 4.0,
-"name": "红妖精波（右）",
-"enemy": "red_little",
+"behavior": "aim_scatter",
 "count": 5,
+"enemy": "red_little_fairy",
 "interval": 0.2,
-"spawn_x": 148.0,
+"name": "红妖精波（右）",
 "params": {
 "target_y": 200.0
-}
+},
+"spawn_x": 148.0,
+"t": 4.0
 }, {
-"t": 8.0,
-"name": "中线妖精波",
-"enemy": "red_middle",
+"behavior": "middle_sweep",
 "count": 4,
+"enemy": "red_middle_fairy",
 "interval": 2.0,
-"spawn_x": 448.0,
+"name": "中线妖精波",
 "params": {
 "target_pos": Vector2(448, 260)
-}
-}, {
-"t": 14.0,
-"name": "红妖精波（中）",
-"enemy": "red_little",
-"count": 8,
-"interval": 0.25,
+},
 "spawn_x": 448.0,
+"t": 8.0
+}, {
+"behavior": "aim_scatter",
+"count": 8,
+"enemy": "red_little_fairy",
+"interval": 0.25,
+"name": "红妖精波（中）",
 "params": {
 "target_y": 320.0
-}
-}]
+},
+"spawn_x": 448.0,
+"t": 14.0
+}])
