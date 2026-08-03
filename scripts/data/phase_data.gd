@@ -11,6 +11,8 @@ class_name PhaseData
 @export var is_timeout_only: bool = false ## 时符
 @export var move_script: Script
 @export var shoot_script: Script
+## 弹幕蓝图（数据驱动，可选）：空 = 用 shoot_script（向后兼容）；非空 = PatternDriver 解释
+@export var patterns: Array[BulletPattern] = []
 @export var background: PackedScene      ## 可选换背景
 @export var item_power: int = 0         ## 击破掉落 P 点
 @export var item_point: int = 0         ## 击破掉落蓝点
