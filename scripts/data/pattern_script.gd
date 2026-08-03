@@ -38,6 +38,12 @@ func emit_at() -> Vector2:
 	return PatternDriver.resolve_origin(ctx, target, config)
 
 
+## 参数 schema：作者声明该模式支持的参数（键 → 默认值）
+## 工作台"建议"按钮自动读取，无需手动维护注册表
+func params_schema() -> Dictionary:
+	return {}
+
+
 ## 基准方向（默认向下，含 rotate_step 累计由 Driver 侧注入；脚本模式自管旋转）
 func base_dir() -> Vector2:
 	return Vector2.DOWN

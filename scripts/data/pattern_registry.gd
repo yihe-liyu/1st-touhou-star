@@ -38,17 +38,47 @@ static func names() -> Array:
 
 
 ## 常用参数建议（工作台"添加参数"弹窗的快捷按钮）
-static func suggest_params(pattern_name: String) -> Array:
+## 返回 Dictionary：键 → 默认值；内置模式写死，脚本模式自动识别
+static func suggest_params(pattern_name: String) -> Dictionary:
 	match pattern_name:
 		"ring":
-			return ["n", "speed", "aim", "random_start"]
+			return {"n": 24, "speed": 300.0, "aim": false, "random_start": false}
 		"aim":
-			return ["n", "spread", "speed"]
+			return {"n": 5, "spread": 30.0, "speed": 300.0}
 		"fan":
-			return ["n", "spread", "speed"]
-		"spiral":
-			return ["arms", "step", "speed"]
-	return ["n", "speed", "aim"]
+			return {"n": 5, "spread": 60.0, "speed": 300.0}
+	# 脚本模式：优先作者 params_schema() 声明，否则反射脚本变量
+	if is_script(pattern_name):
+		var inst := instantiate_script(pattern_name)
+		if inst:
+			if inst.has_method("params_schema"):
+				var schema: Dictionary = inst.params_schema()
+				if not schema.is_empty():
+					return schema
+			var result := _reflect_params(inst)
+			if not result.is_empty():
+				return result
+	return {"n": 24, "speed": 300.0}
+
+
+## 反射脚本实例的非私有、非基类运行时变量（自动识别自定义脚本参数）
+static func _reflect_params(inst: CoroutineScript) -> Dictionary:
+	var result: Dictionary = {}
+	for p in inst.get_property_list():
+		if not (p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE):
+			continue
+		var pname: String = p.name
+		if pname.begins_with("_") or pname in IGNORED_PARAMS:
+			continue
+		result[pname] = inst.get(pname)
+	return result
+
+
+## 基类运行时变量（反射时排除，非用户参数）
+const IGNORED_PARAMS := {
+	"ctx": true, "target": true, "auto_stop": true, "config": true,
+	"is_running": true, "_paused": true, "_fast_mode": true,
+}
 
 
 static func has(name: String) -> bool:

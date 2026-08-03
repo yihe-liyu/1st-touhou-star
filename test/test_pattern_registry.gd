@@ -107,3 +107,38 @@ func test_bullet_pattern_validate():
 	assert_gt(bad.validate().size(), 0, "interval=0 应报错")
 	var good := BulletPattern.new()
 	assert_eq(good.validate().size(), 0, "默认合法")
+
+
+## 建议参数（Dictionary schema）：内置模式写死
+func test_suggest_params_builtin():
+	var ring: Dictionary = PatternRegistry.suggest_params("ring")
+	assert_true(ring.has("n") and ring.has("speed") and ring.has("aim"), "ring 建议含 n/speed/aim")
+	assert_eq(ring.get("n"), 24, "默认 n=24")
+	assert_true(ring.get("aim") == false, "默认 aim=false")
+
+
+## 建议参数：脚本模式优先 params_schema()（作者声明）
+func test_suggest_params_script_schema():
+	var spiral: Dictionary = PatternRegistry.suggest_params("spiral")
+	assert_true(spiral.has("arms") and spiral.has("step") and spiral.has("speed"),
+		"spiral 建议来自 params_schema：arms/step/speed")
+	assert_eq(spiral.get("arms"), 2, "默认 arms=2")
+
+
+## 建议参数：无 params_schema 的脚本 → 反射脚本变量（排除私有/基类）
+func test_suggest_params_script_reflect():
+	var mock: Dictionary = PatternRegistry.suggest_params("mock_test")
+	assert_true(mock.has("fired"), "应反射出 MockPatternScript.fired")
+	assert_false(mock.has("ctx"), "不应包含基类 ctx")
+	assert_false(mock.has("target"), "不应包含基类 target")
+
+
+## 敌人模板建议：defaults 优先 + 反射脚本变量补全
+func test_enemy_template_suggest():
+	var tpl: Dictionary = EnemyTemplateRegistry.suggest_params("red_little")
+	assert_true(tpl.has("target_y"), "defaults 的 target_y 应在")
+	assert_almost_eq(float(tpl.get("target_y")), 300.0, 0.001, "target_y 默认 300")
+	assert_true(tpl.has("heavy_wave"), "反射出 enemy01 的 heavy_wave")
+	assert_true(tpl.has("rate"), "反射出 enemy01 的 rate")
+	assert_false(tpl.has("ctx"), "不应包含基类 ctx")
+	assert_false(tpl.has("_tl"), "不应包含私有 _tl")

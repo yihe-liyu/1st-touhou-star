@@ -35,10 +35,32 @@ static func names() -> Array:
 	return keys
 
 
-## 模板支持的参数名（工作台"建议"按钮用，来自模板 defaults）
-static func suggest_params(name: String) -> Array:
+## 模板支持的参数（工作台"建议"按钮用）：defaults 优先 + 反射脚本变量补全
+## 新模板只需写 script + defaults，脚本里的其他 var 自动识别
+static func suggest_params(name: String) -> Dictionary:
 	var t: Dictionary = TEMPLATES.get(name, {})
+	var result: Dictionary = {}
+	if t.is_empty():
+		return result
 	var d: Dictionary = t.get("defaults", {})
-	var keys := d.keys()
-	keys.sort()
-	return keys
+	for k in d:
+		result[k] = d[k]
+	# 反射脚本变量补全（排除私有/基类运行时变量）
+	var script: Script = t.get("script")
+	if script:
+		var inst: Node = script.new()
+		for p in inst.get_property_list():
+			if not (p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE):
+				continue
+			var pname: String = p.name
+			if pname.begins_with("_") or pname in IGNORED_PARAMS or result.has(pname):
+				continue
+			result[pname] = inst.get(pname)
+	return result
+
+
+## 基类运行时变量（反射时排除，非用户参数）
+const IGNORED_PARAMS := {
+	"ctx": true, "target": true, "auto_stop": true, "config": true,
+	"is_running": true, "_paused": true, "_fast_mode": true,
+}

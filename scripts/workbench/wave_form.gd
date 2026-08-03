@@ -95,7 +95,8 @@ func show_wave(tl: Resource, idx: int) -> void:
 		_add_param_section("── 弹幕参数 ──", w, "pattern_params",
 			"形状：n 弹数 / speed 速度 / aim 自机狙", PatternRegistry.suggest_params(pattern_name))
 		_add_param_section("── 弹丸配置 ──", w, "bullet_params",
-			"子弹外观：tex 贴图 / color 颜色 / behavior 飞行行为", ["tex", "color", "blend", "speed"])
+			"子弹外观：tex 贴图 / color 颜色 / behavior 飞行行为",
+			{"tex": "小玉", "color": Color.WHITE, "blend": true, "speed": 300.0})
 	# 模板参数（敌人模板自带，通常已在）
 	_add_param_section("── 模板参数 ──", w, "params",
 		"敌人模板参数（如 target_y / target_pos）", ENEMY_REG.suggest_params(str(w.get("enemy", ""))))
@@ -121,9 +122,9 @@ func flush() -> void:
 
 # ═══ 表单生成 ═══
 
-## 参数区：建议参数按钮（点击即添加）+ 已添加参数行（可删）+ 自定义入口
-## suggest：该栏推荐属性名（如弹幕参数的 n/speed/aim）
-func _add_param_section(title: String, wave: Dictionary, key: String, desc: String = "", suggest: Array = []) -> void:
+## 参数区：建议参数按钮（点击即添加）+ 已添加参数行（可删）
+## suggest：该栏推荐属性（Dictionary：键 → 默认值，来自模式/模板 schema）
+func _add_param_section(title: String, wave: Dictionary, key: String, desc: String = "", suggest: Dictionary = {}) -> void:
 	_body.add_child(WorkbenchUI.section_title(title))
 	if not desc.is_empty():
 		var d := Label.new()
@@ -147,7 +148,7 @@ func _add_param_section(title: String, wave: Dictionary, key: String, desc: Stri
 			sb.add_theme_font_size_override("font_size", 11)
 			sb.disabled = dict.has(str(sk))
 			sb.tooltip_text = "添加 %s 参数" % sk
-			sb.pressed.connect(func(): _add_suggest_param(wave, key, str(sk)))
+			sb.pressed.connect(func(): _add_suggest_param(wave, key, str(sk), suggest[str(sk)]))
 			sug_row.add_child(sb)
 		_body.add_child(sug_row)
 	# 已添加参数行（带删除按钮）
@@ -163,28 +164,11 @@ func _add_param_section(title: String, wave: Dictionary, key: String, desc: Stri
 
 
 ## 建议按钮点击：给该键添加默认值并重建表单
-func _add_suggest_param(wave: Dictionary, key: String, pname: String) -> void:
+func _add_suggest_param(wave: Dictionary, key: String, pname: String, default_value: Variant) -> void:
 	var dict: Dictionary = wave.get(key, {})
-	dict[pname] = _suggest_default(pname)
+	dict[pname] = default_value
 	wave[key] = dict
 	show_wave(_tl, _idx)
-
-
-## 建议参数的默认值（合理起步，改一次就记住）
-func _suggest_default(pname: String) -> Variant:
-	match pname:
-		"n": return 24
-		"arms": return 2
-		"speed": return 300.0
-		"spread": return 30.0
-		"step": return 12.0
-		"aim": return false
-		"random_start": return false
-		"tex": return "小玉"
-		"blend": return true
-		"color": return Color(1, 1, 1, 1)
-		"behavior": return ""
-	return 0.0
 
 
 func _add_enum_edit(label_text: String, wave: Dictionary, key: String, options: Array, allow_empty: bool) -> void:

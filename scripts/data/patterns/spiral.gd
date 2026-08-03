@@ -16,6 +16,11 @@ extends PatternScript
 var _angle := 0.0
 
 
+## 参数 schema：工作台"建议"按钮自动读取（无需维护注册表）
+func params_schema() -> Dictionary:
+	return {"arms": 2, "step": 12.0, "speed": 300.0}
+
+
 func _tick(_ctx: StageContext) -> Variant:
 	if not is_instance_valid(target):
 		return false
