@@ -109,9 +109,10 @@ func _build_enemy(wave: Dictionary) -> EnemyData:
 
 # ═══ Boss 阶段驱动（数据关卡）═══
 
-## 生成 Boss + 入场（自定义脚本或默认顶部飞入）+ 依次启动阶段
+## 生成 Boss + 入场（自定义脚本或默认顶部飞入）+ 入场完成后依次启动阶段
+## 关键：等入场演出结束再 start_phase —— 避免入场 tween 与阶段 move_script 同时抢位置
 func _spawn_and_run_boss(boss_data: BossData) -> void:
-	var boss: Boss = StageManager.spawn_boss(boss_data, Vector2(GameConfig.FIELD_CENTER_X, -60), ctx)
+	var boss: Boss = StageManager.spawn_boss(boss_data, Vector2(-50, 500), ctx)
 	if boss == null:
 		return
 	if boss_data.enter_script:
@@ -119,10 +120,12 @@ func _spawn_and_run_boss(boss_data: BossData) -> void:
 		boss.add_child(enter)
 		enter.start(ctx, boss)
 	else:
-		# 默认入场：顶部飞入
+		# 默认入场：从左侧飞入
 		var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.tween_property(boss, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 200), 1.5)
+	# 入场演出时长（当前入场脚本均为 1.5s 风格；等它结束再开阶段）
+	await get_tree().create_timer(1.5).timeout
 	run_phase(boss, boss_data, 0)
 
 
