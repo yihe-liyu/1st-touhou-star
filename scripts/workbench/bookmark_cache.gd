@@ -8,7 +8,7 @@ class_name BookmarkCache
 
 
 ## 缓存格式版本：书签策略变化（如只留整数时刻）时 +1，强制旧缓存重收集
-const CACHE_VERSION := 3  # v3: 书签量化 0.1s（保留 0.5s 网格锚点，不再只留整数秒）
+const CACHE_VERSION := 4  # v4: 规范化哈希（键序无关，副本往返稳定）
 
 ## 关卡内容哈希：主脚本 + 关卡目录下所有 .gd 文件文本聚合
 ## （改任何子脚本/敌人/Boss 逻辑都会使书签缓存失效重收集）
@@ -26,8 +26,56 @@ static func stage_content_hash(stage: StageData) -> int:
 			if FileAccess.file_exists(user_p):
 				tl = load(user_p)
 			if tl:
-				h = h * 31 + var_to_str(tl.get("waves")).hash()
+				h = h * 31 + _stable_waves_hash(tl.get("waves"))
 	return h
+
+
+## 波次数据稳定哈希：键排序 + 波次排序 + 稳定字符串表示
+## （消除 var_to_str 对字典键序/浮点表示敏感的差异——副本保存/反序列化
+##  往返后键序可能变化，导致缓存每次都判"数据已变化"）
+static func _stable_waves_hash(waves: Variant) -> int:
+	if waves == null:
+		return 0
+	var parts: Array = []
+	for w in waves:
+		if w is Dictionary:
+			parts.append(_stable_dict_str(w))
+		else:
+			parts.append(str(w))
+	parts.sort()
+	var h := 0
+	for p in parts:
+		h = h * 31 + p.hash()
+	return h
+
+
+static func _stable_dict_str(d: Dictionary) -> String:
+	var keys := d.keys()
+	keys.sort()
+	var parts: Array = []
+	for k in keys:
+		parts.append("%s=%s" % [str(k), _stable_value_str(d[k])])
+	return "|".join(parts)
+
+
+## 值稳定表示：Vector2/Color 显式格式化（避免默认 str 精度差异）
+static func _stable_value_str(v: Variant) -> String:
+	if v is Vector2:
+		return "V2(%.6f,%.6f)" % [v.x, v.y]
+	if v is Vector3:
+		return "V3(%.6f,%.6f,%.6f)" % [v.x, v.y, v.z]
+	if v is Color:
+		return "C(%.6f,%.6f,%.6f,%.6f)" % [v.r, v.g, v.b, v.a]
+	if typeof(v) == TYPE_FLOAT:
+		return "F%.6f" % v
+	if v is Dictionary:
+		return _stable_dict_str(v)
+	if v is Array:
+		var parts: Array = []
+		for e in v:
+			parts.append(_stable_value_str(e))
+		return "[" + ",".join(parts) + "]"
+	return str(v)
 
 
 static func _hash_dir_files(dir_path: String, h: int) -> int:

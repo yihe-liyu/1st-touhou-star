@@ -135,3 +135,24 @@ func test_bookmark_hash_includes_timeline_data():
 	assert_ne(h1, h2, "波次数据变化应使书签缓存哈希变化")
 	# 清理（避免影响其他测试）
 	DirAccess.remove_absolute("user://data/stage_demo/stage_timeline.tres")
+
+
+## 规范化哈希：键序无关 / 波次顺序无关 / 值变化仍敏感
+## （副本保存-反序列化往返后键序可能变化，必须不影响书签缓存判定）
+func test_hash_stable_across_key_order():
+	var w1 := {"t": 1.5, "name": "A", "enemy": "red_little", "count": 3, "params": {"target_y": 200.0}}
+	var w2 := {"name": "A", "enemy": "red_little", "t": 1.5, "params": {"target_y": 200.0}, "count": 3}
+	var h1 := BookmarkCache._stable_waves_hash([w1])
+	var h2 := BookmarkCache._stable_waves_hash([w2])
+	assert_eq(h1, h2, "键序不同应 hash 相同")
+	var h3 := BookmarkCache._stable_waves_hash([w1, w2])
+	var h4 := BookmarkCache._stable_waves_hash([w2, w1])
+	assert_eq(h3, h4, "波次顺序不同应 hash 相同")
+	var h5 := BookmarkCache._stable_waves_hash([{"t": 1.0}])
+	var h6 := BookmarkCache._stable_waves_hash([{"t": 2.0}])
+	assert_ne(h5, h6, "值变化应仍敏感（hash 不同）")
+	# 嵌套值（Vector2/Color/嵌套字典）稳定性
+	var v1 := {"pos": Vector2(448, 300), "color": Color(1, 0, 0, 1), "sub": {"a": 1}}
+	var v2 := {"sub": {"a": 1}, "color": Color(1, 0, 0, 1), "pos": Vector2(448, 300)}
+	assert_eq(BookmarkCache._stable_waves_hash([v1]), BookmarkCache._stable_waves_hash([v2]),
+		"嵌套值不同键序也应相同")
