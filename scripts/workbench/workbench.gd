@@ -828,13 +828,14 @@ func _on_divider_input(event: InputEvent) -> void:
 # ═══ 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）═══
 
 ## 刷新符卡编辑区（数据关卡有 Boss 时显示）
+## 清空重建整个区（标题/下拉/表单容器），避免重复累积出现多个符卡栏
 func _refresh_spell_section() -> void:
-	_spell_section.visible = false
-	for c in _spell_form_box.get_children():
+	for c in _spell_section.get_children():
 		c.queue_free()
 	_phase_sel = null
 	var boss: BossData = _stage_data.boss if _stage_data else null
 	if boss == null or boss.phases.is_empty():
+		_spell_section.visible = false
 		return
 	_spell_section.visible = true
 	_spell_section.add_child(WorkbenchUI.section_title("── 符卡（Boss 阶段）──"))
@@ -852,6 +853,10 @@ func _refresh_spell_section() -> void:
 		_phase_sel.add_item("%d: %s" % [i, p.name if not p.name.is_empty() else "非符"])
 	_phase_sel.item_selected.connect(func(_i: int): _refresh_spell_form())
 	_spell_section.add_child(_phase_sel)
+	# 重建表单容器（上一轮清空后需重建）
+	_spell_form_box = VBoxContainer.new()
+	_spell_form_box.add_theme_constant_override("separation", 4)
+	_spell_section.add_child(_spell_form_box)
 	_refresh_spell_form()
 
 
@@ -1021,7 +1026,10 @@ func _spell_param_row(phase: PhaseData, key: String, value: Variant) -> Control:
 		spin.custom_minimum_size = Vector2(120, 0)
 		var as_int := typeof(value) == TYPE_INT
 		spin.value_changed.connect(func(v: float):
-			phase.params[key] = int(v) if as_int else v
+			if as_int:
+				phase.params[key] = int(v)
+			else:
+				phase.params[key] = v
 		)
 		control = spin
 	elif value is Vector2:
