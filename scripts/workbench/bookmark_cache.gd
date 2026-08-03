@@ -62,6 +62,11 @@ static func _path(stage_id: int) -> String:
 	return "user://bookmarks/stage%d.json" % stage_id
 
 
+## 是否有缓存文件（区分"首次"与"数据变化"：首次无文件，变化有但 hash 不匹配）
+static func has_cache(stage_id: int) -> bool:
+	return FileAccess.file_exists(_path(stage_id))
+
+
 ## 读缓存 → {ok, auto: [{t}], manual: [{t, label}]}
 ## ok=false 且 manual 非空 = 脚本变了（auto 待重收集，manual 保留）
 static func load(stage_id: int, script_hash: int) -> Dictionary:

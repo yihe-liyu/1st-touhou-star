@@ -375,6 +375,11 @@ func _apply_bookmarks_from_cache() -> void:
 		_log_line("📖 书签来自缓存（%d 自动 + %d 人工）" % [_auto_bookmarks.size(), _manual_bookmarks.size()])
 	else:
 		_manual_bookmarks = cache.manual  # 脚本变了也保留人工打点
+		# 区分收集原因（帮助用户判断是否预期行为）
+		if BOOKMARK_CACHE.has_cache(_stage_data.stage_id):
+			_log_line("🔄 关卡数据/脚本已变化，重新收集书签...")
+		else:
+			_log_line("📖 首次运行，静默收集书签（快进到 %.0fs）..." % _collect_max)
 		_start_collection(content_hash)
 
 
