@@ -161,11 +161,6 @@ func take_damage(damage: float) -> void:
 
 
 func _clear_phase(captured: bool) -> void:
-	# 定位日志：阶段结束触发原因 + 调用栈（谁调的/调几次）
-	print("[BossClearPhase] captured=%s hp=%d elapsed=%.1f invincible=%s" % [captured, hp, _elapsed, _invincible])
-	var st := get_stack()
-	for i in range(mini(6, st.size())):
-		print("  <- ", st[i].source, " : ", st[i].function, " : ", st[i].line)
 	if _cleared: return
 	_cleared = true
 	_invincible = true
@@ -204,10 +199,6 @@ func _die() -> void:
 
 
 func _drop_items() -> void:
-	# 定位日志：掉道具触发原因（游戏跑时看控制台，反馈给开发者）
-	var log_t := StageManager.current_stage_script().game_time() if StageManager.current_stage_script() else -1.0
-	push_warning("[Boss掉道具] t=%.1f hp=%d elapsed=%.1f invincible=%s captured=%s phase=%s" % [
-		log_t, hp, _elapsed, _invincible, _cleared, _current_phase.name if _current_phase else "无"])
 	if not _current_phase: return
 	if GameState.is_practice_mode: return
 	var pos := global_position
