@@ -57,8 +57,6 @@ var _spell_section: VBoxContainer
 var _spell_form_box: VBoxContainer
 var _phase_sel: OptionButton
 var _add_boss_btn: Button
-## 当前编辑难度（0=Easy 1=Normal 2=Hard 3=Lunatic；决定阶段数组与预览难度）
-var _boss_diff: int = 1
 @onready var _world: Node2D = $World
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
@@ -365,8 +363,6 @@ func _load_stage(start_from: float = -1.0) -> void:
 		_background.process_mode = Node.PROCESS_MODE_PAUSABLE
 		add_child(_background)
 	# 真实加载（跑 stage01.gd 的 Timeline）
-	# 预览难度 = 工作台当前编辑难度（接轨游戏：Boss 按难度取阶段）
-	GameState.selected_difficulty = _boss_diff
 	StageManager.load_stage(_stage_data, start_from)
 	# 时间轴 + 书签（缓存优先，未命中则静默收集真实时刻）
 	# 窗口自适应：数据关卡按最大波次时刻；协程关卡默认 60s
@@ -386,7 +382,7 @@ func _load_stage(start_from: float = -1.0) -> void:
 	var bdur := 0.0
 	if _stage_data and _stage_data.boss:
 		bs = _stage_data.boss_time
-		for p in _stage_data.boss.phases_for_difficulty(_boss_diff):
+		for p in _boss_phases():
 			if p:
 				bdur += p.time_limit
 		bdur = maxf(bdur, 1.0)
@@ -925,10 +921,12 @@ func _add_boss() -> void:
 
 
 ## 当前难度阶段数组（可变引用：append/修改直接落对应难度组）
+## 难度取顶部全局下拉（与预览难度一致）
 func _boss_phases() -> Array:
 	if _stage_data == null or _stage_data.boss == null:
 		return []
-	return _stage_data.boss.phases_for_difficulty(_boss_diff)
+	var diff := _diff_sel.selected if _diff_sel else 1
+	return _stage_data.boss.phases_for_difficulty(diff)
 
 
 ## 添加阶段：Boss 追加一个默认阶段（当前难度）并保存
@@ -941,7 +939,7 @@ func _add_phase() -> void:
 	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
 	_refresh_spell_section()
 	if err == OK:
-		_log_line("➕ 添加阶段（%s 难度，共 %d 个，击破后自动进入下一阶段）" % [BossData.difficulty_name(_boss_diff), arr.size()])
+		_log_line("➕ 添加阶段（%s 难度，共 %d 个，击破后自动进入下一阶段）" % [BossData.difficulty_name(_diff_sel.selected if _diff_sel else 1), arr.size()])
 	else:
 		_log_line("⚠️ 阶段保存失败：%d" % err)
 
@@ -988,17 +986,7 @@ func _refresh_spell_section() -> void:
 	var boss_l := Label.new()
 	boss_l.text = boss.boss_name
 	boss_row.add_child(boss_l)
-	# 难度切换：决定编辑/保存哪个难度阶段数组（并用于预览）
-	var diff_opt := OptionButton.new()
-	diff_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for d in [0, 1, 2, 3]:
-		diff_opt.add_item(BossData.difficulty_name(d))
-	diff_opt.selected = _boss_diff
-	diff_opt.item_selected.connect(func(i: int):
-		_boss_diff = i
-		_refresh_spell_section()
-	)
-	boss_row.add_child(diff_opt)
+	# 难度提示（顶部全局难度下拉控制编辑/预览，无需 Boss 区重复）
 	boss_row.add_child(_add_phase_btn())
 	_spell_section.add_child(boss_row)
 	_phase_sel = OptionButton.new()
