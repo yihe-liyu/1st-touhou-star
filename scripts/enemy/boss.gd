@@ -19,6 +19,7 @@ var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
 var _stage_id: int
+var boss_index: int = 0   ## 第几个 Boss（wave_stage 多 Boss 时设置；记录区分用）
 var _spell_count: int = 0
 var _non_count: int = 0
 var _pid: PhaseIdentity
@@ -98,7 +99,7 @@ func start_phase(data: PhaseData) -> void:
 	else:
 		_non_count += 1
 	
-	_pid = PhaseIdentity.from_phase(data, _stage_id, _phase_index, _spell_count, _non_count)
+	_pid = PhaseIdentity.from_phase(data, _stage_id, _phase_index, _spell_count, _non_count, boss_index)
 	if not GameState.is_practice_mode:
 		GameState.unlock_spell(_pid)
 	

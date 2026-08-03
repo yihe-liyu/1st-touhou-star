@@ -47,13 +47,16 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var etype := str(e.get("type", ""))
 		tl.at(et).do(func():
 			_run_event(e, etype)
-		)	# 数据关卡的 Boss（StageData.boss）：到 boss_time 生成 + 依次启动阶段
+		)	# 数据关卡的 Boss（StageData.boss/bosses）：各自到点生成 + 依次启动阶段
 	var stage_data: StageData = StageManager.current_stage
-	if stage_data and stage_data.boss and stage_data.boss.phases_for_difficulty(GameState.selected_difficulty).size() > 0:
-		var boss_data: BossData = stage_data.boss
-		var boss_t := stage_data.boss_time
+	var boss_list: Array = stage_data.all_bosses() if stage_data else []
+	for bi in boss_list.size():
+		var entry: Dictionary = boss_list[bi]
+		var boss_data: BossData = entry["boss"]
+		var boss_t := float(entry["t"])
+		var boss_idx := bi
 		tl.at(boss_t).do(func():
-			_spawn_and_run_boss(boss_data)
+			_spawn_and_run_boss(boss_data, boss_idx)
 		)
 	# 时钟从续跑起点起步：状态栏/时间轴显示绝对关卡时刻
 	tl.start_at(t0)
@@ -111,10 +114,11 @@ func _build_enemy(wave: Dictionary) -> EnemyData:
 
 ## 生成 Boss + 入场（自定义脚本或默认顶部飞入）+ 入场完成后依次启动阶段
 ## 关键：等入场演出结束再 start_phase —— 避免入场 tween 与阶段 move_script 同时抢位置
-func _spawn_and_run_boss(boss_data: BossData) -> void:
+func _spawn_and_run_boss(boss_data: BossData, boss_idx: int = 0) -> void:
 	var boss: Boss = StageManager.spawn_boss(boss_data, Vector2(-50, 500), ctx)
 	if boss == null:
 		return
+	boss.boss_index = boss_idx
 	if boss_data.enter_script:
 		var enter: CoroutineScript = boss_data.enter_script.new()
 		boss.add_child(enter)

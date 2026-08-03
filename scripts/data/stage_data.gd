@@ -12,6 +12,26 @@ class_name StageData
 ## 数据关卡的 Boss（可选；协程关卡在代码里编排，忽略此字段）
 @export var boss: BossData
 @export var boss_time: float = 35.0   ## Boss 出现时刻（秒）
+## 多 Boss（可选；中 Boss = 打完退场的非最终）：每项 {boss: BossData, t: 出现时刻}
+@export var bosses: Array = []
+
+
+## 合并后的 Boss 列表（旧 boss/boss_time 字段 + bosses 数组去重），按出现时间升序
+func all_bosses() -> Array:
+	var list: Array = []
+	if boss:
+		list.append({"boss": boss, "t": boss_time})
+	for entry in bosses:
+		if entry and entry.get("boss") != null:
+			var dup := false
+			for e in list:
+				if e["boss"] == entry["boss"]:
+					dup = true
+					break
+			if not dup:
+				list.append({"boss": entry["boss"], "t": float(entry.get("t", 0.0))})
+	list.sort_custom(func(a: Dictionary, b: Dictionary): return a["t"] < b["t"])
+	return list
 
 
 ## 配置校验：返回错误列表（空 = 合法）
@@ -22,6 +42,8 @@ func validate() -> Array[String]:
 	if create_script == null:
 		errs.append("StageData[%d] 缺少 create_script（关卡无法生成）" % stage_id)
 	# Boss 数据校验（time_limit<=0 会导致一出场就超时 → 掉道具/闪退）
-	if boss:
-		errs.append_array(boss.validate())
+	for entry in all_bosses():
+		var bd: BossData = entry["boss"]
+		if bd:
+			errs.append_array(bd.validate())
 	return errs
