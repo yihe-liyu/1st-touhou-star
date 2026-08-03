@@ -21,4 +21,7 @@ func validate() -> Array[String]:
 		errs.append("StageData.stage_id = %s 必须 >= 1" % stage_id)
 	if create_script == null:
 		errs.append("StageData[%d] 缺少 create_script（关卡无法生成）" % stage_id)
+	# Boss 数据校验（time_limit<=0 会导致一出场就超时 → 掉道具/闪退）
+	if boss:
+		errs.append_array(boss.validate())
 	return errs
