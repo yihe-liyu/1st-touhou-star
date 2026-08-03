@@ -396,11 +396,10 @@ func _finish_collection() -> void:
 		if t - last < 0.2:
 			continue
 		last = t
-		# 只保留整数秒事件：波内小数时刻浮点边界易对不齐，且跳转价值低
-		var t_round := roundf(t)
-		if absf(t - t_round) > 0.05:
-			continue
-		auto.append({"t": t_round})
+		# 量化到 0.1s：保留 0.5s 网格等非整数锚点（工作台拖拽波次产生，
+		# 旧逻辑只留整数秒会把这些波次的书签全部过滤 → 书签列表空）
+		# 浮点边界（如 1.3000...003）吸附到 0.1 后跳转也能对齐
+		auto.append({"t": snappedf(t, 0.1)})
 	BOOKMARK_CACHE.save(_stage_data.stage_id, _collect_hash, auto, _manual_bookmarks)
 	_auto_bookmarks = auto
 	_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)

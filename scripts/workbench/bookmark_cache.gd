@@ -8,7 +8,7 @@ class_name BookmarkCache
 
 
 ## 缓存格式版本：书签策略变化（如只留整数时刻）时 +1，强制旧缓存重收集
-const CACHE_VERSION := 2
+const CACHE_VERSION := 3  # v3: 书签量化 0.1s（保留 0.5s 网格锚点，不再只留整数秒）
 
 ## 关卡内容哈希：主脚本 + 关卡目录下所有 .gd 文件文本聚合
 ## （改任何子脚本/敌人/Boss 逻辑都会使书签缓存失效重收集）
