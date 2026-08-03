@@ -242,14 +242,20 @@ func _build_ui() -> void:
 	save_btn.text = "保存"
 	save_btn.pressed.connect(_save_timeline)
 	wave_btns.add_child(save_btn)
+	# 重置默认：删 user:// 副本，回到 res:// 默认（迁移后刷新用）
+	var reset_btn := Button.new()
+	reset_btn.text = "重置默认"
+	reset_btn.tooltip_text = "删除 user:// 编辑副本，回到 res:// 默认数据"
+	reset_btn.pressed.connect(_reset_stage_data)
+	wave_btns.add_child(reset_btn)
 	# ＋ Boss（数据关卡且无 Boss 时可用：添加 Boss + 默认阶段）
 	_add_boss_btn = Button.new()
 	_add_boss_btn.text = "＋ Boss"
 	_add_boss_btn.pressed.connect(_add_boss)
 	_add_boss_btn.visible = false
 	wave_btns.add_child(_add_boss_btn)
-	# 五个按钮等宽均分，视觉对齐
-	for b in [apply_btn, add_wave, del_wave, save_btn, _add_boss_btn]:
+	# 六个按钮等宽均分，视觉对齐
+	for b in [apply_btn, add_wave, del_wave, save_btn, reset_btn, _add_boss_btn]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.custom_minimum_size = Vector2(0, 28)
 	_wave_section.add_child(wave_btns)
@@ -1402,3 +1408,18 @@ func _edit_event(i: int) -> void:
 	)
 	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
 	t_edit.grab_focus()
+
+
+## 重置关卡数据：删除 user:// 编辑副本，回到 res:// 默认
+## （迁移/数据更新后，旧副本会盖住新数据——点此刷新）
+func _reset_stage_data() -> void:
+	var timeline = _get_timeline_data()
+	if timeline == null:
+		return
+	var user_p := _user_timeline_path(timeline.resource_path)
+	if FileAccess.file_exists(user_p):
+		DirAccess.remove_absolute(user_p)
+		_log_line("↺ 已删除 user:// 副本，重载 res:// 默认数据")
+		_restart()
+	else:
+		_log_line("ℹ 无 user:// 副本（已在用 res:// 默认）")
