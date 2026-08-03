@@ -161,6 +161,11 @@ func take_damage(damage: float) -> void:
 
 
 func _clear_phase(captured: bool) -> void:
+	# 定位日志：阶段结束触发原因 + 调用栈（谁调的/调几次）
+	print("[BossClearPhase] captured=%s hp=%d elapsed=%.1f invincible=%s" % [captured, hp, _elapsed, _invincible])
+	var st := get_stack()
+	for i in range(mini(6, st.size())):
+		print("  <- ", st[i].source, " : ", st[i].function, " : ", st[i].line)
 	if _cleared: return
 	_cleared = true
 	_invincible = true
