@@ -64,23 +64,16 @@ Timeline 链式 API：`at(t)` 绝对时刻 · `wait(n)` 相对上一 blocking �
 
 ## 三、敌人
 
-### 预设（外观/血量/判定/掉落）
+### 敌人数据（构造链硬编码）
 
-位置：`data/enemy_presets/*.tres`（EnemyData）。新增 = 复制一个改名。
-已有：`red/blue/green/yellow_little_fairy`、`red/blue_middle_fairy`、`red/blue_big_fairy`、`white_huge_fairy`、`red/blue/green/purple_YY_jade`。
+`EnemyData` 提供构造链：`red_little_fairy() / blue_middle_fairy() / red_middle_fairy() / ...`
+（外观/血量/判定/掉落直接写死，`enemy_presets/*.tres` 已移除——数据即代码）。
 
 ### 行为脚本
 
-位置：`data/stages/stage01/coroutine_script/`（enemy01/02、fly_away 等）+ `scripts/data/enemy_templates/`（sway_fairy）。
-注册：`scripts/data/enemy_template_registry.gd` 的 `BEHAVIORS` 表一行（脚本路径 + defaults 参数）。
-
-```gdscript
-const BEHAVIORS := {
-	"aim_scatter": {"script_path": "res://data/stages/stage01/coroutine_script/enemy01.gd",
-		"defaults": {"target_y": 300.0}},
-	...
-}
-```
+位置：`data/stages/stage01/coroutine_script/`（enemy01/02、fly_away 等）。
+**直接引用**：关卡脚本 `preload()` 敌人行为，`EnemyData.new().with_script(ENEMY01)...` 构建——
+无注册表、无中间层（EnemyTemplateRegistry/BossScriptRegistry 已随编辑器移除，2026-08）。
 
 ---
 
@@ -114,7 +107,7 @@ data/boss_scripts/bullet/ 弹丸行为（探测弹 orbit_probe.gd 等）
 ```
 
 **加新 Boss 脚本 = 写 .gd 扔进对应目录，文件名即显示名，零注册。**
-旧位置兼容：`data/stages/stage01/coroutine_script/boss/`（non_01_move/shoot）+ `scripts/data/boss_scripts/`（enter_side/exit_side）。
+旧位置：`data/stages/stage01/coroutine_script/boss/`（non_01_move/shoot/bullet）。
 
 ---
 
@@ -210,4 +203,4 @@ func _init_enemy() -> void:
 
 - 运行时保存 .tres 依赖 res:// 可写（开发模式）；导出包只读，符卡簿保存会失败（待数据迁移方案）
 - **弹丸协程脚本**（gravity_bullet.gd 等，被行为脚本 preload）与所有脚本改动都需**重启工作台**生效
-- 敌人行为/Boss 脚本目录发现已接入（EnemyTemplateRegistry / BossScriptRegistry）；脚本改动后游戏/工作台重启即可
+- 敌人/Boss 脚本零注册：preload/直接引用即用

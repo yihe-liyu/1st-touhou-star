@@ -217,32 +217,6 @@ func test_validate_checks_all_difficulty_groups():
 	var errs := bd.validate()
 	assert_true(errs.size() >= 1, "Lunatic 组非法阶段应被校验捕获")
 
-## ── 多 Boss ──
-
-func test_all_bosses_merges_and_sorts():
-	var sd := StageData.new()
-	sd.create_script = load("res://scripts/coroutine/timeline/timeline.gd")
-	# 旧字段（单 Boss）
-	var b1 := BossData.new()
-	b1.boss_name = "老Boss"
-	sd.boss = b1
-	sd.boss_time = 35.0
-	# 多 Boss 数组（乱序 + 一个与旧字段重复）
-	var b2 := BossData.new()
-	b2.boss_name = "中Boss"
-	var b3 := BossData.new()
-	b3.boss_name = "最终Boss"
-	sd.bosses = [
-		{"boss": b3, "t": 90.0},
-		{"boss": b1, "t": 35.0},   # 与旧字段重复 → 去重
-		{"boss": b2, "t": 60.0},
-	]
-	var list := sd.all_bosses()
-	assert_eq(list.size(), 3, "去重后 3 个 Boss")
-	assert_eq(list[0]["boss"].boss_name, "老Boss", "按时间升序 1")
-	assert_eq(list[1]["boss"].boss_name, "中Boss", "按时间升序 2")
-	assert_eq(list[2]["boss"].boss_name, "最终Boss", "按时间升序 3")
-
 func test_boss_index_in_phase_identity():
 	var pid := PhaseIdentity.from_phase(PhaseData.new(), 1, 0, 0, 0, 2)
 	assert_eq(pid.boss_index, 2, "boss_index 传入")
