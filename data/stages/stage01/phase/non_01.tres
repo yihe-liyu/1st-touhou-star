@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="PhaseData" format=3 uid="uid://c3x1nl4wb0g4t"]
 
 [ext_resource type="Script" uid="uid://70htyyc4o2hu" path="res://scripts/data/phase_data.gd" id="1_ngo1e"]
-[ext_resource type="Script" uid="uid://hq1hjwsv1oiq" path="res://data/stages/stage01/coroutine_script/boss/non_01_move.gd" id="1_q3bo0"]
-[ext_resource type="Script" uid="uid://wwi0l8jow64v" path="res://data/stages/stage01/coroutine_script/boss/non_01_shoot.gd" id="2_shoot"]
+[ext_resource type="Script" uid="uid://hq1hjwsv1oiq" path="res://data/boss_scripts/move/non_01_move.gd" id="1_q3bo0"]
+[ext_resource type="Script" uid="uid://wwi0l8jow64v" path="res://data/boss_scripts/shoot/non_01_shoot.gd" id="2_shoot"]
 
 [resource]
 script = ExtResource("1_ngo1e")

@@ -5,7 +5,7 @@ extends CoroutineScript
 ## 弹幕：每发 probe_count 颗铺满 360°，挂往返探测弹行为（飞出→回点→分裂 90° 红弹）
 ## auto_stop = false
 
-const PROBE_PATH := "res://data/boss_scripts/bullet/orbit_probe.gd"
+const PROBE_PATH := "res://data/bullet_scripts/orbit_probe.gd"
 
 var orbit_speed: float = 3    # 初始角速度（弧度/秒，1.5 ≈ 每秒 86°）
 var angle_accel: float = 0.0  # 角加速度（弧度/秒²，正=加速、负=减速）

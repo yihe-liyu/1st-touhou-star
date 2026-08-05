@@ -1,9 +1,9 @@
 extends CoroutineScript
 ## 第一面——新的 Timeline API
 
-const ENEMY01 = preload("res://data/stages/stage01/coroutine_script/enemy01.gd")
-const ENEMY02 = preload("res://data/stages/stage01/coroutine_script/enemy02.gd")
-const FLY_AWAY = preload("res://data/stages/stage01/coroutine_script/fly_away.gd")
+const ENEMY01 = preload("res://data/enemy_scripts/enemy01.gd")
+const ENEMY02 = preload("res://data/enemy_scripts/enemy02.gd")
+const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
 const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
 const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
 const NON_01 = preload("res://data/stages/stage01/phase/non_01.tres")

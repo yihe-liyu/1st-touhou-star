@@ -1,8 +1,8 @@
 extends CoroutineScript
 ## 红杂鱼: 向下减速 + 自机狙 + 散射
 
-const GRAVITY_BULLET = preload("res://data/stages/stage01/coroutine_script/gravity_bullet.gd")
-const FLY_AWAY = preload("res://data/stages/stage01/coroutine_script/fly_away.gd")
+const GRAVITY_BULLET = preload("res://data/bullet_scripts/gravity_bullet.gd")
+const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
 
 var target_y: float = 300
 var heavy_wave: bool = true  ## 强化波：Hard+ 时额外发射金色重力弹

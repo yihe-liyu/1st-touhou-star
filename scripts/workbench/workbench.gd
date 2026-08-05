@@ -41,7 +41,6 @@ const GHOST_SCRIPT := preload("res://scripts/workbench/ghost_player.gd")
 const HITBOX_OVERLAY := preload("res://scripts/workbench/hitbox_overlay.gd")
 const BOOKMARK_EXTRACTOR := preload("res://scripts/workbench/bookmark_extractor.gd")
 const BOOKMARK_CACHE := preload("res://scripts/workbench/bookmark_cache.gd")
-const ENEMY_REG := preload("res://scripts/data/enemy_template_registry.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
 ## Stage 1 = 协程版（stage01.gd Timeline 编排；数据关卡系统已移除）
 const STAGE1_COROUTINE := preload("res://data/stages/stage01/stage_data/stage01.tres")

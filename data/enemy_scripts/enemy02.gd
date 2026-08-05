@@ -1,7 +1,7 @@
 extends CoroutineScript
 
-const GRAVITY_BULLET = preload("res://data/stages/stage01/coroutine_script/gravity_bullet.gd")
-const FLY_AWAY = preload("res://data/stages/stage01/coroutine_script/fly_away.gd")
+const GRAVITY_BULLET = preload("res://data/bullet_scripts/gravity_bullet.gd")
+const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
 
 var target_pos: Vector2
 

@@ -134,13 +134,10 @@ return false                 # 结束协程
 ### 脚本文件地图
 
 ```
-敌人行为层   enemy_template_registry.gd(BEHAVIORS)
-  ├─ data/stages/stage01/coroutine_script/enemy01.gd    (aim_scatter)
-  ├─ data/stages/stage01/coroutine_script/enemy02.gd    (middle_sweep)
-  └─ scripts/data/enemy_templates/sway_fairy.gd         (sway_aim)
-Boss 脚本层  data/boss_scripts/{move,shoot,enter,exit,bullet}/  ← 自动发现目录
-演出脚本层   scripts/data/stage_scripts/logo_show.gd / barrage_show.gd
-弹丸协程     data/stages/stage01/coroutine_script/gravity_bullet.gd
+敌人行为   data/enemy_scripts/   enemy01.gd / enemy02.gd / fly_away.gd（关卡脚本 preload 即用）
+Boss 脚本   data/boss_scripts/    move/ shoot/ enter/ exit/（目录即约定，零注册）
+弹丸行为   data/bullet_scripts/   gravity_bullet.gd / non_01_bullet.gd / orbit_probe.gd
+关卡专属   data/stages/stage01/    stage_script(stage01.gd) + phase/ + stage_data/ + background/
 ```
 
 ### 行为脚本示例
