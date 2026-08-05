@@ -23,6 +23,7 @@ var hitbox_rotation: float = 0.0
 
 # 运行时状态
 var coroutine_script: CoroutineScript
+
 var is_ready: bool = false
 
 # 额外变量
@@ -155,6 +156,9 @@ func _physics_process(_delta):
 func _start_coroutine(data: BulletData):
 	coroutine_script = data.coroutine_script.new()
 	assert(coroutine_script is CoroutineScript, "Bullet: coroutine must be a CoroutineScript")
+	# 注入弹幕参数（与 EnemyData.params → 敌人行为脚本同一模式）
+	for k in data.params:
+		coroutine_script.set(k, data.params[k])
 	# 无节点 + 快速路径 + 共享 ctx（不再每弹 new StageContext）
 	# 由本子弹 _physics_process 直接调 _tick
 	coroutine_script.start_fast(BulletManager.get_bullet_ctx(), self)

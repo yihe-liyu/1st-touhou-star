@@ -27,6 +27,7 @@ var _world_clock: CoroutineRunner
 var _bullet_ctx: StageContext
 
 
+
 ## 子弹协程共享 ctx（active() = 世界时钟恒 true；子弹靠 target 失效停止）
 func get_bullet_ctx() -> StageContext:
 	return _bullet_ctx

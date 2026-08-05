@@ -18,10 +18,10 @@ best_time = 7.696199999999885
 script = ExtResource("1_nyj52")
 phase_index = 0
 name = "卡摩瑞的非符1"
-attempts = 48
-captures = 19
-practice_attempts = 5
-practice_captures = 5
+attempts = 50
+captures = 20
+practice_attempts = 10
+practice_captures = 7
 best_time = 1.986211777777774
 
 [sub_resource type="Resource" id="Resource_6vhrn"]
@@ -31,8 +31,8 @@ difficulty = 3
 name = "卡摩瑞的非符1"
 attempts = 26
 captures = 13
-practice_attempts = 9
-practice_captures = 7
+practice_attempts = 12
+practice_captures = 9
 best_time = 8.95061999999983
 
 [sub_resource type="Resource" id="Resource_ve3lw"]
@@ -40,10 +40,10 @@ script = ExtResource("1_nyj52")
 phase_index = 0
 difficulty = 0
 name = "卡摩瑞的非符1"
-attempts = 2
-captures = 1
-practice_attempts = 12
-practice_captures = 12
+attempts = 3
+captures = 2
+practice_attempts = 17
+practice_captures = 15
 best_time = 7.430303030302875
 
 [sub_resource type="Resource" id="Resource_plj11"]
@@ -65,8 +65,8 @@ difficulty = 3
 name = "卡摩瑞的非符1"
 attempts = 9
 captures = 8
-practice_attempts = 1
-practice_captures = 1
+practice_attempts = 2
+practice_captures = 2
 best_time = 8.867636878787712
 
 [sub_resource type="Resource" id="Resource_d5m5y"]
@@ -89,6 +89,81 @@ attempts = 1
 captures = 1
 best_time = 18.318250707070863
 
+[sub_resource type="Resource" id="Resource_02on7"]
+script = ExtResource("1_nyj52")
+uid = 303
+phase_index = 1
+phase_type = 1
+name = "黄粱「不可测之梦」"
+attempts = 2
+captures = 1
+best_time = 12.516004121211804
+
+[sub_resource type="Resource" id="Resource_tao1v"]
+script = ExtResource("1_nyj52")
+character = 1
+phase_index = 0
+difficulty = 0
+name = "卡摩瑞的非符1"
+attempts = 1
+captures = 1
+best_time = 9.581818181817962
+
+[sub_resource type="Resource" id="Resource_skku5"]
+script = ExtResource("1_nyj52")
+uid = 303
+character = 1
+phase_index = 1
+phase_type = 1
+difficulty = 0
+name = "黄粱「不可测之梦」"
+
+[sub_resource type="Resource" id="Resource_fj1l7"]
+script = ExtResource("1_nyj52")
+uid = 303
+phase_index = 1
+phase_type = 1
+difficulty = 0
+name = "黄粱「不可测之梦」"
+attempts = 1
+captures = 1
+best_time = 45.23351515151435
+
+[sub_resource type="Resource" id="Resource_onkjy"]
+script = ExtResource("1_nyj52")
+uid = 303
+phase_index = 1
+phase_type = 1
+difficulty = 2
+name = "黄粱「不可测之梦」"
+
+[sub_resource type="Resource" id="Resource_noqip"]
+script = ExtResource("1_nyj52")
+uid = 303
+character = 1
+phase_index = 1
+phase_type = 1
+name = "黄粱「不可测之梦」"
+
+[sub_resource type="Resource" id="Resource_iygdo"]
+script = ExtResource("1_nyj52")
+uid = 303
+character = 1
+phase_index = 1
+phase_type = 1
+difficulty = 2
+name = "黄粱「不可测之梦」"
+
+[sub_resource type="Resource" id="Resource_v6s2s"]
+script = ExtResource("1_nyj52")
+character = 1
+phase_index = 0
+phase_type = 1
+difficulty = 2
+name = "卡摩瑞的非符1"
+practice_attempts = 1
+practice_captures = 1
+
 [resource]
 script = ExtResource("1")
-records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn"), SubResource("Resource_ve3lw"), SubResource("Resource_plj11"), SubResource("Resource_tw1tw"), SubResource("Resource_d5m5y"), SubResource("Resource_pw4c7")])
+records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn"), SubResource("Resource_ve3lw"), SubResource("Resource_plj11"), SubResource("Resource_tw1tw"), SubResource("Resource_d5m5y"), SubResource("Resource_pw4c7"), SubResource("Resource_02on7"), SubResource("Resource_tao1v"), SubResource("Resource_skku5"), SubResource("Resource_fj1l7"), SubResource("Resource_onkjy"), SubResource("Resource_noqip"), SubResource("Resource_iygdo"), SubResource("Resource_v6s2s")])

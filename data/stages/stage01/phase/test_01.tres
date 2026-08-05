@@ -8,7 +8,7 @@
 script = ExtResource("1_phase")
 name = "黄粱「不可测之梦」"
 uid = 303
-time_limit = 90.0
-hp = 3001
+time_limit = 40.0
+hp = 3500
 move_script = ExtResource("2_move")
 shoot_script = ExtResource("3_shoot")

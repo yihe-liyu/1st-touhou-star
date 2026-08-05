@@ -1,66 +1,99 @@
 extends CoroutineScript
-## 旋转发射器（发弹点轨迹实验 v4）
-## 三段式：外扩（半径渐远）→ 外圈保持（半径不变继续旋转 hold_time 秒，画一圈外环）→ 回卷重开
-## 角加速度：角速度随时间变化（正=越转越快/螺旋渐疏，负=渐慢）；夹在 min~max 之间
-## 弹幕：每发 probe_count 颗铺满 360°，挂往返探测弹行为（飞出→回点→分裂 90° 红弹）
+## 旋转发射器（发弹点轨迹实验 v5）
+## 难度模式：
+##   E/N：三段式循环（外扩 → 外圈保持 → 回卷随机起始角重开）
+##   H/L：全程保持在外圈转（永不外扩/回卷），hold 加成与 15% 自机狙持续生效
+## 弹幕：每发 probe_count 颗铺满 360°，挂往返探测弹行为（飞出→回点→分裂）
 ## auto_stop = false
 
-const PROBE_PATH := "res://data/bullet_scripts/orbit_probe.gd"
+const PROBE := preload("res://data/bullet_scripts/orbit_probe.gd")
 
-var orbit_speed: float = 3    # 初始角速度（弧度/秒，1.5 ≈ 每秒 86°）
-var angle_accel: float = 0.0  # 角加速度（弧度/秒²，正=加速、负=减速）
-var angle_speed_min: float = 0.3  # 角速度下限（防停转）
-var angle_speed_max: float = 512.0  # 角速度上限（防糊成一片）
-var radius_min: float = 0.0    # 起始半径（离 Boss 最近）
-var radius_max: float = 550.0   # 外扩上限
-var radius_growth: float = 55.0 # 半径每秒外扩量
-var hold_time: float = 5.0      # 到达外圈后保持旋转的秒数（画外环）
-var interval: float = 0.05      # 发弹间隔（秒）
-var bullet_speed: float = 150.0 # 青弹初速（往返探测弹起飞速度）
-var probe_count: int = 8        # 每发颗数（铺满 360°）
+var orbit_speed: float = 10      # 初始角速度（弧度/秒，1.5 ≈ 每秒 86°）
+var angle_accel: Array = [0.0, 0.0, 2.0, 2.0]    # 角加速度（弧度/秒²，正=加速、负=减速）
+var radius_min: float = 0.0     # 起始半径（离 Boss 最近）
+var radius_max: Array = [350.0, 350.0, 650.0, 650.0]   # 外扩上限
+var radius_growth: float = 120.0 # 外扩初始速度（每秒，半径每秒外扩量）
+var radius_accel: float = 15.0   # 外扩加速度（每秒²，正=越扩越快，负=越扩越慢）
+var hold_time: float = 7.5      # 到达外圈后保持旋转的秒数（画外环）
+var interval: Array = [0.03, 0.03, 0.04, 0.05]      # 发弹间隔（秒）
+var bullet_speed: float = 125.0 # 青弹初速（往返探测弹起飞速度）
+var probe_count: Array = [2, 4, 7, 9]  # 每发颗数
+var min_fire_distance: float = 125.0  # 发弹点离自机低于此距离时不发（防近身糊脸；0 = 关闭）
 
 var _angle: float = 0.0
-var _angle_speed: float = 5.0  # 当前角速度（哨兵：首次 tick 取 orbit_speed，工作台改后重跑生效）
+var _angle_speed: float = -1.0  # 当前角速度（-1 哨兵：首帧取 orbit_speed）
 var _radius: float = 60.0
+var _growth: float = -1.0  # 当前外扩速度（-1 哨兵：首次取 radius_growth）
 var _hold_left: float = 0.0  # 剩余保持时间（>0 = 外圈空转阶段）
+var _inited: bool = false    # 难度模式初始化（首帧按当前难度决定）
+var _always_hold: bool = false  # H/L：全程外圈转（永续 hold）
 
 
 func _tick(p_ctx: StageContext):
 	if not target:
-		return p_ctx.clock.wait(interval)
+		return p_ctx.clock.wait(diff_pick(interval))
+	var dt := get_dt()
+	var itv: float = diff_pick(interval)
 
-	# ── 发弹点轨迹：角加速度更新角速度 → 三段式（外扩 → 外圈保持 → 回卷）──
+	# ── 发弹点轨迹：角速度（-1 哨兵 → 首帧取 orbit_speed）──
 	if _angle_speed < 0.0:
 		_angle_speed = orbit_speed
-	_angle_speed += angle_accel * interval
-	_angle_speed = clampf(_angle_speed, angle_speed_min, angle_speed_max)
-	_angle += _angle_speed * interval
+	_angle_speed += diff_pick(angle_accel) * dt
+	_angle += _angle_speed * dt
+
+	# ── 难度模式初始化：H/L 全程外圈转；E/N 三段式 ──
+	if not _inited:
+		_inited = true
+		_always_hold = GameState.selected_difficulty >= 2
+		if _always_hold:
+			_radius = diff_pick(radius_max)
+			_angle = RNG.randf() * TAU  # H/L 开局随机起始角
+
 	if _hold_left > 0.0:
-		# 外圈保持：半径不动，继续旋转 hold_time 秒（画外环）
-		_hold_left -= interval
-		if _hold_left <= 0.0:
-			_radius = radius_min  # 开启下一轮
-			_angle = RNG.randf() * TAU  # 新一轮：发弹点初始角度随机（每层螺旋错开）
+		# hold：外圈转（画外环）
+		if not _always_hold:
+			_hold_left -= dt
+			if _hold_left <= 0.0:
+				_radius = radius_min  # 回卷
+				_growth = radius_growth  # 恢复初始外扩速度
+				_angle = RNG.randf() * TAU  # 新一轮随机起始角（每层螺旋错开）
 	else:
-		# 外扩：半径渐远
-		_radius += radius_growth * interval
-		if _radius >= radius_max:
-			_radius = radius_max
+		# 外扩（E/N）：半径渐远（可加速）
+		if _growth < 0.0:
+			_growth = radius_growth
+		_growth += radius_accel * dt
+		_radius += _growth * dt
+		if _radius >= diff_pick(radius_max):
+			_radius = diff_pick(radius_max)
 			_hold_left = hold_time
 
 	# 发弹点 = Boss 中心 + 半径方向 × 当前半径（跟随 Boss 移动）
 	var emit_pos := target.global_position \
 		+ Vector2(cos(_angle), sin(_angle)) * _radius
 
-	# ── 发射：probe_count 颗铺满圆，切向为基准方向；挂往返探测弹行为 ──
-	var dir := Vector2(-sin(_angle), cos(_angle))  # 半径方向顺时针转 90° = 切向（基准）
+	# 防近身：发弹点离自机太近 → 跳过这一发（等下一个 interval 再判）
+	var p := p_ctx.player.get_player()
+	if min_fire_distance > 0.0 and p and emit_pos.distance_to(p.global_position) < min_fire_distance:
+		return p_ctx.clock.wait(itv)
+
+	# ── 子弹定义（往返探测弹行为）──
 	var bullet := BulletData.new() \
-		.tex("小玉") \
+		.tex("环玉") \
 		.speed(bullet_speed) \
-		.color(Color(0.4, 0.8, 1.0, 0.9)) \
+		.color(Color.BLUE_VIOLET) \
 		.blend(true) \
 		.enemy() \
-		.behavior(load(PROBE_PATH))
-	p_ctx.bullets.shoot_spread(bullet, probe_count, TAU, dir, emit_pos, AssetRegistry.sounds["shoot"])
+		.behavior(PROBE)
+	# hold 阶段（含 H/L 全程）发射的探测弹：注入标记 → 分裂时 15% 可转自机狙
+	bullet.params["hold_aim_probe"] = _hold_left > 0.0 and GameState.selected_difficulty >= 2
 
-	return p_ctx.clock.wait(interval)
+	# ── 主发射：probe_count 颗铺满圆（按难度取）；hold 阶段 + hold_count_bonus ──
+	var count: int = diff_pick(probe_count)
+	var dir := Vector2(-cos(_angle), -sin(_angle))  # 发弹点指向 Boss 的方向（-半径方向）
+	if count > 0:
+		AudioManager.play_sfx(AssetRegistry.sounds["shoot"], -8.0)
+		var step := TAU / count
+		for i in count:
+			p_ctx.bullets.shoot_single(bullet, emit_pos, dir.rotated(step * i))
+
+	return p_ctx.clock.wait(itv)

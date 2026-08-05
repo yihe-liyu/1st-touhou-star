@@ -440,6 +440,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_HOME:
 			_restart()
 			get_viewport().set_input_as_handled()
+		KEY_G:
+			if event.ctrl_pressed:
+				_debug_gen_records()
+			get_viewport().set_input_as_handled()
 
 
 ##   协程关卡：只能 12x 加速跑到目标（保持唯一路径）
@@ -584,3 +588,29 @@ func _on_divider_input(event: InputEvent) -> void:
 
 
 # ═══ 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）═══
+
+
+## Ctrl+G：一键生成所有符卡记录（全角色 × 全难度 → 练习菜单直接可练）
+## 等价命令行：godot --headless --path . -s res://scripts/debug/gen_spell_records.gd
+func _debug_gen_records() -> void:
+	var reg: CardRegistry = load("res://data/registry/spell_registry.tres")
+	var book: SpellRecordBook = load("res://data/registry/spell_records.tres")
+	if not reg or not book:
+		_log_line("⚠️ 生成失败：注册表加载失败")
+		return
+	var before: int = book.records.size()
+	var made := 0
+	for card in reg.cards:
+		if not card.phase_data or card.phase_data.uid < 0:  # 真符卡与非符都生成
+			continue
+		for char_idx in [0, 1]:
+			for diff in [0, 1, 2, 3]:
+				book.get_or_create(card.stage_id, card.order - 1, char_idx, diff,
+					card.phase_data.uid, 1, 1, card.phase_data.name)
+				made += 1
+	book.prune_empty()
+	var err := ResourceSaver.save(book, "res://data/registry/spell_records.tres")
+	if err == OK:
+		_log_line("✅ 符卡记录已生成：%d 张卡 × 全角色 × 全难度（原 %d → 现 %d 条）" % [made, before, book.records.size()])
+	else:
+		_log_line("⚠️ 生成失败（err=%d）" % err)

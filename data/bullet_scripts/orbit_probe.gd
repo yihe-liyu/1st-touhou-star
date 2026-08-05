@@ -7,9 +7,11 @@ extends CoroutineScript
 ## auto_stop = true
 
 var decel: float = 150.0     # 反向加速度（px/s²）：越大滑行越短、往返越快
-var split_speed: float = 80.0    # 分裂红弹初速（慢，配合缓慢加速出屏）
-var split_accel: float = 60.0    # 红弹加速度（缓慢加速）
-var split_dir: float = 90.0      # 分裂方向：相对初方向旋转角度（度）
+var split_speed: float = 60.0    # 分裂弹初速（慢，配合缓慢加速出屏）
+var split_accel: float = 40.0    # 分裂弹加速度（缓慢加速）
+var split_dir: Array = [TAU/4, TAU/8, TAU/14, TAU/18]      # 分裂方向：相对初方向旋转角度
+var split_aim_chance: float = 0.2  # 分裂弹 15% 变自机狙（朝玩家，红橙色区分）
+var hold_aim_probe: bool = false  # 由发射方注入（orbit_spiral hold 阶段 + H/L 才为 true）
 
 enum State { OUT, BACK }
 var _state: int = State.OUT
@@ -40,14 +42,25 @@ func _tick(p_ctx: StageContext):
 	return true
 
 
-## 分裂：90° 红弹，低速 + 缓慢加速（出屏后引擎自动回收）
+## 分裂：普通分裂弹（蓝紫色）+ 15% 概率自机狙（红橙色，朝玩家）
 func _spawn_split(p_ctx: StageContext) -> void:
-	var dir := _dir0.rotated(deg_to_rad(split_dir))
+	var dir := _dir0.rotated(diff_pick(split_dir))
+	# 仅"hold 阶段发射的探测弹"（发射方注入 hold_aim_probe）+ H/L：15% 变自机狙
+	var hold_aim: bool = GameState.selected_difficulty >= 2 and hold_aim_probe
+	var is_aim: bool = hold_aim and RNG.randf() < split_aim_chance
+	var fire_dir := dir
+	if is_aim:
+		var p := p_ctx.player.get_player()
+		if p:
+			fire_dir = (p.global_position - target.global_position).normalized()
+		else:
+			is_aim = false  # 无玩家时退回普通分裂
 	var red := BulletData.new() \
-		.tex("棱弹") \
+		.tex("环玉") \
 		.speed(split_speed) \
-		.accelerate(dir.x * split_accel, dir.y * split_accel) \
-		.color(Color(1.0, 0.30, 0.25, 1.0)) \
+		.accelerate(fire_dir.x * split_accel, fire_dir.y * split_accel) \
+		.color(Color.CORAL if is_aim else Color.AQUA) \
 		.blend(true) \
 		.enemy()
-	p_ctx.bullets.shoot_spread(red, 1, 0, dir, target.global_position, AssetRegistry.sounds["kira"])
+	AudioManager.play_sfx(AssetRegistry.sounds["kira"], -8.0)
+	p_ctx.bullets.shoot_single(red, target.global_position, fire_dir)
