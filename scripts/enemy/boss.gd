@@ -19,7 +19,7 @@ var _invincible: bool = false
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
 var _stage_id: int
-var boss_index: int = 0   ## 第几个 Boss（wave_stage 多 Boss 时设置；记录区分用）
+var boss_index: int = 0   ## 第几个 Boss（多 Boss 关卡时设置；记录区分用）
 var _spell_count: int = 0
 var _non_count: int = 0
 var _pid: PhaseIdentity

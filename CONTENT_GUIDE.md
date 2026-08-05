@@ -1,449 +1,213 @@
 # 🛠️ 东方星 STG 引擎 — 内容制作流程
 
-> 版本：2026-07-18 · v2.0 对齐 CoroutineScript 统一架构
+> 版本：2026-08 · 协程代码版（关卡/Boss/弹幕全在 Godot 里写代码；工作台只做预览/调试）
 
 ---
 
-## 一、总体流程
+## 0. 快速上手（加一个弹幕波次 / 一张符卡）
 
-```
-创建资源文件 (.tres)          编写协程脚本 (.gd)
-        ↓                            ↓
-  PhaseData ─→ BossData        CoroutineScript（统一脚本）
-                  ↓                    ↓
-             StageData  ←──────────────┘
-                  ↓
-          StageManager.load_stage()
-                  ↓
-             自动运行
-```
+1. 在 Godot 编辑器里打开 `data/stages/stage01/stage_script/stage01.gd`（Timeline 编排）
+2. 加 `tl.at(时刻).do(func(): EnemyData.new().with_script(...).pos(...).spawn(ctx))`
+   或给 Boss 加阶段（`BossData.new().phase(...)` + `tl.phase(...)` 阶段链）
+3. F6 运行工作台 → 命中框/固定种子/逐帧看效果；改完代码**重启工作台**生效
+4. 弹幕脚本（`data/boss_scripts/`）改完同样重启工作台看
 
-> ⚠️ **v2.0 重要变更**：不再有 StageScript / CreateScript / MoveScript 之分，全部统一为 `CoroutineScript`。
-> 用 `auto_stop` 控制行为（true=播完即止，false=持续运行），用 `target` 指定控制目标。
+> 工作台**不是编辑器**：不写数据、不热重载，是「跑真实代码看效果」的预览沙盒。
+> 数据（关卡/Boss/阶段）全部以代码 + .tres 形式存在，由 AI/人直接写。
 
 ---
 
-## 二、资源文件清单
+## 一、总体架构
 
-| 步骤 | 文件类型 | 位置 | 说明 |
-|------|----------|------|------|
-| 1 | `PhaseData` | `data/phase_data/` | 单个 phase 的配置（符卡/非符） |
-| 2 | `BossData` | `data/boss_data/` | 一个 Boss 的所有 phase 列表 |
-| 3 | `StageData` | `data/stages/` | 一个关卡（含难度），绑定背景+Boss+脚本 |
-| 4 | `StageScript` | `scripts/coroutine/` | 关卡脚本（敌人波次/BGM 等）— **也是 CoroutineScript** |
-| 5 | 弹幕脚本 | `scripts/coroutine/` | 敌机弹幕逻辑 — **CoroutineScript, auto_stop=true** |
-| 6 | 移动脚本 | `scripts/coroutine/` | 敌机/Boss 移动路径 — **CoroutineScript, auto_stop=true** |
+```
+① 关卡编排：stage01.gd（Timeline API，代码声明节奏/Boss/阶段）
+② 行为层：  协程脚本 .gd（敌人行为 + Boss 移动/弹幕/入场/退场）
+③ 数据层：  .tres 资源（BossData/PhaseData/敌人预设/CardDef）
+④ 预览层：  工作台 = 真实运行时沙盒（幽灵玩家 + 命中框 + 固定种子 + 书签）
+```
+
+数据关卡（wave_stage/StageTimeline/波次表）与脚本页/编排页已**移除**（2026-08 决策）：
+弹幕的核心是逻辑不是数据，代码直写 + 工作台预览是当前唯一流程。
 
 ---
 
-## 三、PhaseData（符卡/非符配置）
+## 二、关卡编排（stage01.gd，Timeline API）
 
-**文件**：`scripts/data/phase_data.gd`
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `name` | String | 符卡名（空串=非符，不显示） |
-| `uid` | int | **全局唯一编号**，0=非符不记入符卡簿 |
-| `hp` | int | 血量 |
-| `time_limit` | float | 时限（秒） |
-| `bonus` | int | 击破奖励分 |
-| `move_script` | Script | 移动脚本（继承 CoroutineScript） |
-| `shoot_script` | Script | 弹幕脚本（继承 CoroutineScript） |
-| `item_power` | int | 击破掉落 P 点 |
-| `item_point` | int | 击破掉落蓝点 |
-| `item_life` / `item_bomb` | int | 碎片掉率 |
-| `item_life_full` / `item_bomb_full` | int | 整残/Bomb 掉率 |
-
-### 示例
-
-创建 `data/phase_data/stage1_spell01.tres`：
-```
-PhaseData
-name = "梦幻「幻想风穴」"
-uid = 101
-hp = 3000
-time_limit = 60.0
-bonus = 5000000
-shoot_script = preload("res://scripts/coroutine/boss_ex_shoot.gd")
-move_script = preload("res://scripts/coroutine/move_patrol.gd")
-```
-
-**uid 规则**：正数=真符卡，全局唯一。不同难度的同名符卡用不同 uid。非符 uid=0。
-
----
-
-## 四、BossData（Boss 定义）
-
-**文件**：`scripts/data/boss_data.gd`
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `boss_name` | String | Boss 名称 |
-| `visual` | PackedScene | Boss 视觉场景 |
-| `phases` | Array[PhaseData] | Phase 列表（**顺序即战斗顺序**） |
-
-### 示例
-
-创建 `data/boss_data/stage1_boss.tres`：
-```
-BossData
-boss_name = "琪露诺"
-visual = preload("res://scenes/enemy_visual_test.tscn")
-phases = [
-  preload("res://data/phase_data/stage1_non01.tres"),   # 非符1
-  preload("res://data/phase_data/stage1_spell01.tres"),  # 符卡1
-  preload("res://data/phase_data/stage1_non02.tres"),   # 非符2
-]
-```
-
-**注意**：phases 数组里的顺序决定战斗顺序，也决定符卡练习里的排列。
-
----
-
-## 五、StageData（关卡定义）
-
-**文件**：`scripts/data/stage_data.gd`
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `stage_id` | int | 关卡编号（1=1面, 2=2面...） |
-| `difficulty` | Difficulty | `EASY / NORMAL / HARD / LUNATIC / EXTRA` |
-| `create_script` | Script | 关卡脚本（继承 StageScript） |
-| `background_scene` | PackedScene | 背景场景（`.tscn`） |
-| `bosses` | Array[BossData] | 本关卡所有 Boss（中 boss + 关底） |
-
-### 命名建议
-
-```
-data/stages/
-  stage1_easy.tres      ← stage_id=1, difficulty=EASY
-  stage1_normal.tres    ← stage_id=1, difficulty=NORMAL
-  stage1_hard.tres      ← stage_id=1, difficulty=HARD
-  stage1_lunatic.tres   ← stage_id=1, difficulty=LUNATIC
-  stage2_easy.tres      ← stage_id=2, difficulty=EASY
-  ...
-```
-
-**每个难度一个文件**，不同难度可以有不同 boss_data、不同弹幕。
-
-### 示例
-
-```
-StageData
-stage_id = 1
-difficulty = NORMAL
-create_script = preload("res://scripts/coroutine/examples/test_wave.gd")
-background_scene = preload("res://scenes/background/stage01_background.tscn")
-bosses = [
-  preload("res://data/boss_data/stage1_midboss.tres"),
-  preload("res://data/boss_data/stage1_boss.tres"),
-]
-```
-
----
-
-## 六、难度差分（Phase 编排 + UID 管理）
-
-### 核心理念
-
-不同难度的 Boss 战可能有**完全不同**的符卡编排，每张符卡有独立 UID：
-
-```
-Easy:    非符1
-Normal:  非符1 → 符卡「？？？」(uid=101)
-Hard:    非符1 → 符卡「更深」(uid=102)
-Lunatic: 非符1 → 符卡「更深」(uid=102) → 符卡「最终」(uid=103)
-```
-
-关卡脚本里用 `diff_pick` 选择难度对应的 Phase 数组，`.tres` 文件跨难度复用：
+位置：`data/stages/stage01/stage_script/stage01.gd`（`extends CoroutineScript`）
 
 ```gdscript
-// stage01.gd — 关卡脚本里
-extends CoroutineScript
-
-const PHASES = [
-    [  # Easy
-        preload("res://data/stages/stage01/phase/E_01.tres"),
-    ],
-    [  # Normal
-        preload("res://data/stages/stage01/phase/E_01.tres"),
-        preload("res://data/stages/stage01/phase/E_spell_01.tres"),   // uid=101
-    ],
-    [  # Hard
-        preload("res://data/stages/stage01/phase/E_01.tres"),
-        preload("res://data/stages/stage01/phase/E_spell_02.tres"),   // uid=102
-    ],
-    [  # Lunatic
-        preload("res://data/stages/stage01/phase/E_01.tres"),
-        preload("res://data/stages/stage01/phase/E_spell_02.tres"),   // uid=102
-        preload("res://data/stages/stage01/phase/E_spell_03.tres"),   // uid=103
-    ],
-]
+const ENEMY01 = preload("res://data/stages/stage01/coroutine_script/enemy01.gd")
+const NON_01  = preload("res://data/stages/stage01/phase/non_01.tres")
+const TEST_01 = preload("res://data/stages/stage01/phase/test_01.tres")
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
-    ctx = p_ctx
-    var kamorui = BossData.new().name("卡摩瑞").look(BOSS_POINT)
-    for p in diff_pick(PHASES):
-        kamorui.phase(p)
-    
-    var tl := start_timeline()
-    tl.at(35).spawn_boss(kamorui, Vector2(448, 250))
-    super.start(ctx, target)
+	ctx = p_ctx
+	var tl := start_timeline()
+	tl.at(0.0).play_bgm(...)
+	tl.at(1.0).do(func(): EnemyData.new().with_script(ENEMY01)...
+		.pos(Vector2(...)).red_little_fairy().param("target_y", 200).spawn(ctx))
+	# Boss + 阶段链（phase 击破后 Timeline 冻结 → 击破继续 → 激活下一个 wait 事件）
+	tl.at(35.0).do(func(): boss_holder[0] = StageManager.spawn_boss(kamorui, ...))
+	tl.at(38.0).phase(func(): return boss_holder[0], NON_01)
+	tl.wait(1.0).phase(func(): return boss_holder[0], TEST_01)   # 非符1 击破后 1s 进测试
+	tl.wait(2.0).do(func(): 退场)
+	super.start(ctx, target)
 ```
 
-### PhaseData 文件结构
+Timeline 链式 API：`at(t)` 绝对时刻 · `wait(n)` 相对上一 blocking 结束 · `do(cb)` 任意逻辑 ·
+`phase(getter, PhaseData)` 起阶段并冻结直到击破 · `every(times)` 重复 · `play_bgm/spawn_enemy/spawn_boss` 快捷。
 
-```
-data/stages/stage01/phase/
-├── E_01.tres              ← 非符1，各难度共用
-├── E_spell_01.tres         ← uid=101，Normal 专属
-├── E_spell_02.tres         ← uid=102，Hard + Lunatic 共用
-└── E_spell_03.tres         ← uid=103，Lunatic 专属
-```
-
-### UID 规则
-
-| 规则 | 说明 |
-|------|------|
-| 全局唯一 | 同一张符卡在不同难度出现时 UID 相同 |
-| 非符 = 0 | uid=0 不记入符卡簿 |
-| 号段预留 | 建议 1 面 100-199, 2 面 200-299... |
-| 角色无关 | 灵梦和魔理沙共用同一 UID，SpellRecordBook 主键自动区分 |
-
-### diff_pick 的三种用途
-
-| 用途 | 示例 |
-|------|------|
-| 选弹幕数量 | `diff_pick([10, 14, 20, 20])` — 子弹发数 |
-| 选弹幕脚本 | `diff_pick(SCRIPTS)` — 完全不同逻辑时用 |
-| **选 Phase 列表** | `diff_pick(PHASES)` — 不同符卡编排 |
-
-三种可以混用！一个 Boss 的不同 Phase 之间互不影响。
-
-### Boss 出场特效
-
-```gdscript
-// Timeline 中：defer=true 让 Boss 生成但不开始战斗
-tl.at(34).do(func():
-    MissEffectManager.add_circle(Vector2(448, 250), 2.0, 600, 60.0)
-)
-tl.at(35).do(func():
-    var boss = StageManager.spawn_boss(kamorui, Vector2(448, -100), true, ctx)
-    var tw := create_tween()
-    tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-    tw.tween_property(boss, "global_position:y", 250, 2.0)
-    tw.tween_callback(boss.begin_battle)  // 降落完毕 → 开战
-)
-```
-
-> ⚠️ `defer=true` 时 Boss 无碰撞、无血条、子弹穿过、诱导不追踪。`begin_battle()` 后一切激活。
+> ⚠️ phase 链注意：`wait()` 后接 `phase()` 必须直接链（`tl.wait(1.0).phase(...)`），
+> 中间插 `do(pass)` 会破坏 wait 偏移继承（阶段会立即触发）。
 
 ---
 
-## 七、协程脚本（CoroutineScript 统一架构）
+## 三、敌人
 
-> ⭐ 所有协程脚本统一继承 `CoroutineScript`（`scripts/coroutine/base/coroutine_script.gd`）
+### 预设（外观/血量/判定/掉落）
 
-### 核心概念
+位置：`data/enemy_presets/*.tres`（EnemyData）。新增 = 复制一个改名。
+已有：`red/blue/green/yellow_little_fairy`、`red/blue_middle_fairy`、`red/blue_big_fairy`、`white_huge_fairy`、`red/blue/green/purple_YY_jade`。
 
-| 属性 | 类型 | 默认 | 说明 |
-|------|------|------|------|
-| `auto_stop` | bool | false | true=Timeline 播完自动结束；false=持续运行 |
-| `target` | Node2D | null | 要控制的节点（敌人/Boss） |
-| `_tl` | Timeline | null | 声明式时间线（start_timeline() 创建） |
+### 行为脚本
 
-### 返回值约定
+位置：`data/stages/stage01/coroutine_script/`（enemy01/02、fly_away 等）+ `scripts/data/enemy_templates/`（sway_fairy）。
+注册：`scripts/data/enemy_template_registry.gd` 的 `BEHAVIORS` 表一行（脚本路径 + defaults 参数）。
+
+```gdscript
+const BEHAVIORS := {
+	"aim_scatter": {"script_path": "res://data/stages/stage01/coroutine_script/enemy01.gd",
+		"defaults": {"target_y": 300.0}},
+	...
+}
+```
+
+---
+
+## 四、Boss（阶段数据 + 脚本目录）
+
+### BossData / PhaseData（.tres）
+
+- `BossData`（`data/stages/stage01/phase/` 参照）：`boss_name` / `visual` / `phases`（Normal 组）/ `phases_easy/hard/lunatic` / `enter_script` / `exit_script` / `score_value`
+- `PhaseData`：`name`（空串 = 非符）、`uid`（0 = 非符不记）、`hp` / `time_limit` / `bonus`、`is_timeout_only`、`move_script` / `shoot_script`、掉落 item 系列、`params`
+
+阶段示例（`data/stages/stage01/phase/test_01.tres`）：
+```gdscript
+[gd_resource type="Resource" script_class="PhaseData" format=3]
+...
+name = "测试"
+uid = 105
+time_limit = 90.0
+hp = 3001
+move_script = ExtResource("...test_move.gd")
+shoot_script = ExtResource("...orbit_spiral.gd")
+```
+
+### Boss 脚本（目录自动发现）
+
+```
+data/boss_scripts/move/   移动脚本（test_move.gd：随机跳场）
+data/boss_scripts/shoot/  弹幕脚本（orbit_spiral.gd：环绕发射器 + 探测弹）
+data/boss_scripts/enter/  入场
+data/boss_scripts/exit/   退场
+data/boss_scripts/bullet/ 弹丸行为（探测弹 orbit_probe.gd 等）
+```
+
+**加新 Boss 脚本 = 写 .gd 扔进对应目录，文件名即显示名，零注册。**
+旧位置兼容：`data/stages/stage01/coroutine_script/boss/`（non_01_move/shoot）+ `scripts/data/boss_scripts/`（enter_side/exit_side）。
+
+---
+
+## 五、难度差分
+
+- **Boss 阶段**：`BossData` 四组 phases（E/N/H/L），协程脚本里 `diff_pick()` 按难度取
+- **敌人强度**：行为脚本内 `diff_pick([1, 3, 5, 8])` 运行时取参
+- **UID 规则**：真符卡全局唯一（建议 1 面 100-199、2 面 200-299…）；非符 uid=0；角色共用 UID，SpellRecordBook 主键区分
+
+---
+
+## 六、脚本层约定
+
+> 全部继承 `CoroutineScript`（`scripts/coroutine/base/coroutine_script.gd`）。
+
+### 协程返回值约定
+
 ```gdscript
 return ctx.clock.wait(2.0)  # 等待 2 秒后再次调用
 return true                  # 下物理帧立即再次调用
 return false                 # 结束协程
 ```
 
-### 7.1 关卡脚本
+### 脚本文件地图
 
-**职责**：控制关卡流程 — 生成敌人波次、播放 BGM、触发 Boss。
+```
+敌人行为层   enemy_template_registry.gd(BEHAVIORS)
+  ├─ data/stages/stage01/coroutine_script/enemy01.gd    (aim_scatter)
+  ├─ data/stages/stage01/coroutine_script/enemy02.gd    (middle_sweep)
+  └─ scripts/data/enemy_templates/sway_fairy.gd         (sway_aim)
+Boss 脚本层  data/boss_scripts/{move,shoot,enter,exit,bullet}/  ← 自动发现目录
+演出脚本层   scripts/data/stage_scripts/logo_show.gd / barrage_show.gd
+弹丸协程     data/stages/stage01/coroutine_script/gravity_bullet.gd
+```
+
+### 行为脚本示例
 
 ```gdscript
 extends CoroutineScript
-
-func _tick(ctx: StageContext):
-    if not _tl: _tl = start_timeline()
-    return _tl.tick(get_physics_process_delta_time())
-```
-
-**核心 API**（通过 `StageContext` 调用）：
-
-```gdscript
-ctx.clock.wait(2.0)                              # 等待
-ctx.bullets.shoot_spread(data, count, spread, dir, pos)  # 扇形弹幕
-ctx.player.get_position()                         # 自机位置
-ctx.audio.play_bgm(stream)                        # 播放 BGM
-ctx.play_dialogue(lines)                          # 对话
-```
-
-### 7.2 弹幕脚本
-
-**职责**：定义弹幕模式。在 PhaseData 的 `shoot_script` 里引用。
-
-```gdscript
-extends CoroutineScript
-
-func _tick(ctx: StageContext):
-    ctx.bullets.shoot_spread(bullet, 3, 0.3, Vector2.DOWN, target.global_position)
-    return ctx.clock.wait(0.5)
-```
-
-### 7.3 移动脚本
-
-**职责**：控制敌机/Boss 的移动路径。
-
-```gdscript
-extends CoroutineScript
+## 红杂鱼: 向下减速 + 自机狙 + 散射
 
 var target_y: float = 300
+var heavy_wave: bool = true
+var rate: int = 1
 
-func _tick(ctx: StageContext):
-    target.global_position.y = move_toward(target.global_position.y, target_y, 100 * get_physics_process_delta_time())
-    return abs(target.global_position.y - target_y) < 1
+func _ready() -> void:
+	call_deferred("_init_enemy")
+
+func _init_enemy() -> void:
+	var parent := get_parent()
+	# 移动 tween + 发弹（ctx.bullets.shoot_spread / ctx.clock.wait / tl.at ...）
 ```
 
-### 7.4 使用 Timeline
+---
 
-```gdscript
-func _tick(ctx: StageContext):
-    if not _tl:
-        _tl = start_timeline()
-        _tl.at(0.0).do(func(): ctx.audio.play_bgm(bgm))
-        _tl.at(1.0).every(0.5).times(6).spawn_wave(bullet, 3, 0.3, Vector2.DOWN, pos)
-        _tl.at(10.0).spawn_boss(boss_data, pos)
-    return _tl.tick(get_physics_process_delta_time())
-```
+## 七、调试（工作台工具链）
+
+| 工具 | 用法 |
+|------|------|
+| 固定种子 | 播放区开关：重跑弹幕序列可复现（调参必备） |
+| 命中框 | 播放区开关：红=敌弹判定、绿=敌人、青=自机、蓝=擦弹 |
+| 逐帧 | 暂停中按 F：精确走 1/60s |
+| 跳转 | 点时间轴/书签/←→ = 12x 快进到目标（真实关卡无任意 seek） |
+| 书签 | 时间轴右键/快捷键 B 打点；协程关卡静态提取 tl.at() 时刻 + 人工打点 |
+| 幽灵玩家 | 自机狙目标（不攻击，看弹幕用） |
+
+快捷键：`Space` 暂停/继续 · `R` 重跑 · `F` 逐帧 · `1~7` 速度 · `←/→` ±1s（Ctrl ±5s）·
+`B` 书签 · `Home` 回开头
+
+> 改代码后**重启工作台**生效（无热重载）。写代码在 Godot 编辑器，看效果在工作台。
 
 ---
 
 ## 八、挂到游戏
 
-关卡通过 `StageManager.load_stage(data)` 加载。流程：
-
 1. MainMenu → Start → 选难度 → 选角色 → `GameManager.change_scene("game_scene")`
 2. `GameScene._ready()` → `_resolve_stage_data()` → `StageManager.load_stage(data)`
+   （`data/registry/stage_registry.tres`：Stage 1 → `stage01.tres` 协程版）
 3. 练习模式：从 CardDef 构建单 phase Boss，走 `_start_practice_game()`
 
 ---
 
-## 九、符卡练习
+## 九、符卡练习 / 菜单 / 对话
 
-### 自动生成记录
-
-1. 确保所有 StageData 文件已创建并填好 `bosses`
-2. 进游戏 → Spell Practice 自动从 StageRegistry 加载
-
-### 符卡记录规则
-
-| 角色 | 存储 |
-|------|------|
-| 共用符卡 | 同一 uid，两个角色各存一条，独立统计 |
-| 专属符卡 | 不同 uid，自然分开 |
-| 非符 | uid=0，**不记入符卡簿**，仅练习模式可用 |
-
-**运行时记录**：`boss.gd` 调用 `GameState.record_spell()` / `unlock_spell()`。非符（uid=0）自动跳过。
+- **符卡簿**：`data/registry/spell_records.tres`，见到即记（unlock_spell），自动按 UID 记录尝试/捕获/最佳
+- **符卡练习（双驱动）**：练习菜单 = 符卡簿记录（自动）决定"能练哪张" + `data/registry/spell_registry.tres`（CardDef）提供战斗配置。CardDef 手写 .tres 或由代码/脚本生成（工作台「注册练习」按钮已随编排页移除）
+- **菜单页**：`scenes/ui/*_menu.tscn` 继承 BasePage（`scripts/autoload/game/menu_nav.gd` 导航）
+- **对话**：`data/dialogue/` .tres（lines 数组）；关卡里 `tl.at(t).dialogue(...)` 触发
 
 ---
 
-## 十、菜单页面
+## 十、已知边界
 
-### 基类体系
-
-```
-BasePage          — 生命周期 + 遮罩淡入淡出 + 内容滑入
-  └── NavPage     — 垂直选项列表 + 脉冲高亮 + 导航
-        ├── MainMenu
-        ├── PauseMenu / GameOverMenu
-        ├── DifficultyScreen（水平滑动，自定义着色器）
-        └── CharacterScreen
-```
-
-### 可复用方法（BasePage 提供）
-
-| 方法 | 说明 |
-|------|------|
-| `_on_enter()` | 入场（首次被 push） |
-| `_on_leave()` | 退场（被 pop），播放退场动画后 queue_free |
-| `_fade_overlay_in(dur)` | 暗色遮罩淡入 |
-| `_fade_overlay_out(dur)` | 暗色遮罩淡出（返回 Tween 可接 callback） |
-| `_fade_content_in(ctrl, dur, slide)` | 内容从右侧滑入 + 淡入 |
-| `_fade_all_out(ctrl, dur)` | 内容 + 遮罩一起淡出 |
-| `go_back()` | 触发 back 信号（返回上一页） |
-| `done(result)` | 触发 finished 信号（确认选择） |
-
-### 添加新页面
-
-1. 场景根节点 `type="Control"`，设置 `anchors_preset = 15`
-2. 子节点：`Overlay`（ColorRect, 50%黑）+ `TitleTexture`（TextureRect）
-3. 脚本继承 `BasePage` 或 `NavPage`
-4. 在主菜单 `_on_item_selected` 里加 `_open_page("res://scenes/ui/xxx.tscn")`
-
-### 自定义视觉的菜单
-
-如果菜单布局和 NavPage 默认行为差异很大（如水平滑动、shader 着色），可以直接继承 `BasePage`，自己管理选项列表和动画。参考 `DifficultyScreen`。
-
-> 🔮 **未来改进**：考虑抽 `MenuLogic`（纯导航逻辑）与视觉呈现分离，让 `NavPage` 和 `DifficultyScreen` 等自定义菜单共享同一套选项管理逻辑。详见 `ARCHITECTURE_ROADMAP.md`。
-
----
-
-## 十一、对话系统
-
-### 对话数据
-
-- `CharacterProfile`：角色名 + 立绘
-- `DialogueLine`：包含多个 `DialogueBubble`
-- `DialogueBubble`：说话者 + 文字 + 立绘位置 + 表情
-
-### 在关卡中使用
-
-```gdscript
-# Timeline 中
-ctx.play_dialogue(data.lines)
-
-# 或协程中
-ctx.dialogue_show("灵梦", "这是测试文本", Vector2(100, 200))
-```
-
-### 自定义气泡样式
-
-气泡渲染由独立的 `BubblePanel`（`scripts/scenes/bubble_panel.gd`）负责。支持：
-- `[shake=N]` — 气泡抖动 N 秒
-- BBCode 颜色 — `[color=red]文字[/color]`
-
-扩展气泡效果（逐字打印、尾巴三角形等）只需修改 `bubble_panel.gd`，不影响对话流程。
-
----
-
-## 十二、常见问题
-
-| 问题 | 解决 |
-|------|------|
-| 符卡练习显示"No records" | 确保 StageRegistry 已加载，StageData 有 `bosses` |
-| uid 冲突 | 真符卡保证 uid 全局唯一（建议按关卡预留号段：1面 100-199, 2面 200-299...） |
-| 非符在符卡练习里排列不对 | 排列跟随 `phases` 数组顺序，不依赖 uid 数字 |
-| 不同难度符卡不同 | 各难度用不同 StageData 文件，各自引用不同 BossData |
-| 对话气泡想加新效果 | 改 `scripts/scenes/bubble_panel.gd`，不要动 `dialogue_box.gd` |
-| 菜单加新页面怎么写动画 | 继承 BasePage/NavPage，用 `_fade_overlay_in/out` 等现成方法 |
-
-## 自机子弹击中特效（数据驱动，零代码）
-
-所有自机击中特效共用**一个脚本** `scripts/effect/player_bullet_hit_effect.gd`。
-新增特效只需做资源，不用写代码：
-
-**步骤**（以新增"灵梦新星爆"为例）：
-1. 复制 `scenes/effect/hit_effect_reimu_option02.tscn` → 改名
-2. 改贴图 / AtlasTexture region（或换成你的动画 SpriteFrames）
-3. 在 Inspector 里调参数：
-   - `speed`   飞散速度（px/s，默认 300）
-   - `fade_time` 淡出时长（秒，默认 0.3）
-   - `jitter`  飞散方向随机抖动（弧度，默认 0）
-4. 保存即生效！（节点结构自动识别：有 `AnimatedSprite2D` = 动画版，有 `Sprite2D` = 单帧淡出版）
-
-**贴图位置参考**：`assets/Textures/player/pl01.png`（命中特效区在 y≈143~224 行）。
-
-**接线**：在射击脚本里 `b.hit_effect = preload("res://scenes/effect/你的特效.tscn")`。
+- 运行时保存 .tres 依赖 res:// 可写（开发模式）；导出包只读，符卡簿保存会失败（待数据迁移方案）
+- **弹丸协程脚本**（gravity_bullet.gd 等，被行为脚本 preload）与所有脚本改动都需**重启工作台**生效
+- 敌人行为/Boss 脚本目录发现已接入（EnemyTemplateRegistry / BossScriptRegistry）；脚本改动后游戏/工作台重启即可

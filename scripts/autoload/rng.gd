@@ -9,6 +9,10 @@ func _ready():
 func set_seed(s: int) -> void:
 	_rng.seed = s
 
+## 重新随机化种子（工作台关闭"固定种子"时调用）
+func randomize_seed() -> void:
+	_rng.randomize()
+
 func get_seed() -> int:
 	return _rng.seed
 

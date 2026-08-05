@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/data/stage_registry.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="2"]
-[ext_resource type="Resource" path="res://data/stages/stage1_data/stage1_data.tres" id="3_63qft"]
+[ext_resource type="Resource" path="res://data/stages/stage01/stage_data/stage01.tres" id="3_63qft"]
 
 [resource]
 script = ExtResource("1")

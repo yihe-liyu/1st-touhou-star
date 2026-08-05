@@ -29,15 +29,17 @@ func test_non_spell_phase_valid():
 		assert_not_null(phase.shoot_script, "非符需要弹幕脚本")
 
 
-## EX 符卡阶段：uid 非 0, 有名字, 有奖励分
-func test_ex_spell_phase_valid():
-	var phase: PhaseData = load("res://data/phase_data/ex_spell_01.tres")
-	assert_not_null(phase, "ex_spell_01.tres 应存在")
+## 符卡阶段（黄粱「不可测之梦」）：uid 非 0, 有名字, 血量/时限合法, 挂移动/弹幕脚本
+func test_spell_phase_valid():
+	var phase: PhaseData = load("res://data/stages/stage01/phase/test_01.tres")
+	assert_not_null(phase, "test_01.tres 应存在")
 	if phase:
 		assert_ne(phase.uid, 0, "符卡 uid 不应为 0")
 		assert_ne(phase.name, "", "符卡应有名字")
 		assert_gt(phase.hp, 0, "符卡 hp 应 > 0")
-		assert_gt(phase.bonus, 0, "符卡应有奖励分")
+		assert_gt(phase.time_limit, 0, "符卡时限应 > 0")
+		assert_not_null(phase.move_script, "符卡需要移动脚本")
+		assert_not_null(phase.shoot_script, "符卡需要弹幕脚本")
 
 
 ## 角色数据：灵梦/魔理沙都有射击脚本

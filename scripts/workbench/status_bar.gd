@@ -8,12 +8,12 @@ var _status_label: Label
 
 
 func _init() -> void:
-	add_theme_constant_override("separation", 4)
-	add_child(WorkbenchUI.section_title("── 状态 ──"))
+	add_theme_constant_override("separation", 2)
 	_time_label = Label.new()
 	_time_label.add_theme_font_size_override("font_size", 16)
 	add_child(_time_label)
 	_status_label = Label.new()
+	_status_label.add_theme_font_size_override("font_size", 12)
 	add_child(_status_label)
 
 
@@ -22,5 +22,6 @@ func set_time(t: float, is_ff: bool) -> void:
 
 
 func set_status(bullets: int, enemies: int, boss_alive: bool, fps: int) -> void:
-	_status_label.text = "子弹: %d\n敌人: %d\nBoss: %s\nFPS: %d" % [
+	# 单行紧凑（顶部卡片常驻，不想占高度）
+	_status_label.text = "子弹 %d · 敌人 %d · Boss %s · %d FPS" % [
 		bullets, enemies, "存活" if boss_alive else "—", fps]

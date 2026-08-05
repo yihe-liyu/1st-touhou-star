@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PhaseData" format=3 uid="uid://bdwv3xpxkygbb"]
+
+[ext_resource type="Script" uid="uid://70htyyc4o2hu" path="res://scripts/data/phase_data.gd" id="1_phase"]
+[ext_resource type="Script" uid="uid://yq0l4dpguw07" path="res://data/boss_scripts/move/test_move.gd" id="2_move"]
+[ext_resource type="Script" uid="uid://dbcpq7bf5jo43" path="res://data/boss_scripts/shoot/orbit_spiral.gd" id="3_shoot"]
+
+[resource]
+script = ExtResource("1_phase")
+name = "黄粱「不可测之梦」"
+uid = 303
+time_limit = 90.0
+hp = 3001
+move_script = ExtResource("2_move")
+shoot_script = ExtResource("3_shoot")

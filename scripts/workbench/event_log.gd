@@ -8,10 +8,11 @@ var _lines: Array[String] = []
 
 
 func _init() -> void:
+	size_flags_vertical = Control.SIZE_EXPAND_FILL  # 容器撑满页签，日志才能撑满容器
 	add_theme_constant_override("separation", 4)
-	add_child(WorkbenchUI.section_title("── 事件日志 ──"))
 	_log = RichTextLabel.new()
-	_log.custom_minimum_size = Vector2(0, 160)
+	_log.custom_minimum_size = Vector2(0, 120)
+	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_log.fit_content = false
 	_log.scroll_following = true
 	add_child(_log)

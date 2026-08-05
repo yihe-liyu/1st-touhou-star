@@ -8,7 +8,7 @@ class_name BookmarkCache
 
 
 ## 缓存格式版本：书签策略变化（如只留整数时刻）时 +1，强制旧缓存重收集
-const CACHE_VERSION := 4  # v4: 规范化哈希（键序无关，副本往返稳定）
+const CACHE_VERSION := 5  # v5: script_hash 存字符串——大整数 JSON 精度丢失（>2^53）导致缓存永不命中
 
 ## 关卡内容哈希：主脚本 + 关卡目录下所有 .gd 文件文本聚合
 ## （改任何子脚本/敌人/Boss 逻辑都会使书签缓存失效重收集）
@@ -19,7 +19,7 @@ static func stage_content_hash(stage: StageData) -> int:
 		var stage_dir: String = stage.create_script.resource_path.get_base_dir().get_base_dir()
 		h = _hash_dir_files(stage_dir, h)
 		# 数据关卡：优先关卡自己的 timeline（stage.timeline），否则脚本常量
-		# （否则多关卡共用 wave_stage 时 hash 不区分各关卡数据 → 缓存永不按关卡失效）
+		# （否则 hash 不区分各关卡数据 → 缓存永不按关卡失效）
 		var tl: Resource = null
 		if stage.timeline:
 			tl = stage.timeline
@@ -130,7 +130,9 @@ static func load(stage_id: int, script_hash: int) -> Dictionary:
 	f.close()
 	if typeof(data) != TYPE_DICTIONARY or data.get("stage_id", -1) != stage_id:
 		return {"ok": false, "auto": [], "manual": []}
-	if data.get("script_hash", 0) != script_hash:
+	# script_hash 以字符串存储：哈希 ~8.6e18 超 2^53，JSON 数字往返会精度丢失
+	# （v4 旧缓存是数字：str() 后不会匹配 → 视为脚本变更重收集一次，人工打点保留）
+	if str(data.get("script_hash", 0)) != str(script_hash):
 		# 脚本变了：auto 失效，人工打点保留
 		return {"ok": false, "auto": [], "manual": data.get("manual", [])}
 	return {
@@ -148,7 +150,7 @@ static func save(stage_id: int, script_hash: int, auto: Array, manual: Array) ->
 		return
 	f.store_string(JSON.stringify({
 		"stage_id": stage_id,
-		"script_hash": script_hash,
+		"script_hash": str(script_hash),  # 哈希 ~8.6e18 超 2^53：JSON 数字往返丢精度 → 存字符串
 		"auto": auto,
 		"manual": manual,
 	}, "\t"))

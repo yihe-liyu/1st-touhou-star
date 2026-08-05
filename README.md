@@ -46,20 +46,21 @@
 # 查找代码
 grep -rn "关键词" --include="*.gd" scripts/ data/
 
-# 添加新敌人 → 见 CONTENT_GUIDE.md 第三章
-# 添加新符卡 → 见 CONTENT_GUIDE.md 第四章
+# 添加新敌人 → 见 CONTENT_GUIDE.md 第二章
+# 添加新符卡/Boss → 见 CONTENT_GUIDE.md 第四章
 ```
 
-### 内容工作台（关卡沙盒）
+### 内容工作台（预览/调试沙盒）
 
 ```bash
-# F6 运行 scenes/workbench.tscn —— 直接预览/调试真实关卡
+# F6 运行 scenes/workbench.tscn —— 跑真实关卡看弹幕效果
 ```
 
 - 真实运行时沙盒：跑的就是游戏代码（StageManager/BulletManager/协程），非模拟
-- 播放/暂停/重跑 + 点击时间轴/书签**快进跳转** + 难度切换（Easy~Lunatic）
-- 幽灵玩家提供自机狙目标；静音/背景开关/事件日志/实时状态
-- 演进与架构决策见 ARCHITECTURE_ROADMAP.md「内容工作台演进」专节
+- **写代码在 Godot 编辑器**：关卡编排 = stage01.gd（Timeline API）；Boss 弹幕 = data/boss_scripts/ 目录自动发现
+- **调参工具**：固定种子（可复现）· 命中框 · 逐帧（F）· 12x 快进跳转 · 书签（静态提取 + 人工打点）
+- 幽灵玩家提供自机狙目标；静音/背景开关/事件日志/实时状态；改完脚本重启工作台生效
+- 创作流程见 [CONTENT_GUIDE.md](CONTENT_GUIDE.md)；架构决策见 ARCHITECTURE_ROADMAP.md「内容工作台演进」专节
 
 ---
 

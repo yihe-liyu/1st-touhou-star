@@ -29,7 +29,7 @@ var window_start: float = 0.0         ## 时间窗口起点（滚动/缩放后�
 var window_len: float = 60.0          ## 时间窗口（秒）
 var bookmarks: Array[Dictionary] = [] ## [{t, label}]，升序
 
-## 波次数据（StageTimeline.waves 的浅拷贝；元素是共享引用 → 拖拽写回即改数据源）
+## 波次数据（浅拷贝；元素是共享引用 → 写回即改数据源）
 var waves: Array = []
 ## Boss 条带列表（多 Boss；每项 {t, duration}，时间轴第 0 行，红色）
 var _boss_bands: Array = []
@@ -130,7 +130,7 @@ func set_boss(t: float, duration: float = 20.0) -> void:
 	set_bosses([{"t": t, "duration": duration}])
 
 
-## 设置演出事件（StageTimeline.events）
+## 设置演出事件
 func set_events(evs: Array) -> void:
 	events = evs.duplicate()
 	queue_redraw()

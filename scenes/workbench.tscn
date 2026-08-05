@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://biviyi1b1msub"]
 
 [ext_resource type="Script" uid="uid://cuxliahwfwdcv" path="res://scripts/workbench/workbench.gd" id="1_wb"]
-[ext_resource type="Script" path="res://scripts/workbench/timeline_bar.gd" id="2_tl"]
+[ext_resource type="Script" uid="uid://bjsk81aq1lnug" path="res://scripts/workbench/timeline_bar.gd" id="2_tl"]
 
-[node name="Workbench" type="Control"]
+[node name="Workbench" type="Control" unique_id=469653415]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,16 +13,16 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_wb")
 
-[node name="World" type="Node2D" parent="."]
+[node name="World" type="Node2D" parent="." unique_id=1985106525]
 process_mode = 1
 
-[node name="HitboxLayer" type="CanvasLayer" parent="."]
+[node name="HitboxLayer" type="CanvasLayer" parent="." unique_id=1813529306]
 layer = 5
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=898783386]
 layer = 10
 
-[node name="RightPanel" type="MarginContainer" parent="UI"]
+[node name="RightPanel" type="MarginContainer" parent="UI" unique_id=1596862603]
 unique_name_in_owner = true
 anchors_preset = 1
 anchor_left = 1.0
@@ -34,72 +34,107 @@ offset_bottom = 960.0
 grow_horizontal = 0
 theme_override_constants/margin_left = 10
 
-[node name="Scroll" type="ScrollContainer" parent="UI/RightPanel"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="VBox" type="VBoxContainer" parent="UI/RightPanel/Scroll"]
+[node name="VBox" type="VBoxContainer" parent="UI/RightPanel" unique_id=437807338]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="UI/RightPanel/Scroll/VBox"]
+[node name="TopCard" type="PanelContainer" parent="UI/RightPanel/VBox" unique_id=1897930865]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TopVBox" type="VBoxContainer" parent="UI/RightPanel/VBox/TopCard" unique_id=697623079]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="UI/RightPanel/VBox/TopCard/TopVBox" unique_id=182744113]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "内容工作台"
 
-[node name="StageGrid" type="GridContainer" parent="UI/RightPanel/Scroll/VBox"]
+[node name="StageGrid" type="GridContainer" parent="UI/RightPanel/VBox/TopCard/TopVBox" unique_id=1764809490]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 4
 columns = 2
 
-[node name="PlaybackSlot" type="VBoxContainer" parent="UI/RightPanel/Scroll/VBox"]
+[node name="PlaybackSlot" type="VBoxContainer" parent="UI/RightPanel/VBox/TopCard/TopVBox" unique_id=461106651]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="StatusSlot" type="VBoxContainer" parent="UI/RightPanel/Scroll/VBox"]
+[node name="StatusSlot" type="VBoxContainer" parent="UI/RightPanel/VBox/TopCard/TopVBox" unique_id=934165539]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="WaveSection" type="VBoxContainer" parent="UI/RightPanel/Scroll/VBox"]
+[node name="TabBar" type="HBoxContainer" parent="UI/RightPanel/VBox" unique_id=1752295597]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="BookmarkSlot" type="VBoxContainer" parent="UI/RightPanel/Scroll/VBox"]
+[node name="Pages" type="VBoxContainer" parent="UI/RightPanel/VBox" unique_id=446639269]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="LogSlot" type="VBoxContainer" parent="UI/RightPanel/Scroll/VBox"]
+[node name="PageBookmarks" type="ScrollContainer" parent="UI/RightPanel/VBox/Pages" unique_id=1999580426]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BookmarkSlot" type="VBoxContainer" parent="UI/RightPanel/VBox/Pages/PageBookmarks" unique_id=1669372079]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
 
-[node name="Divider" type="ColorRect" parent="UI"]
+[node name="PageLog" type="ScrollContainer" parent="UI/RightPanel/VBox/Pages" unique_id=818680951]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LogSlot" type="VBoxContainer" parent="UI/RightPanel/VBox/Pages/PageLog" unique_id=1673494203]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="Divider" type="ColorRect" parent="UI" unique_id=998803869]
 unique_name_in_owner = true
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -440.0
-offset_right = -432.0
 offset_top = 8.0
+offset_right = -432.0
 offset_bottom = 928.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 13
 color = Color(1, 1, 1, 0.15)
 
-[node name="Timeline" type="Control" parent="UI"]
+[node name="Timeline" type="Control" parent="UI" unique_id=619428856]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 3
+anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 64.0
 offset_top = -32.0
 offset_right = 832.0
-offset_bottom = 0.0
-custom_minimum_size = Vector2(0, 32)
+grow_vertical = 0
 script = ExtResource("2_tl")

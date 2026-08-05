@@ -52,11 +52,11 @@ const bullet_configs := {
 const sounds := {
 	"shoot":    preload("res://assets/Sound/bullet01.wav"),
 	"player_shoot": preload("res://assets/Sound/player_shoot.wav"),
+	"kira":     preload("res://assets/Sound/kira.wav"),
 	"enemy_die": preload("res://assets/Sound/enemy_dead.wav"),
 	"player_die": preload("res://assets/Sound/player_dead.wav"),
 	"graze":    preload("res://assets/Sound/graze.wav"),
 	"item":     preload("res://assets/Sound/item.wav"),
-	"kira":     preload("res://assets/Sound/kira.wav"),
 }
 
 ## BGM 路径表 —— 按需加载（load 而非 preload，避免启动即解码大文件）

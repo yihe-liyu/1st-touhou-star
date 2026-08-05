@@ -58,6 +58,13 @@ const MUSIC_REGISTRY_PATH := "res://data/registry/music_registry.tres"
 
 ## 播 BGM（覆盖当前播放）。播放前无间隔、无渐弱。
 func play_bgm(stream: AudioStream, _gap_unused: float = 0.0) -> void:
+	_play_bgm_at(stream, 0.0)
+
+## 从指定秒数播放 BGM（工作台续跑恢复音乐进度用）
+func play_bgm_from(stream: AudioStream, from: float) -> void:
+	_play_bgm_at(stream, maxf(from, 0.0))
+
+func _play_bgm_at(stream: AudioStream, from: float) -> void:
 	if not _bgm_player or not is_instance_valid(_bgm_player):
 		_init_players()
 	if _bgm_player.playing and _bgm_player.stream == stream:
@@ -66,7 +73,7 @@ func play_bgm(stream: AudioStream, _gap_unused: float = 0.0) -> void:
 	_bgm_player.stop()
 	_bgm_player.stream = stream
 	_bgm_player.volume_db = _to_db(bgm_volume * master_volume)
-	_bgm_player.play()
+	_bgm_player.play(from)
 	
 	# 音乐解锁：如果该音频有关联的音乐记录，解锁之
 	_unlock_music_by_stream(stream)

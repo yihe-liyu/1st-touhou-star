@@ -140,9 +140,13 @@ func _physics_process(_delta):
 		# 快速路径：直接调 _tick（无节点 + 无调度器）
 		if not coroutine_script.tick_fast(dt):
 			# 协程结束：释放孤儿节点 + 清引用
-			coroutine_script.stop()
-			coroutine_script.queue_free()
+			# 注意：_tick 内部可能已 return_bullet（_return_to_pool 已停并清空
+			# coroutine_script）→ 此处先取局部再判空，避免 stop() 打在 Nil 上
+			var cs := coroutine_script
 			coroutine_script = null
+			if cs:
+				cs.stop()
+				cs.queue_free()
 		return
 	# 匀加速：velocity += accel * dt（世界方向）
 	velocity += accel * dt

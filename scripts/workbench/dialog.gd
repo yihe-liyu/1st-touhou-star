@@ -76,6 +76,11 @@ func confirm() -> void:
 					return
 
 
+## 是否有弹窗打开（工作台快捷键守卫：弹窗时避免误触重跑/跳转）
+func is_open() -> bool:
+	return _panel != null
+
+
 func close() -> void:
 	for c in get_children():
 		c.queue_free()

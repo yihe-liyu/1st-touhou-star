@@ -22,16 +22,18 @@ var _menu_index := -1
 
 
 func _init() -> void:
+	size_flags_vertical = Control.SIZE_EXPAND_FILL  # 容器撑满页签，列表才能撑满容器
 	add_theme_constant_override("separation", 4)
-	add_child(WorkbenchUI.section_title("── 书签（点击 = 快进）──"))
 	var row := HBoxContainer.new()
 	var add_btn := Button.new()
-	add_btn.text = "添加书签"
+	add_btn.text = "＋ 添加书签"
 	add_btn.pressed.connect(func(): open_add())
 	row.add_child(add_btn)
 	add_child(row)
 	_list = ItemList.new()
 	_list.custom_minimum_size = Vector2(0, 120)
+	_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_list.tooltip_text = "左键 = 快进跳转 · 右键 = 重命名/删除"
 	_list.item_clicked.connect(_on_list_clicked)
 	add_child(_list)
 	_menu = PopupMenu.new()

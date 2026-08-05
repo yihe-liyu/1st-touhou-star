@@ -7,18 +7,51 @@ extends RefCounted
 ##   组合：build_from(数据名, 行为名) —— 同数据换行为 / 同行为换数据
 ## 创作方式：新行为 = 注册 BEHAVIORS 一行；新数据 = 复制 .tres。
 
-const ENEMY01 := preload("res://data/stages/stage01/coroutine_script/enemy01.gd")
-const ENEMY02 := preload("res://data/stages/stage01/coroutine_script/enemy02.gd")
-const SWAY_FAIRY := preload("res://scripts/data/enemy_templates/sway_fairy.gd")
 const ENEMY_DATA_SCRIPT := preload("res://scripts/data/enemy_data.gd")
 const PRESET_DIR := "res://data/enemy_presets"
 
-## 行为层：{行为名: {script, defaults(脚本参数默认)}}
+## 行为层：{行为名: {script_path, defaults(脚本参数默认)}}
+## script_path 运行时 load + 缓存（不用 preload）：工作台「脚本」页签保存后
+## reload_behavior() 热重载立即生效，无需重启；游戏本体行为不变
 const BEHAVIORS := {
-	"aim_scatter": {"script": ENEMY01, "defaults": {"target_y": 300.0}},
-	"middle_sweep": {"script": ENEMY02, "defaults": {"target_pos": Vector2(448, 300)}},
-	"sway_aim": {"script": SWAY_FAIRY, "defaults": {"target_y": 260.0, "sway": 80.0, "bullet_n": 5, "fire_interval": 0.6}},
+	"aim_scatter": {"script_path": "res://data/stages/stage01/coroutine_script/enemy01.gd", "defaults": {"target_y": 300.0}},
+	"middle_sweep": {"script_path": "res://data/stages/stage01/coroutine_script/enemy02.gd", "defaults": {"target_pos": Vector2(448, 300)}},
+	"sway_aim": {"script_path": "res://scripts/data/enemy_templates/sway_fairy.gd", "defaults": {"target_y": 260.0, "sway": 80.0, "bullet_n": 5, "fire_interval": 0.6}},
 }
+
+## 运行时脚本缓存（path → Script）；reload_behavior 后失效重载
+static var _script_cache: Dictionary = {}
+
+## 行为脚本（运行时 load + 缓存；编译失败时重试 load）
+static func behavior_script(name: String) -> Script:
+	var b: Dictionary = BEHAVIORS.get(name, {})
+	if b.is_empty() or not b.has("script_path"):
+		return null
+	var p: String = b["script_path"]
+	if not _script_cache.has(p):
+		_script_cache[p] = load(p)
+	return _script_cache[p]
+
+## 行为脚本路径（工作台脚本编辑器显示/保存用）
+static func behavior_path(name: String) -> String:
+	var b: Dictionary = BEHAVIORS.get(name, {})
+	return str(b.get("script_path", ""))
+
+## 热重载行为脚本（工作台保存后调用）
+## CACHE_MODE_IGNORE：绕过脚本编译缓存强制重编译（对象身份不变但字节码更新）
+## 注意：Script.reload() 在非编辑器运行时是 no-op（err=0 不做事）；remove_from_cache 不存在；
+## CACHE_MODE_REPLACE 对 GDScript 也不生效——实测只有 IGNORE 会强制重编译。
+## 编译失败：load 返回 null，旧缓存保留 → 返回 false（工作台提示，不炸）
+static func reload_behavior(name: String) -> bool:
+	var b: Dictionary = BEHAVIORS.get(name, {})
+	if b.is_empty() or not b.has("script_path"):
+		return false
+	var p: String = b["script_path"]
+	var s: Script = ResourceLoader.load(p, "", ResourceLoader.CACHE_MODE_IGNORE)
+	if s == null or not (s is Script):
+		return false
+	_script_cache[p] = s
+	return true
 
 ## 数据预设名列表：读 data/enemy_presets/*.tres（新增预设 = 复制 .tres，无需代码）
 ## 兜底：目录为空时反射构造链方法（兼容开发中状态）
@@ -68,8 +101,9 @@ static func build_from(data_name: String, behavior_name: String) -> EnemyData:
 	if b.is_empty():
 		push_warning("EnemyTemplateRegistry: 未知行为 %s" % behavior_name)
 		return data
-	if b.has("script"):
-		data.with_script(b.script)
+	var script: Script = behavior_script(behavior_name)
+	if script:
+		data.with_script(script)
 	for k in b.get("defaults", {}):
 		data.param(k, b.defaults[k])
 	return data
@@ -100,7 +134,7 @@ static func suggest_params(behavior_name: String) -> Dictionary:
 	for k in d:
 		result[k] = d[k]
 	# 反射脚本变量补全（排除私有/基类运行时变量）
-	var script: Script = b.get("script")
+	var script: Script = behavior_script(behavior_name)
 	if script:
 		var inst: Node = script.new()
 		for p in inst.get_property_list():

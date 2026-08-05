@@ -8,6 +8,21 @@ const SpellRecordClass = preload("res://scripts/data/spell_record.gd")
 @export var records: Array[SpellRecord] = []
 
 
+## 清理幽灵记录（防御：编辑器/外部写入可能塞入 stage=0 空壳——
+## 例：Godot 里编辑 .tres 删记录时块残留 + 数组引用 → 加载生成空对象）。
+## 正常记录 stage>=1；空壳 = stage<1 或 无名字/uid/统计的空对象。
+func prune_empty() -> void:
+	var kept: Array[SpellRecord] = []
+	for r in records:
+		if r.stage < 1:
+			continue
+		if r.name == "" and r.uid == 0 and r.attempts == 0 and r.captures == 0 \
+				and r.practice_attempts == 0 and r.practice_captures == 0:
+			continue
+		kept.append(r)
+	records = kept
+
+
 ## 以 (stage, phase_index, character, difficulty) 查重
 func get_record(stage: int, phase_index: int, character: int, difficulty: int) -> SpellRecord:
 	for r in records:

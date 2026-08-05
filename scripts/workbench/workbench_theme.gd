@@ -17,8 +17,8 @@ const CARD_PRESSED := Color(0.05, 0.06, 0.09, 0.95)
 const INPUT_BG := Color(0.05, 0.065, 0.095, 1.0)
 const BORDER := Color(0.17, 0.21, 0.29, 1.0)
 const BORDER_HOVER := Color(0.90, 0.70, 0.25, 0.65)
-const TEXT := Color(0.86, 0.90, 0.95, 1.0)
-const TEXT_DIM := Color(0.58, 0.63, 0.71, 1.0)
+const TEXT := Color(0.91, 0.94, 0.98, 1.0)
+const TEXT_DIM := Color(0.70, 0.75, 0.83, 1.0)
 const ACCENT := Color(0.92, 0.73, 0.32, 1.0)
 const SELECT := Color(0.35, 0.55, 0.95, 0.35)
 
@@ -27,14 +27,18 @@ const SELECT := Color(0.35, 0.55, 0.95, 0.35)
 static func build() -> Theme:
 	var t := Theme.new()
 	# ── 中文字体（SystemFont 按系统名 fallback；emoji 兜底显示日志装饰）──
+	# 清晰度三件套：hinting LIGHT（CJK 小字号不发虚）、weight 500（比 400 粗一点更实）、
+	# 字号 15（原 14 在低分屏上偏糊）——面板所有字都走 default_font
 	var font := SystemFont.new()
 	font.font_names = PackedStringArray([
 		"Noto Sans CJK JP", "Noto Sans CJK SC", "Noto Sans CJK TC",
 		"WenQuanYi Micro Hei", "Noto Sans", "Noto Color Emoji",
 	])
-	font.font_weight = 400
+	font.font_weight = 500
+	font.hinting = TextServer.HINTING_LIGHT
+	font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
 	t.default_font = font
-	t.default_font_size = 14
+	t.default_font_size = 15
 
 	# ── 卡片（PanelContainer：区块/弹窗面板）──
 	t.set_stylebox("panel", "PanelContainer", _card())

@@ -1,26 +1,33 @@
-## 内容工作台 —— 关卡沙盒（真实运行时预览）+ 编排编辑器（组件化版）
+## 内容工作台 —— 关卡预览沙盒（真实运行时预览 + 书签导航 + 调试工具）
 ##
-## 设计（与 v1 模型沙盒的根本区别）：
+## 定位：工作台 = 预览/调试沙盒。脚本与关卡数据一律在 Godot 编辑器里写（.gd/.tres）。
 ##   v1：LifecycleNode 纯逻辑模型复刻实体公式（一致性靠"复刻"，会漂移）
 ##   v2：F6 运行时直接加载真实关卡 —— StageManager + BulletManager + 真实协程
 ##       幽灵玩家提供自机狙目标；一致性与游戏 100% 相同（跑的就是游戏代码）
 ##
 ## 能力：
 ##   · 播放/暂停/重跑（真实引擎时钟）
-##   · 快进跳转（点击时间轴/书签 → 加速跑到目标时刻；真实关卡不支持任意 seek）
-##   · 难度切换 / 静音 / 背景开关
+##   · 跳转：12x 快进到目标时刻（真实关卡不支持任意 seek）
+##   · 难度切换 / 静音 / 背景开关 / 固定种子（重跑弹幕序列可复现）
 ##   · 实时状态（时间/子弹数/敌人/Boss/FPS）+ 事件日志
-##   · 编排编辑（数据关卡）：波次表格 + 详情表单 + 增删保存（user:// 副本）
+##   · 逐帧推进（暂停中 F）：弹幕排布/碰撞细节逐帧检查
+##   · 书签（协程关卡静态提取 + 人工打点）+ 12x 快进跳转
+##   · 编排编辑（数据关卡）：波次表格 + 详情表单 + 增删复制保存 + 单波调试
+##   · 出生点拖放：选中波次后 Ctrl+点击场地 = 挪出生点（带路径预览线）
 ##
-## 结构（2026-08 组件化重构）：
+## 定位：脚本一律在 Godot 编辑器里写（stage01.gd 等），工作台只做预览/调试；
+##       改完脚本 → 重启工作台生效（F5 热重载与脚本页已移除）
+##
+## 快捷键：Space 播放/暂停 · R 重跑 · F 逐帧 · 1~7 速度档 · ←/→ 跳 ±1s（Ctrl ±5s）
+##          B 打书签 · Ctrl+S 保存 · Home 回开头（弹窗/输入框聚焦时不拦截）
+##
+## 结构（2026-08 组件化重构；2026-08 收窄为纯预览沙盒）：
 ##   workbench.gd        —— 主控制器：装配 + 关卡生命周期 + 状态路由
 ##   playback_bar.gd     —— 播放控制行（信号 → 主控制器）
 ##   status_bar.gd       —— 实时状态显示（主控制器每帧喂数据）
 ##   event_log.gd        —— 事件日志（自连 GameEvents）
-##   wave_table.gd       —— 波次表格（已有）
-##   wave_form.gd        —— 波次详情表单（动态生成 + 写回 + 信号）
 ##   bookmark_panel.gd   —— 书签列表 + 编辑弹窗（数据自持 + data_changed 信号）
-##   dialog.gd           —— 通用弹窗宿主
+##   dialog.gd           —— 通用弹窗宿主（书签编辑用）
 ##   ui_common.gd        —— 控件工厂
 ##   布局框架在 scenes/workbench.tscn（容器/锚点/分割条/时间轴）
 ##
@@ -36,9 +43,8 @@ const BOOKMARK_EXTRACTOR := preload("res://scripts/workbench/bookmark_extractor.
 const BOOKMARK_CACHE := preload("res://scripts/workbench/bookmark_cache.gd")
 const ENEMY_REG := preload("res://scripts/data/enemy_template_registry.gd")
 const REIMU_DATA := preload("res://data/player_data/reimu_data.tres")
-const STAGE_DEMO := preload("res://data/stage_demo/stage_demo.tres")
-const STAGE1_DATA := preload("res://data/stages/stage1_data/stage1_data.tres")
-const _WAVE_TABLE_SCRIPT = preload("res://scripts/workbench/ui/wave_table.gd")
+## Stage 1 = 协程版（stage01.gd Timeline 编排；数据关卡系统已移除）
+const STAGE1_COROUTINE := preload("res://data/stages/stage01/stage_data/stage01.tres")
 
 const DIFFICULTIES: Array[String] = ["Easy", "Normal", "Hard", "Lunatic"]
 ## 播放速度档位（慢放/快进；书签跳转仍用固定 12x）
@@ -49,20 +55,6 @@ const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
 @onready var _divider: ColorRect = %Divider
 @onready var _timeline: TimelineBar = %Timeline
 @onready var _stage_grid: GridContainer = %StageGrid
-@onready var _wave_section: VBoxContainer = %WaveSection
-# 演出事件编辑（音乐/对话/自定义演出）
-var _events_section: VBoxContainer
-# 符卡编辑（Boss 阶段）
-var _spell_section: VBoxContainer
-var _spell_form_box: VBoxContainer
-var _phase_sel: OptionButton
-var _add_boss_btn: Button
-## 多 Boss 编辑：当前关卡 Boss 列表（{boss, t, src}）+ 当前编辑索引
-var _boss_entries: Array = []
-var _boss_cur: int = 0
-## 未保存改动标记（切关卡前确认）；当前编辑阶段索引（表单刷新后恢复选中）
-var _dirty: bool = false
-var _phase_cur: int = 0
 @onready var _world: Node2D = $World
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
@@ -70,12 +62,9 @@ var _playback: PlaybackBar
 var _status: StatusBar
 var _log_view: EventLog
 var _bookmarks: BookmarkPanel
-var _wave_table                    # WaveTable（preload，避免类缓存依赖）
-var _wave_form: WaveForm
-var _dialog: DialogHost
 
 # 关卡状态
-var _stage_data: StageData = STAGE1_DATA
+var _stage_data: StageData = STAGE1_COROUTINE
 var _ghost: Player
 var _background: Node
 var _hitbox_overlay: Node2D  # 实际是 HitboxOverlay（preload，避免类缓存依赖）
@@ -85,19 +74,7 @@ var _drag_divider := false
 var _drag_start_x := 0.0
 var _drag_start_off := 0.0
 # 详情表单高度拖拽
-var _form_drag := false
-var _form_drag_start_y := 0.0
-var _form_drag_start_h := 0.0
 
-# 书签收集（静默快进收集真实事件时刻，缓存到 user://）
-var _collecting := false
-var _collect_hash := 0
-var _collect_max := 45.0   # 收集到该时刻（非符1 开始后足够；Boss 击破后的事件依赖玩家，不收集）
-var _collect_times: Array = []
-var _collect_attempts := 0  # 防死循环：收集连续失败超限退回静态提取
-var _skip_next_collection := false  # 收集完成后重跑跳过（防 hash 异常导致连环收集）
-var _toast := ""           # 短暂提示（收集完成反馈等）
-var _toast_t := 0.0
 var _auto_bookmarks: Array = []    # 自动收集时刻（当前缓存，编辑后重存用）
 var _manual_bookmarks: Array = []  # 人工打点（可编辑，持久化）
 
@@ -108,10 +85,14 @@ var _show_bg := true
 var _speed_idx := 2          # 速度档位索引（SPEEDS）
 var _ff_target := -1.0   # 快进目标时刻（-1 = 不快进）
 var _prev_time := -1.0   # 时间轴刷新去重
-var _current_timeline: Resource   # 当前编辑的 timeline（缓存，避免每次 load 缓存不一致）
-# 统一编辑模型：选中敌波编辑波次（wave）/ 选中 Boss 编辑符卡（boss）
-var _edit_mode := "wave"
 
+## 固定种子：重跑时弹幕序列可复现（调参看效果的必备开关）
+const FIXED_SEED := 20260801
+## 右侧面板页签：书签（导航）/ 日志（调试）
+const _TABS := ["书签", "日志"]
+var _tab_btns: Array[Button] = []
+var _fixed_seed_on := false
+var _stepping := false        # 逐帧推进防重入
 # UI 控件（关卡/难度下拉）
 var _stage_sel: OptionButton
 var _diff_sel: OptionButton
@@ -138,16 +119,6 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	# toast 倒计时
-	if _toast_t > 0.0:
-		_toast_t -= _delta
-		queue_redraw()
-	# 书签收集完成检测（静默快进跑完即收）
-	if _collecting:
-		queue_redraw()  # 遮罩提示持续显示
-		var runner := StageManager.current_stage_script()
-		if runner == null or runner.game_time() >= _collect_max:
-			_finish_collection()
 	# 快进到达检测（UI 是 ALWAYS，暂停中也检测）
 	if _ff_target >= 0.0:
 		var runner := StageManager.current_stage_script()
@@ -179,7 +150,7 @@ func _draw() -> void:
 			draw_line(Vector2(64, y), Vector2(832, y), Color(1, 1, 1, 0.05))
 		# 幽灵玩家路径参考（纵向漂移中线）
 		draw_line(Vector2(64, 620), Vector2(832, 620), Color(0.3, 0.9, 0.5, 0.15))
-
+	# 出生点标记（数据关卡波次）
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
@@ -195,8 +166,7 @@ func _exit_tree() -> void:
 func _build_ui() -> void:
 	# ── 关卡/难度（.tscn 的 StageGrid，代码填控件）──
 	_stage_sel = OptionButton.new()
-	_stage_sel.add_item("Demo 数据关卡")
-	_stage_sel.add_item("Stage 1 数据版")
+	_stage_sel.add_item("Stage 1 协程版")
 	_stage_sel.item_selected.connect(_on_stage_selected)
 	_stage_grid.add_child(WorkbenchUI.label("关卡"))
 	_stage_grid.add_child(_stage_sel)
@@ -219,73 +189,13 @@ func _build_ui() -> void:
 			_hitbox_overlay.enabled = on
 	)
 	_playback.speed_selected.connect(_on_speed_selected)
+	_playback.seed_toggled.connect(_on_seed_toggled)
 	%PlaybackSlot.add_child(_playback)
 
 	# ── 状态显示 ──
 	_status = StatusBar.new()
 	%StatusSlot.add_child(_status)
 
-	# ── 编排（数据关卡波次表格 + 详情编辑；协程关卡整体隐藏）──
-	_wave_section.add_child(WorkbenchUI.section_title("── 编排（数据关卡）──"))
-	# 操作栏：应用 / ＋波次 / 🗑波次 / 💾保存（统一等宽对齐）
-	var wave_btns := HBoxContainer.new()
-	wave_btns.add_theme_constant_override("separation", 4)
-	var apply_btn := Button.new()
-	apply_btn.text = "应用"
-	apply_btn.pressed.connect(_apply_wave)
-	wave_btns.add_child(apply_btn)
-	var add_wave := Button.new()
-	add_wave.text = "添加波次"
-	add_wave.pressed.connect(_add_wave)
-	wave_btns.add_child(add_wave)
-	var del_wave := Button.new()
-	del_wave.text = "删除波次"
-	del_wave.pressed.connect(_delete_selected_wave)
-	wave_btns.add_child(del_wave)
-	var save_btn := Button.new()
-	save_btn.text = "保存"
-	save_btn.pressed.connect(_save_timeline)
-	wave_btns.add_child(save_btn)
-	# ＋ Boss（数据关卡且无 Boss 时可用：添加 Boss + 默认阶段）
-	_add_boss_btn = Button.new()
-	_add_boss_btn.text = "＋ Boss"
-	_add_boss_btn.pressed.connect(_add_boss)
-	_add_boss_btn.visible = false
-	wave_btns.add_child(_add_boss_btn)
-	# 五个按钮等宽均分，视觉对齐
-	for b in [apply_btn, add_wave, del_wave, save_btn, _add_boss_btn]:
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.custom_minimum_size = Vector2(0, 28)
-	_wave_section.add_child(wave_btns)
-	# ── 演出事件（音乐/对话/自定义演出）──
-	_events_section = VBoxContainer.new()
-	_events_section.add_theme_constant_override("separation", 4)
-	_wave_section.add_child(_events_section)
-	# 波次表：自制行列表格（列头+网格线+选中高亮；含 Boss 行）
-	_wave_table = _WAVE_TABLE_SCRIPT.new()
-	_wave_table.custom_minimum_size = Vector2(0, 140)
-	_wave_table.wave_selected.connect(_on_wave_selected)
-	_wave_table.boss_row_selected.connect(_on_wave_boss_selected)
-	_wave_section.add_child(_wave_table)
-	# 详情表单（自带滚动容器，固定高度防挤布局）
-	_wave_form = WaveForm.new()
-	_wave_form.applied.connect(_on_wave_applied)
-	_wave_section.add_child(_wave_form)
-	# 高度拖拽条：在表单底部（拖底边 = 底边跟手变长，符合直觉）
-	var form_divider := ColorRect.new()
-	form_divider.custom_minimum_size = Vector2(0, 5)
-	form_divider.color = Color(1, 1, 1, 0.12)
-	form_divider.mouse_default_cursor_shape = Control.CURSOR_VSIZE
-	form_divider.gui_input.connect(func(ev: InputEvent): _on_form_divider_input(ev))
-	_wave_section.add_child(form_divider)
-	# ── 符卡编辑（Boss 阶段）── 挂到波次编辑区详情位置（表格下方，与敌人表单同位置互斥）
-	_spell_section = VBoxContainer.new()
-	_spell_section.add_theme_constant_override("separation", 4)
-	_spell_form_box = VBoxContainer.new()
-	_spell_form_box.add_theme_constant_override("separation", 4)
-	_spell_section.add_child(_spell_form_box)
-	_wave_section.add_child(_spell_section)
-	_update_edit_mode()
 
 	# ── 书签（数据自持，编辑后 data_changed 回主控制器持久化）──
 	_bookmarks = BookmarkPanel.new()
@@ -298,20 +208,37 @@ func _build_ui() -> void:
 	_log_view = EventLog.new()
 	%LogSlot.add_child(_log_view)
 
+
+	# ── 页签：编排 / 书签 / 日志 / 脚本（播放/状态固定在顶部不滚走）──
+	for i in _TABS.size():
+		var tb := Button.new()
+		tb.text = _TABS[i]
+		tb.toggle_mode = true
+		tb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tb.custom_minimum_size = Vector2(0, 26)
+		tb.pressed.connect(_on_tab_selected.bind(i))
+		%TabBar.add_child(tb)
+		_tab_btns.append(tb)
+	_set_tab(0)
+
 	# ── 时间轴（.tscn 节点）──
 	_timeline.jump_to.connect(_jump_to)
 	_timeline.right_clicked.connect(_bookmarks.open_add)
-	_timeline.wave_selected.connect(_on_wave_selected)
-	_timeline.wave_moved.connect(_on_wave_moved)
-	_timeline.boss_selected.connect(_on_timeline_boss_selected)
-	_timeline.boss_moved.connect(_on_timeline_boss_moved)
-
-	# ── 通用弹窗（删除波次确认等）──
-	_dialog = DialogHost.new()
-	$UI.add_child(_dialog)
 
 	# ── 分割条拖拽（.tscn 节点）──
 	_divider.gui_input.connect(_on_divider_input)
+
+
+## 页签切换：只显示对应页，按钮高亮同步
+func _set_tab(i: int) -> void:
+	%PageBookmarks.visible = i == 0
+	%PageLog.visible = i == 1
+	for b in _tab_btns.size():
+		_tab_btns[b].button_pressed = b == i
+
+
+func _on_tab_selected(i: int) -> void:
+	_set_tab(i)
 
 
 ## 幽灵玩家：实例化真实 player.tscn + 换 GhostPlayer 脚本（继承 Player，类型兼容）
@@ -332,13 +259,10 @@ func _setup_world() -> void:
 # ═══ 关卡加载 / 重跑 ═══
 
 ## 加载关卡（start_from >= 0 = 从该时刻续跑，数据关卡专用）
-func _load_stage(start_from: float = -1.0) -> void:
-	# 统一复位运行状态（防残留：收集/快进打断后 time_scale/静音错乱）
-	_cancel_collection()
+func _load_stage() -> void:
+	# 统一复位运行状态（防残留：快进打断后 time_scale/静音错乱）
 	_stop_fast_forward()
 	_apply_audio()
-	# 重建多 Boss 列表（Boss 条带/表单依赖）
-	_rebuild_boss_entries()
 	# 停止旧关卡 + 清空
 	StageManager.stop_stage()
 	BulletManager.clear_all()
@@ -359,6 +283,11 @@ func _load_stage(start_from: float = -1.0) -> void:
 	GameState.reset_all()
 	if _diff_sel:
 		GameState.selected_difficulty = _diff_sel.selected
+	# 固定种子：重跑弹幕序列可复现（调参看效果必备）；关闭则随机化
+	if _fixed_seed_on:
+		RNG.set_seed(FIXED_SEED)
+	else:
+		RNG.randomize_seed()
 	# 幽灵复位（重头走路径）
 	if _ghost:
 		_ghost.reset()
@@ -371,80 +300,25 @@ func _load_stage(start_from: float = -1.0) -> void:
 		_background.process_mode = Node.PROCESS_MODE_PAUSABLE
 		add_child(_background)
 	# 真实加载（跑 stage01.gd 的 Timeline）
-	StageManager.load_stage(_stage_data, start_from)
-	# 时间轴 + 书签（缓存优先，未命中则静默收集真实时刻）
-	# 窗口自适应：数据关卡按最大波次时刻；协程关卡默认 60s
-	var win := 60.0
-	var timeline_data = _get_timeline_data()
-	if timeline_data:
-		for w in timeline_data.waves:
-			win = maxf(win, float(w.get("t", 0.0)) + 10.0)
-	_timeline.set_window(win)
+	StageManager.load_stage(_stage_data)
+	# 时间轴 + 书签（协程关卡静态提取 tl.at() 时刻）
+	_timeline.set_window(60.0)
 	_apply_bookmarks_from_cache()
-	# 缓存当前编辑对象（表格/删除/保存共用同一实例，杜绝 load 缓存不一致）
-	_current_timeline = _get_timeline_data()
-	_refresh_wave_table()
-	_refresh_spell_section()
-	# Boss 条带（时间轴第 0 行，多 Boss）：各自宽度 = 该 Boss 阶段总时长（当前难度）
-	var bands: Array = []
-	for be in _boss_entries:
-		var bd: BossData = be["boss"]
-		var dur := 0.0
-		for p in bd.phases_for_difficulty(_diff_sel.selected if _diff_sel else 1):
-			if p:
-				dur += p.time_limit
-		bands.append({"t": be["t"], "duration": maxf(dur, 1.0)})
-	_timeline.set_bosses(bands)
-	_edit_mode = "wave"  # 每次加载默认敌波编辑
-	_timeline.set_boss_selected(false)
-	_update_edit_mode()
 	_prev_time = -1.0
 	_log_line("▶ 加载 Stage %d（难度 %s）" % [_stage_data.stage_id, DIFFICULTIES[_diff_sel.selected]])
 
 
 # ═══ 书签缓存 + 静默收集 ═══
 
-## 书签：缓存优先；未命中（首次/关卡脚本变了）→ 静默快进收集真实事件时刻
+## 书签（协程关卡）：静态提取 tl.at() 时刻 + 人工打点合并
 func _apply_bookmarks_from_cache() -> void:
-	# 协程关卡（无 TIMELINE 数据）：直接静态提取，不做运行时收集
-	# （否则每次进工作台 Stage1 都收集，切走即打断 → 缓存永不建立 → 每次重复）
-	if not _is_data_stage():
-		_auto_bookmarks = _static_extract()
-		_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
-		_refresh_timeline_bookmarks()
-		_log_line("📖 书签（静态提取 %d 个）" % _auto_bookmarks.size())
-		return
-	# 刚收集完成的重跑：直接应用已收集结果，不再收集
-	if _skip_next_collection:
-		_skip_next_collection = false
-		_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
-		_refresh_timeline_bookmarks()
-		return
-	var content_hash := BOOKMARK_CACHE.stage_content_hash(_stage_data)
-	var cache: Dictionary = BOOKMARK_CACHE.load(_stage_data.stage_id, content_hash)
-	if cache.ok:
-		_collect_attempts = 0  # 收集链路已通，重置防循环计数
-		_auto_bookmarks = cache.auto
-		_manual_bookmarks = cache.manual
-		_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
-		_refresh_timeline_bookmarks()
-		_log_line("📖 书签来自缓存（%d 自动 + %d 人工）" % [_auto_bookmarks.size(), _manual_bookmarks.size()])
-	else:
-		_manual_bookmarks = cache.manual  # 脚本变了也保留人工打点
-		# 区分收集原因（帮助用户判断是否预期行为）
-		if BOOKMARK_CACHE.has_cache(_stage_data.stage_id):
-			_log_line("🔄 关卡数据/脚本已变化，重新收集书签...")
-		else:
-			_log_line("📖 首次运行，静默收集书签（快进到 %.0fs）..." % _collect_max)
-		_start_collection(content_hash)
+	_auto_bookmarks = _static_extract()
+	_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
+	_refresh_timeline_bookmarks()
+	_log_line("📖 书签（静态提取 %d 个）" % _auto_bookmarks.size())
 
 
-## 是否数据关卡（有 StageTimeline 数据，可运行时收集书签）
-func _is_data_stage() -> bool:
-	return _get_timeline_data() != null
-
-
-## 静态提取书签（协程关卡/收集兜底）：扫描 tl.at() 时刻
+## 静态提取书签：扫描 tl.at() 时刻
 func _static_extract() -> Array:
 	var bm: Array = BOOKMARK_EXTRACTOR.extract_from_script(_stage_data.create_script)
 	var auto: Array = []
@@ -459,70 +333,6 @@ func _refresh_timeline_bookmarks() -> void:
 	for it in BookmarkPanel.merged(_auto_bookmarks, _manual_bookmarks):
 		_timeline.add_bookmark(it.t, it.label)
 
-
-## 静默收集：高倍速跑一遍 stage，Timeline 事件触发时记录真实时刻
-func _start_collection(content_hash: int) -> void:
-	if _collecting:
-		return  # 防重入：已有收集在进行（切换关卡时旧收集未完成）
-	_collect_attempts += 1
-	if _collect_attempts > 2:
-		# 兜底：收集链路异常（缓存写不进等）→ 退回静态提取，避免无限加速循环
-		_log_line("⚠️ 书签收集异常，退回静态提取")
-		_auto_bookmarks = _static_extract()
-		_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
-		_refresh_timeline_bookmarks()
-		_skip_next_collection = true  # 本会话不再自动收集
-		return
-	_collecting = true
-	_collect_hash = content_hash
-	_collect_times.clear()
-	# 注入收集器（stage_script._tl 已在 load_stage 时创建）
-	var script := StageManager.current_stage_script()
-	if script and script.get_timeline():
-		script.get_timeline().bookmark_collector = _on_collect_event
-	# 静默快进
-	Engine.time_scale = 40.0
-	Engine.max_physics_steps_per_frame = 32
-	_apply_audio()
-	_log_line("📖 首次运行，静默收集书签（快进到 %.0fs）..." % _collect_max)
-
-
-func _on_collect_event(t: float) -> void:
-	if _collect_times.size() < 3000:
-		_collect_times.append(t)
-
-
-func _finish_collection() -> void:
-	_collecting = false
-	Engine.time_scale = 1.0
-	Engine.max_physics_steps_per_frame = 8
-	# 去重排序 + 量化到触发帧：
-	# 事件设计时刻（如 1.0+0.1*3 = 1.3000...003）实际在 ceil(t*60)/60 触发，
-	# 直接存 t 会导致跳转到 t 时实体未生成（对不齐）
-	var times: Array = _collect_times.duplicate()
-	times.sort()
-	var auto: Array = []
-	var last := -INF
-	for t in times:
-		if t - last < 0.2:
-			continue
-		last = t
-		# 量化到 0.1s：保留 0.5s 网格等非整数锚点（工作台拖拽波次产生，
-		# 旧逻辑只留整数秒会把这些波次的书签全部过滤 → 书签列表空）
-		# 浮点边界（如 1.3000...003）吸附到 0.1 后跳转也能对齐
-		auto.append({"t": snappedf(t, 0.1)})
-	BOOKMARK_CACHE.save(_stage_data.stage_id, _collect_hash, auto, _manual_bookmarks)
-	_auto_bookmarks = auto
-	_bookmarks.set_bookmarks(_auto_bookmarks, _manual_bookmarks)
-	_refresh_timeline_bookmarks()
-	_log_line("📖 收集完成：%d 个书签，已缓存" % auto.size())
-	_toast = "✅ 书签已生成（%d 个）" % auto.size()
-	_toast_t = 1.5
-	_skip_next_collection = true  # 重跑直接应用结果，不再收集（防 hash 异常连环收集）
-	# 重跑（现在缓存命中 → 正常速度从 0 开始）
-	_load_stage()
-
-
 ## 书签被编辑（BookmarkPanel data_changed）→ 持久化 + 刷时间轴
 func _on_bookmarks_changed(auto: Array, manual: Array) -> void:
 	_auto_bookmarks = auto.duplicate(true)
@@ -532,177 +342,15 @@ func _on_bookmarks_changed(auto: Array, manual: Array) -> void:
 	_refresh_timeline_bookmarks()
 
 
-# ═══ 编排表格（数据关卡波次）═══
-
-## 当前关卡的时间线数据（协程关卡返回 null）
-## 直接读关卡数据（res:// 开发可写；编辑即默认，无 user:// 副本）
-func _get_timeline_data() -> Resource:
-	if _stage_data and _stage_data.timeline:
-		return _stage_data.timeline
-	var scr: Script = _stage_data.create_script
-	if scr and "TIMELINE" in scr:
-		return scr.TIMELINE
-	return null
-
-
-## 刷新编排表格（数据关卡才显示）+ 同步时间轴波次数据
-func _refresh_wave_table() -> void:
-	_wave_form.clear()
-	var timeline = _current_timeline
-	_timeline.set_waves(timeline.waves if timeline else [])
-	_timeline.set_events(timeline.events if timeline else [])
-	# ＋Boss：无 Boss 创建，有 Boss 追加新 Boss（多 Boss）
-	_add_boss_btn.visible = timeline != null
-	_add_boss_btn.text = "＋ Boss"
-	if timeline == null:
-		_wave_section.visible = false  # 协程关卡：编排区块整体隐藏
-		return
-	_wave_section.visible = true
-	if timeline.waves.is_empty():
-		_wave_table.visible = false
-		_wave_form.visible = false
-		return
-	_wave_table.visible = true
-	_wave_form.visible = true
-	_wave_table.setup(timeline, _current_boss())
-	_refresh_events_section()
-	_update_edit_mode()
-
-
-## 应用选中波次参数（上边栏按钮；表单在 WaveForm 内已写回）
-func _apply_wave() -> void:
-	if _wave_form._idx < 0:
-		_log_line("ℹ 先选中要应用的波次")
-		return
-	_wave_form.apply_changes()
-
-
-## 新增波次：追加默认波次并选中
-func _add_wave() -> void:
-	var timeline = _current_timeline
-	if timeline == null:
-		return
-	var max_t := 0.0
-	for w in timeline.waves:
-		max_t = maxf(max_t, float(w.get("t", 0.0)))
-	var presets := EnemyTemplateRegistry.data_names()
-	timeline.waves.append({
-		"t": max_t + 5.0,
-		"name": "新波次",
-		"enemy": presets[0] if not presets.is_empty() else "",
-		"behavior": "aim_scatter",
-		"count": 3,
-		"interval": 0.5,
-		"params": {},
-	})
-	_refresh_wave_table()
-	_wave_table.select_row(_wave_table.row_count() - 1)  # 选中新行
-	_dirty = true
-	_log_line("➕ 添加波次")
-
-
-## 删除选中波次（确认后）
-func _delete_selected_wave() -> void:
-	var idx: int = _wave_table.selected_idx()
-	if idx < 0:
-		_log_line("ℹ 先选中要删除的波次")
-		return
-	var timeline = _current_timeline
-	if timeline == null or idx >= timeline.waves.size():
-		return
-	var wave_name: String = str(timeline.waves[idx].get("name", ""))
-	if wave_name.is_empty():
-		# 无名字时给足信息：波次#索引 (t=时刻)
-		wave_name = "波次#%d (t=%.1fs)" % [idx, float(timeline.waves[idx].get("t", 0.0))]
-	var vb := _dialog.open("🗑 删除波次")
-	var msg := Label.new()
-	msg.text = "确定删除「%s」？" % wave_name
-	vb.add_child(msg)
-	_dialog.add_actions("确定", func():
-		timeline.waves.remove_at(idx)
-		_refresh_wave_table()
-		_dirty = true
-		_log_line("🗑 删除波次：%s" % wave_name)
-	)
-
-
-	# 选中波次 → 详情表单（WaveForm 按字段类型动态生成）
-	# 表格/时间轴双向联动：任何一方的选中都同步另一方高亮
-func _on_wave_selected(idx: int) -> void:
-	_edit_mode = "wave"
-	_timeline.set_boss_selected(false)
-	_wave_table.clear_boss_selection()
-	_update_edit_mode()
-	_wave_form.show_wave(_current_timeline, idx)
-	_timeline.selected_wave = idx
-	_wave_table.select_row(idx)
-
-
-## 时间轴拖拽松手：t 已写回共享引用 → 刷新表格并恢复选中
-func _on_wave_moved(idx: int, t: float) -> void:
-	var name_str := ""
-	if _current_timeline and idx >= 0 and idx < _current_timeline.waves.size():
-		name_str = str(_current_timeline.waves[idx].get("name", ""))
-	_refresh_wave_table()
-	_wave_table.select_row(idx)
-	_dirty = true
-	_log_line("↔ 波次「%s」→ t=%.1fs" % [name_str, t])
-
-
-## 应用：WaveForm 已写回 timeline 数据 → 从该波次前 3 秒续跑验证
-## （不需要从头跑：改参即看效果的核心循环）
-func _on_wave_applied(idx: int) -> void:
-	var t_from := -1.0
-	if _current_timeline and idx >= 0 and idx < _current_timeline.waves.size():
-		t_from = float(_current_timeline.waves[idx].get("t", 0.0))
-	if t_from >= 0.0:
-		_log_line("✔ 应用波次参数 → 从 %.1fs 续跑" % t_from)
-		_restart_from(t_from)
-	else:
-		_log_line("✔ 应用波次参数 → 重跑")
-		_restart()
-
-
-## 从指定关卡时刻续跑（数据关卡：起点前已结束的波次跳过）
-func _restart_from(t: float) -> void:
-	_cancel_collection()
-	_stop_fast_forward()
-	_load_stage(t)
-	_log_line("▶ 从 %.1fs 续跑" % t)
-
-
-## 保存：直接写回 .tres（开发模式 res:// 可写；编辑即默认，无副本）
-func _save_timeline() -> void:
-	var timeline = _current_timeline
-	if timeline == null:
-		return
-	_wave_form.flush()  # 表单当前值写回数据，避免保存旧值
-	var err := ResourceSaver.save(timeline, timeline.resource_path)
-	if err == OK:
-		_dirty = false
-		_log_line("💾 编排数据已保存 → " + timeline.resource_path)
-	else:
-		_log_line("⚠️ 保存失败：%s（err=%d）" % [timeline.resource_path, err])
-
-
 # ═══ 播放 / 暂停 / 快进 ═══
 
 func _restart() -> void:
-	_cancel_collection()
 	_stop_fast_forward()
 	_load_stage()
 	_log_line("↺ 重跑")
 
 
 ## 取消进行中的书签收集（切换关卡/重跑时调用，避免旧收集与新流程重叠）
-func _cancel_collection() -> void:
-	if _collecting:
-		_collecting = false
-		Engine.time_scale = SPEEDS[_speed_idx]
-		Engine.max_physics_steps_per_frame = 8
-		_apply_audio()
-		_collect_attempts = 0  # 打断的收集不计入防循环计数
-
 
 func _toggle_play() -> void:
 	if _paused:
@@ -729,7 +377,73 @@ func _resume() -> void:
 	_log_line("▶ 继续")
 
 
-## 快进跳转（真实关卡不支持任意 seek，只能加速跑到目标）
+# ═══ 快捷键 / 逐帧 / 出生点拖放 ═══
+
+## 逐帧推进：暂停状态下精确走一帧物理（弹幕排布/碰撞细节检查）
+## 注：physics_frame 信号先于节点物理处理发射 → await 两次 = 恰好一个物理步
+func _frame_step() -> void:
+	if _stepping:
+		return
+	if _ff_target >= 0.0:
+		_stop_fast_forward()
+	if not _paused:
+		_pause()
+	_stepping = true
+	get_tree().paused = false
+	Engine.time_scale = 1.0
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	get_tree().paused = true
+	_paused = true
+	Engine.time_scale = SPEEDS[_speed_idx]
+	_playback.set_playing(false)
+	_apply_audio()
+	_stepping = false
+
+
+## 全局快捷键（输入框聚焦 / 弹窗打开时不拦截）
+func _unhandled_input(event: InputEvent) -> void:
+	# 输入框聚焦：键让给文本编辑
+	var fo := get_viewport().gui_get_focus_owner()
+	if fo and (fo is LineEdit or fo is TextEdit or fo is SpinBox):
+		return
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	# 物理键优先（键盘布局无关）；无物理键时退回 keycode
+	var k: int = event.physical_keycode
+	if k == 0:
+		k = event.keycode
+	match k:
+		KEY_SPACE:
+			_toggle_play()
+			get_viewport().set_input_as_handled()
+		KEY_R:
+			_restart()
+			get_viewport().set_input_as_handled()
+		KEY_F:
+			_frame_step()
+			get_viewport().set_input_as_handled()
+		KEY_LEFT, KEY_RIGHT:
+			var step := 5.0 if event.ctrl_pressed else 1.0
+			var runner := StageManager.current_stage_script()
+			var cur := runner.game_time() if runner else 0.0
+			_jump_to(maxf(cur + (step if k == KEY_RIGHT else -step), 0.0))
+			get_viewport().set_input_as_handled()
+		KEY_B:
+			_bookmarks.open_add()
+			get_viewport().set_input_as_handled()
+		KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7:
+			var idx: int = k - KEY_1
+			if idx >= 0 and idx < SPEEDS.size():
+				_on_speed_selected(idx)
+				_playback.set_speed(idx)
+				get_viewport().set_input_as_handled()
+		KEY_HOME:
+			_restart()
+			get_viewport().set_input_as_handled()
+
+
+##   协程关卡：只能 12x 加速跑到目标（保持唯一路径）
 func _jump_to(t: float) -> void:
 	# 统一先停现有快进：重置 time_scale / BGM pitch / _ff_target
 	# （否则重跑分支或 t≈0 分支会残留 12 倍速 → 数据全乱）
@@ -772,23 +486,9 @@ func _stop_fast_forward() -> void:
 # ═══ 选项回调 ═══
 
 func _on_stage_selected(idx: int) -> void:
-	var do_switch := func():
-		match idx:
-			0:
-				_stage_data = STAGE_DEMO
-			1:
-				_stage_data = STAGE1_DATA
-		_dirty = false
-		_restart()
-		_log_line("🎚 切换关卡：%s" % (_stage_sel.get_item_text(idx)))
-	if _dirty:
-		var vb := _dialog.open("⚠️ 未保存的改动")
-		var msg := Label.new()
-		msg.text = "当前关卡的改动尚未保存，切换关卡将丢失。确定切换？"
-		vb.add_child(msg)
-		_dialog.add_actions("仍要切换", do_switch)
-	else:
-		do_switch.call()
+	_stage_data = STAGE1_COROUTINE
+	_restart()
+	_log_line("🎚 切换关卡：%s" % (_stage_sel.get_item_text(idx)))
 
 
 func _on_speed_selected(idx: int) -> void:
@@ -798,6 +498,16 @@ func _on_speed_selected(idx: int) -> void:
 		Engine.time_scale = SPEEDS[_speed_idx]
 		AudioManager.set_bgm_pitch(Engine.time_scale)
 		_log_line("⏱ 速度 ×%.2f" % SPEEDS[_speed_idx])
+
+
+## 固定种子：重跑复用同一随机序列（弹幕可复现）
+func _on_seed_toggled(on: bool) -> void:
+	_fixed_seed_on = on
+	if on:
+		_log_line("🎲 固定种子 %d：重跑弹幕序列可复现" % FIXED_SEED)
+	else:
+		_log_line("🎲 随机种子：每次重跑弹幕不同")
+	_restart()
 
 
 func _on_mute_toggled(on: bool) -> void:
@@ -815,7 +525,7 @@ func _on_difficulty_changed(_i: int) -> void:
 
 
 func _apply_audio() -> void:
-	var m: bool = _muted or _paused or _ff_target >= 0.0 or _collecting
+	var m: bool = _muted or _paused or _ff_target >= 0.0
 	var idx := AudioServer.get_bus_index("Master")
 	if idx >= 0:
 		AudioServer.set_bus_mute(idx, m)
@@ -856,20 +566,6 @@ func _clamp_panel_width() -> void:
 		_divider.offset_right = min_left
 
 
-## 详情表单高度拖拽：上下拖动调整可视区高度（80~400px，内部滚动跟随）
-func _on_form_divider_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		_form_drag = event.pressed
-		if event.pressed:
-			_form_drag_start_y = (event as InputEventMouseButton).global_position.y
-			_form_drag_start_h = _wave_form.custom_minimum_size.y
-	elif event is InputEventMouseMotion and _form_drag:
-		var mm := event as InputEventMouseMotion
-		var dy: float = mm.global_position.y - _form_drag_start_y
-		_wave_form.custom_minimum_size.y = clampf(_form_drag_start_h + dy, 80.0, 400.0)
-
-
-## 拖拽分割条：调整右侧面板宽度
 func _on_divider_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		_drag_divider = event.pressed
@@ -889,757 +585,3 @@ func _on_divider_input(event: InputEvent) -> void:
 
 
 # ═══ 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）═══
-
-## 统一编辑模型：表格常驻（敌波行 + Boss 行），详情表单原位切换
-func _update_edit_mode() -> void:
-	var has_boss: bool = not _boss_entries.is_empty() and not _boss_phases().is_empty()
-	_wave_form.visible = (_edit_mode == "wave")
-	_spell_section.visible = (_edit_mode == "boss") and has_boss
-
-
-## 表格 Boss 行点击 → 符卡编辑（详情表单原位替换）
-func _on_wave_boss_selected() -> void:
-	_edit_mode = "boss"
-	_timeline.set_boss_selected(true)
-	_refresh_spell_section()
-	_update_edit_mode()
-	_log_line("🎴 选中 Boss，编辑符卡阶段")
-
-
-## 时间轴选中 Boss → 同步表格 Boss 行高亮（emit 幂等）
-func _on_timeline_boss_selected() -> void:
-	_wave_table.select_boss_row()
-
-
-## Boss 条带拖拽松手 → 写回对应 Boss 出现时刻（保存后生效）
-func _on_timeline_boss_moved(idx: int, t: float) -> void:
-	if _stage_data == null or idx < 0 or idx >= _boss_entries.size():
-		return
-	var e: Dictionary = _boss_entries[idx]
-	e["t"] = t
-	if e["src"] == "legacy":
-		_stage_data.boss_time = t
-	else:
-		var arr_idx: int = e["src"]["arr"]
-		_stage_data.bosses[arr_idx]["t"] = t
-	_dirty = true
-	_log_line("↔ Boss%d 出现时刻 → t=%.1fs（保存后生效）" % [idx + 1, t])
-
-
-## 重建当前关卡 Boss 列表（{boss, t, src}；legacy=旧单 Boss 字段，arr=多 Boss 数组项）
-func _rebuild_boss_entries() -> void:
-	_boss_entries.clear()
-	if _stage_data == null:
-		return
-	if _stage_data.boss:
-		_boss_entries.append({"boss": _stage_data.boss, "t": _stage_data.boss_time, "src": "legacy"})
-	for i in _stage_data.bosses.size():
-		var e: Dictionary = _stage_data.bosses[i]
-		if e and e.get("boss") != null:
-			if e["boss"] == _stage_data.boss:
-				continue  # 与 legacy 重复
-			_boss_entries.append({"boss": e["boss"], "t": float(e.get("t", 0.0)), "src": {"arr": i}})
-	_boss_entries.sort_custom(func(a: Dictionary, b: Dictionary): return a["t"] < b["t"])
-	if _boss_cur >= _boss_entries.size():
-		_boss_cur = maxi(0, _boss_entries.size() - 1)
-
-
-## 当前编辑的 BossData（多 Boss：_boss_cur 指向）
-func _current_boss() -> BossData:
-	if _boss_entries.is_empty() or _boss_cur >= _boss_entries.size():
-		return null
-	return _boss_entries[_boss_cur]["boss"]
-
-
-## 添加 Boss/阶段：无 Boss 创建默认 Boss + 非符阶段；有 Boss 追加新 Boss（多 Boss）
-func _add_boss() -> void:
-	if _stage_data == null:
-		return
-	if _stage_data.boss != null or not _stage_data.bosses.is_empty():
-		# 追加新 Boss（多 Boss）：出现时刻 = 最后一个 Boss 之后 20s
-		var nb := BossData.new()
-		nb.boss_name = "新 Boss%d" % (_boss_entries.size() + 1)
-		nb.phases.append(_make_default_phase(0))
-		var last_t: float = _boss_entries[_boss_entries.size() - 1]["t"] if not _boss_entries.is_empty() else 0.0
-		_stage_data.bosses.append({"boss": nb, "t": last_t + 20.0})
-		_rebuild_boss_entries()
-		_boss_cur = _boss_entries.size() - 1
-		var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-		_refresh_wave_table()
-		_refresh_spell_section()
-		_update_edit_mode()
-		_dirty = true
-		_log_line("➕ 追加 Boss%d：%s（t=%.0fs，时间轴拖红条带改）" % [_boss_entries.size(), nb.boss_name, last_t + 20.0] if err == OK else "⚠️ Boss 保存失败：%d" % err)
-		return
-	# 第一个 Boss（legacy 字段）
-	var boss := BossData.new()
-	boss.boss_name = "新 Boss"
-	boss.phases.append(_make_default_phase(0))
-	_stage_data.boss = boss
-	_stage_data.boss_time = 20.0
-	_rebuild_boss_entries()
-	var err2 := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-	_refresh_wave_table()
-	_refresh_spell_section()
-	_update_edit_mode()
-	_dirty = true
-	if err2 == OK:
-		_log_line("➕ 添加 Boss：%s（时间轴上拖红色条带调出现时刻）" % boss.boss_name)
-	else:
-		_log_line("⚠️ Boss 保存失败：%d" % err2)
-
-
-## 当前难度阶段数组（可变引用：append/修改直接落对应难度组）
-## 难度取顶部全局下拉（与预览难度一致）；Boss 取当前编辑的 _boss_cur
-func _boss_phases() -> Array:
-	var boss := _current_boss()
-	if boss == null:
-		return []
-	var diff := _diff_sel.selected if _diff_sel else 1
-	return boss.phases_for_difficulty(diff)
-
-
-## 添加阶段：Boss 追加一个默认阶段（当前难度）并保存
-func _add_phase() -> void:
-	var boss := _current_boss()
-	if boss == null:
-		return
-	var arr := _boss_phases()
-	arr.append(_make_default_phase(arr.size()))
-	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-	_refresh_spell_section()
-	if err == OK:
-		_dirty = true
-		_log_line("➕ 添加阶段（%s 难度，共 %d 个，击破后自动进入下一阶段）" % [BossData.difficulty_name(_diff_sel.selected if _diff_sel else 1), arr.size()])
-	else:
-		_log_line("⚠️ 阶段保存失败：%d" % err)
-
-
-## 默认阶段（名字/血量/时限 + 挂首个移动/弹幕脚本）
-func _make_default_phase(idx: int) -> PhaseData:
-	var phase := PhaseData.new()
-	phase.name = "非符 %d" % (idx + 1)
-	phase.hp = 1000
-	phase.time_limit = 30.0
-	phase.bonus = 0
-	var m_names := BossScriptRegistry.move_names()
-	if not m_names.is_empty():
-		phase.move_script = BossScriptRegistry.move_script(str(m_names[0]))
-	var s_names := BossScriptRegistry.shoot_names()
-	if not s_names.is_empty():
-		phase.shoot_script = BossScriptRegistry.shoot_script(str(s_names[0]))
-	return phase
-
-
-## "＋ 阶段"按钮（符卡区 Boss 行）
-func _add_phase_btn() -> Button:
-	var b := Button.new()
-	b.text = "＋ 阶段"
-	b.add_theme_font_size_override("font_size", 12)
-	b.pressed.connect(_add_phase)
-	return b
-
-
-## 刷新符卡编辑区（清空重建，避免重复累积）
-func _refresh_spell_section() -> void:
-	for c in _spell_section.get_children():
-		c.queue_free()
-	_phase_sel = null
-	var boss: BossData = _current_boss()
-	if boss == null or _boss_phases().is_empty():
-		_spell_section.visible = false
-		return
-	_spell_section.visible = (_edit_mode == "boss")  # 由编辑模式控制
-	_spell_section.add_child(WorkbenchUI.section_title("── 符卡（Boss 阶段）──"))
-	var boss_row := HBoxContainer.new()
-	boss_row.add_theme_constant_override("separation", 6)
-	boss_row.add_child(WorkbenchUI.param_label("Boss"))
-	# Boss 选择（多 Boss：切换编辑哪个）
-	var boss_opt := OptionButton.new()
-	boss_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for i in _boss_entries.size():
-		var be: Dictionary = _boss_entries[i]
-		boss_opt.add_item("%d: %s (t=%.0fs)" % [i + 1, str(be["boss"].boss_name), be["t"]])
-	boss_opt.selected = _boss_cur
-	boss_opt.item_selected.connect(func(i: int):
-		_boss_cur = i
-		_phase_cur = 0
-		_refresh_wave_table()  # 表格 Boss 行同步当前编辑的 Boss
-		_refresh_spell_section()
-	)
-	boss_row.add_child(boss_opt)
-	var boss_l := Label.new()
-	boss_l.text = str(boss.boss_name)
-	boss_row.add_child(boss_l)
-	# ── Boss 级（独立于阶段）：入场/退场演出脚本 + 删除 Boss + 应用续跑 ──
-	var boss_meta := HBoxContainer.new()
-	boss_meta.add_theme_constant_override("separation", 4)
-	boss_meta.add_child(WorkbenchUI.param_label("入场"))
-	var enter_opt := _spell_script_opt(BossScriptRegistry.enter_names(), boss.enter_script)
-	enter_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	enter_opt.item_selected.connect(func(_i: int):
-		var n := enter_opt.get_item_text(enter_opt.selected)
-		boss.enter_script = BossScriptRegistry.enter_script(n) if n != "无" else null
-		_dirty = true
-		_log_line("✔ 入场脚本 → %s（保存后生效）" % n)
-	)
-	boss_meta.add_child(enter_opt)
-	boss_meta.add_child(WorkbenchUI.param_label("退场"))
-	var exit_opt := _spell_script_opt(BossScriptRegistry.exit_names(), boss.exit_script)
-	exit_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	exit_opt.item_selected.connect(func(_i: int):
-		var n := exit_opt.get_item_text(exit_opt.selected)
-		boss.exit_script = BossScriptRegistry.exit_script(n) if n != "无" else null
-		_dirty = true
-		_log_line("✔ 退场脚本 → %s（保存后生效）" % n)
-	)
-	boss_meta.add_child(exit_opt)
-	var apply_meta := Button.new()
-	apply_meta.text = "▶ 应用并续跑"
-	apply_meta.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	apply_meta.pressed.connect(func():
-		_restart_from(maxf(float(_boss_entries[_boss_cur]["t"]) - 3.0, 0.0))
-	)
-	boss_meta.add_child(apply_meta)
-	var del_boss := Button.new()
-	del_boss.text = "🗑 Boss"
-	del_boss.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	del_boss.pressed.connect(_delete_boss)
-	boss_meta.add_child(del_boss)
-	_spell_section.add_child(boss_meta)
-	# 难度提示（顶部全局难度下拉控制编辑/预览，无需 Boss 区重复）
-	boss_row.add_child(_add_phase_btn())
-	_spell_section.add_child(boss_row)
-	_phase_sel = OptionButton.new()
-	_phase_sel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var arr := _boss_phases()
-	for i in arr.size():
-		var p: PhaseData = arr[i]
-		_phase_sel.add_item("%d: %s" % [i, p.name if not p.name.is_empty() else "非符"])
-	_phase_sel.selected = clampi(_phase_cur, 0, maxi(0, arr.size() - 1))
-	_phase_sel.item_selected.connect(func(i: int):
-		_phase_cur = i
-		_refresh_spell_form()
-	)
-	_spell_section.add_child(_phase_sel)
-	# 重建表单容器（上一轮清空后需重建）
-	_spell_form_box = VBoxContainer.new()
-	_spell_form_box.add_theme_constant_override("separation", 4)
-	_spell_section.add_child(_spell_form_box)
-	_refresh_spell_form()
-
-
-## 重建选中阶段的编辑表单
-func _refresh_spell_form() -> void:
-	for c in _spell_form_box.get_children():
-		c.queue_free()
-	var boss := _current_boss()
-	if boss == null or _phase_sel == null or _phase_sel.selected < 0 \
-			or _phase_sel.selected >= _boss_phases().size():
-		return
-	var phase: PhaseData = _boss_phases()[_phase_sel.selected]
-	var fields := {}
-	# 名字
-	var name_edit := LineEdit.new()
-	name_edit.text = phase.name
-	name_edit.custom_minimum_size = Vector2(140, 0)
-	fields["name"] = name_edit
-	_spell_form_box.add_child(_spell_row("名字", name_edit))
-	# 数据
-	fields["hp"] = WorkbenchUI.spin_row(_spell_form_box, "血量", float(phase.hp), 1.0, 100000.0, 50.0)
-	fields["time_limit"] = WorkbenchUI.spin_row(_spell_form_box, "时限", phase.time_limit, 1.0, 999.0, 1.0)
-	fields["bonus"] = WorkbenchUI.spin_row(_spell_form_box, "奖励", float(phase.bonus), 0.0, 1000000.0, 1000.0)
-	var timeout_cb := CheckButton.new()
-	timeout_cb.text = "时符（无敌时限）"
-	timeout_cb.button_pressed = phase.is_timeout_only
-	fields["timeout"] = timeout_cb
-	_spell_form_box.add_child(timeout_cb)
-	# 移动/弹幕脚本
-	var move_opt := _spell_script_opt(BossScriptRegistry.move_names(), phase.move_script)
-	fields["move"] = move_opt
-	_spell_form_box.add_child(_spell_row("移动", move_opt))
-	var shoot_opt := _spell_script_opt(BossScriptRegistry.shoot_names(), phase.shoot_script)
-	fields["shoot"] = shoot_opt
-	_spell_form_box.add_child(_spell_row("弹幕", shoot_opt))
-	# 注意：入场/退场是 Boss 级设置，已在 Boss 选择行下编辑（此处不重复）
-	# 脚本参数（移动+弹幕反射合并建议 + 已加参数行）
-	_spell_form_box.add_child(WorkbenchUI.section_title("── 脚本参数 ──"))
-	var suggest: Dictionary = {}
-	var move_script: Script = BossScriptRegistry.move_script(move_opt.get_item_text(move_opt.selected)) \
-		if move_opt.selected >= 0 else null
-	var shoot_script: Script = BossScriptRegistry.shoot_script(shoot_opt.get_item_text(shoot_opt.selected)) \
-		if shoot_opt.selected >= 0 else null
-	var m_suggest := BossScriptRegistry.suggest_params(move_script)
-	var s_suggest := BossScriptRegistry.suggest_params(shoot_script)
-	for k in m_suggest:
-		suggest[k] = m_suggest[k]
-	for k in s_suggest:
-		suggest[k] = s_suggest[k]
-	if not suggest.is_empty():
-		var sug_row := HBoxContainer.new()
-		sug_row.add_theme_constant_override("separation", 4)
-		for sk in suggest:
-			var sb := Button.new()
-			sb.text = str(sk)
-			sb.add_theme_font_size_override("font_size", 12)
-			sb.disabled = phase.params.has(str(sk))
-			sb.pressed.connect(func():
-				phase.params[str(sk)] = suggest[str(sk)]
-				_refresh_spell_form()
-			)
-			sug_row.add_child(sb)
-		_spell_form_box.add_child(sug_row)
-	if phase.params.is_empty():
-		var hint := Label.new()
-		hint.text = "空（点上方参数添加）"
-		hint.add_theme_font_size_override("font_size", 12)
-		hint.modulate = Color(0.5, 0.5, 0.6)
-		_spell_form_box.add_child(hint)
-	else:
-		for k in phase.params:
-			_spell_form_box.add_child(_spell_param_row(phase, k, phase.params[k]))
-	# 应用/保存
-	var btn_row := HBoxContainer.new()
-	btn_row.add_theme_constant_override("separation", 4)
-	var apply := Button.new()
-	apply.text = "应用"
-	apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	apply.pressed.connect(func():
-		_spell_apply(phase, fields)
-		_dirty = true
-		# 与波次一致：改参即续跑（从 Boss 出现前 3s，到阶段立刻看效果）
-		var boss_t: float = float(_boss_entries[_boss_cur]["t"]) if not _boss_entries.is_empty() else 0.0
-		_log_line("✔ 符卡阶段已应用 → 从 Boss 前 3s 续跑")
-		_restart_from(maxf(boss_t - 3.0, 0.0))
-	)
-	btn_row.add_child(apply)
-	var save := Button.new()
-	save.text = "保存"
-	save.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	save.pressed.connect(func():
-		_spell_apply(phase, fields)
-		_save_spell()
-	)
-	btn_row.add_child(save)
-	var del_phase := Button.new()
-	del_phase.text = "🗑 阶段"
-	del_phase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	del_phase.pressed.connect(_delete_phase)
-	btn_row.add_child(del_phase)
-	_spell_form_box.add_child(btn_row)
-
-
-## 删除当前选中阶段（确认后从当前难度数组移除并保存）
-func _delete_phase() -> void:
-	var arr := _boss_phases()
-	if _phase_sel == null or _phase_sel.selected < 0 or _phase_sel.selected >= arr.size():
-		_log_line("ℹ 先选中要删除的阶段")
-		return
-	var idx := _phase_sel.selected
-	var pname: String = str(arr[idx].name)
-	if pname.is_empty():
-		pname = "非符#%d" % idx
-	var vb := _dialog.open("🗑 删除阶段")
-	var msg := Label.new()
-	msg.text = "确定删除「%s」？" % pname
-	vb.add_child(msg)
-	_dialog.add_actions("确定", func():
-		arr.remove_at(idx)
-		_phase_cur = 0
-		var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-		_refresh_spell_section()
-		_dirty = false
-		if err == OK:
-			_log_line("🗑 删除阶段：%s" % pname)
-		else:
-			_log_line("⚠️ 删除阶段保存失败：%d" % err)
-	)
-
-
-## 删除当前 Boss（确认后移除并保存）
-func _delete_boss() -> void:
-	if _boss_entries.is_empty() or _boss_cur < 0 or _boss_cur >= _boss_entries.size():
-		return
-	var e: Dictionary = _boss_entries[_boss_cur]
-	var bname: String = str(e["boss"].boss_name)
-	var vb := _dialog.open("🗑 删除 Boss")
-	var msg := Label.new()
-	msg.text = "确定删除 Boss「%s」？（其全部阶段/符卡将移除）" % bname
-	vb.add_child(msg)
-	_dialog.add_actions("确定", func():
-		if e["src"] == "legacy":
-			_stage_data.boss = null
-		else:
-			_stage_data.bosses.remove_at(e["src"]["arr"])
-		_rebuild_boss_entries()
-		_phase_cur = 0
-		var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-		_refresh_wave_table()
-		_refresh_spell_section()
-		_update_edit_mode()
-		_dirty = false
-		if err == OK:
-			_log_line("🗑 删除 Boss：%s" % bname)
-		else:
-			_log_line("⚠️ 删除 Boss 保存失败：%d" % err)
-	)
-
-
-## 阶段表单行（label + control）
-func _spell_row(label_text: String, control: Control) -> HBoxContainer:
-	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 6)
-	h.add_child(WorkbenchUI.param_label(label_text))
-	h.add_child(control)
-	return h
-
-
-## 脚本下拉（带"无"；按当前脚本匹配选中）
-func _spell_script_opt(names: Array, current_script: Script) -> OptionButton:
-	var opt := OptionButton.new()
-	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	opt.add_item("无")
-	for n in names:
-		opt.add_item(str(n))
-		var s: Script = BossScriptRegistry.move_script(str(n))
-		if s == null:
-			s = BossScriptRegistry.shoot_script(str(n))
-		if s == null:
-			s = BossScriptRegistry.enter_script(str(n))
-		if s == null:
-			s = BossScriptRegistry.exit_script(str(n))
-		if s == current_script:
-			opt.selected = opt.item_count - 1
-	return opt
-
-
-## 应用表单 → PhaseData（脚本参数已在行内写回）
-func _spell_apply(phase: PhaseData, fields: Dictionary) -> void:
-	phase.name = fields["name"].text
-	phase.hp = int(fields["hp"].value)
-	phase.time_limit = fields["time_limit"].value
-	phase.bonus = int(fields["bonus"].value)
-	phase.is_timeout_only = fields["timeout"].button_pressed
-	var move_name: String = fields["move"].get_item_text(fields["move"].selected)
-	phase.move_script = BossScriptRegistry.move_script(move_name) if move_name != "无" else null
-	var shoot_name: String = fields["shoot"].get_item_text(fields["shoot"].selected)
-	phase.shoot_script = BossScriptRegistry.shoot_script(shoot_name) if shoot_name != "无" else null
-	# 注意：入场/退场是 Boss 级设置，在 Boss 选择行下编辑（BossData 级，此处不处理）
-
-
-## 保存符卡数据（多 Boss：写回出现时刻 + 保存关卡 + 各 Boss 独立 .tres）
-func _save_spell() -> void:
-	if _stage_data == null:
-		return
-	# 写回 Boss 出现时刻（legacy → boss_time；arr → bosses[i].t）
-	for e in _boss_entries:
-		if e["src"] == "legacy":
-			_stage_data.boss_time = e["t"]
-		else:
-			var arr_idx: int = e["src"]["arr"]
-			_stage_data.bosses[arr_idx]["t"] = e["t"]
-	var err := ResourceSaver.save(_stage_data, _stage_data.resource_path)
-	# 各 Boss 独立 .tres（若有路径；内联 sub_resource 路径带 :: 不能单独保存）
-	for e in _boss_entries:
-		var bd: BossData = e["boss"]
-		var bp := str(bd.resource_path)
-		if err == OK and not bp.is_empty() and not bp.contains("::"):
-			var e2 := ResourceSaver.save(bd, bp)
-			if e2 != OK:
-				err = e2
-	if err == OK:
-		_dirty = false
-		_log_line("💾 符卡数据已保存（%d 个 Boss）" % _boss_entries.size())
-	else:
-		_log_line("⚠️ 符卡保存失败：%d" % err)
-
-
-## x/y 轴小标签（坐标行用）
-func _spell_axis_label(axis: String) -> Label:
-	var l := Label.new()
-	l.text = axis
-	l.custom_minimum_size = Vector2(12, 0)
-	l.add_theme_color_override("font_color", Color(0.45, 0.50, 0.60))
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	return l
-
-
-## 脚本参数行（值类型控件 + 行内写回 + 删除）
-func _spell_param_row(phase: PhaseData, key: String, value: Variant) -> Control:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
-	row.add_child(WorkbenchUI.param_key_label(key))
-	var control: Control
-	if value is bool:
-		var cb := CheckButton.new()
-		cb.button_pressed = value
-		cb.toggled.connect(func(on: bool): phase.params[key] = on)
-		control = cb
-	elif typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
-		var spin := SpinBox.new()
-		spin.value = value
-		spin.custom_minimum_size = Vector2(120, 0)
-		var as_int := typeof(value) == TYPE_INT
-		spin.value_changed.connect(func(v: float):
-			if as_int:
-				phase.params[key] = int(v)
-			else:
-				phase.params[key] = v
-		)
-		control = spin
-	elif value is Vector2:
-		control = null
-		# Vector2 用两个小框（x/y 标签）
-		row.add_child(_spell_axis_label("x"))
-		var sx := WorkbenchUI.mini_spin(value.x, -10000, 10000)
-		var sy := WorkbenchUI.mini_spin(value.y, -10000, 10000)
-		row.add_child(sx)
-		row.add_child(_spell_axis_label("y"))
-		row.add_child(sy)
-		sx.value_changed.connect(func(v: float): phase.params[key] = Vector2(v, phase.params[key].y))
-		sy.value_changed.connect(func(v: float): phase.params[key] = Vector2(phase.params[key].x, v))
-	else:
-		var line := LineEdit.new()
-		line.text = str(value)
-		line.custom_minimum_size = Vector2(140, 0)
-		line.text_submitted.connect(func(t: String): phase.params[key] = t)
-		control = line
-	if control != null:
-		row.add_child(control)
-	var del := Button.new()
-	del.text = "×"
-	del.add_theme_font_size_override("font_size", 11)
-	del.custom_minimum_size = Vector2(22, 0)
-	del.pressed.connect(func():
-		phase.params.erase(key)
-		_refresh_spell_form()
-	)
-	row.add_child(del)
-	return row
-
-
-# ═══ 演出事件编辑（音乐/对话/自定义演出）═══
-
-## 刷新演出事件列表
-func _refresh_events_section() -> void:
-	for c in _events_section.get_children():
-		c.queue_free()
-	var timeline = _current_timeline
-	if timeline == null:
-		_events_section.visible = false
-		return
-	_events_section.visible = true
-	_events_section.add_child(WorkbenchUI.section_title("── 演出事件 ──"))
-	var btn_row := HBoxContainer.new()
-	btn_row.add_theme_constant_override("separation", 4)
-	var b1 := Button.new()
-	b1.text = "＋ 音乐"
-	b1.pressed.connect(func(): _add_event("bgm"))
-	var b2 := Button.new()
-	b2.text = "＋ 对话"
-	b2.pressed.connect(func(): _add_event("dialogue"))
-	var b3 := Button.new()
-	b3.text = "＋ 演出"
-	b3.pressed.connect(func(): _add_event("custom"))
-	for b in [b1, b2, b3]:
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn_row.add_child(b)
-	_events_section.add_child(btn_row)
-	if timeline.events.is_empty():
-		var hint := Label.new()
-		hint.text = "无演出事件（音乐/对话在时间轴刻度区显示为彩色方块）"
-		hint.add_theme_font_size_override("font_size", 12)
-		hint.modulate = Color(0.5, 0.5, 0.6)
-		_events_section.add_child(hint)
-		return
-	for i in timeline.events.size():
-		var ev: Dictionary = timeline.events[i]
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 4)
-		var lbl := Label.new()
-		lbl.text = "t=%.1f  %s" % [float(ev.get("t", 0.0)), _event_desc(ev)]
-		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lbl.add_theme_font_size_override("font_size", 12)
-		row.add_child(lbl)
-		# 编辑按钮（改 t/值）
-		var edit_btn := Button.new()
-		edit_btn.text = "✎"
-		edit_btn.add_theme_font_size_override("font_size", 11)
-		edit_btn.custom_minimum_size = Vector2(22, 0)
-		edit_btn.tooltip_text = "编辑演出事件"
-		edit_btn.pressed.connect(func(): _edit_event(i))
-		row.add_child(edit_btn)
-		var del := Button.new()
-		del.text = "×"
-		del.add_theme_font_size_override("font_size", 11)
-		del.custom_minimum_size = Vector2(22, 0)
-		del.pressed.connect(func():
-			timeline.events.remove_at(i)
-			_refresh_events_section()
-			_timeline.set_events(timeline.events)
-			_save_timeline()
-		)
-		row.add_child(del)
-		_events_section.add_child(row)
-
-
-func _event_desc(ev: Dictionary) -> String:
-	match str(ev.get("type", "")):
-		"bgm":
-			return "音乐: %s" % ev.get("bgm", "?")
-		"dialogue":
-			return "对话: %s" % ev.get("dialogue", "?")
-		"custom":
-			return "演出: %s" % ev.get("script", "?")
-	return "?"
-
-
-## 添加演出事件（弹窗：时刻 + 值）
-func _add_event(etype: String) -> void:
-	var timeline = _current_timeline
-	if timeline == null:
-		return
-	var vb := _dialog.open("＋ 演出事件")
-	var t_row := HBoxContainer.new()
-	t_row.add_theme_constant_override("separation", 6)
-	t_row.add_child(WorkbenchUI.label("时刻"))
-	var t_edit := LineEdit.new()
-	t_edit.text = "%.1f" % (timeline.events.size() * 10.0)
-	t_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t_row.add_child(t_edit)
-	vb.add_child(t_row)
-	var v_row := HBoxContainer.new()
-	v_row.add_theme_constant_override("separation", 6)
-	v_row.add_child(WorkbenchUI.label("值"))
-	var v_edit := LineEdit.new()
-	match etype:
-		"bgm":
-			v_edit.placeholder_text = "音乐名（如 stage1）"
-		"dialogue":
-			v_edit.placeholder_text = "对话 .tres 路径（res://...）"
-		"custom":
-			v_edit.placeholder_text = "演出脚本 .gd 路径（res://...）"
-	v_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	v_row.add_child(v_edit)
-	vb.add_child(v_row)
-	_dialog.add_actions("确定", func():
-		var ev := {"t": t_edit.text.to_float(), "type": etype}
-		match etype:
-			"bgm":
-				ev["bgm"] = v_edit.text.strip_edges()
-			"dialogue":
-				ev["dialogue"] = v_edit.text.strip_edges()
-			"custom":
-				ev["script"] = v_edit.text.strip_edges()
-		timeline.events.append(ev)
-		_refresh_events_section()
-		_timeline.set_events(timeline.events)
-		_save_timeline()
-	)
-	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
-	t_edit.grab_focus()
-
-
-## 编辑演出事件（改 t/值，弹窗）
-func _edit_event(i: int) -> void:
-	var timeline = _current_timeline
-	if timeline == null or i < 0 or i >= timeline.events.size():
-		return
-	var ev: Dictionary = timeline.events[i]
-	var vb := _dialog.open("✎ 编辑演出事件")
-	var t_row := HBoxContainer.new()
-	t_row.add_theme_constant_override("separation", 6)
-	t_row.add_child(WorkbenchUI.label("时刻"))
-	var t_edit := LineEdit.new()
-	t_edit.text = "%.1f" % float(ev.get("t", 0.0))
-	t_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t_row.add_child(t_edit)
-	vb.add_child(t_row)
-	var v_row := HBoxContainer.new()
-	v_row.add_theme_constant_override("separation", 6)
-	v_row.add_child(WorkbenchUI.label("值"))
-	var v_edit := LineEdit.new()
-	v_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	match str(ev.get("type", "")):
-		"bgm":
-			v_edit.text = str(ev.get("bgm", ""))
-		"dialogue":
-			v_edit.text = str(ev.get("dialogue", ""))
-		"custom":
-			v_edit.text = str(ev.get("script", ""))
-	v_row.add_child(v_edit)
-	vb.add_child(v_row)
-	# custom 演出事件：脚本参数编辑（反射脚本 var，可覆盖默认值）
-	var param_edits := {}
-	if str(ev.get("type", "")) == "custom":
-		param_edits = _event_param_edits(vb, v_edit.text.strip_edges(), ev.get("params", {}))
-	_dialog.add_actions("确定", func():
-		ev["t"] = t_edit.text.to_float()
-		match str(ev.get("type", "")):
-			"bgm":
-				ev["bgm"] = v_edit.text.strip_edges()
-			"dialogue":
-				ev["dialogue"] = v_edit.text.strip_edges()
-			"custom":
-				ev["script"] = v_edit.text.strip_edges()
-				# 写回脚本参数（反射的类型解析）
-				if not param_edits.is_empty():
-					var scr: Script = load(v_edit.text.strip_edges())
-					var suggest: Dictionary = BossScriptRegistry.suggest_params(scr) if scr else {}
-					var params: Dictionary = {}
-					for k in param_edits:
-						params[k] = _parse_param_value(param_edits[k].text, suggest.get(k, ""))
-					ev["params"] = params
-		_refresh_events_section()
-		_timeline.set_events(timeline.events)
-		_save_timeline()
-	)
-	t_edit.text_submitted.connect(func(_s: String): _dialog.confirm())
-	t_edit.grab_focus()
-
-
-## custom 演出事件：脚本参数编辑行（反射 suggest；返回 {key: LineEdit}）
-func _event_param_edits(vb: VBoxContainer, scr_path: String, cur: Dictionary) -> Dictionary:
-	var edits := {}
-	if scr_path.is_empty() or not ResourceLoader.exists(scr_path):
-		return edits
-	var scr: Script = load(scr_path)
-	var suggest: Dictionary = BossScriptRegistry.suggest_params(scr)
-	if suggest.is_empty():
-		return edits
-	vb.add_child(WorkbenchUI.section_title("── 脚本参数 ──"))
-	for k in suggest:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)
-		row.add_child(WorkbenchUI.param_label(str(k)))
-		var le := LineEdit.new()
-		le.text = str(cur.get(k, suggest[k]))
-		le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		le.tooltip_text = "类型 %s（默认 %s）" % [type_string(typeof(suggest[k])), str(suggest[k])]
-		row.add_child(le)
-		vb.add_child(row)
-		edits[k] = le
-	return edits
-
-
-## 参数文本 → 建议类型（Vector2/Color/bool/float/int/字符串）
-func _parse_param_value(text: String, template: Variant) -> Variant:
-	if template is Vector2:
-		var parts := text.split(",")
-		if parts.size() == 2:
-			return Vector2(parts[0].to_float(), parts[1].to_float())
-		return template
-	if template is Color:
-		var parts := text.split(",")
-		if parts.size() == 3:
-			return Color(parts[0].to_float(), parts[1].to_float(), parts[2].to_float())
-		if parts.size() == 4:
-			return Color(parts[0].to_float(), parts[1].to_float(), parts[2].to_float(), parts[3].to_float())
-		return template
-	if template is bool:
-		return text == "true" or text == "1"
-	if template is float:
-		return text.to_float()
-	if template is int:
-		return int(text.to_float())
-	return text

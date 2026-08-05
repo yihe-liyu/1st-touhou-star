@@ -12,7 +12,8 @@ var current_stage: StageData
 var current_background: StageBackground
 ## 数据关卡续跑起点（工作台 E3：改参数后从该时刻前 3 秒续跑）
 ## load_stage 时设置给 stage_script.start 读取，启动后复位 -1（从头）
-var pending_start_from: float = -1.0
+## 数据关卡单波调试（工作台）：只注册该索引的波次（-1 = 全部）
+## 工作台"从指定符卡测试"：跳过入场演出，直接开该 Boss 的该阶段（-1 = 从头）
 var _stage_active: bool = false
 var _stage_script: CoroutineScript
 
@@ -20,7 +21,7 @@ var _stage_script: CoroutineScript
 func current_stage_script() -> CoroutineScript:
 	return _stage_script
 
-func load_stage(data: StageData, start_from: float = -1.0):
+func load_stage(data: StageData):
 	if _stage_active:
 		stop_stage()
 
@@ -37,7 +38,6 @@ func load_stage(data: StageData, start_from: float = -1.0):
 	_stage_active = true
 
 	# 续跑起点：stage_script.start 读取（数据关卡平移注册时刻；协程关卡忽略）
-	pending_start_from = start_from
 
 	var stage_script: CoroutineScript = data.create_script.new()
 	assert(stage_script is CoroutineScript, "StageManager: create_script must be a CoroutineScript")
@@ -47,7 +47,6 @@ func load_stage(data: StageData, start_from: float = -1.0):
 
 	var ctx := StageContext.new(stage_script)
 	stage_script.start(ctx)
-	pending_start_from = -1.0
 	_inject_player_ctx(ctx)
 
 	# 自动启动背景场景里挂的所有协程脚本
