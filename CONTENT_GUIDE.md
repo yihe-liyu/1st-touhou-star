@@ -22,7 +22,7 @@
 ```
 ① 关卡编排：stage01.gd（Timeline API，代码声明节奏/Boss/阶段）
 ② 行为层：  协程脚本 .gd（敌人行为 + Boss 移动/弹幕/入场/退场）
-③ 数据层：  .tres 资源（BossData/PhaseData/敌人预设/CardDef）
+③ 数据层：  .tres 资源（BossData/PhaseData/敌人预设/符卡记录）
 ④ 预览层：  工作台 = 真实运行时沙盒（幽灵玩家 + 命中框 + 固定种子 + 书签）
 ```
 
@@ -82,19 +82,33 @@ Timeline 链式 API：`at(t)` 绝对时刻 · `wait(n)` 相对上一 blocking �
 ### BossData / PhaseData（.tres）
 
 - `BossData`（`data/stages/stage01/phase/` 参照）：`boss_name` / `visual` / `phases`（Normal 组）/ `phases_easy/hard/lunatic` / `enter_script` / `exit_script` / `score_value`
-- `PhaseData`：`name`（空串 = 非符）、`uid`（0 = 非符不记）、`hp` / `time_limit` / `bonus`、`is_timeout_only`、`move_script` / `shoot_script`、掉落 item 系列、`params`
+- `PhaseData`：`name`（空串 = 非符）、`uid`（0 = 非符不记；真符卡全局唯一，建议 1 面 100-199 / 2 面 200-299 / 3 面 300-399 / Extra 1000+）、`hp` / `time_limit` / `bonus`、`is_timeout_only`、`move_script` / `shoot_script`、掉落 item 系列、`params`
 
-阶段示例（`data/stages/stage01/phase/test_01.tres`）：
+阶段示例（`data/stages/stage01/phase/test_01.tres`——黄粱「不可测之梦」）：
 ```gdscript
 [gd_resource type="Resource" script_class="PhaseData" format=3]
 ...
-name = "测试"
-uid = 105
+name = "黄粱「不可测之梦」"
+uid = 303
 time_limit = 90.0
 hp = 3001
 move_script = ExtResource("...test_move.gd")
 shoot_script = ExtResource("...orbit_spiral.gd")
 ```
+
+**`params`（阶段级脚本参数覆盖，脚本复用通道）**：`Boss.start_phase` 时把 `params` 注入到该阶段的 move/shoot 脚本**同名属性**（脚本有此 var 才设置）。同一弹幕脚本给多个阶段复用、参数不同时用——不用复制脚本：
+
+```gdscript
+# phase/第二符卡.tres（复用 orbit_spiral）
+shoot_script = ...orbit_spiral.gd
+params = {
+	"orbit_speed": 8.0,          # 覆盖脚本里的 var orbit_speed
+	"hold_time": 3.0,            # 覆盖 hold_time
+	"probe_count": [3, 5, 8, 12],
+}
+```
+
+> 惯例：参数默认直接写在脚本 var 里（调参即改脚本）；`params` 只用于"同一脚本多形态"的覆盖场景。
 
 ### Boss 脚本（目录自动发现）
 
