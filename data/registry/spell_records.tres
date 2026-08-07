@@ -20,7 +20,7 @@ phase_index = 0
 name = "卡摩瑞的非符1"
 attempts = 50
 captures = 20
-practice_attempts = 10
+practice_attempts = 14
 practice_captures = 7
 best_time = 1.986211777777774
 
@@ -31,8 +31,8 @@ difficulty = 3
 name = "卡摩瑞的非符1"
 attempts = 26
 captures = 13
-practice_attempts = 12
-practice_captures = 9
+practice_attempts = 19
+practice_captures = 11
 best_time = 8.95061999999983
 
 [sub_resource type="Resource" id="Resource_ve3lw"]
@@ -42,7 +42,7 @@ difficulty = 0
 name = "卡摩瑞的非符1"
 attempts = 3
 captures = 2
-practice_attempts = 17
+practice_attempts = 19
 practice_captures = 15
 best_time = 7.430303030302875
 
@@ -53,8 +53,8 @@ difficulty = 2
 name = "卡摩瑞的非符1"
 attempts = 2
 captures = 1
-practice_attempts = 1
-practice_captures = 1
+practice_attempts = 6
+practice_captures = 2
 best_time = 13.145763636363313
 
 [sub_resource type="Resource" id="Resource_tw1tw"]
@@ -65,8 +65,8 @@ difficulty = 3
 name = "卡摩瑞的非符1"
 attempts = 9
 captures = 8
-practice_attempts = 2
-practice_captures = 2
+practice_attempts = 3
+practice_captures = 3
 best_time = 8.867636878787712
 
 [sub_resource type="Resource" id="Resource_d5m5y"]

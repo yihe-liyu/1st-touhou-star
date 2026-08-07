@@ -9,15 +9,15 @@ extends CoroutineScript
 const PROBE := preload("res://data/bullet_scripts/orbit_probe.gd")
 
 var orbit_speed: float = 10      # 初始角速度（弧度/秒，1.5 ≈ 每秒 86°）
-var angle_accel: Array = [0.0, 0.0, 2.0, 2.0]    # 角加速度（弧度/秒²，正=加速、负=减速）
+var angle_accel: Array = [0.0, 0.0, 2.0, 3.0]    # 角加速度（弧度/秒²，正=加速、负=减速）
 var radius_min: float = 0.0     # 起始半径（离 Boss 最近）
-var radius_max: Array = [350.0, 350.0, 650.0, 650.0]   # 外扩上限
+var radius_max: Array = [250.0, 350.0, 650.0, 625.0]   # 外扩上限
 var radius_growth: float = 120.0 # 外扩初始速度（每秒，半径每秒外扩量）
 var radius_accel: float = 15.0   # 外扩加速度（每秒²，正=越扩越快，负=越扩越慢）
 var hold_time: float = 7.5      # 到达外圈后保持旋转的秒数（画外环）
-var interval: Array = [0.03, 0.03, 0.04, 0.05]      # 发弹间隔（秒）
-var bullet_speed: float = 125.0 # 青弹初速（往返探测弹起飞速度）
-var probe_count: Array = [2, 4, 7, 9]  # 每发颗数
+var interval: Array = [0.06, 0.06, 0.05, 0.05]      # 发弹间隔（秒）
+var bullet_speed: float = 175.0 # 青弹初速（往返探测弹起飞速度）
+var probe_count: Array = [2, 4, 8, 10]  # 每发颗数
 var min_fire_distance: float = 125.0  # 发弹点离自机低于此距离时不发（防近身糊脸；0 = 关闭）
 
 var _angle: float = 0.0
@@ -34,20 +34,23 @@ func _tick(p_ctx: StageContext):
 		return p_ctx.clock.wait(diff_pick(interval))
 	var dt := get_dt()
 	var itv: float = diff_pick(interval)
+	var hard: bool = GameState.selected_difficulty >= 2
+	var rmax: float = diff_pick(radius_max)
 
-	# ── 发弹点轨迹：角速度（-1 哨兵 → 首帧取 orbit_speed）──
-	if _angle_speed < 0.0:
-		_angle_speed = orbit_speed
-	_angle_speed += diff_pick(angle_accel) * dt
-	_angle += _angle_speed * dt
-
-	# ── 难度模式初始化：H/L 全程外圈转；E/N 三段式 ──
+	# ── 首帧初始化（哨兵统一在此，不再每帧判断）──
 	if not _inited:
 		_inited = true
-		_always_hold = GameState.selected_difficulty >= 2
+		_angle_speed = orbit_speed
+		_growth = radius_growth
+		_always_hold = hard
 		if _always_hold:
-			_radius = diff_pick(radius_max)
+			_radius = rmax
+			_hold_left = INF  # H/L：永续 hold（外扩分支永不进入）
 			_angle = RNG.randf() * TAU  # H/L 开局随机起始角
+
+	# ── 轨迹：角速度（可加速）──
+	_angle_speed += diff_pick(angle_accel) * dt
+	_angle += _angle_speed * dt
 
 	if _hold_left > 0.0:
 		# hold：外圈转（画外环）
@@ -56,15 +59,13 @@ func _tick(p_ctx: StageContext):
 			if _hold_left <= 0.0:
 				_radius = radius_min  # 回卷
 				_growth = radius_growth  # 恢复初始外扩速度
-				_angle = RNG.randf() * TAU  # 新一轮随机起始角（每层螺旋错开）
+				_angle = RNG.randf() * TAU  # 新一轮随机起始角
 	else:
 		# 外扩（E/N）：半径渐远（可加速）
-		if _growth < 0.0:
-			_growth = radius_growth
 		_growth += radius_accel * dt
 		_radius += _growth * dt
-		if _radius >= diff_pick(radius_max):
-			_radius = diff_pick(radius_max)
+		if _radius >= rmax:
+			_radius = rmax
 			_hold_left = hold_time
 
 	# 发弹点 = Boss 中心 + 半径方向 × 当前半径（跟随 Boss 移动）
@@ -85,11 +86,13 @@ func _tick(p_ctx: StageContext):
 		.enemy() \
 		.behavior(PROBE)
 	# hold 阶段（含 H/L 全程）发射的探测弹：注入标记 → 分裂时 15% 可转自机狙
-	bullet.params["hold_aim_probe"] = _hold_left > 0.0 and GameState.selected_difficulty >= 2
+	bullet.params["hold_aim_probe"] = _hold_left > 0.0 and hard
 
 	# ── 主发射：probe_count 颗铺满圆（按难度取）；hold 阶段 + hold_count_bonus ──
 	var count: int = diff_pick(probe_count)
-	var dir := Vector2(-cos(_angle), -sin(_angle))  # 发弹点指向 Boss 的方向（-半径方向）
+	# 基准方向：E/N 指向 Boss；H/L 切向（发弹点前进方向）
+	var dir: Vector2 = Vector2(-sin(_angle), cos(_angle)) if hard \
+		else Vector2(-cos(_angle), -sin(_angle))
 	if count > 0:
 		AudioManager.play_sfx(AssetRegistry.sounds["shoot"], -8.0)
 		var step := TAU / count
