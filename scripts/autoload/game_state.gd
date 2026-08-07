@@ -63,11 +63,11 @@ var practice_background: PackedScene
 var restarting: bool = false  ## 练习模式重开标志（公开：菜单/场景需要读写）
 
 
-func start_practice(phase: PhaseData, boss_scene: PackedScene, name: String, stage_id: int) -> void:
+func start_practice(phase: PhaseData, boss_scene: PackedScene, p_name: String, stage_id: int) -> void:
 	is_practice_mode = true
 	practice_phase = phase
 	practice_boss_scene = boss_scene
-	practice_name = name
+	practice_name = p_name
 	practice_stage_id = stage_id
 	practice_background = _find_stage_background(stage_id)
 

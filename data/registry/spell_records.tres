@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" path="res://data/enemy_visual/boss/stage01/kamorui.tscn" id="2_ve3lw"]
 [ext_resource type="Resource" path="res://data/stages/stage01/phase/non_01.tres" id="3_plj11"]
 [ext_resource type="Resource" path="res://data/stages/stage01/phase/test_01.tres" id="4_02on7"]
-[ext_resource type="PackedScene" path="res://data/enemy_visual/red_little_fairy.tscn" id="5_plj11"]
 
 [sub_resource type="Resource" id="Resource_nyj52"]
 script = ExtResource("1_nyj52")
@@ -200,27 +199,6 @@ boss_scene = ExtResource("2_ve3lw")
 practice_attempts = 1
 practice_captures = 1
 
-[sub_resource type="Resource" id="Resource_t0q2j"]
-script = ExtResource("1_nyj52")
-uid = 501
-stage = 9
-phase_index = 0
-phase_type = 1
-name = "BossA卡"
-phase_data = ExtResource("4_02on7")
-boss_scene = ExtResource("2_ve3lw")
-
-[sub_resource type="Resource" id="Resource_oep3c"]
-script = ExtResource("1_nyj52")
-uid = 502
-stage = 9
-phase_index = 0
-phase_type = 1
-name = "BossB卡"
-boss_index = 1
-phase_data = ExtResource("4_02on7")
-boss_scene = ExtResource("5_plj11")
-
 [resource]
 script = ExtResource("1")
-records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn"), SubResource("Resource_ve3lw"), SubResource("Resource_plj11"), SubResource("Resource_tw1tw"), SubResource("Resource_d5m5y"), SubResource("Resource_pw4c7"), SubResource("Resource_02on7"), SubResource("Resource_tao1v"), SubResource("Resource_skku5"), SubResource("Resource_fj1l7"), SubResource("Resource_onkjy"), SubResource("Resource_noqip"), SubResource("Resource_iygdo"), SubResource("Resource_v6s2s"), SubResource("Resource_t0q2j"), SubResource("Resource_oep3c")])
+records = Array[ExtResource("1_nyj52")]([SubResource("Resource_nyj52"), SubResource("Resource_acmwy"), SubResource("Resource_6vhrn"), SubResource("Resource_ve3lw"), SubResource("Resource_plj11"), SubResource("Resource_tw1tw"), SubResource("Resource_d5m5y"), SubResource("Resource_pw4c7"), SubResource("Resource_02on7"), SubResource("Resource_tao1v"), SubResource("Resource_skku5"), SubResource("Resource_fj1l7"), SubResource("Resource_onkjy"), SubResource("Resource_noqip"), SubResource("Resource_iygdo"), SubResource("Resource_v6s2s")])
