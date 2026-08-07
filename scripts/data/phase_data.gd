@@ -20,6 +20,8 @@ class_name PhaseData
 @export var item_bomb_full: int = 0     ## 击破掉落整 B
 ## 移动/弹幕脚本参数（工作台编辑，运行时注入脚本同名属性）
 @export var params: Dictionary = {}
+@export var open_reduce_time: float = 0.0  ## 开局减伤时长（秒；0 = 关闭）。阶段开始后这段时间内受伤害减免
+@export var open_reduce_ratio: float = 0.9 ## 开局减伤比例（0~1；0.9 = 只受 10% 伤害）
 
 
 ## 配置校验：返回错误列表（空 = 合法）。加载/开战前调用，防除零

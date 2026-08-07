@@ -76,10 +76,17 @@ func _physics_process(_delta: float) -> void:
 	# 子弹碰撞
 	_physics.process_collisions()
 	
-	# 出屏回收
+	# 出屏回收（out_grace：出界宽限内不回收——探测弹等飞出界仍可继续表现/往返）
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
-		if _pool.is_offscreen(_pool.active_bullets[i].global_position):
-			_pool.return_bullet(_pool.active_bullets[i])
+		var b: Bullet = _pool.active_bullets[i]
+		if _pool.is_offscreen(b.global_position):
+			if b.out_grace > 0.0:
+				b._out_time += dt
+				if b._out_time < b.out_grace:
+					continue  # 宽限内：出界不回收（继续跑行为）
+			_pool.return_bullet(b)
+		else:
+			b._out_time = 0.0  # 回到界内重置计时
 	# 出屏回收（完）
 
 

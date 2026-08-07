@@ -27,8 +27,8 @@ phase_data = ExtResource("3_plj11")
 boss_scene = ExtResource("2_ve3lw")
 attempts = 51
 captures = 21
-practice_attempts = 14
-practice_captures = 7
+practice_attempts = 18
+practice_captures = 8
 best_time = 0.9935479999999992
 
 [sub_resource type="Resource" id="Resource_6vhrn"]
@@ -40,8 +40,8 @@ phase_data = ExtResource("3_plj11")
 boss_scene = ExtResource("2_ve3lw")
 attempts = 26
 captures = 13
-practice_attempts = 19
-practice_captures = 11
+practice_attempts = 22
+practice_captures = 13
 best_time = 8.95061999999983
 
 [sub_resource type="Resource" id="Resource_ve3lw"]
@@ -53,8 +53,8 @@ phase_data = ExtResource("3_plj11")
 boss_scene = ExtResource("2_ve3lw")
 attempts = 3
 captures = 2
-practice_attempts = 19
-practice_captures = 15
+practice_attempts = 21
+practice_captures = 16
 best_time = 7.430303030302875
 
 [sub_resource type="Resource" id="Resource_plj11"]
@@ -66,8 +66,8 @@ phase_data = ExtResource("3_plj11")
 boss_scene = ExtResource("2_ve3lw")
 attempts = 2
 captures = 1
-practice_attempts = 6
-practice_captures = 2
+practice_attempts = 8
+practice_captures = 3
 best_time = 13.145763636363313
 
 [sub_resource type="Resource" id="Resource_tw1tw"]

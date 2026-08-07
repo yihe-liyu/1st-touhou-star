@@ -10,7 +10,7 @@ var decel: float = 150.0     # 反向加速度（px/s²）：越大滑行越短�
 var split_speed: float = 60.0    # 分裂弹初速（慢，配合缓慢加速出屏）
 var split_accel: float = 40.0    # 分裂弹加速度（缓慢加速）
 var split_dir: Array = [TAU/4, TAU/8, TAU/16, TAU/20]      # 分裂方向：相对初方向旋转角度
-var split_aim_chance: float = 0.15  # 分裂弹 15% 变自机狙（朝玩家，红橙色区分）
+var split_aim_chance: float = 0.1  # 分裂弹 10% 变自机狙
 var hold_aim_probe: bool = false  # 由发射方注入（orbit_spiral hold 阶段 + H/L 才为 true）
 
 enum State { OUT, BACK }
@@ -59,8 +59,9 @@ func _spawn_split(p_ctx: StageContext) -> void:
 		.tex("环玉") \
 		.speed(split_speed) \
 		.accelerate(fire_dir.x * split_accel, fire_dir.y * split_accel) \
-		.color(Color.CORAL if is_aim else Color.AQUA) \
+		.color(Color.RED if is_aim else Color.AQUA) \
 		.blend(true) \
-		.enemy()
+		.enemy() \
+		.grace(diff_pick([4, 4, 1, 0.65]))
 	AudioManager.play_sfx(AssetRegistry.sounds["kira"], -8.0)
 	p_ctx.bullets.shoot_single(red, target.global_position, fire_dir)

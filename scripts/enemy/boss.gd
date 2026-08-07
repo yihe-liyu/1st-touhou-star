@@ -16,6 +16,8 @@ var _current_phase: PhaseData
 var _bonus: int = 0
 var _elapsed: float = 0.0
 var _invincible: bool = false
+var _open_reduce_left: float = 0.0   # 开局减伤剩余时长（秒）
+var _open_reduce_ratio: float = 0.0  # 开局减伤比例（0~1）
 var _move: CoroutineRunner
 var _shoot: CoroutineRunner
 var _stage_id: int
@@ -86,6 +88,9 @@ func start_phase(data: PhaseData) -> void:
 	_bonus = data.bonus
 	_invincible = true
 	hp = 0
+	# 开局减伤参数暂存，计时从"无敌解除"（涨血完，玩家能打伤）开始
+	_open_reduce_ratio = data.open_reduce_ratio
+	_open_reduce_left = 0.0
 	
 	# 显示血条
 	for child in get_children():
@@ -117,6 +122,8 @@ func start_phase(data: PhaseData) -> void:
 			hp = 999999
 		else:
 			_invincible = false
+			# 玩家能打伤时才开始减伤计时（完整 open_reduce_time 秒）
+			_open_reduce_left = data.open_reduce_time if _open_reduce_ratio > 0.0 else 0.0
 		
 		if data.move_script:
 			_move = data.move_script.new()
@@ -142,7 +149,10 @@ func _process(delta: float) -> void:
 		_bonus = maxi(0, _bonus - tick)
 	
 	GameEvents.phase_bonus_tick.emit(_bonus)
-	
+
+	if _open_reduce_left > 0.0:
+		_open_reduce_left = maxf(_open_reduce_left - delta, 0.0)
+
 	if _elapsed >= _current_phase.time_limit:
 		_clear_phase(_current_phase.is_timeout_only)
 
@@ -153,6 +163,8 @@ var _dmg_acc: float = 0.0
 func take_damage(damage: float) -> void:
 	if _invincible: return
 	if not _current_phase: return
+	if _open_reduce_left > 0.0 and _open_reduce_ratio > 0.0:
+		damage *= 1.0 - _open_reduce_ratio  # 开局减伤
 	_dmg_acc += damage
 	var full: int = int(_dmg_acc)
 	if full <= 0:

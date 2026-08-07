@@ -24,6 +24,7 @@ var spawn_fog: bool = false                          ## 是否播弹雾特效
 var fog_texture: Texture2D                           ## 弹雾贴图
 var coroutine_script: Script                         ## 移动协程脚本（如诱导跟踪）
 var params: Dictionary = {}                          ## 注入给移动协程脚本的参数（行为脚本同名 var 覆盖）
+var out_grace: float = 0.0                           ## 出界宽限（秒）：出界后仍存活这段时间再回收；0 = 出界立即回收
 
 ## ---- 构造链方法 ----
 func tex(key: String) -> BulletData:
@@ -80,4 +81,10 @@ func player() -> BulletData:
 
 func behavior(v: Script) -> BulletData:
 	coroutine_script = v
+	return self
+
+
+## 出界宽限（秒）：出界后仍存活这段时间再回收（探测弹往返等；0 = 出界立即回收）
+func grace(v: float) -> BulletData:
+	self.out_grace = v
 	return self

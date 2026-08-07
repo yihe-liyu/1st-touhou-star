@@ -1,4 +1,5 @@
 extends CoroutineScript
+## 随机坐标移动（原名 test_move）
 ## Boss 移动：每隔 jump_interval 秒随机跳到游戏框上部的一个随机坐标
 ## 用 RNG（可复现：固定种子下序列一致）；tween 物理模式平滑移动（time_scale 同步）
 ## auto_stop = false（持续运行直到 phase 结束）

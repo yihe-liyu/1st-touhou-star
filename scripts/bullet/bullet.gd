@@ -23,6 +23,8 @@ var hitbox_rotation: float = 0.0
 
 # 运行时状态
 var coroutine_script: CoroutineScript
+var out_grace: float = 0.0    ## 出界宽限（秒）：出界后仍存活；0 = 立即回收
+var _out_time: float = 0.0    ## 当前连续出界时长（内部状态，界内重置）
 
 var is_ready: bool = false
 
@@ -60,6 +62,8 @@ func _reset_state() -> void:
 func bind(data: BulletData, direction: Vector2):
 	is_ready = false
 	_grazed = false
+	out_grace = data.out_grace
+	_out_time = 0.0
 	# 清理上次残留的协程（无节点模式：不再 add_child，直接停引用）
 	if coroutine_script and is_instance_valid(coroutine_script):
 		coroutine_script.stop()

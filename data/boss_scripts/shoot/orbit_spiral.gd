@@ -84,7 +84,8 @@ func _tick(p_ctx: StageContext):
 		.color(Color.BLUE_VIOLET) \
 		.blend(true) \
 		.enemy() \
-		.behavior(PROBE)
+		.behavior(PROBE) \
+		.grace(4)
 	# hold 阶段（含 H/L 全程）发射的探测弹：注入标记 → 分裂时 15% 可转自机狙
 	bullet.params["hold_aim_probe"] = _hold_left > 0.0 and hard
 
