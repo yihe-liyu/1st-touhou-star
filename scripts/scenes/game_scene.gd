@@ -53,16 +53,15 @@ func _start_practice_game() -> void:
 	if player:
 		player.ctx = ctx
 
-	var card: CardDef = GameState.practice_card
-	if not card:
-		push_error("GameScene: practice_card 未设置")
+	var phase: PhaseData = GameState.practice_phase
+	if not phase:
+		push_error("GameScene: practice_phase 未设置")
 		return
 
-	# 用 CardDef + PhaseData 直接构建练习用 Boss
-	var phase := card.phase_data
+	# 用记录里的阶段配置 + Boss 视觉直接构建练习用 Boss
 	var single := BossData.new()
-	single.boss_name = card.name
-	single.visual = card.boss_scene
+	single.boss_name = GameState.practice_name
+	single.visual = GameState.practice_boss_scene
 	single.phases = [phase]
 
 	var boss := StageManager.spawn_boss(single, Vector2(GameConfig.FIELD_CENTER_X, 240), ctx)

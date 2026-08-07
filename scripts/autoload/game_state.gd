@@ -55,17 +55,21 @@ func _ready():
 var is_practice_mode: bool = false
 ## 关卡练习模式（完整一面，不打下一关）
 var is_stage_practice: bool = false
-var practice_card: CardDef
+var practice_phase: PhaseData        ## 练习阶段配置（来自符卡记录）
+var practice_boss_scene: PackedScene ## 练习 Boss 视觉（来自符卡记录）
+var practice_name: String            ## 显示名
 var practice_stage_id: int = 1
 var practice_background: PackedScene
 var restarting: bool = false  ## 练习模式重开标志（公开：菜单/场景需要读写）
 
 
-func start_practice(card: CardDef, _character: int, _difficulty: int) -> void:
+func start_practice(phase: PhaseData, boss_scene: PackedScene, name: String, stage_id: int) -> void:
 	is_practice_mode = true
-	practice_card = card
-	practice_stage_id = card.stage_id
-	practice_background = card.background_scene
+	practice_phase = phase
+	practice_boss_scene = boss_scene
+	practice_name = name
+	practice_stage_id = stage_id
+	practice_background = _find_stage_background(stage_id)
 
 
 func end_practice() -> void:

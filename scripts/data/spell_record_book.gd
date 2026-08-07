@@ -23,37 +23,42 @@ func prune_empty() -> void:
 	records = kept
 
 
-## 以 (stage, phase_index, character, difficulty) 查重
-func get_record(stage: int, phase_index: int, character: int, difficulty: int) -> SpellRecord:
+## 以 (stage, phase_index, boss_index, character, difficulty) 查重
+func get_record(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int) -> SpellRecord:
 	for r in records:
-		if r.stage == stage and r.phase_index == phase_index and r.character == character and r.difficulty == difficulty:
+		if r.stage == stage and r.phase_index == phase_index and r.boss_index == boss_index \
+				and r.character == character and r.difficulty == difficulty:
 			return r
 	return null
 
 
-func get_or_create(stage: int, phase_index: int, character: int, difficulty: int,
+func get_or_create(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int,
 		uid: int = 0, phase_type: int = 0, phase_number: int = 1,
-		pname: String = "") -> SpellRecord:
-	var r := get_record(stage, phase_index, character, difficulty)
+		pname: String = "", p_phase_data: PhaseData = null, p_boss_scene: PackedScene = null) -> SpellRecord:
+	var r := get_record(stage, phase_index, boss_index, character, difficulty)
 	if r: return r
 	r = SpellRecordClass.new()
 	r.stage = stage
 	r.phase_index = phase_index
+	r.boss_index = boss_index
 	r.character = character
 	r.difficulty = difficulty
 	if uid > 0: r.uid = uid
 	r.phase_type = phase_type
 	r.phase_number = phase_number
 	if pname != "": r.name = pname
+	if p_phase_data: r.phase_data = p_phase_data
+	if p_boss_scene: r.boss_scene = p_boss_scene
 	records.append(r)
 	return r
 
 
-func record_attempt(stage: int, phase_index: int, character: int, difficulty: int,
+func record_attempt(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int,
 		captured: bool, score: int, elapsed: float, extra: Dictionary = {}) -> void:
-	var r := get_or_create(stage, phase_index, character, difficulty,
+	var r := get_or_create(stage, phase_index, boss_index, character, difficulty,
 		extra.get("uid", 0), extra.get("phase_type", 0),
-		extra.get("phase_number", 1), extra.get("name", ""))
+		extra.get("phase_number", 1), extra.get("name", ""),
+		extra.get("phase_data"), extra.get("boss_scene"))
 	r.attempts += 1
 	if captured:
 		r.captures += 1
@@ -64,9 +69,9 @@ func record_attempt(stage: int, phase_index: int, character: int, difficulty: in
 				r.best_time = elapsed
 
 
-func record_practice(stage: int, phase_index: int, character: int, difficulty: int,
+func record_practice(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int,
 		captured: bool) -> void:
-	var r := get_record(stage, phase_index, character, difficulty)
+	var r := get_record(stage, phase_index, boss_index, character, difficulty)
 	if not r:
 		return  # 练习只更新已有记录，首次记录由普通模式生成
 	r.practice_attempts += 1

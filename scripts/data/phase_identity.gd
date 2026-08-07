@@ -13,6 +13,8 @@ var phase_index: int       ## 在 phases 数组中的索引（真正的唯一标
 var phase_type: int        ## SpellRecord.PhaseType
 var phase_number: int      ## 第几张非符/第几张符卡
 var name: String           ## 符卡名，非符可为空
+var phase_data: PhaseData  ## 阶段配置（解锁时存进记录）
+var boss_scene: PackedScene  ## Boss 视觉（解锁时存进记录）
 
 
 ## 从 Boss 运行时的 PhaseData + 上下文推导
@@ -29,6 +31,7 @@ static func from_phase(phase: PhaseData, p_stage_id: int, p_phase_index: int,
 	pid.phase_type = SpellRecord.PhaseType.SPELL if is_spell else SpellRecord.PhaseType.NONSPELL
 	pid.phase_number = spell_count if is_spell else non_count
 	pid.name = phase.name
+	pid.phase_data = phase  # 配置随解锁写入记录
 	return pid
 
 

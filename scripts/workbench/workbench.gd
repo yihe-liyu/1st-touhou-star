@@ -442,7 +442,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		KEY_G:
 			if event.ctrl_pressed:
-				_debug_gen_records()
+				_debug_force_clear()
 			get_viewport().set_input_as_handled()
 
 
@@ -587,30 +587,14 @@ func _on_divider_input(event: InputEvent) -> void:
 		_divider.offset_right = new_off
 
 
-# ═══ 符卡编辑（Boss 阶段：数据 + 脚本 + 参数）═══
-
-
-## Ctrl+G：一键生成所有符卡记录（全角色 × 全难度 → 练习菜单直接可练）
-## 等价命令行：godot --headless --path . -s res://scripts/debug/gen_spell_records.gd
-func _debug_gen_records() -> void:
-	var reg: CardRegistry = load("res://data/registry/spell_registry.tres")
-	var book: SpellRecordBook = load("res://data/registry/spell_records.tres")
-	if not reg or not book:
-		_log_line("⚠️ 生成失败：注册表加载失败")
+## Ctrl+G：强制击破当前 Boss 阶段（调试解锁 + 跳阶段）
+## 配置入记录后：Boss.start_phase 时解锁自动带上战斗配置（无需注册表/CardDef）
+## 工作台跑关卡到 Boss → 按 Ctrl+G 击破当前阶段 → 解锁记录 + 阶段链推进到下一张
+func _debug_force_clear() -> void:
+	var boss = GameState.get_boss()
+	if not boss:
+		_log_line("ℹ 无 Boss（先跑到 Boss 阶段再按 Ctrl+G）")
 		return
-	var before: int = book.records.size()
-	var made := 0
-	for card in reg.cards:
-		if not card.phase_data or card.phase_data.uid < 0:  # 真符卡与非符都生成
-			continue
-		for char_idx in [0, 1]:
-			for diff in [0, 1, 2, 3]:
-				book.get_or_create(card.stage_id, card.order - 1, char_idx, diff,
-					card.phase_data.uid, 1, 1, card.phase_data.name)
-				made += 1
-	book.prune_empty()
-	var err := ResourceSaver.save(book, "res://data/registry/spell_records.tres")
-	if err == OK:
-		_log_line("✅ 符卡记录已生成：%d 张卡 × 全角色 × 全难度（原 %d → 现 %d 条）" % [made, before, book.records.size()])
-	else:
-		_log_line("⚠️ 生成失败（err=%d）" % err)
+	var name: String = boss._current_phase.name if boss._current_phase else "?"
+	boss._clear_phase(true)
+	_log_line("⚡ 强制击破：%s（记录已解锁，阶段链继续）" % name)

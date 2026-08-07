@@ -23,23 +23,24 @@ func save() -> void:
 	ResourceSaver.save(spell_book, SPELL_BOOK_PATH)
 
 
-## 注册一张符卡（见到即记，不计 attempt）
+## 注册一张符卡（见到即记，不计 attempt；配置随解锁自动存入记录）
 func unlock_spell(pid: PhaseIdentity) -> void:
-	spell_book.get_or_create(pid.stage_id, pid.phase_index, pid.character, pid.difficulty,
-		pid.uid, pid.phase_type, pid.phase_number, pid.name)
+	spell_book.get_or_create(pid.stage_id, pid.phase_index, pid.boss_index, pid.character, pid.difficulty,
+		pid.uid, pid.phase_type, pid.phase_number, pid.name, pid.phase_data, pid.boss_scene)
 	save()
 
 
 ## 记录一次符卡尝试（普通模式）
 func record_spell(pid: PhaseIdentity, captured: bool, score: int, elapsed: float) -> void:
-	spell_book.record_attempt(pid.stage_id, pid.phase_index, pid.character, pid.difficulty,
+	spell_book.record_attempt(pid.stage_id, pid.phase_index, pid.boss_index, pid.character, pid.difficulty,
 		captured, score, elapsed, {
-		"uid": pid.uid, "phase_type": pid.phase_type, "phase_number": pid.phase_number, "name": pid.name,
+		"uid": pid.uid, "phase_type": pid.phase_type, "phase_number": pid.phase_number,
+		"name": pid.name, "phase_data": pid.phase_data, "boss_scene": pid.boss_scene,
 	})
 	save()
 
 
 ## 记录一次练习尝试
 func record_practice(pid: PhaseIdentity, captured: bool) -> void:
-	spell_book.record_practice(pid.stage_id, pid.phase_index, pid.character, pid.difficulty, captured)
+	spell_book.record_practice(pid.stage_id, pid.phase_index, pid.boss_index, pid.character, pid.difficulty, captured)
 	save()

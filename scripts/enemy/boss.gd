@@ -100,6 +100,8 @@ func start_phase(data: PhaseData) -> void:
 		_non_count += 1
 	
 	_pid = PhaseIdentity.from_phase(data, _stage_id, _phase_index, _spell_count, _non_count, boss_index)
+	if boss_data:
+		_pid.boss_scene = boss_data.visual  # 练习用 Boss 视觉（随解锁存入记录；测试直构无 setup 时跳过）
 	if not GameState.is_practice_mode:
 		GameState.unlock_spell(_pid)
 	

@@ -1,4 +1,4 @@
-# SpellPracticeMenu.gd — 符卡练习（CardRegistry 驱动）
+# SpellPracticeMenu.gd — 符卡练习（记录驱动：记录即真相，配置随解锁入记录）
 extends BasePage
 
 @onready var _stage_box: VBoxContainer = $StageBox
@@ -25,21 +25,16 @@ func diff_name(v: int) -> String:
 
 
 var _stages: Array[int] = []
-# 每个 phase: {card: CardDef, diffs: {diff: SpellRecord}}
+# 每个 phase: {rec: SpellRecord(带配置), diffs: {diff: SpellRecord}}
 var _phases: Array[Dictionary] = []
 var _pulse_tween: Tween
 
-var _registry: CardRegistry
 
 
 # ═══ 生命周期 ═══
 
 func _on_enter() -> void:
 	modulate.a = 0.0
-	if ResourceLoader.exists("res://data/registry/spell_registry.tres"):
-		_registry = ResourceLoader.load("res://data/registry/spell_registry.tres")
-	else:
-		_registry = null
 	_char_label.text = "← %s →" % CHAR_NAMES[_char_index]
 	_build_data()
 	_build_lists()
@@ -71,18 +66,17 @@ func _build_data() -> void:
 	_stages.clear()
 	_phases.clear()
 
-	if not _registry or _registry.cards.is_empty():
-		return
-
 	var book: SpellRecordBook = GameState.spell_book
+	if book.records.is_empty():
+		return
 	var seen_stages: Dictionary = {}
 	var phase_keys: Array[Dictionary] = []
 
 	for rec in book.records:
 		if rec.character != _char_index:
 			continue
-		if not phase_keys.any(func(p): return p.stage == rec.stage and p.phase_index == rec.phase_index):
-			phase_keys.append({stage = rec.stage, phase_index = rec.phase_index})
+		if not phase_keys.any(func(p): return p.stage == rec.stage and p.boss_index == rec.boss_index and p.phase_index == rec.phase_index):
+			phase_keys.append({stage = rec.stage, boss_index = rec.boss_index, phase_index = rec.phase_index})
 		seen_stages[rec.stage] = true
 
 	for s in seen_stages.keys():
@@ -96,14 +90,6 @@ func _build_data() -> void:
 	_change_stage(0)
 
 
-func _find_card(stage: int, phase_index: int) -> CardDef:
-	if not _registry: return null
-	for card in _registry.cards:
-		if card.stage_id == stage and card.order == phase_index + 1:
-			return card
-	return null
-
-
 func _change_stage(idx: int) -> void:
 	_stage_index = idx
 	_phases.clear()
@@ -113,34 +99,41 @@ func _change_stage(idx: int) -> void:
 
 	var st_num: int = _stages[idx]
 	var book: SpellRecordBook = GameState.spell_book
-	var seen_indices: Array[int] = []
+	var seen_keys: Array[Dictionary] = []
 
 	for rec in book.records:
 		if rec.stage != st_num or rec.character != _char_index:
 			continue
-		if rec.phase_index not in seen_indices:
-			seen_indices.append(rec.phase_index)
+		if not seen_keys.any(func(k): return k.boss_index == rec.boss_index and k.phase_index == rec.phase_index):
+			seen_keys.append({boss_index = rec.boss_index, phase_index = rec.phase_index})
 
-	seen_indices.sort()
+	seen_keys.sort_custom(func(a, b):
+		return a.boss_index < b.boss_index or (a.boss_index == b.boss_index and a.phase_index < b.phase_index))
 
-	for phase_idx in seen_indices:
-		var card := _find_card(st_num, phase_idx)
-		var is_spell := card and card.phase_data and card.phase_data.uid != 0
+	# 该关卡 Boss 数（>1 时 phase 标签加 Boss 前缀）
+	var boss_count := 0
+	for rec in book.records:
+		if rec.stage == st_num and rec.character == _char_index:
+			boss_count = maxi(boss_count, rec.boss_index + 1)
 
-		var spell_seq := 0
-		var non_seq := 0
-		for prev_idx in seen_indices:
-			if prev_idx >= phase_idx: break
-			var prev_card := _find_card(st_num, prev_idx)
-			if prev_card and prev_card.phase_data and prev_card.phase_data.uid != 0:
-				spell_seq += 1
-			else:
-				non_seq += 1
+	for key in seen_keys:
+		var phase_idx: int = key.phase_index
+		# 记录即真相：用该 Boss 该 phase 的任一记录判断符卡/非符 + 提供战斗配置
+		var sample: SpellRecord = null
+		for rec in book.records:
+			if rec.stage == st_num and rec.boss_index == key.boss_index \
+					and rec.phase_index == phase_idx and rec.character == _char_index:
+				sample = rec
+				break
+		if not sample:
+			continue
+		var is_spell: bool = sample.uid != 0
 
-		var seq := spell_seq + 1 if is_spell else non_seq + 1
-		var label := "符卡%d" % seq if is_spell else "非符%d" % seq
+		# label：per-Boss 编号直接用记录的 phase_number（解锁时已按 Boss 各自计数）
+		var prefix := "B%d·" % (key.boss_index + 1) if boss_count > 1 else ""
+		var label := "%s%s%d" % [prefix, "符卡" if is_spell else "非符", sample.phase_number]
 
-		var info := {card = card, phase_index = phase_idx, diffs = {}, label = label}
+		var info := {rec = sample, boss_index = key.boss_index, phase_index = phase_idx, diffs = {}, label = label}
 
 		# 取出这个 phase 在这角色下所有难度的记录
 		for rec in book.records:
@@ -458,17 +451,17 @@ func _start_practice() -> void:
 	var diffs: Array = info["diffs"].keys()
 	diffs.sort()
 	var diff: int = diffs[_diff_index]
-	var card: CardDef = info["card"]
+	var rec: SpellRecord = info["rec"]
 
-	if not card:
-		push_warning("SpellPractice: 找不到 card phase_index=%d" % info["phase_index"])
+	if not rec or not rec.phase_data:
+		push_warning("SpellPractice: 记录缺少阶段配置 phase_index=%d（重新解锁一次）" % info["phase_index"])
 		return
 
 	GameState.selected_difficulty = diff
 	GameState.selected_character = _char_index
 
-	print("练习: %s 难度: %s" % [card.name, diff_name(diff)])
-	GameState.start_practice(card, _char_index, diff)
+	print("练习: %s 难度: %s" % [rec.name, diff_name(diff)])
+	GameState.start_practice(rec.phase_data, rec.boss_scene, rec.name, rec.stage)
 	AudioManager.stop_bgm()
 	_on_leave()
 	GameManager.change_scene("res://scenes/game_scene.tscn")
