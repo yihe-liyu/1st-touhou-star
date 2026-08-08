@@ -152,7 +152,7 @@ func _to_full(s: String) -> String:
 
 
 ## 全角空格（U+3000）左补到 width 字符宽（不补前导零；对齐靠全角空格，不硬调 Label 宽度）
-func _pad_cn(v: int, width: int) -> String:
+func _pad_cn(v: Variant, width: int) -> String:
 	var s := str(v)
 	while s.length() < width:
 		s = "　" + s
