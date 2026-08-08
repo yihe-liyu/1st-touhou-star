@@ -1,14 +1,5 @@
 [gd_resource type="Theme" format=3 uid="uid://ui_theme_main_000"]
 
-[resource]
-Label/font_outline_color = Color(0, 0, 0, 1)
-Label/font_outline_size = 3
-Label/font_shadow_color = Color(0, 0, 0, 0.55)
-Label/font_shadow_offset_x = 1
-Label/font_shadow_offset_y = 2
-
-PanelContainer/styles/panel = SubResource("StyleBoxPanel")
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxPanel"]
 content_margin_left = 8.0
 content_margin_top = 8.0
@@ -24,3 +15,11 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+
+[resource]
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Label/constants/outline_size = 3
+Label/colors/font_shadow_color = Color(0, 0, 0, 0.55)
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 2
+PanelContainer/styles/panel = SubResource("StyleBoxPanel")
