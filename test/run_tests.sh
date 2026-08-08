@@ -8,8 +8,9 @@ echo "════════════════════════�
 echo "  🧪 1st Touhou Star — 运行测试套件"
 echo "═══════════════════════════════════════"
 
-# 测试隔离：临时 user:// 目录（save_data.cfg 等写入不碰真实存档）
+# 测试隔离：临时 user:// 目录（XDG_DATA_HOME 重定向，save_data.cfg 等写入不碰真实存档）
 TMP_USER="$(mktemp -d)"
+export XDG_DATA_HOME="$TMP_USER"
 # 测试是只读的：备份符卡记录，跑完恢复（测试内 unlock/record 的 save 副作用不落盘——res:// 写入不受 user 隔离影响）
 RECORDS_BACKUP="$(mktemp)"
 HAD_RECORDS=0
@@ -18,7 +19,7 @@ if [ -f "$PWD/data/registry/spell_records.tres" ]; then
 	HAD_RECORDS=1
 fi
 
-if ! godot --headless --user-data-dir "$TMP_USER" --path "$PWD" -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit "$@"; then
+if ! godot --headless --path "$PWD" -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit "$@"; then
 	GUT_EXIT=1
 else
 	GUT_EXIT=0
