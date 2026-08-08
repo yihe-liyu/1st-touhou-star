@@ -265,27 +265,21 @@ func _highlight_one_vbox(vbox: VBoxContainer, idx: int) -> void:
 
 
 func _dim_diff() -> void:
+	# 外层统一灰 + 内层复原（pulse 作用外层——不设外层会残留 pulse 中间值导致颜色不统一）
 	for vbox in _diff_box.get_children():
+		vbox.modulate = Color(0.3, 0.3, 0.3)
 		for child in vbox.get_children():
-			if child is HBoxContainer:
-				for sub in child.get_children():
-					sub.modulate = Color(0.3, 0.3, 0.3)
-			else:
-				child.modulate = Color(0.3, 0.3, 0.3)
+			child.modulate = Color.WHITE
 
 
 func _highlight_diff(idx: int) -> void:
 	var items := _diff_box.get_children()
 	for i in items.size():
 		var vbox := items[i]
-		var dim := Color(0.3, 0.3, 0.3) if i != idx else Color(0.4, 0.4, 0.4)
-		var bright := Color.WHITE
+		# 外层统一：非选中灰、选中白（供 pulse 闪烁）；内层全部复原
+		vbox.modulate = Color.WHITE if i == idx else Color(0.3, 0.3, 0.3)
 		for child in vbox.get_children():
-			if child is HBoxContainer:
-				for sub in child.get_children():
-					sub.modulate = bright if i == idx else dim
-			else:
-				child.modulate = bright if i == idx else dim
+			child.modulate = Color.WHITE
 
 
 func _pulse_on_vbox(vbox: VBoxContainer, idx: int) -> void:
