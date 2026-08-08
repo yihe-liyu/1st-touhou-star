@@ -177,12 +177,13 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 	name_l.text = card["name"]
 	name_l.add_theme_font_size_override("font_size", 26)
 	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if rec and rec.captures > 0:
+		name_l.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))  # 实战收取过：符卡名蓝色
 	# 普通模式收取 ***/***（右对齐，不补前导零）
 	var stat_l := Label.new()
 	if rec:
 		stat_l.text = "%s／%s" % [_pad_cn(_to_full(str(rec.captures)), 3), _pad_cn(_to_full(str(rec.attempts)), 3)]
-		stat_l.add_theme_color_override("font_color",
-			Color(1.0, 0.9, 0.5) if rec.captures > 0 else Color(0.72, 0.72, 0.78))
+		stat_l.add_theme_color_override("font_color", Color(0.72, 0.72, 0.78))  # 统一灰，不用金色
 	else:
 		stat_l.text = "--"
 		stat_l.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
