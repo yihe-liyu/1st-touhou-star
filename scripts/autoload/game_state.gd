@@ -37,11 +37,30 @@ var save_mgr := SaveManager.new()
 
 
 func _ready():
-	# 全局 UI 主题：merge 进默认主题（本引擎版本对 project.godot 的 gui/theme/custom 解析异常，
-	# 且 ThemeDB 无 set_project_theme——用 get_default_theme().merge 全局生效）
-	var ui_theme: Theme = load("res://themes/ui_theme.tres")
-	if ui_theme:
-		ThemeDB.get_default_theme().merge(ui_theme)
+	# 全局 UI 主题：手动拷进默认主题（本引擎 fork 无 Theme.merge / ThemeDB.set_project_theme，
+	# project.godot 的 gui/theme/custom 也解析异常——用 Theme item API 逐项拷贝最稳）
+	_apply_ui_theme()
+
+
+## 把 themes/ui_theme.tres 的样式拷进 ThemeDB 默认主题（全局 Control 生效）
+func _apply_ui_theme() -> void:
+	var ui: Theme = load("res://themes/ui_theme.tres")
+	if not ui:
+		return
+	var def: Theme = ThemeDB.get_default_theme()
+	for t in ui.get_type_list():
+		for n in ui.get_constant_list(t):
+			def.set_constant(n, t, ui.get_constant(n, t))
+		for n in ui.get_color_list(t):
+			def.set_color(n, t, ui.get_color(n, t))
+		for n in ui.get_stylebox_list(t):
+			def.set_stylebox(n, t, ui.get_stylebox(n, t))
+		for n in ui.get_font_list(t):
+			def.set_font(n, t, ui.get_font(n, t))
+		for n in ui.get_font_size_list(t):
+			def.set_font_size(n, t, ui.get_font_size(n, t))
+		for n in ui.get_icon_list(t):
+			def.set_icon(n, t, ui.get_icon(n, t))
 	spell_book_mgr.load()
 	spell_book = spell_book_mgr.spell_book
 	save_mgr.load()
