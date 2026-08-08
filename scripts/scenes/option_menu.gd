@@ -12,7 +12,7 @@ const HIGHLIGHT := Color.WHITE
 const NORMAL := Color(0.4, 0.4, 0.4)
 const VALUE_COLOR := Color(1.0, 0.9, 0.5)
 
-var _items: Array[VBoxContainer] = []
+var _items: Array[HBoxContainer] = []
 var _values: Array[Label] = []
 var _nav_index: int = 0
 var _pulse: Tween
