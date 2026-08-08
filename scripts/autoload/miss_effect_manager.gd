@@ -46,11 +46,18 @@ func _process(delta: float) -> void:
 	for i in range(_circles.size() - 1, -1, -1):
 		_circles[i].age += delta
 	_update_shader()
+	var removed := false
 	for i in range(_circles.size() - 1, -1, -1):
 		var c := _circles[i]
 		var total: float = c.duration + c.fade_out
 		if c.age >= total:
 			_circles.remove_at(i)
+			removed = true
+	# 反色闪烁根治：raw_mask 偶数=复原、奇数=反转（mod 三角波）。
+	# 多组圈重叠时（连续 miss / miss+记忆释放），先消失的一组会让剩余 raw 落奇数区 → 中间帧反色闪烁。
+	# 这里：本帧有圈到期且剩余圈数为奇 → 同帧全清（跳变复原），与渲染帧率无关。
+	if removed and _circles.size() % 2 == 1:
+		_circles.clear()
 
 func clear_all() -> void:
 	_circles.clear()
