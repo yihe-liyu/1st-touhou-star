@@ -32,12 +32,20 @@ void sky() {
 	}
 	// 太阳（固定方向常量，不依赖 LIGHT0）
 	float ang = acos(clamp(dot(rd, normalize(sun_dir)), -1.0, 1.0));
-	float r_black = sun_size * black_ratio * (1.0 + (noise(rd.xy * 60.0) - 0.5) * 0.2);
+	// ① 太阳本体：规矩的亮圆（中心亮边缘暗，干净圆边）
+	if (ang < sun_size) {
+		float e = ang / sun_size;
+		col += sun_tint.rgb * pow(1.0 - e, 1.5) * sun_energy * glow;
+	}
+	// ② 黑雾遮罩：不规则边缘 + 透明度不均匀（斑驳，像雾盖住太阳）
+	float n_low = noise(rd.xy * 22.0);            // 大块云状（透明度斑驳）
+	float n_edge = noise(rd.xy * 55.0 + 13.7);    // 边缘细节（不规则边）
+	float r_black = sun_size * black_ratio * (0.92 + n_low * 0.24);
 	if (ang < r_black) {
-		col = vec3(0.012, 0.012, 0.02);  // 黑圆（日食遮挡）
-	} else if (ang < sun_size) {
-		float t = (ang - r_black) / (sun_size - r_black);
-		col += sun_tint.rgb * pow(1.0 - t, 3.0) * sun_energy * glow;
+		float shade = clamp(1.0 - (r_black - ang) / (sun_size * 0.28), 0.0, 1.0);  // 中心实 边缘虚
+		float alpha = mix(0.30, 1.0, shade);
+		alpha *= 0.65 + n_low * 0.5 + n_edge * 0.15;  // 透明度不均匀（黑雾斑驳）
+		col = mix(col, vec3(0.008, 0.008, 0.015), clamp(alpha, 0.0, 1.0));
 	}
 	COLOR = col;  // out vec3（官方文档）
 }
