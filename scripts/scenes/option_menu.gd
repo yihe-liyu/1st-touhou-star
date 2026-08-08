@@ -28,17 +28,18 @@ func _build_items() -> void:
 	box.add_theme_constant_override("separation", 26)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	for i in ITEMS.size():
-		var item := VBoxContainer.new()
+		# 每项一行：标题（左）+ 数值（右，同字号右对齐）
+		var item := HBoxContainer.new()
 		item.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		item.add_theme_constant_override("separation", 2)
+		item.add_theme_constant_override("separation", 24)
 		var zh := Label.new()
 		zh.text = ITEMS[i]["zh"]
 		zh.add_theme_font_size_override("font_size", 32)
-		zh.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		zh.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var value := Label.new()
-		value.add_theme_font_size_override("font_size", 20)
+		value.add_theme_font_size_override("font_size", 32)
 		value.add_theme_color_override("font_color", VALUE_COLOR)
-		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		item.add_child(zh)
 		item.add_child(value)
 		box.add_child(item)
@@ -54,9 +55,9 @@ func _refresh_values() -> void:
 		var item := ITEMS[i]
 		var v: Variant = GameState.save_mgr.get_setting(item["key"], item["def"])
 		if item["type"] == "range":
-			_values[i].text = "　　　" + TextAlign.pad_cn(TextAlign.full(str(int(round(v * 100.0)))), 3) + "％"
+			_values[i].text = TextAlign.pad_cn(TextAlign.full(str(int(round(v * 100.0)))), 3) + "％"
 		else:
-			_values[i].text = "　　　" + ("开" if v else "关")
+			_values[i].text = TextAlign.pad_cn(("开" if v else "关"), 3)
 
 
 func _apply_nav() -> void:
