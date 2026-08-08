@@ -72,6 +72,13 @@ func _setup_eclipse_sky() -> void:
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
 	env.fog_sky_affect = 0.0
+	# 太阳方向/亮度由 DirectionalLight3D 提供（sky_mode=LIGHT_AND_SKY 才驱动天空太阳）
+	bg.setup_sun()
+	if bg.sun_light:
+		bg.sun_light.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_AND_SKY
+		bg.sun_light.light_color = Color(0.90, 0.93, 1.0)
+	bg.set_sun_rotation(Vector3(deg_to_rad(6.0), deg_to_rad(-18.0), 0.0))
+	bg.set_sun_energy(1.5)
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
