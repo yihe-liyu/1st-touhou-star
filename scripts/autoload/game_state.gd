@@ -172,6 +172,8 @@ func _apply_settings() -> void:
 		AudioManager.sfx_volume = float(s["volume_sfx"])
 	if s.has("fullscreen"):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if s["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
+	if s.has("max_fps"):
+		Engine.max_fps = int(s["max_fps"])
 
 
 func save_high_score(stage_id: int, score: int):

@@ -6,6 +6,7 @@ const ITEMS: Array[Dictionary] = [
 	{"key": "volume_bgm", "zh": "ＢＧＭ音量", "type": "range", "min": 0.0, "max": 1.0, "step": 0.1, "def": 1.0},
 	{"key": "volume_sfx", "zh": "ＳＥ音量",  "type": "range", "min": 0.0, "max": 1.0, "step": 0.1, "def": 0.7},
 	{"key": "fullscreen", "zh": "全屏",     "type": "toggle", "def": false},
+	{"key": "max_fps", "zh": "帧率上限", "type": "choice", "choices": [60, 120, 144, 0], "def": 60},
 ]
 
 const HIGHLIGHT := Color.WHITE
@@ -56,6 +57,9 @@ func _refresh_values() -> void:
 		var v: Variant = GameState.save_mgr.get_setting(item["key"], item["def"])
 		if item["type"] == "range":
 			_values[i].text = TextAlign.pad_cn(TextAlign.full(str(int(round(v * 100.0)))), 3) + "％"
+		elif item["type"] == "choice":
+			var txt: String = "无上限" if int(v) == 0 else TextAlign.full(str(int(v)))
+			_values[i].text = TextAlign.pad_cn(txt, 3)
 		else:
 			_values[i].text = TextAlign.pad_cn(("开" if v else "关"), 3)
 
@@ -109,12 +113,21 @@ func _input(event: InputEvent) -> void:
 
 func _adjust(dir: int) -> void:
 	var item := ITEMS[_nav_index]
-	if item["type"] != "range":
+	if item["type"] == "range":
+		var cur: float = float(GameState.save_mgr.get_setting(item["key"], item["def"]))
+		var v := clampf(cur + dir * item["step"], item["min"], item["max"])
+		GameState.save_mgr.set_setting(item["key"], v)
+		_apply_setting(item["key"], v)
+	elif item["type"] == "choice":
+		var choices: Array = item["choices"]
+		var idx: int = choices.find(GameState.save_mgr.get_setting(item["key"], item["def"]))
+		if idx < 0:
+			idx = 0
+		var v2: int = choices[wrapi(idx + dir, 0, choices.size())]
+		GameState.save_mgr.set_setting(item["key"], v2)
+		_apply_setting(item["key"], v2)
+	else:
 		return
-	var cur: float = float(GameState.save_mgr.get_setting(item["key"], item["def"]))
-	var v := clampf(cur + dir * item["step"], item["min"], item["max"])
-	GameState.save_mgr.set_setting(item["key"], v)
-	_apply_setting(item["key"], v)
 	_refresh_values()
 
 
@@ -139,6 +152,8 @@ func _apply_setting(key: String, v: Variant) -> void:
 			AudioManager.sfx_volume = float(v)
 		"fullscreen":
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if bool(v) else DisplayServer.WINDOW_MODE_WINDOWED)
+		"max_fps":
+			Engine.max_fps = int(v)
 
 
 # ═══ 生命周期 ═══
