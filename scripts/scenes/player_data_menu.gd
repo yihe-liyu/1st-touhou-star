@@ -84,7 +84,8 @@ func _hide_record_view() -> void:
 
 # ═══ 符卡记录数据 ═══
 
-## 从记录扫全部符卡（uid!=0 且 SPELL），按 (stage, phase_index, boss_index) 去重
+## 从记录扫全部符卡（uid!=0 且 SPELL），按 (stage, phase_index, boss_index, uid) 去重
+## （不同难度可挂不同 uid 的卡，如 spell53/54——key 含 uid 才不会误合并）
 func _collect_cards() -> void:
 	var seen := {}
 	_cards.clear()
@@ -92,7 +93,7 @@ func _collect_cards() -> void:
 	for r in book.records:
 		if r.uid == 0 or r.phase_type != SpellRecord.PhaseType.SPELL:
 			continue
-		var key := "%d_%d_%d" % [r.stage, r.phase_index, r.boss_index]
+		var key := "%d_%d_%d_%d" % [r.stage, r.phase_index, r.boss_index, r.uid]
 		if seen.has(key):
 			continue
 		seen[key] = true
