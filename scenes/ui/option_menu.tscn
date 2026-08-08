@@ -3,6 +3,13 @@
 [ext_resource type="Script" uid="uid://daq5tl0gh36s3" path="res://scripts/scenes/option_menu.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dm8hve26u83ex" path="res://assets/Textures/title/option.png" id="2"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxLeft"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0.3)
+
 [node name="OptionMenu" type="Control" unique_id=663878807]
 layout_mode = 3
 anchors_preset = 15
@@ -32,3 +39,30 @@ offset_bottom = 184.0
 grow_horizontal = 2
 texture = ExtResource("2")
 stretch_mode = 5
+
+[node name="LeftPanel" type="PanelContainer" parent="." unique_id=815446668]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.22
+anchor_right = 0.45
+anchor_bottom = 0.85
+offset_left = 30.0
+offset_top = 10.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxLeft")
+
+[node name="ListContainer" type="VBoxContainer" parent="LeftPanel" unique_id=1919758271]
+layout_mode = 2
+
+[node name="Hint" type="Label" parent="." unique_id=1362271270]
+layout_mode = 0
+anchor_top = 0.88
+anchor_right = 1.0
+anchor_bottom = 0.95
+theme_override_font_sizes/font_size = 16
+text = "↑↓ Select | ←→ Adjust | Z: Toggle | X: Back"
+horizontal_alignment = 1
+vertical_alignment = 1

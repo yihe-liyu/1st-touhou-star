@@ -40,6 +40,7 @@ func _ready():
 	spell_book_mgr.load()
 	spell_book = spell_book_mgr.spell_book
 	save_mgr.load()
+	_apply_settings()
 	if ResourceLoader.exists(REGISTRY_PATH):
 		stage_registry = ResourceLoader.load(REGISTRY_PATH)
 	if not GameEvents.enemy_killed.is_connected(_on_enemy_killed):
@@ -159,6 +160,18 @@ var current_score: int = 0
 
 func load_save_data():
 	save_mgr.load()
+	_apply_settings()
+
+
+## 启动应用存档设置（音量/全屏）
+func _apply_settings() -> void:
+	var s: Dictionary = save_mgr.settings
+	if s.has("volume_bgm"):
+		AudioManager.bgm_volume = float(s["volume_bgm"])
+	if s.has("volume_sfx"):
+		AudioManager.sfx_volume = float(s["volume_sfx"])
+	if s.has("fullscreen"):
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if s["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
 
 
 func save_high_score(stage_id: int, score: int):

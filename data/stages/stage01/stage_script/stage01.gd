@@ -6,7 +6,7 @@ const ENEMY02 = preload("res://data/enemy_scripts/enemy02.gd")
 const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
 const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
 const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
-const NON_01 = preload("res://data/stages/stage01/phase/non_01.tres")
+const NON_01 = preload("res://data/stages/stage01/phase/non01.tres")
 
 const SPELL03 = [preload("res://data/stages/stage03/phase/spell53.tres"),\
 				preload("res://data/stages/stage03/phase/spell54.tres"),\
@@ -108,9 +108,9 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# 非符 1 (Timeline 冻结中，等击破)
 	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_01)
-	# ← 非符1 被击破后 1s → 黄粱「不可测之梦」（phase 继承 wait 偏移，击破后激活）
+	# ← 非符 被击破后 1s → 符卡（phase 继承 wait 偏移，击破后激活）
 	tl.wait(1.0).start_phase(func(): return boss_holder[0], diff_pick(SPELL03))
-	# ← 测试符卡被击破后 2s → 退场
+	# ← 符卡被击破后 2s → 退场
 	tl.wait(2.0).do(func():
 		var b := boss_holder[0] as Boss
 		b.set_exit_controlled()
