@@ -19,6 +19,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2")
+container_path = NodePath("LeftPanel/ListContainer")
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=679117683]
 layout_mode = 0
