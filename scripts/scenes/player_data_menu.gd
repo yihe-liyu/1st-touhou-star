@@ -135,6 +135,22 @@ func _render() -> void:
 
 
 
+## 半角字母数字转全角（０-９／Ａ-Ｚ／ａ-ｚ）；全角字符等宽 1em，全角空格补位可精确对齐
+func _to_full(s: String) -> String:
+	var out := ""
+	for i in s.length():
+		var code := s[i].unicode_at(0)
+		if code >= 48 and code <= 57:
+			out += char(code - 48 + 0xFF10)      # 0-9 → ０-９
+		elif code >= 65 and code <= 90:
+			out += char(code - 65 + 0xFF21)      # A-Z → Ａ-Ｚ
+		elif code >= 97 and code <= 122:
+			out += char(code - 97 + 0xFF41)      # a-z → ａ-ｚ
+		else:
+			out += s[i]
+	return out
+
+
 ## 全角空格（U+3000）左补到 width 字符宽（不补前导零；对齐靠全角空格，不硬调 Label 宽度）
 func _pad_cn(v: int, width: int) -> String:
 	var s := str(v)
@@ -147,9 +163,9 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 	var rec := _record_of(card)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
-	# No.***（uid 三位宽：数字前全角空格补位右对齐，不补前导零）
+	# Ｎｏ.＋全角数字（uid 三位宽：全角空格补位右对齐，不补前导零）
 	var uid_l := Label.new()
-	uid_l.text = "No." + _pad_cn(card["uid"], 3)
+	uid_l.text = _to_full("No.") + _pad_cn(card["uid"], 3)
 	uid_l.add_theme_font_size_override("font_size", 26)
 	uid_l.add_theme_color_override("font_color", Color(0.72, 0.72, 0.78))
 	uid_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -160,7 +176,7 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 	# 普通模式收取 ***/***（右对齐，不补前导零）
 	var stat_l := Label.new()
 	if rec:
-		stat_l.text = "%s/%s" % [_pad_cn(rec.captures, 3), _pad_cn(rec.attempts, 3)]
+		stat_l.text = "%s/%s" % [_pad_cn(_to_full(str(rec.captures)), 3), _pad_cn(_to_full(str(rec.attempts)), 3)]
 		stat_l.add_theme_color_override("font_color",
 			Color(1.0, 0.9, 0.5) if rec.captures > 0 else Color(0.72, 0.72, 0.78))
 	else:
