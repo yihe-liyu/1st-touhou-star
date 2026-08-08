@@ -9,7 +9,7 @@ const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
 const NON_01 = preload("res://data/stages/stage01/phase/non_01.tres")
 
 const SPELL03 = [preload("res://data/stages/stage03/phase/spell53.tres"),\
-				preload("res://data/stages/stage03/phase/spell53.tres"),\
+				preload("res://data/stages/stage03/phase/spell54.tres"),\
 				preload("res://data/stages/stage03/phase/spell55.tres"),\
 				preload("res://data/stages/stage03/phase/spell56.tres")]
 

@@ -16,9 +16,13 @@ if [ -f "$PWD/data/registry/spell_records.tres" ]; then
 	HAD_RECORDS=1
 fi
 
-godot --headless --path "$PWD" -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit "$@"
-GUT_EXIT=$?
+if ! godot --headless --path "$PWD" -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit "$@"; then
+	GUT_EXIT=1
+else
+	GUT_EXIT=0
+fi
 
+# 恢复必须在任何退出路径前执行（set -e 会因 GUT 失败中止，这里用 if 结构兜底）
 if [ "$HAD_RECORDS" = "1" ]; then
 	cp "$RECORDS_BACKUP" "$PWD/data/registry/spell_records.tres"
 fi
