@@ -37,16 +37,19 @@ void sky() {
 		float e = ang / sun_size;
 		col += sun_tint.rgb * pow(1.0 - e, 1.5) * sun_energy * glow;
 	}
-	// ② 雾：雾区域匹配太阳（太阳内 0~1.0× 基本全浓罩死太阳光，1.0~1.35× 淡出晕开）
-	//    浓淡斑驳（大块）+ 丝缕（细纹）——不切太阳形状只降亮度
+	// ② 雾：不规则轮廓（半径随方向角扰动 ±30%——不是圆）+ 浓淡斑驳 + 丝缕
+	//    太阳内基本全浓罩死太阳光（不切形状只降亮度），雾边淡出
 	float n_low = noise(rd.xy * 18.0);              // 大块浓淡
 	float n_mid = noise(rd.xy * 45.0 + 7.0);        // 丝缕细节
-	float fog_in = 1.0 - smoothstep(0.0, 1.0, ang / (sun_size * 1.35));
+	float theta = atan(rd.y, rd.x);                 // 方向角（雾边不规则）
+	float wob = 0.7 + noise(vec2(theta * 3.0 + 0.5, 0.31)) * 0.6;   // 雾半径 0.7~1.3 摆动
+	float fog_radius = sun_size * 1.35 * wob;
+	float fog_in = 1.0 - smoothstep(0.0, 1.0, ang / fog_radius);
 	float fog_density = fog_in * (0.85 + n_low * 0.3) * (0.8 + n_mid * 0.2);
 	col = mix(col, vec3(0.012, 0.011, 0.009), fog_density);
-	// ③ 雾边渗光（1.0~1.6× 太阳径——雾边缘外的金色光晕，不抵消中心）
-	if (ang > sun_size && ang < sun_size * 1.6) {
-		float t = (ang - sun_size) / (sun_size * 0.6);
+	// ③ 雾边渗光（从雾边向外 0.6× 太阳径——不规则金色光晕）
+	if (ang > fog_radius && ang < fog_radius + sun_size * 0.6) {
+		float t = (ang - fog_radius) / (sun_size * 0.6);
 		col += sun_tint.rgb * pow(1.0 - t, 3.0) * sun_energy * glow * 0.35 * (0.4 + n_mid * 0.9);
 	}
 	COLOR = col;  // out vec3（官方文档）
