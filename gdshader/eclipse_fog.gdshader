@@ -10,7 +10,7 @@ void fragment() {
 	float d = distance(UV, vec2(0.5, 0.5));
 	float cloud_v = texture(cloud, UV * 1.4).r;      // 云噪声（分形）
 	// 中心浓（盖太阳）、外缘淡
-	float core = 1.0 - smoothstep(0.08, 0.55, d);
+	float core = 1.0 - smoothstep(0.10, 0.50, d);
 	// 云形状：噪声值决定浓淡（云的絮状不均匀）
 	float alpha = cloud_v * (0.25 + core * 0.75) * density;
 	ALBEDO = vec3(0.015, 0.013, 0.012);

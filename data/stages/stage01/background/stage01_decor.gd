@@ -95,14 +95,14 @@ func _setup_eclipse_sky() -> void:
 	smat.shader = preload("res://gdshader/sun_sphere.gdshader")
 	sphere.material = smat
 	_sun_3d.mesh = sphere
-	_sun_3d.position = Vector3(0, 10, -90)   # 相机局部：地平线附近天空（6s 相机抬起后可见）
+	_sun_3d.position = Vector3(0, 18, -90)   # 相机局部：地平线上方天空（6s 相机抬起后可见，屏幕上部 34%）
 	bg.camera.add_child(_sun_3d)
 
 	# 云雾片（挂相机前方 z=-25，盖住太阳中心——FastNoiseLite 云噪声做 alpha）
 	_fog_3d = MeshInstance3D.new()
 	_fog_3d.name = "EclipseFog3D"
 	var quad := QuadMesh.new()
-	quad.size = Vector2(30, 30)
+	quad.size = Vector2(25, 25)
 	var fmat := ShaderMaterial.new()
 	fmat.shader = preload("res://gdshader/eclipse_fog.gdshader")
 	var noise := FastNoiseLite.new()
@@ -118,7 +118,7 @@ func _setup_eclipse_sky() -> void:
 	fmat.set_shader_parameter("cloud", ntex)
 	quad.material = fmat
 	_fog_3d.mesh = quad
-	_fog_3d.position = Vector3(0, 10, -25)   # 球前方（z=-90）——云遮住太阳中心
+	_fog_3d.position = Vector3(0, 5, -25)   # 与球同一视线（z 减半 y 减半）：中心对准球投影；下缘不触地
 	bg.camera.add_child(_fog_3d)
 
 
