@@ -16,7 +16,7 @@ func _ready() -> void:
 
 
 func _on_phase_end(_captured: bool, _bonus: int) -> void:
-	_fog_to_density(0.22, 5.0)
+	_fog_to_density(0.03, 5.0)
 	if _sun:
 		_sun.set_glow(2.0)
 
@@ -25,7 +25,7 @@ func _reset_environment() -> void:
 	if not bg.world_environment: return
 	var env := bg.world_environment.environment
 	env.fog_light_color = Color.BLACK
-	env.fog_density = 0.5
+	env.fog_density = 0.06
 	if bg.camera:
 		bg.camera.fov = 55.0
 
@@ -65,18 +65,18 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	#    开场 0.5 → logo 微亮 0.35（"周边露出较亮的太阳光芒"）→ 中线回压 0.45
 	#    → 双路 0.5 → Boss 入场 0.6（片律之妖现身，最压抑）
 	tl.at(7.0).do(func():
-		_fog_to_density(0.35, 6.0)
+		_fog_to_density(0.035, 6.0)
 		_sun.set_glow(1.35)
 	)
 	tl.at(11.0).do(func():
-		_fog_to_density(0.45, 4.0)
+		_fog_to_density(0.05, 4.0)
 	)
 	tl.at(17.0).do(func():
-		_fog_to_density(0.5, 4.0)
+		_fog_to_density(0.06, 4.0)
 		_sun.set_glow(1.0)
 	)
 	tl.at(35.0).do(func():
-		_fog_to_density(0.6, 4.0)
+		_fog_to_density(0.09, 4.0)
 		_sun.set_glow(0.55)  # 漏光减弱 = 日食加重
 	)
 
