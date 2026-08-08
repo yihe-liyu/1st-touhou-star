@@ -52,6 +52,8 @@ unlocked = true
 script = ExtResource("1")
 music_id = 10
 title = "寂寥记忆界"
+comment = "寂寥记忆界
+４面道中的音乐"
 audio_path = "res://assets/Music/THq01_10.寂寥记忆界.mp3"
 unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
@@ -70,6 +72,8 @@ unlocked = true
 script = ExtResource("1")
 music_id = 17
 title = "朝夕之阳，在远在洋"
+comment = "朝夕之阳，在远在洋
+ＥＸ面道中的音乐"
 audio_path = "res://assets/Music/THq01_17.朝夕之阳，在远在洋.mp3"
 unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
@@ -78,6 +82,8 @@ metadata/_custom_type_script = "uid://be08pe8s61ass"
 script = ExtResource("1")
 music_id = 18
 title = "以空为核，抽丝剥茧"
+comment = "以空为核，抽丝剥茧
+似新存的主题曲"
 audio_path = "res://assets/Music/THq01_18.以空为核，抽丝剥茧.mp3"
 unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
