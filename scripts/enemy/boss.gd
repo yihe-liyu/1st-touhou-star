@@ -16,6 +16,7 @@ var _current_phase: PhaseData
 var _bonus: int = 0
 var _elapsed: float = 0.0
 var _invincible: bool = false
+var _phase_missed: bool = false   # 本阶段内玩家是否 miss 过（东方规则：miss 即失败尝试、miss 后击破不算收取）
 var _open_reduce_left: float = 0.0   # 开局减伤剩余时长（秒）
 var _open_reduce_ratio: float = 0.0  # 开局减伤比例（0~1）
 var _move: CoroutineRunner
@@ -43,6 +44,8 @@ func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	boss_data = data
 	_ctx = p_ctx
 	z_index = LayerConfig.BOSS
+	if not GameEvents.player_death.is_connected(_on_player_death):
+		GameEvents.player_death.connect(_on_player_death)
 	
 	if GameState.is_practice_mode:
 		_stage_id = GameState.practice_stage_id
@@ -82,6 +85,7 @@ func start_phase(data: PhaseData) -> void:
 	for e in data.validate():
 		push_error("Boss.start_phase 配置错误: " + e)
 	_cleared = false
+	_phase_missed = false  # 每阶段独立判定 miss
 	if GameState.is_practice_mode:
 		_phase_index = GameState.practice_phase_index  # 练习：用记录键（正篇阶段序），不递增
 	else:
@@ -179,6 +183,17 @@ func take_damage(damage: float) -> void:
 		_clear_phase(true)
 
 
+## 玩家 miss（正篇）：标记 + 立即记一次失败尝试（东方规则：miss 即挑战失败，即使后续击破也不算收取）
+func _on_player_death() -> void:
+	if GameState.is_practice_mode:
+		return  # 练习 miss 走 _die 逻辑
+	if not _current_phase or _cleared or _phase_missed:
+		return
+	_phase_missed = true
+	if _pid:
+		GameState.record_spell(_pid, false, 0, _elapsed)
+
+
 func _clear_phase(captured: bool) -> void:
 	if _cleared: return
 	_cleared = true
@@ -190,6 +205,8 @@ func _clear_phase(captured: bool) -> void:
 		# 阶段已开始（_pid 已生成）才记录；Ctrl+G 在阶段开始前触发时只跳阶段不落盘
 		if GameState.is_practice_mode:
 			GameState.record_practice(_pid, captured)
+		elif _phase_missed:
+			pass  # miss 时已记失败尝试（attempts+1）；此处不重复、不收
 		else:
 			GameState.record_spell(_pid, captured, _bonus, _elapsed)
 	
