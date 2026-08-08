@@ -1,5 +1,7 @@
 [gd_resource type="Theme" format=3 uid="uid://ui_theme_main_000"]
 
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSerifCN-SemiBold.otf" id="1_font"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxPanel"]
 content_margin_left = 8.0
 content_margin_top = 8.0
@@ -17,6 +19,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [resource]
+Label/fonts/font = ExtResource("1_font")
 Label/colors/font_outline_color = Color(0, 0, 0, 1)
 Label/constants/outline_size = 3
 Label/colors/font_shadow_color = Color(0, 0, 0, 0.55)
