@@ -106,8 +106,12 @@ func _collect_cards() -> void:
 
 
 func _record_of(card: Dictionary) -> SpellRecord:
-	return GameState.spell_book.get_record(card["stage"], card["phase_index"], card["boss_index"],
+	# 记录键不含 uid（同阶段可挂不同 uid 的难度卡）——必须校验记录 uid 与卡一致
+	var r := GameState.spell_book.get_record(card["stage"], card["phase_index"], card["boss_index"],
 		_char_index, _diff_index)
+	if r and r.uid == card["uid"]:
+		return r
+	return null
 
 
 func _total_pages() -> int:
