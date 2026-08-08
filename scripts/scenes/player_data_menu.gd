@@ -169,7 +169,7 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 12)
 	# Ｎｏ.＋全角数字（uid 三位宽：全角空格补位右对齐，不补前导零）
 	var uid_l := Label.new()
-	uid_l.text = _to_full("No.") + _pad_cn(card["uid"], 3)
+	uid_l.text = _to_full("No.") + _pad_cn(_to_full(str(card["uid"])), 3)
 	uid_l.add_theme_font_size_override("font_size", 26)
 	uid_l.add_theme_color_override("font_color", Color(0.72, 0.72, 0.78))
 	uid_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -180,7 +180,7 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 	# 普通模式收取 ***/***（右对齐，不补前导零）
 	var stat_l := Label.new()
 	if rec:
-		stat_l.text = "%s/%s" % [_pad_cn(_to_full(str(rec.captures)), 3), _pad_cn(_to_full(str(rec.attempts)), 3)]
+		stat_l.text = "%s／%s" % [_pad_cn(_to_full(str(rec.captures)), 3), _pad_cn(_to_full(str(rec.attempts)), 3)]
 		stat_l.add_theme_color_override("font_color",
 			Color(1.0, 0.9, 0.5) if rec.captures > 0 else Color(0.72, 0.72, 0.78))
 	else:
