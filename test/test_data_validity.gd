@@ -31,7 +31,7 @@ func test_non_spell_phase_valid():
 
 ## 符卡阶段（黄粱「不可测之梦」spell56）：uid 非 0, 有名字, 血量/时限合法, 挂移动/弹幕脚本
 func test_spell_phase_valid():
-	var phase: PhaseData = load("res://data/stages/stage03/phase/spell56.tres")
+	var phase: PhaseData = load("res://data/stages/stage03B/phase/spell56.tres")
 	assert_not_null(phase, "spell56.tres 应存在")
 	if phase:
 		assert_ne(phase.uid, 0, "符卡 uid 不应为 0")
