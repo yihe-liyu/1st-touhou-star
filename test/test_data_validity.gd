@@ -19,8 +19,8 @@ func test_stage_registry_has_stage1():
 
 ## 非符阶段数据：time_limit > 0, hp > 0（非符无 bonus 是设计模式）
 func test_non_spell_phase_valid():
-	var phase: PhaseData = load("res://data/stages/stage01/phase/non_01.tres")
-	assert_not_null(phase, "non_01.tres 应存在")
+	var phase: PhaseData = load("res://data/stages/stage01/phase/non01.tres")
+	assert_not_null(phase, "non01.tres 应存在")
 	if phase:
 		assert_eq(phase.uid, 0, "非符的 uid 应为 0")
 		assert_gt(phase.hp, 0, "非符 hp 应 > 0")
