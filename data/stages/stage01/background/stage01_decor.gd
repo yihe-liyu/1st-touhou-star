@@ -6,13 +6,6 @@ extends CoroutineScript
 
 const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
-var _sun: EclipseSun = null  # 摄像机平面黑圆遮罩
-
-func _exit_tree() -> void:
-	if _sun and is_instance_valid(_sun):
-		_sun.queue_free()
-		_sun = null
-
 
 func _ready() -> void:
 	_reset_environment()
@@ -34,14 +27,6 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	
 	_reset_environment()
 	_setup_eclipse_sky()
-	# 摄像机平面黑圆遮罩（覆在眼睛上——盖住光斑中心露边缘漏光）
-	var layer := CanvasLayer.new()
-	layer.layer = 5
-	layer.name = "EclipseSunLayer"
-	bg.get_viewport().add_child(layer)
-	_sun = EclipseSun.new()
-	_sun.set_center(Vector2(300, 160))
-	layer.add_child(_sun)
 	ctx.decor.add_layer(OAK_LAYER)
 	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 	
