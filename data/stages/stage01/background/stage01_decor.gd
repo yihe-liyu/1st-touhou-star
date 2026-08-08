@@ -59,33 +59,26 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	super.start(ctx, target)
 
 
-## 伪日食天空：ProceduralSkyMaterial（引擎内置光斑，内部 shader 确认有 sun_angle 逻辑）
-## 关键：DirectionalLight3D.sky_mode 默认 LIGHT_ONLY 不驱动天空——必须设 LIGHT_AND_SKY！
+## 伪日食天空：sky shader（官方文档入口 void sky() + out vec3 COLOR + EYEDIR + LIGHT0_*）
+## 关键：DirectionalLight3D.sky_mode 默认 LIGHT_ONLY 不驱动天空——用 SKY_ONLY（只驱动天空不照场景）
 ## fog_sky_affect=0 → 雾不盖天空；相机 6s 抬起后可见
 func _setup_eclipse_sky() -> void:
 	var env := bg.world_environment.environment
 	if not env:
 		return
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.09, 0.10, 0.13)      # 暗蓝灰（压抑）
-	sky_mat.sky_horizon_color = Color(0.22, 0.23, 0.28)
-	sky_mat.sky_curve = 0.06
-	sky_mat.ground_bottom_color = Color(0.02, 0.02, 0.04)
-	sky_mat.ground_horizon_color = Color(0.15, 0.15, 0.19)
-	sky_mat.energy_multiplier = 0.55
-	sky_mat.sun_angle_max = 9.0                           # 光斑角半径（小=紧凑的斑）
-	sky_mat.sun_curve = 0.35
+	var sky_mat := ShaderMaterial.new()
+	sky_mat.shader = preload("res://gdshader/eclipse_sky.gdshader")
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
 	env.fog_sky_affect = 0.0
-	# 太阳方向（LIGHT0_DIRECTION=太阳在光来向：light -Z 朝下 7°、偏后 15° → 太阳左前上方地平线）
+	# 太阳方向（LIGHT0_DIRECTION=光传播方向：light -Z 指左前上方 → 太阳在左前上方地平线）
 	bg.setup_sun()
 	if bg.sun_light:
-		bg.sun_light.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_AND_SKY
+		bg.sun_light.sky_mode = DirectionalLight3D.SKY_MODE_SKY_ONLY
 		bg.sun_light.light_color = Color(0.92, 0.95, 1.0)
-	bg.set_sun_rotation(Vector3(deg_to_rad(-7.0), deg_to_rad(-15.0), 0.0))
+	bg.set_sun_rotation(Vector3(deg_to_rad(7.0), deg_to_rad(-15.0), 0.0))
 	bg.set_sun_energy(2.0)
 
 
