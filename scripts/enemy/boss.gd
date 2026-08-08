@@ -82,7 +82,10 @@ func start_phase(data: PhaseData) -> void:
 	for e in data.validate():
 		push_error("Boss.start_phase 配置错误: " + e)
 	_cleared = false
-	_phase_index += 1
+	if GameState.is_practice_mode:
+		_phase_index = GameState.practice_phase_index  # 练习：用记录键（正篇阶段序），不递增
+	else:
+		_phase_index += 1
 	_current_phase = data
 	_elapsed = 0.0
 	_bonus = data.bonus

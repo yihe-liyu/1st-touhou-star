@@ -59,16 +59,18 @@ var practice_phase: PhaseData        ## 练习阶段配置（来自符卡记录�
 var practice_boss_scene: PackedScene ## 练习 Boss 视觉（来自符卡记录）
 var practice_name: String            ## 显示名
 var practice_stage_id: int = 1
+var practice_phase_index: int = 0  ## 练习阶段的记录键 phase_index（正篇阶段序）
 var practice_background: PackedScene
 var restarting: bool = false  ## 练习模式重开标志（公开：菜单/场景需要读写）
 
 
-func start_practice(phase: PhaseData, boss_scene: PackedScene, p_name: String, stage_id: int) -> void:
+func start_practice(phase: PhaseData, boss_scene: PackedScene, p_name: String, stage_id: int, phase_index: int = 0) -> void:
 	is_practice_mode = true
 	practice_phase = phase
 	practice_boss_scene = boss_scene
 	practice_name = p_name
 	practice_stage_id = stage_id
+	practice_phase_index = phase_index
 	practice_background = _find_stage_background(stage_id)
 
 

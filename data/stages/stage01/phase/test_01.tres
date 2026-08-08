@@ -12,4 +12,7 @@ time_limit = 40.0
 hp = 4000
 move_script = ExtResource("1_q0rqa")
 shoot_script = ExtResource("3_shoot")
+item_power = 25
+item_point = 25
+item_life = 1
 open_reduce_time = 3.0

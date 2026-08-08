@@ -462,7 +462,7 @@ func _start_practice() -> void:
 
 	print("练习: %s 难度: %s" % [rec.name, diff_name(diff)])
 	var boss_label: String = rec.boss_name if rec.boss_name != "" else rec.name
-	GameState.start_practice(rec.phase_data, rec.boss_scene, boss_label, rec.stage)
+	GameState.start_practice(rec.phase_data, rec.boss_scene, boss_label, rec.stage, rec.phase_index)
 	AudioManager.stop_bgm()
 	_on_leave()
 	GameManager.change_scene("res://scenes/game_scene.tscn")
