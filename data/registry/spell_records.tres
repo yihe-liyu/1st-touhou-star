@@ -44,6 +44,17 @@ phase_data = ExtResource("4_ve3lw")
 practice_attempts = 2
 practice_captures = 1
 
+[sub_resource type="Resource" id="Resource_tw1tw"]
+script = ExtResource("1_nyj52")
+uid = 303
+stage = 99
+phase_index = 7
+phase_type = 1
+phase_number = 2
+name = "黄粱"
+practice_attempts = 2
+practice_captures = 1
+
 [resource]
 script = ExtResource("1")
-records = Array[ExtResource("1_nyj52")]([SubResource("Resource_plj11"), SubResource("Resource_02on7"), SubResource("Resource_ve3lw")])
+records = Array[ExtResource("1_nyj52")]([SubResource("Resource_plj11"), SubResource("Resource_02on7"), SubResource("Resource_ve3lw"), SubResource("Resource_tw1tw")])

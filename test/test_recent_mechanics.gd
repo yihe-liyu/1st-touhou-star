@@ -121,29 +121,35 @@ func test_practice_label_prefers_boss_name():
 
 func test_practice_miss_records_failure():
 	# 练习 miss：practice_attempts+1、captures 不加（防重复：击破路径 _cleared=true 已记）
+	# 用独立键（stage=99）避免撞真实持久记录；手动预建记录模拟"已解锁"
+	GameState.selected_character = 0
+	GameState.selected_difficulty = 1
 	var phase := PhaseData.new()
 	phase.uid = 303
 	phase.name = "黄粱"
 	phase.hp = 1000
 	phase.time_limit = 10.0
+	var book: SpellRecordBook = GameState.spell_book
+	book.get_or_create(99, 7, 0, 0, 1, 303, 1, 2, "黄粱")
 	GameState.is_practice_mode = true
-	GameState.start_practice(phase, null, "卡摩瑞", 1, 1)
+	GameState.start_practice(phase, null, "卡摩瑞", 99, 7)
 	var boss = load("res://scripts/enemy/boss.gd").new()
 	add_child(boss)
+	boss._stage_id = 99  # 裸 new() 无 setup，直设（spawn_boss 会走 setup 自动取 practice_stage_id）
 	boss.start_phase(phase)
 	# 先记录一次击破（_cleared=true）
 	boss._invincible = false
 	boss.take_damage(99999.0)
-	var book: SpellRecordBook = GameState.spell_book
-	var r := book.get_record(1, 1, 0, 0, 1)
+	var r := book.get_record(99, 7, 0, 0, 1)
 	assert_eq(r.practice_attempts, 1, "击破记 1 次尝试")
 	assert_eq(r.practice_captures, 1, "击破记 1 次收取")
 	# miss：新 Boss（未击破）→ die() → 失败尝试
 	var boss2 = load("res://scripts/enemy/boss.gd").new()
 	add_child(boss2)
+	boss2._stage_id = 99
 	boss2.start_phase(phase)
 	boss2.die()
-	var r2 := book.get_record(1, 1, 0, 0, 1)
+	var r2 := book.get_record(99, 7, 0, 0, 1)
 	assert_eq(r2.practice_attempts, 2, "miss 后再 +1（共 2 次）")
 	assert_eq(r2.practice_captures, 1, "miss 不加收取")
 	GameState.is_practice_mode = false
