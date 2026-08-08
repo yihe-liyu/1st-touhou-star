@@ -135,16 +135,23 @@ func _render() -> void:
 
 
 
+## 全角空格（U+3000）左补到 width 字符宽（不补前导零；对齐靠全角空格，不硬调 Label 宽度）
+func _pad_cn(v: int, width: int) -> String:
+	var s := str(v)
+	while s.length() < width:
+		s = "　" + s
+	return s
+
+
 func _make_row(card: Dictionary) -> HBoxContainer:
 	var rec := _record_of(card)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
-	# No.***（uid，三位宽右对齐，不补前导零）
+	# No.***（uid 三位宽：数字前全角空格补位右对齐，不补前导零）
 	var uid_l := Label.new()
-	uid_l.text = "No.%d" % card["uid"]
+	uid_l.text = "No." + _pad_cn(card["uid"], 3)
 	uid_l.add_theme_font_size_override("font_size", 26)
 	uid_l.add_theme_color_override("font_color", Color(0.72, 0.72, 0.78))
-	uid_l.custom_minimum_size = Vector2(88, 0)
 	uid_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	var name_l := Label.new()
 	name_l.text = card["name"]
@@ -153,7 +160,7 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 	# 普通模式收取 ***/***（右对齐，不补前导零）
 	var stat_l := Label.new()
 	if rec:
-		stat_l.text = "%d/%d" % [rec.captures, rec.attempts]
+		stat_l.text = "%s/%s" % [_pad_cn(rec.captures, 3), _pad_cn(rec.attempts, 3)]
 		stat_l.add_theme_color_override("font_color",
 			Color(1.0, 0.9, 0.5) if rec.captures > 0 else Color(0.72, 0.72, 0.78))
 	else:
@@ -161,7 +168,6 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 		stat_l.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	stat_l.add_theme_font_size_override("font_size", 26)
 	stat_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	stat_l.custom_minimum_size = Vector2(120, 0)  # 三位宽（3位+斜杠+3位），右对齐个位对齐
 	row.add_child(uid_l)
 	row.add_child(name_l)
 	row.add_child(stat_l)
