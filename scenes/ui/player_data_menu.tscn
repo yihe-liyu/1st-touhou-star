@@ -47,9 +47,10 @@ anchors_preset = -1
 anchor_top = 0.18
 anchor_right = 0.45
 anchor_bottom = 0.88
-offset_left = 30.0
-offset_top = 46.199997
-offset_bottom = -0.7999878
+offset_left = 64.0
+offset_top = 27.199997
+offset_right = -256.0
+offset_bottom = -12.799988
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -57,13 +58,3 @@ theme_override_styles/panel = SubResource("StyleBoxLeft")
 
 [node name="ListContainer" type="VBoxContainer" parent="LeftPanel" unique_id=1919758271]
 layout_mode = 2
-
-[node name="Hint" type="Label" parent="." unique_id=1362271270]
-layout_mode = 0
-anchor_top = 0.88
-anchor_right = 1.0
-anchor_bottom = 0.95
-theme_override_font_sizes/font_size = 16
-text = "↑↓ Select | Z: Open | X: Back"
-horizontal_alignment = 1
-vertical_alignment = 1

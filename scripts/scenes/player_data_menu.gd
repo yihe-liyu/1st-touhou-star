@@ -52,8 +52,12 @@ func _on_enter() -> void:
 
 
 func _on_item_selected(index: int) -> void:
-	# 占位：功能后续接入（分数排行/符卡记录/奖杯页面）
-	print("[PlayerDataMenu] 选择：%s" % OPTIONS[index]["zh"])
+	match index:
+		1:
+			GameManager.push_page("res://scenes/ui/spellcard_record_menu.tscn")
+		_:
+			# 占位：分数排行/奖杯 后续接入
+			print("[PlayerDataMenu] 选择：%s" % OPTIONS[index]["zh"])
 
 
 func _on_cancel() -> void:
