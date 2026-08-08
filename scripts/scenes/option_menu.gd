@@ -6,7 +6,7 @@ const ITEMS: Array[Dictionary] = [
 	{"key": "volume_bgm", "zh": "ＢＧＭ音量", "type": "range", "min": 0.0, "max": 1.0, "step": 0.1, "def": 1.0},
 	{"key": "volume_sfx", "zh": "ＳＥ音量",  "type": "range", "min": 0.0, "max": 1.0, "step": 0.1, "def": 0.7},
 	{"key": "fullscreen", "zh": "全屏",     "type": "toggle", "def": false},
-	{"key": "max_fps", "zh": "帧率上限", "type": "choice", "choices": [60, 120, 144, 0], "def": 60},
+	{"key": "max_fps", "zh": "渲染帧率", "type": "choice", "choices": [60, 120, 144, 0], "def": 60},
 ]
 
 const HIGHLIGHT := Color.WHITE
