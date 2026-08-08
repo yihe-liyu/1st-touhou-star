@@ -47,9 +47,10 @@ anchors_preset = -1
 anchor_top = 0.18
 anchor_right = 0.45
 anchor_bottom = 0.88
-offset_left = 30.0
-offset_top = 46.199997
-offset_bottom = -0.7999878
+offset_left = 64.0
+offset_top = 19.199997
+offset_right = -256.0
+offset_bottom = -4.799988
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -59,11 +60,11 @@ theme_override_styles/panel = SubResource("StyleBoxLeft")
 layout_mode = 2
 
 [node name="RecordView" type="Control" parent="." unique_id=1936456073]
-layout_mode = 0
+visible = false
+anchors_preset = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-visible = false
 
 [node name="Header" type="HBoxContainer" parent="RecordView" unique_id=815446670]
 layout_mode = 1
@@ -79,20 +80,20 @@ alignment = 1
 
 [node name="CharLabel" type="Label" parent="RecordView/Header" unique_id=1919758272]
 layout_mode = 2
-text = "← 博丽灵梦 →"
 theme_override_font_sizes/font_size = 24
+text = "← 博丽灵梦 →"
 
 [node name="Sep" type="Label" parent="RecordView/Header" unique_id=1919758273]
 layout_mode = 2
-text = "  ·  "
-theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.72, 0.72, 0.78, 1)
+theme_override_font_sizes/font_size = 24
+text = "  ·  "
 
 [node name="DiffLabel" type="Label" parent="RecordView/Header" unique_id=1919758274]
 layout_mode = 2
-text = "Normal"
-theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 24
+text = "Normal"
 
 [node name="RecordPanel" type="PanelContainer" parent="RecordView" unique_id=815446671]
 layout_mode = 1
@@ -116,18 +117,8 @@ layout_mode = 0
 anchor_top = 0.85
 anchor_right = 1.0
 anchor_bottom = 0.92
-theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.72, 0.72, 0.78, 1)
+theme_override_font_sizes/font_size = 18
 text = "Z 翻页  1/1"
 horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="Hint" type="Label" parent="." unique_id=1362271270]
-layout_mode = 0
-anchor_top = 0.88
-anchor_right = 1.0
-anchor_bottom = 0.95
-theme_override_font_sizes/font_size = 16
-text = "↑↓ Select | Z: Open | X: Back"
-horizontal_alignment = 1
 vertical_alignment = 1

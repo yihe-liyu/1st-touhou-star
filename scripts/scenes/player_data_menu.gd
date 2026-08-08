@@ -66,7 +66,6 @@ func _show_record_view() -> void:
 	_stop_pulse()
 	$"LeftPanel".visible = false
 	$RecordView.visible = true
-	$Hint.text = "←→ 角色 | ↑↓ 难度 | Z 翻页 | X: Back"
 	_update_header()
 	_render()
 
@@ -75,8 +74,9 @@ func _hide_record_view() -> void:
 	_view = View.OPTIONS
 	$RecordView.visible = false
 	$"LeftPanel".visible = true
-	$Hint.text = "↑↓ Select | Z: Open | X: Back"
 	_nav_enabled = true
+	# 冷却：同帧 _input 已处理 cancel，挡住 NavPage._process 的重复 cancel（否则直接退出页面）
+	_last_accept_time = Time.get_ticks_msec() / 1000.0
 	if _nav_index >= 0 and _nav_index < _nav_items.size():
 		_start_pulse(_nav_items[_nav_index])
 
