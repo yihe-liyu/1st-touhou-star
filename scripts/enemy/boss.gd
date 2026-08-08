@@ -117,6 +117,7 @@ func start_phase(data: PhaseData) -> void:
 		_pid.boss_name = boss_data.boss_name  # Boss 名（左上角显示用）
 	if not GameState.is_practice_mode:
 		GameState.unlock_spell(_pid)
+		GameState.record_spell(_pid, false, 0, 0.0)  # 进入符卡即记一次尝试（挑战开始）
 	
 	if data.name != "":
 		GameEvents.phase_start.emit(data)
@@ -183,15 +184,13 @@ func take_damage(damage: float) -> void:
 		_clear_phase(true)
 
 
-## 玩家 miss（正篇）：标记 + 立即记一次失败尝试（东方规则：miss 即挑战失败，即使后续击破也不算收取）
+## 玩家 miss（正篇）：只标记——东方规则：miss 后击破不算收取（尝试次数已在进入阶段时记过）
 func _on_player_death() -> void:
 	if GameState.is_practice_mode:
 		return  # 练习 miss 走 _die 逻辑
 	if not _current_phase or _cleared or _phase_missed:
 		return
 	_phase_missed = true
-	if _pid:
-		GameState.record_spell(_pid, false, 0, _elapsed)
 
 
 func _clear_phase(captured: bool) -> void:
@@ -205,10 +204,9 @@ func _clear_phase(captured: bool) -> void:
 		# 阶段已开始（_pid 已生成）才记录；Ctrl+G 在阶段开始前触发时只跳阶段不落盘
 		if GameState.is_practice_mode:
 			GameState.record_practice(_pid, captured)
-		elif _phase_missed:
-			pass  # miss 时已记失败尝试（attempts+1）；此处不重复、不收
-		else:
-			GameState.record_spell(_pid, captured, _bonus, _elapsed)
+		elif captured and not _phase_missed:
+			# 干净收取：attempts 已在进入阶段时记过，这里只补收取
+			GameState.record_capture(_pid, _bonus, _elapsed)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

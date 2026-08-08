@@ -167,6 +167,11 @@ func record_spell(pid: PhaseIdentity, captured: bool, score: int, elapsed: float
 	spell_book_mgr.record_spell(pid, captured, score, elapsed)
 
 
+## 补记一次收取（委托）
+func record_capture(pid: PhaseIdentity, score: int, elapsed: float) -> void:
+	spell_book_mgr.record_capture(pid, score, elapsed)
+
+
 ## 记录一次练习尝试（委托）
 func record_practice(pid: PhaseIdentity, captured: bool) -> void:
 	spell_book_mgr.record_practice(pid, captured)

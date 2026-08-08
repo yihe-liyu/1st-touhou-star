@@ -74,6 +74,20 @@ func record_attempt(stage: int, phase_index: int, boss_index: int, character: in
 				r.best_time = elapsed
 
 
+## 补记一次收取（attempts 已在进入阶段时记过——只加 captures + 更新最佳成绩）
+func record_capture(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int,
+		score: int, elapsed: float) -> void:
+	var r := get_record(stage, phase_index, boss_index, character, difficulty)
+	if not r:
+		return
+	r.captures += 1
+	if score > r.best_score:
+		r.best_score = score
+	if elapsed > 0:
+		if r.best_time == 0 or elapsed < r.best_time:
+			r.best_time = elapsed
+
+
 func record_practice(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int,
 		captured: bool) -> void:
 	var r := get_record(stage, phase_index, boss_index, character, difficulty)

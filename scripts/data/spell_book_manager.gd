@@ -43,6 +43,13 @@ func record_spell(pid: PhaseIdentity, captured: bool, score: int, elapsed: float
 	save()
 
 
+## 补记一次收取（进入阶段时已记尝试）
+func record_capture(pid: PhaseIdentity, score: int, elapsed: float) -> void:
+	spell_book.record_capture(pid.stage_id, pid.phase_index, pid.boss_index, pid.character, pid.difficulty,
+		score, elapsed)
+	save()
+
+
 ## 记录一次练习尝试
 func record_practice(pid: PhaseIdentity, captured: bool) -> void:
 	spell_book.record_practice(pid.stage_id, pid.phase_index, pid.boss_index, pid.character, pid.difficulty, captured)
