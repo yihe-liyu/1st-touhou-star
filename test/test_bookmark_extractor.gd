@@ -11,7 +11,7 @@ func start(ctx):
 	var tl := start_timeline()
 	tl.at(0.0).play_bgm(bgm)
 	tl.at(7.0).do(func(): pass)
-	tl.at(35.0).phase(func(): return null, phase)
+	tl.at(35.0).start_phase(func(): return null, phase)
 	tl.wait(2.0).do(func(): pass)  # 不应被提取
 	"""
 	var bm := Extractor.extract_from_script(script)

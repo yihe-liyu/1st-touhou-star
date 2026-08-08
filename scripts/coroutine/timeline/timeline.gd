@@ -67,7 +67,8 @@ func wait(n: float) -> Timeline:
 
 
 ## 启动 Boss 阶段 + 冻结时间直到击破/超时
-func phase(boss_getter: Callable, data: PhaseData) -> Timeline:
+## 注意：与 BossData.phase()（静态声明 Boss 有哪些阶段）区分——这里是运行驱动"此刻进入该阶段"
+func start_phase(boss_getter: Callable, data: PhaseData) -> Timeline:
 	return do(func():
 		var boss := boss_getter.call() as Boss
 		boss.start_phase(data)

@@ -7,8 +7,11 @@ const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
 const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
 const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
 const NON_01 = preload("res://data/stages/stage01/phase/non_01.tres")
-## 黄粱「不可测之梦」——第一阶段 Boss 符卡（uid=303）
-const TEST_01 = preload("res://data/stages/stage01/phase/test_01.tres")
+
+const SPELL03 = [preload("res://data/stages/stage03/phase/spell53.tres"),\
+				preload("res://data/stages/stage03/phase/spell53.tres"),\
+				preload("res://data/stages/stage03/phase/spell55.tres"),\
+				preload("res://data/stages/stage03/phase/spell56.tres")]
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
@@ -92,7 +95,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		)
 
 	# ── Boss ──
-	var kamorui := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_01).phase(TEST_01)
+	var kamorui := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_01).phase(diff_pick(SPELL03))
 	var boss_holder := [null]
 
 	tl.at(35.0).do(func():
@@ -104,9 +107,9 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	)
 
 	# 非符 1 (Timeline 冻结中，等击破)
-	tl.at(38.0).phase(func(): return boss_holder[0], NON_01)
+	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_01)
 	# ← 非符1 被击破后 1s → 黄粱「不可测之梦」（phase 继承 wait 偏移，击破后激活）
-	tl.wait(1.0).phase(func(): return boss_holder[0], TEST_01)
+	tl.wait(1.0).start_phase(func(): return boss_holder[0], diff_pick(SPELL03))
 	# ← 测试符卡被击破后 2s → 退场
 	tl.wait(2.0).do(func():
 		var b := boss_holder[0] as Boss

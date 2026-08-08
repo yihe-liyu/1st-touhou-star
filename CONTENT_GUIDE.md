@@ -8,7 +8,7 @@
 
 1. 在 Godot 编辑器里打开 `data/stages/stage01/stage_script/stage01.gd`（Timeline 编排）
 2. 加 `tl.at(时刻).do(func(): EnemyData.new().with_script(...).pos(...).spawn(ctx))`
-   或给 Boss 加阶段（`BossData.new().phase(...)` + `tl.phase(...)` 阶段链）
+   或给 Boss 加阶段（`BossData.new().phase(...)` + `tl.start_phase(...)` 阶段链）
 3. F6 运行工作台 → 命中框/固定种子/逐帧看效果；改完代码**重启工作台**生效
 4. 弹幕脚本（`data/boss_scripts/`）改完同样重启工作台看
 
@@ -48,8 +48,8 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		.pos(Vector2(...)).red_little_fairy().param("target_y", 200).spawn(ctx))
 	# Boss + 阶段链（phase 击破后 Timeline 冻结 → 击破继续 → 激活下一个 wait 事件）
 	tl.at(35.0).do(func(): boss_holder[0] = StageManager.spawn_boss(kamorui, ...))
-	tl.at(38.0).phase(func(): return boss_holder[0], NON_01)
-	tl.wait(1.0).phase(func(): return boss_holder[0], TEST_01)   # 非符1 击破后 1s 进测试
+	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_01)
+	tl.wait(1.0).start_phase(func(): return boss_holder[0], TEST_01)   # 非符1 击破后 1s 进测试
 	tl.wait(2.0).do(func(): 退场)
 	super.start(ctx, target)
 ```
@@ -57,7 +57,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 Timeline 链式 API：`at(t)` 绝对时刻 · `wait(n)` 相对上一 blocking 结束 · `do(cb)` 任意逻辑 ·
 `phase(getter, PhaseData)` 起阶段并冻结直到击破 · `every(times)` 重复 · `play_bgm/spawn_enemy/spawn_boss` 快捷。
 
-> ⚠️ phase 链注意：`wait()` 后接 `phase()` 必须直接链（`tl.wait(1.0).phase(...)`），
+> ⚠️ start_phase 链注意：`wait()` 后接 `start_phase()` 必须直接链（`tl.wait(1.0).start_phase(...)`），
 > 中间插 `do(pass)` 会破坏 wait 偏移继承（阶段会立即触发）。
 
 ---
