@@ -22,11 +22,12 @@ float noise(vec2 p) {
 }
 
 void fragment() {
-	// EULER（弧度欧拉）→ 世界方向
+	// EULER（弧度欧拉）→ 世界方向（先赋 vec3 再访问，此 fork 直接成员访问会误报）
+	vec3 euler = EULER;
 	vec3 rd = normalize(vec3(
-			cos(EULER.x) * sin(EULER.y),
-			sin(EULER.x),
-			-cos(EULER.x) * cos(EULER.y)));
+			cos(euler.x) * sin(euler.y),
+			sin(euler.x),
+			-cos(euler.x) * cos(euler.y)));
 	// 天色：地平线稍亮、天顶暗（压抑）
 	float h = clamp(rd.y, 0.0, 1.0);
 	vec3 col = mix(vec3(0.20, 0.21, 0.25), vec3(0.08, 0.09, 0.12), pow(h, 0.55));
