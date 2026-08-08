@@ -6,13 +6,24 @@ extends CoroutineScript
 
 const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
-var _sun: EclipseSun = null  # 伪日食太阳（2D 叠 3D 上，不受雾衰减）
+var _sun: EclipseSun = null    # 伪日食遮罩（摄像机平面黑圆）
+var _sun_3d: MeshInstance3D = null  # 3D 发光球本体（挂相机，fog_disabled 不被雾吃）
 
 
 func _ready() -> void:
 	_reset_environment()
 	# Boss 击破 → 回光（雾散 + 漏光增强）——片律之妖的日食幻觉消退
 	GameEvents.phase_end.connect(_on_phase_end)
+
+
+func _exit_tree() -> void:
+	# 重跑/销毁清理：球挂相机、遮罩挂 viewport，都要手动释放
+	if _sun_3d and is_instance_valid(_sun_3d):
+		_sun_3d.queue_free()
+		_sun_3d = null
+	if _sun and is_instance_valid(_sun):
+		_sun.queue_free()
+		_sun = null
 
 
 func _on_phase_end(_captured: bool, _bonus: int) -> void:
@@ -39,13 +50,26 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx.decor.add_layer(OAK_LAYER)
 	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 
-	# 伪日食太阳：CanvasLayer 叠在 3D 背景上（2D 不受 3D 雾衰减，黑圆+亮环恒定可见）
+	# 伪日食：3D 发光球（挂相机，fog_disabled 恒定亮度——远处也不被雾吃）
+	_sun_3d = MeshInstance3D.new()
+	_sun_3d.name = "EclipseSun3D"
+	var sphere := SphereMesh.new()
+	sphere.radius = 8.0
+	sphere.height = 16.0
+	var smat := ShaderMaterial.new()
+	smat.shader = preload("res://gdshader/sun_sphere.gdshader")
+	sphere.material = smat
+	_sun_3d.mesh = sphere
+	_sun_3d.position = Vector3(0, -3, -85)  # 相机局部：贴视野上缘（地平线附近的太阳）
+	bg.camera.add_child(_sun_3d)
+
+	# 遮罩：摄像机平面黑圆（覆在眼睛上），盖住球中心、边缘露一圈漏光
 	var layer := CanvasLayer.new()
 	layer.layer = 5
 	layer.name = "EclipseSunLayer"
 	bg.get_viewport().add_child(layer)
 	_sun = EclipseSun.new()
-	_sun.set_center(Vector2(742, 100))
+	_sun.set_center(Vector2(384, 412))
 	layer.add_child(_sun)
 
 	var tl := start_timeline()

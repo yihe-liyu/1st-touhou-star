@@ -1,18 +1,20 @@
 extends ColorRect
 class_name EclipseSun
-## 伪日食太阳 —— CanvasItem shader（叠 3D 背景上，不受雾衰减）
-## 不规则黑圆（noise 扰动边缘）+ 指数衰减金色漏光 + 日冕光晕
-## set_glow(v)：0=全食只剩轮廓 / 1=常态 / 2=回光
+## 伪日食遮罩 —— CanvasItem shader（叠 3D 发光球上，摄像机平面）
+## 黑色遮住太阳大部分光（"覆在眼睛上"），边缘一圈漏光
+## set_glow(v)：0=日全食只剩轮廓 / 1=常态 / 2=回光
 
 const SHADER = preload("res://gdshader/eclipse_sun.gdshader")
 
 var glow: float = 1.0
 
 func _init() -> void:
-	size = Vector2(200, 200)
+	size = Vector2(220, 220)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	material = ShaderMaterial.new()
-	(material as ShaderMaterial).shader = SHADER
+	var m := material as ShaderMaterial
+	m.shader = SHADER
+	m.set_shader_parameter("radius", 0.30)  # 黑圆 132px ≈ 盖住 3D 球中心、边缘露一圈漏光
 	set_glow(glow)
 
 ## 设置太阳中心位置（自动换算 rect 左上角）
