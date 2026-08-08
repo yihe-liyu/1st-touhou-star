@@ -119,7 +119,6 @@ func _process(delta: float) -> void:
 		g.entries = alive
 		g.entries.sort_custom(func(a, b): return a.position.z < b.position.z)
 		_flush_mm(g)
-		_flush_mm(g)
 
 
 # ═══ 内部 ═══
