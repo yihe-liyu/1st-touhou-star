@@ -97,7 +97,7 @@ func _collect_cards() -> void:
 		seen[key] = true
 		_cards.append({
 			"stage": r.stage, "phase_index": r.phase_index, "boss_index": r.boss_index,
-			"name": r.name,
+			"uid": r.uid, "name": r.name,
 		})
 	_cards.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return a["stage"] < b["stage"] or (a["stage"] == b["stage"] and a["phase_index"] < b["phase_index"]))
@@ -139,10 +139,18 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 	var rec := _record_of(card)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
+	# No.***（uid，三位宽右对齐，不补前导零）
+	var uid_l := Label.new()
+	uid_l.text = "No.%d" % card["uid"]
+	uid_l.add_theme_font_size_override("font_size", 26)
+	uid_l.add_theme_color_override("font_color", Color(0.72, 0.72, 0.78))
+	uid_l.custom_minimum_size = Vector2(88, 0)
+	uid_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	var name_l := Label.new()
 	name_l.text = card["name"]
 	name_l.add_theme_font_size_override("font_size", 26)
 	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 普通模式收取 ***/***（右对齐，不补前导零）
 	var stat_l := Label.new()
 	if rec:
 		stat_l.text = "%d/%d" % [rec.captures, rec.attempts]
@@ -153,6 +161,8 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 		stat_l.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	stat_l.add_theme_font_size_override("font_size", 26)
 	stat_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	stat_l.custom_minimum_size = Vector2(110, 0)
+	row.add_child(uid_l)
 	row.add_child(name_l)
 	row.add_child(stat_l)
 	return row

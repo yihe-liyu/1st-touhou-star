@@ -86,12 +86,12 @@ layout_mode = 2
 
 [node name="Header" type="HBoxContainer" parent="RecordView" unique_id=815446670]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = -1
 anchor_left = 0.68
 anchor_right = 0.68
-offset_left = -64.0
+offset_left = -286.40002
 offset_top = 192.0
-offset_right = 384.0
+offset_right = 153.59998
 offset_bottom = 232.0
 grow_horizontal = 2
 alignment = 1
