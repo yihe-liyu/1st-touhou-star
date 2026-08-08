@@ -146,6 +146,10 @@ func _to_full(s: String) -> String:
 			out += char(code - 65 + 0xFF21)      # A-Z → Ａ-Ｚ
 		elif code >= 97 and code <= 122:
 			out += char(code - 97 + 0xFF41)      # a-z → ａ-ｚ
+		elif code == 46:
+			out += "．"                          # . → ．(U+FF0E)
+		elif code == 47:
+			out += "／"                          # / → ／(U+FF0F)
 		else:
 			out += s[i]
 	return out
