@@ -50,7 +50,7 @@ anchor_bottom = 0.88
 offset_left = 64.0
 offset_top = 19.199997
 offset_right = -256.0
-offset_bottom = -4.799988
+offset_bottom = -12.799988
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -66,15 +66,33 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
+[node name="RecordPanel" type="PanelContainer" parent="RecordView" unique_id=815446671]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.32
+anchor_right = 0.85
+anchor_bottom = 0.85
+offset_left = 384.0
+offset_top = -51.19998
+offset_right = 128.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxLeft")
+
+[node name="ListBox" type="VBoxContainer" parent="RecordView/RecordPanel" unique_id=1919758275]
+layout_mode = 2
+
 [node name="Header" type="HBoxContainer" parent="RecordView" unique_id=815446670]
 layout_mode = 1
 anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 195.0
-offset_right = 200.0
-offset_bottom = 235.0
+anchor_left = 0.68
+anchor_right = 0.68
+offset_left = -64.0
+offset_top = 192.0
+offset_right = 384.0
+offset_bottom = 232.0
 grow_horizontal = 2
 alignment = 1
 
@@ -94,31 +112,3 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
 theme_override_font_sizes/font_size = 24
 text = "Normal"
-
-[node name="RecordPanel" type="PanelContainer" parent="RecordView" unique_id=815446671]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.32
-anchor_right = 0.85
-anchor_bottom = 0.85
-offset_left = 96.0
-offset_top = 8.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxLeft")
-
-[node name="ListBox" type="VBoxContainer" parent="RecordView/RecordPanel" unique_id=1919758275]
-layout_mode = 2
-
-[node name="PageLabel" type="Label" parent="RecordView" unique_id=1362271272]
-layout_mode = 0
-anchor_top = 0.85
-anchor_right = 1.0
-anchor_bottom = 0.92
-theme_override_colors/font_color = Color(0.72, 0.72, 0.78, 1)
-theme_override_font_sizes/font_size = 18
-text = "Z 翻页  1/1"
-horizontal_alignment = 2
-vertical_alignment = 1

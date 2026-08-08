@@ -64,7 +64,7 @@ func _show_record_view() -> void:
 	_view = View.RECORD
 	_nav_enabled = false  # 禁 NavPage 导航，改由本页处理角色/难度/Z/X
 	_stop_pulse()
-	$"LeftPanel".visible = false
+	$"LeftPanel".modulate = Color(1, 1, 1, 0.4)  # 选项置灰但保留显示（像练习页面的区块感）
 	$RecordView.visible = true
 	_update_header()
 	_render()
@@ -73,7 +73,7 @@ func _show_record_view() -> void:
 func _hide_record_view() -> void:
 	_view = View.OPTIONS
 	$RecordView.visible = false
-	$"LeftPanel".visible = true
+	$"LeftPanel".modulate = Color.WHITE
 	_nav_enabled = true
 	# 冷却：同帧 _input 已处理 cancel，挡住 NavPage._process 的重复 cancel（否则直接退出页面）
 	_last_accept_time = Time.get_ticks_msec() / 1000.0
@@ -133,10 +133,6 @@ func _render() -> void:
 		for i in range(start, mini(start + PER_PAGE, _cards.size())):
 			box.add_child(_make_row(_cards[i]))
 
-	var pages := _total_pages()
-	$RecordView/PageLabel.visible = pages > 1
-	if pages > 1:
-		$RecordView/PageLabel.text = "Z 翻页  %d/%d" % [min(_page + 1, pages), pages]
 
 
 func _make_row(card: Dictionary) -> HBoxContainer:
