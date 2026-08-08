@@ -73,13 +73,7 @@ func _setup_eclipse_sky() -> void:
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
 	env.fog_sky_affect = 0.0
-	# 太阳方向（LIGHT0_DIRECTION=光传播方向：light -Z 指左前上方 → 太阳在左前上方地平线）
-	bg.setup_sun()
-	if bg.sun_light:
-		bg.sun_light.sky_mode = DirectionalLight3D.SKY_MODE_SKY_ONLY
-		bg.sun_light.light_color = Color(0.92, 0.95, 1.0)
-	bg.set_sun_rotation(Vector3(deg_to_rad(7.0), deg_to_rad(-15.0), 0.0))
-	bg.set_sun_energy(2.0)
+	# 太阳方向在 sky shader 的 sun_dir 常量（不依赖 DirectionalLight——本 fork LIGHT0 阉割风险大）
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
