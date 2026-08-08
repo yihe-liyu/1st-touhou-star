@@ -9,12 +9,14 @@ var spell_book: SpellRecordBook
 
 func load() -> void:
 	spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
-	if spell_book:
-		# 防御：清理幽灵记录并落盘（编辑器旧数据写回的空壳不留）
-		var before: int = spell_book.records.size()
-		spell_book.prune_empty()
-		if spell_book.records.size() != before:
-			save()
+	if not spell_book:
+		spell_book = SpellRecordBook.new()  # 首启无记录文件：空簿，解锁时 save 自建
+		return
+	# 防御：清理幽灵记录并落盘（编辑器旧数据写回的空壳不留）
+	var before: int = spell_book.records.size()
+	spell_book.prune_empty()
+	if spell_book.records.size() != before:
+		save()
 
 
 func save() -> void:

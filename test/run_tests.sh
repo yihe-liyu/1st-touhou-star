@@ -10,12 +10,18 @@ echo "════════════════════════�
 
 # 测试是只读的：备份符卡记录，跑完恢复（测试内 unlock/record 的 save 副作用不落盘）
 RECORDS_BACKUP="$(mktemp)"
-cp "$PWD/data/registry/spell_records.tres" "$RECORDS_BACKUP"
+HAD_RECORDS=0
+if [ -f "$PWD/data/registry/spell_records.tres" ]; then
+	cp "$PWD/data/registry/spell_records.tres" "$RECORDS_BACKUP"
+	HAD_RECORDS=1
+fi
 
 godot --headless --path "$PWD" -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit "$@"
 GUT_EXIT=$?
 
-cp "$RECORDS_BACKUP" "$PWD/data/registry/spell_records.tres"
+if [ "$HAD_RECORDS" = "1" ]; then
+	cp "$RECORDS_BACKUP" "$PWD/data/registry/spell_records.tres"
+fi
 rm -f "$RECORDS_BACKUP"
 
 echo "═══════════════════════════════════════"
