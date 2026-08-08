@@ -45,7 +45,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	layer.name = "EclipseSunLayer"
 	bg.get_viewport().add_child(layer)
 	_sun = EclipseSun.new()
-	_sun.set_center(Vector2(590, 170))
+	_sun.set_center(Vector2(742, 100))
 	layer.add_child(_sun)
 
 	var tl := start_timeline()

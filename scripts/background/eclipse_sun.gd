@@ -9,7 +9,7 @@ const SHADER = preload("res://gdshader/eclipse_sun.gdshader")
 var glow: float = 1.0
 
 func _init() -> void:
-	size = Vector2(320, 320)
+	size = Vector2(200, 200)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	material = ShaderMaterial.new()
 	(material as ShaderMaterial).shader = SHADER
