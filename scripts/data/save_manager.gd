@@ -14,8 +14,9 @@ func load() -> void:
 	_config = ConfigFile.new()
 	if _config.load(SAVE_PATH) != OK:
 		return
-	for key in _config.get_section_keys("high_scores"):
-		high_scores[int(key)] = _config.get_value("high_scores", key)
+	if _config.has_section("high_scores"):
+		for key in _config.get_section_keys("high_scores"):
+			high_scores[int(key)] = _config.get_value("high_scores", key)
 	if _config.has_section(SETTINGS_SECTION):
 		for key in _config.get_section_keys(SETTINGS_SECTION):
 			settings[key] = _config.get_value(SETTINGS_SECTION, key)
