@@ -59,33 +59,19 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	super.start(ctx, target)
 
 
-## 伪日食天空（Godot 原生 Sky：ProceduralSkyMaterial 天色 + DirectionalLight3D 太阳光斑）
-## fog_sky_affect=0 → 雾不盖天空，太阳穿过雾清晰可见（不用 fog_disabled hack）
+## 伪日食天空（sky shader：真 3D 方向域——天色 + 清晰太阳圆斑 + 黑圆遮罩边缘漏光）
+## fog_sky_affect=0 → 雾不盖天空；相机 6s 抬起后可见
 func _setup_eclipse_sky() -> void:
 	var env := bg.world_environment.environment
 	if not env:
 		return
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.09, 0.10, 0.13)      # 暗蓝灰（压抑）
-	sky_mat.sky_horizon_color = Color(0.22, 0.23, 0.28)  # 地平线稍亮
-	sky_mat.sky_curve = 0.06
-	sky_mat.ground_bottom_color = Color(0.02, 0.02, 0.04)
-	sky_mat.ground_horizon_color = Color(0.15, 0.15, 0.19)
-	sky_mat.energy_multiplier = 0.55
-	sky_mat.sun_angle_max = 18.0                          # 太阳光斑角尺寸
-	sky_mat.sun_curve = 0.2
+	var sky_mat := ShaderMaterial.new()
+	sky_mat.shader = preload("res://gdshader/eclipse_sky.gdshader")
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
 	env.fog_sky_affect = 0.0
-	# 太阳方向/亮度（ProceduralSky 光斑由 DirectionalLight3D 驱动；场景地面/树都是 unshaded，不受光照）
-	bg.setup_sun()
-	# 光从前方斜射（默认朝 -Z；光斑显示在光的来向 = 相机左前上方地平线附近）
-	bg.set_sun_rotation(Vector3(deg_to_rad(6.0), deg_to_rad(-18.0), 0.0))
-	bg.set_sun_energy(1.6)
-	if bg.sun_light:
-		bg.sun_light.light_color = Color(0.90, 0.93, 1.0)
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
