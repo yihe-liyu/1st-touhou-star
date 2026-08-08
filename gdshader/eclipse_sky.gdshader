@@ -38,15 +38,21 @@ void sky() {
 		col += sun_tint.rgb * pow(1.0 - e, 1.5) * sun_energy * glow;
 	}
 	// ② 黑雾遮罩：不规则边缘 + 透明度不均匀（斑驳，像雾盖住太阳）
+	//    半径跨过太阳（0.92~1.27×）：部分盖过太阳 → 露出的只是碎亮边，不再有完整白圈
 	float n_low = noise(rd.xy * 22.0);            // 大块云状（透明度斑驳）
 	float n_edge = noise(rd.xy * 55.0 + 13.7);    // 边缘细节（不规则边）
-	float r_black = sun_size * black_ratio * (0.92 + n_low * 0.24);
+	float r_black = sun_size * (0.92 + n_low * 0.35);
 	if (ang < r_black) {
 		// 中心实黑、边缘虚化（shade：离中心越近越实）
-		float shade = clamp((r_black - ang) / (sun_size * 0.28), 0.0, 1.0);
+		float shade = clamp((r_black - ang) / (sun_size * 0.3), 0.0, 1.0);
 		float alpha = mix(0.30, 1.0, shade);
 		alpha *= 0.85 + n_low * 0.15 + n_edge * 0.05;  // 透明度斑驳（中心基本实黑，边缘带不均匀）
 		col = mix(col, vec3(0.008, 0.008, 0.015), clamp(alpha, 0.0, 1.0));
+	} else if (ang < sun_size * 1.4) {
+		// ③ 黑雾边缘漏光：不规则光晕（n 高低不均——不是完整圆环）
+		float t = (ang - r_black) / (sun_size * 1.4 - r_black);
+		col += sun_tint.rgb * pow(1.0 - t, 2.5) * sun_energy * glow
+				* (0.45 + n_low * 0.8) * (1.0 - n_edge * 0.4);
 	}
 	COLOR = col;  // out vec3（官方文档）
 }
