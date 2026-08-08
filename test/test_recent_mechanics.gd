@@ -122,6 +122,8 @@ func test_practice_label_prefers_boss_name():
 func test_practice_miss_records_failure():
 	# 练习 miss：practice_attempts+1、captures 不加（防重复：击破路径 _cleared=true 已记）
 	# 用独立键（stage=99）避免撞真实持久记录；手动预建记录模拟"已解锁"
+	# 备份/还原 book（record_practice 会改 autoload 内存记录；退出时若触发 save 会污染真实文件）
+	var book_backup: Array = GameState.spell_book.records.duplicate(true)
 	GameState.selected_character = 0
 	GameState.selected_difficulty = 1
 	var phase := PhaseData.new()
@@ -153,3 +155,4 @@ func test_practice_miss_records_failure():
 	assert_eq(r2.practice_attempts, 2, "miss 后再 +1（共 2 次）")
 	assert_eq(r2.practice_captures, 1, "miss 不加收取")
 	GameState.is_practice_mode = false
+	GameState.spell_book.records = book_backup  # 还原，防污染持久记录
