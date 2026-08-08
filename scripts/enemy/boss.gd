@@ -44,8 +44,8 @@ func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	boss_data = data
 	_ctx = p_ctx
 	z_index = LayerConfig.BOSS
-	if not GameEvents.player_death.is_connected(_on_player_death):
-		GameEvents.player_death.connect(_on_player_death)
+	if not GameEvents.player_missed.is_connected(_on_player_death):
+		GameEvents.player_missed.connect(_on_player_death)
 	
 	if GameState.is_practice_mode:
 		_stage_id = GameState.practice_stage_id

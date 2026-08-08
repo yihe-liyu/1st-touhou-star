@@ -248,6 +248,9 @@ func miss() -> void:
 	# Miss 后记忆值增加 25%
 	GameState.add_memory(GameState.MEMORY_MISS)
 	
+	# 每次 miss 都通知（boss 判定 miss 后不收；player_death 只在残机 0 发，不能复用）
+	GameEvents.player_missed.emit()
+	
 	# 残机扣除
 	if GameState.lose_life():
 		# 无敌：倒计时 3 秒，_physics_process 自动倒数（不 await，不挂起调用链）
