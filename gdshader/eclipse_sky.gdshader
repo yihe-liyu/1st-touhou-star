@@ -42,9 +42,10 @@ void sky() {
 	float n_edge = noise(rd.xy * 55.0 + 13.7);    // 边缘细节（不规则边）
 	float r_black = sun_size * black_ratio * (0.92 + n_low * 0.24);
 	if (ang < r_black) {
-		float shade = clamp(1.0 - (r_black - ang) / (sun_size * 0.28), 0.0, 1.0);  // 中心实 边缘虚
+		// 中心实黑、边缘虚化（shade：离中心越近越实）
+		float shade = clamp((r_black - ang) / (sun_size * 0.28), 0.0, 1.0);
 		float alpha = mix(0.30, 1.0, shade);
-		alpha *= 0.65 + n_low * 0.5 + n_edge * 0.15;  // 透明度不均匀（黑雾斑驳）
+		alpha *= 0.85 + n_low * 0.15 + n_edge * 0.05;  // 透明度斑驳（中心基本实黑，边缘带不均匀）
 		col = mix(col, vec3(0.008, 0.008, 0.015), clamp(alpha, 0.0, 1.0));
 	}
 	COLOR = col;  // out vec3（官方文档）
