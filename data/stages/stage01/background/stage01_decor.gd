@@ -26,6 +26,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		target = p_target
 	
 	_reset_environment()
+	_setup_eclipse_sky()
 	ctx.decor.add_layer(OAK_LAYER)
 	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 	
@@ -56,6 +57,34 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	)
 
 	super.start(ctx, target)
+
+
+## 伪日食天空（Godot 原生 Sky：ProceduralSkyMaterial 天色 + DirectionalLight3D 太阳光斑）
+## fog_sky_affect=0 → 雾不盖天空，太阳穿过雾清晰可见（不用 fog_disabled hack）
+func _setup_eclipse_sky() -> void:
+	var env := bg.world_environment.environment
+	if not env:
+		return
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color(0.09, 0.10, 0.13)      # 暗蓝灰（压抑）
+	sky_mat.sky_horizon_color = Color(0.22, 0.23, 0.28)  # 地平线稍亮
+	sky_mat.sky_curve = 0.06
+	sky_mat.ground_bottom_color = Color(0.02, 0.02, 0.04)
+	sky_mat.ground_horizon_color = Color(0.15, 0.15, 0.19)
+	sky_mat.energy_multiplier = 0.55
+	sky_mat.sun_angle_max = 14.0                          # 太阳光斑角尺寸
+	sky_mat.sun_curve = 0.25
+	var sky := Sky.new()
+	sky.sky_material = sky_mat
+	env.sky = sky
+	env.background_mode = Environment.BG_SKY
+	env.fog_sky_affect = 0.0
+	# 太阳方向/亮度（ProceduralSky 光斑由 DirectionalLight3D 驱动；场景地面/树都是 unshaded，不受光照）
+	bg.setup_sun()
+	bg.set_sun_rotation(Vector3(deg_to_rad(-6.0), deg_to_rad(-30.0), 0.0))  # 低垂在地平线上方（压抑）
+	bg.set_sun_energy(1.2)
+	if bg.sun_light:
+		bg.sun_light.light_color = Color(0.90, 0.93, 1.0)
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
