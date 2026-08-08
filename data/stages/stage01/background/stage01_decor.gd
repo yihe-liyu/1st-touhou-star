@@ -6,16 +6,18 @@ extends CoroutineScript
 
 const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
-var _sun_3d: MeshInstance3D = null  # 3D 太阳球（挂相机）
-var _fog_3d: MeshInstance3D = null  # 云雾片（挂相机，球前方）
+var _sun_3d: MeshInstance3D = null    # 3D 太阳球（挂相机）
+var _fog_layer: CanvasLayer = null   # 2D 雾层（屏幕空间）
+var _fog_rect: ColorRect = null      # 雾片（对准太阳投影）
 
 func _exit_tree() -> void:
 	if _sun_3d and is_instance_valid(_sun_3d):
 		_sun_3d.queue_free()
 		_sun_3d = null
-	if _fog_3d and is_instance_valid(_fog_3d):
-		_fog_3d.queue_free()
-		_fog_3d = null
+	if _fog_layer and is_instance_valid(_fog_layer):
+		_fog_layer.queue_free()
+		_fog_layer = null
+	_fog_rect = null
 
 
 func _ready() -> void:
@@ -52,6 +54,12 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	tl.at(6.0).do(func():
 		bg.pan_camera(Vector3(0, 20, -3), 8.0, Tween.EASE_IN_OUT, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-22), 0, deg_to_rad(6)), 6.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
+	)
+
+	# 雾淡入（6s 相机抬起、天空可见时）
+	tl.at(6.0).do(func():
+		var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+		t.tween_property(_fog_rect, "modulate:a", 1.0, 2.0)
 	)
 
 	# ③ 地面加速 (10s)
@@ -98,28 +106,32 @@ func _setup_eclipse_sky() -> void:
 	_sun_3d.position = Vector3(0, 18, -90)   # 相机局部：地平线上方天空（6s 相机抬起后可见，屏幕上部 34%）
 	bg.camera.add_child(_sun_3d)
 
-	# 云雾片（挂相机前方 z=-25，盖住太阳中心——FastNoiseLite 云噪声做 alpha）
-	_fog_3d = MeshInstance3D.new()
-	_fog_3d.name = "EclipseFog3D"
-	var quad := QuadMesh.new()
-	quad.size = Vector2(25, 25)
+	# 2D 黑雾（屏幕空间 CanvasLayer——覆在太阳球投影上；6s 相机抬起后淡入）
+	# 太阳球投影（fov 68 相机抬起后）= 屏幕 (384, 294)
+	_fog_layer = CanvasLayer.new()
+	_fog_layer.layer = 5
+	_fog_layer.name = "EclipseFogLayer"
+	bg.get_viewport().add_child(_fog_layer)
+	_fog_rect = ColorRect.new()
+	_fog_rect.size = Vector2(300, 300)
+	_fog_rect.position = Vector2(384 - 150, 294 - 150)
+	_fog_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var fmat := ShaderMaterial.new()
 	fmat.shader = preload("res://gdshader/eclipse_fog.gdshader")
 	var noise := FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
 	noise.fractal_octaves = 5
-	noise.frequency = 0.008
+	noise.frequency = 0.006
 	var ntex := NoiseTexture2D.new()
 	ntex.noise = noise
 	ntex.width = 256
 	ntex.height = 256
 	ntex.seamless = true
 	fmat.set_shader_parameter("cloud", ntex)
-	quad.material = fmat
-	_fog_3d.mesh = quad
-	_fog_3d.position = Vector3(0, 5, -25)   # 与球同一视线（z 减半 y 减半）：中心对准球投影；下缘不触地
-	bg.camera.add_child(_fog_3d)
+	_fog_rect.material = fmat
+	_fog_rect.modulate.a = 0.0   # 6s 相机抬起后淡入
+	_fog_layer.add_child(_fog_rect)
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
