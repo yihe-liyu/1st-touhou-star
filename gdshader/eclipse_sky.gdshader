@@ -48,5 +48,5 @@ void fragment() {
 		col += sun_color.rgb * pow(1.0 - t, 4.0) * sun_energy * glow * 0.15;
 	}
 
-	ALBEDO = col;
+	COLOR = vec4(col, 1.0);
 }
