@@ -142,3 +142,7 @@ memory_release={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+
+[gui]
+
+gui/theme/custom="res://themes/ui_theme.tres"
