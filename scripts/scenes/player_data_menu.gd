@@ -20,6 +20,7 @@ var _view: int = View.OPTIONS
 var _char_index: int = 0
 var _diff_index: int = 0
 var _cards: Array[Dictionary] = []
+var _visible: Array[Dictionary] = []  # 当前角色+难度下有记录的卡（渲染用）
 var _page: int = 0
 
 
@@ -109,7 +110,7 @@ func _record_of(card: Dictionary) -> SpellRecord:
 
 
 func _total_pages() -> int:
-	return maxi(1, int(ceil(_cards.size() / float(PER_PAGE))))
+	return maxi(1, int(ceil(_visible.size() / float(PER_PAGE))))
 
 
 func _update_header() -> void:
@@ -122,7 +123,13 @@ func _render() -> void:
 	for c in box.get_children():
 		c.queue_free()
 
-	if _cards.is_empty():
+	# 只显示当前角色+难度下有记录的符卡（如 Extra 没打过黄粱 → 不显示）
+	_visible.clear()
+	for c in _cards:
+		if _record_of(c):
+			_visible.append(c)
+
+	if _visible.is_empty():
 		var empty := Label.new()
 		empty.text = "暂无符卡记录"
 		empty.add_theme_font_size_override("font_size", 26)
@@ -130,8 +137,8 @@ func _render() -> void:
 		box.add_child(empty)
 	else:
 		var start := _page * PER_PAGE
-		for i in range(start, mini(start + PER_PAGE, _cards.size())):
-			box.add_child(_make_row(_cards[i]))
+		for i in range(start, mini(start + PER_PAGE, _visible.size())):
+			box.add_child(_make_row(_visible[i]))
 
 
 
