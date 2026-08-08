@@ -6,9 +6,19 @@ extends CoroutineScript
 
 const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
+var _sun: EclipseSun = null  # 伪日食太阳（2D 叠 3D 上，不受雾衰减）
+
 
 func _ready() -> void:
 	_reset_environment()
+	# Boss 击破 → 回光（雾散 + 漏光增强）——片律之妖的日食幻觉消退
+	GameEvents.phase_end.connect(_on_phase_end)
+
+
+func _on_phase_end(_captured: bool, _bonus: int) -> void:
+	_fog_to_density(0.22, 5.0)
+	if _sun:
+		_sun.set_glow(2.0)
 
 
 func _reset_environment() -> void:
@@ -28,18 +38,46 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	_reset_environment()
 	ctx.decor.add_layer(OAK_LAYER)
 	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
-	
+
+	# 伪日食太阳：CanvasLayer 叠在 3D 背景上（2D 不受 3D 雾衰减，黑圆+亮环恒定可见）
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	layer.name = "EclipseSunLayer"
+	bg.get_viewport().add_child(layer)
+	_sun = EclipseSun.new()
+	_sun.position = Vector2(590, 160)
+	layer.add_child(_sun)
+
 	var tl := start_timeline()
 
-	# ① 雾散光来 (0→6s, tween 12s)
+	# ① 拉远视角 (0→12s, fov 55→68；雾保持压抑——伪日食不散)
 	tl.at(0.0).do(func():
-		_fog_to(Color(0.0, 0.0, 0.0, 0.5), 0.04, 68.0, 12)
+		_fov_to(68.0, 12)
 	)
 
 	# ② 相机移动 + 旋转 (6s)
 	tl.at(6.0).do(func():
 		bg.pan_camera(Vector3(0, 20, -3), 8.0, Tween.EASE_IN_OUT, Tween.TRANS_QUAD)
 		bg.rotate_camera(Vector3(deg_to_rad(-22), 0, deg_to_rad(6)), 6.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
+	)
+
+	# ②b 雾密度联动（伪日食节奏，对齐弹幕）：
+	#    开场 0.5 → logo 微亮 0.35（"周边露出较亮的太阳光芒"）→ 中线回压 0.45
+	#    → 双路 0.5 → Boss 入场 0.6（片律之妖现身，最压抑）
+	tl.at(7.0).do(func():
+		_fog_to_density(0.35, 6.0)
+		_sun.set_glow(1.35)
+	)
+	tl.at(11.0).do(func():
+		_fog_to_density(0.45, 4.0)
+	)
+	tl.at(17.0).do(func():
+		_fog_to_density(0.5, 4.0)
+		_sun.set_glow(1.0)
+	)
+	tl.at(35.0).do(func():
+		_fog_to_density(0.6, 4.0)
+		_sun.set_glow(0.55)  # 漏光减弱 = 日食加重
 	)
 
 	# ③ 地面加速 (10s)
@@ -58,11 +96,14 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	super.start(ctx, target)
 
 
-func _fog_to(color: Color, density: float, fov: float, sec: float):
+func _fog_to_density(density: float, sec: float):
 	var env := bg.world_environment.environment
-	var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS).set_parallel(true)
-	t.tween_property(env, "fog_light_color", color, sec)
+	var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	t.tween_property(env, "fog_density", density, sec)
+
+
+func _fov_to(fov: float, sec: float):
+	var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	t.tween_property(bg.camera, "fov", fov, sec)
 
 func _camera_accel(mult: float):
