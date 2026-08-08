@@ -161,7 +161,7 @@ func _make_row(card: Dictionary) -> HBoxContainer:
 		stat_l.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	stat_l.add_theme_font_size_override("font_size", 26)
 	stat_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	stat_l.custom_minimum_size = Vector2(110, 0)
+	stat_l.custom_minimum_size = Vector2(120, 0)  # 三位宽（3位+斜杠+3位），右对齐个位对齐
 	row.add_child(uid_l)
 	row.add_child(name_l)
 	row.add_child(stat_l)
