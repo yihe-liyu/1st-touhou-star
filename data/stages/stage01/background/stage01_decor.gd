@@ -72,8 +72,8 @@ func _setup_eclipse_sky() -> void:
 	sky_mat.ground_bottom_color = Color(0.02, 0.02, 0.04)
 	sky_mat.ground_horizon_color = Color(0.15, 0.15, 0.19)
 	sky_mat.energy_multiplier = 0.55
-	sky_mat.sun_angle_max = 14.0                          # 太阳光斑角尺寸
-	sky_mat.sun_curve = 0.25
+	sky_mat.sun_angle_max = 18.0                          # 太阳光斑角尺寸
+	sky_mat.sun_curve = 0.2
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 	env.sky = sky
@@ -81,8 +81,9 @@ func _setup_eclipse_sky() -> void:
 	env.fog_sky_affect = 0.0
 	# 太阳方向/亮度（ProceduralSky 光斑由 DirectionalLight3D 驱动；场景地面/树都是 unshaded，不受光照）
 	bg.setup_sun()
-	bg.set_sun_rotation(Vector3(deg_to_rad(-6.0), deg_to_rad(-30.0), 0.0))  # 低垂在地平线上方（压抑）
-	bg.set_sun_energy(1.2)
+	# 光从前方斜射（默认朝 -Z；光斑显示在光的来向 = 相机左前上方地平线附近）
+	bg.set_sun_rotation(Vector3(deg_to_rad(6.0), deg_to_rad(-18.0), 0.0))
+	bg.set_sun_energy(1.6)
 	if bg.sun_light:
 		bg.sun_light.light_color = Color(0.90, 0.93, 1.0)
 
