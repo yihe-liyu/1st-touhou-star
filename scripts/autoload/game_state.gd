@@ -37,6 +37,11 @@ var save_mgr := SaveManager.new()
 
 
 func _ready():
+	# 全局 UI 主题：merge 进默认主题（本引擎版本对 project.godot 的 gui/theme/custom 解析异常，
+	# 且 ThemeDB 无 set_project_theme——用 get_default_theme().merge 全局生效）
+	var ui_theme: Theme = load("res://themes/ui_theme.tres")
+	if ui_theme:
+		ThemeDB.get_default_theme().merge(ui_theme)
 	spell_book_mgr.load()
 	spell_book = spell_book_mgr.spell_book
 	save_mgr.load()
