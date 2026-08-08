@@ -6,6 +6,17 @@ extends CoroutineScript
 
 const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
+var _sun_3d: MeshInstance3D = null  # 3D 太阳球（挂相机）
+var _fog_3d: MeshInstance3D = null  # 云雾片（挂相机，球前方）
+
+func _exit_tree() -> void:
+	if _sun_3d and is_instance_valid(_sun_3d):
+		_sun_3d.queue_free()
+		_sun_3d = null
+	if _fog_3d and is_instance_valid(_fog_3d):
+		_fog_3d.queue_free()
+		_fog_3d = null
+
 
 func _ready() -> void:
 	_reset_environment()
@@ -73,7 +84,42 @@ func _setup_eclipse_sky() -> void:
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
 	env.fog_sky_affect = 0.0
-	# 太阳方向在 sky shader 的 sun_dir 常量（不依赖 DirectionalLight——本 fork LIGHT0 阉割风险大）
+
+	# 3D 太阳球（挂相机局部——规矩圆；fog_disabled 不被雾吃）
+	_sun_3d = MeshInstance3D.new()
+	_sun_3d.name = "EclipseSun3D"
+	var sphere := SphereMesh.new()
+	sphere.radius = 7.0
+	sphere.height = 14.0
+	var smat := ShaderMaterial.new()
+	smat.shader = preload("res://gdshader/sun_sphere.gdshader")
+	sphere.material = smat
+	_sun_3d.mesh = sphere
+	_sun_3d.position = Vector3(0, 10, -90)   # 相机局部：地平线附近天空（6s 相机抬起后可见）
+	bg.camera.add_child(_sun_3d)
+
+	# 云雾片（挂相机前方 z=-25，盖住太阳中心——FastNoiseLite 云噪声做 alpha）
+	_fog_3d = MeshInstance3D.new()
+	_fog_3d.name = "EclipseFog3D"
+	var quad := QuadMesh.new()
+	quad.size = Vector2(30, 30)
+	var fmat := ShaderMaterial.new()
+	fmat.shader = preload("res://gdshader/eclipse_fog.gdshader")
+	var noise := FastNoiseLite.new()
+	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+	noise.fractal_octaves = 5
+	noise.frequency = 0.008
+	var ntex := NoiseTexture2D.new()
+	ntex.noise = noise
+	ntex.width = 256
+	ntex.height = 256
+	ntex.seamless = true
+	fmat.set_shader_parameter("cloud", ntex)
+	quad.material = fmat
+	_fog_3d.mesh = quad
+	_fog_3d.position = Vector3(0, 10, -25)   # 球前方（z=-90）——云遮住太阳中心
+	bg.camera.add_child(_fog_3d)
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
