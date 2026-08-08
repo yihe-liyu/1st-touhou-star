@@ -4,7 +4,7 @@ shader_type sky;
 // 黑圆（noise 扰动边缘）+ 边缘漏光
 
 uniform vec4 sun_tint : source_color = vec4(1.0, 0.86, 0.62, 1.0);  // 暖金（伪日食夕阳感）
-uniform float sun_energy : hint_range(0.0, 4.0) = 3.0;
+uniform float sun_energy : hint_range(0.0, 4.0) = 1.6;   // 太阳不爆亮（否则雾 mix 后剩 10% 仍亮）
 uniform float sun_size : hint_range(0.01, 0.12) = 0.055;   // 太阳总角半径（弧度，游戏感要大）
 uniform float black_ratio : hint_range(0.0, 1.0) = 0.72;   // 黑圆占太阳比例
 uniform float glow : hint_range(0.0, 2.5) = 1.0;           // 击破回光：漏光增强
@@ -41,13 +41,13 @@ void sky() {
 	//    中心浓、外缘淡的雾团；浓淡斑驳（大块）+ 丝缕（细纹）
 	float n_low = noise(rd.xy * 18.0);              // 大块浓淡
 	float n_mid = noise(rd.xy * 45.0 + 7.0);        // 丝缕细节
-	float fog_field = exp(-ang * 35.0) * (0.85 + n_low * 0.35);       // 中心浓外缘淡（更浓更大）
-	float fog_density = clamp(fog_field, 0.0, 1.0) * (0.72 + n_mid * 0.28);
-	col = mix(col, vec3(0.015, 0.013, 0.01), fog_density);
-	// ③ 雾边缘渗光：太阳光从雾边渗出（n 不均——不规则光晕）
-	if (ang > sun_size * 0.6 && ang < sun_size * 1.5) {
-		float t = (ang - sun_size * 0.6) / (sun_size * 0.9);
-		col += sun_tint.rgb * pow(1.0 - t, 3.0) * sun_energy * glow * 0.5 * (0.4 + n_mid * 0.9);
+	float fog_field = exp(-ang * 35.0) * (0.92 + n_low * 0.3);       // 中心几乎全浓
+	float fog_density = clamp(fog_field, 0.0, 1.0) * (0.8 + n_mid * 0.2);
+	col = mix(col, vec3(0.012, 0.011, 0.009), fog_density);
+	// ③ 雾边缘渗光（移到雾外围 0.85~1.5×——避免抵消中心雾的暗）
+	if (ang > sun_size * 0.85 && ang < sun_size * 1.5) {
+		float t = (ang - sun_size * 0.85) / (sun_size * 0.65);
+		col += sun_tint.rgb * pow(1.0 - t, 3.0) * sun_energy * glow * 0.3 * (0.4 + n_mid * 0.9);
 	}
 	COLOR = col;  // out vec3（官方文档）
 }
