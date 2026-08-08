@@ -182,10 +182,12 @@ func _clear_phase(captured: bool) -> void:
 	if _move: _move.stop(); _move.queue_free(); _move = null
 	if _shoot: _shoot.stop(); _shoot.queue_free(); _shoot = null
 	
-	if GameState.is_practice_mode:
-		GameState.record_practice(_pid, captured)
-	else:
-		GameState.record_spell(_pid, captured, _bonus, _elapsed)
+	if _pid:
+		# 阶段已开始（_pid 已生成）才记录；Ctrl+G 在阶段开始前触发时只跳阶段不落盘
+		if GameState.is_practice_mode:
+			GameState.record_practice(_pid, captured)
+		else:
+			GameState.record_spell(_pid, captured, _bonus, _elapsed)
 	
 	GameEvents.phase_end.emit(captured, _bonus)
 	if captured and _bonus > 0:

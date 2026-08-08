@@ -596,9 +596,9 @@ func _debug_force_clear() -> void:
 	if not boss:
 		_log_line("ℹ 无 Boss（先跑到 Boss 阶段再按 Ctrl+G）")
 		return
-	var name: String = boss._current_phase.name if boss._current_phase else "?"
+	var p_name: String = boss._current_phase.name if boss._current_phase else "?"
 	boss._clear_phase(true)
-	_log_line("⚡ 强制击破：%s（记录已解锁，阶段链继续）" % name)
+	_log_line("⚡ 强制击破：%s（记录已解锁，阶段链继续）" % p_name)
 
 
 ## 启动检查：扫描全部阶段 .tres 的 uid，冲突报日志（防手滑；配置入记录后无注册表兜底）

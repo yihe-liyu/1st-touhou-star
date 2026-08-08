@@ -8,16 +8,16 @@ extends CoroutineScript
 
 const PROBE := preload("res://data/bullet_scripts/orbit_probe.gd")
 
-var orbit_speed: float = 10      # 初始角速度（弧度/秒，1.5 ≈ 每秒 86°）
-var angle_accel: Array = [0.0, 0.0, 2.0, 3.0]    # 角加速度（弧度/秒²，正=加速、负=减速）
+var orbit_speed: float = 12      # 初始角速度（弧度/秒，1.5 ≈ 每秒 86°）
+var angle_accel: Array = [0.0, 0.0, 2.0, 4.0]    # 角加速度（弧度/秒²，正=加速、负=减速）
 var radius_min: float = 0.0     # 起始半径（离 Boss 最近）
-var radius_max: Array = [250.0, 350.0, 650.0, 625.0]   # 外扩上限
+var radius_max: Array = [250.0, 300.0, 625.0, 600.0]   # 外扩上限
 var radius_growth: float = 120.0 # 外扩初始速度（每秒，半径每秒外扩量）
 var radius_accel: float = 15.0   # 外扩加速度（每秒²，正=越扩越快，负=越扩越慢）
 var hold_time: float = 7.5      # 到达外圈后保持旋转的秒数（画外环）
-var interval: Array = [0.06, 0.06, 0.05, 0.05]      # 发弹间隔（秒）
+var interval: Array = [0.07, 0.07, 0.06, 0.06]      # 发弹间隔（秒）
 var bullet_speed: float = 175.0 # 青弹初速（往返探测弹起飞速度）
-var probe_count: Array = [2, 4, 8, 10]  # 每发颗数
+var probe_count: Array = [2, 4, 6, 10]  # 每发颗数
 var min_fire_distance: float = 125.0  # 发弹点离自机低于此距离时不发（防近身糊脸；0 = 关闭）
 
 var _angle: float = 0.0
