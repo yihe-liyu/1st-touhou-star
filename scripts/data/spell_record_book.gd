@@ -34,9 +34,13 @@ func get_record(stage: int, phase_index: int, boss_index: int, character: int, d
 
 func get_or_create(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int,
 		uid: int = 0, phase_type: int = 0, phase_number: int = 1,
-		pname: String = "", p_phase_data: PhaseData = null, p_boss_scene: PackedScene = null) -> SpellRecord:
+		pname: String = "", p_phase_data: PhaseData = null, p_boss_scene: PackedScene = null,
+		p_boss_name: String = "") -> SpellRecord:
 	var r := get_record(stage, phase_index, boss_index, character, difficulty)
-	if r: return r
+	if r:
+		if p_boss_name != "" and r.boss_name == "":
+			r.boss_name = p_boss_name  # 旧记录自动补 Boss 名（配置入记录）
+		return r
 	r = SpellRecordClass.new()
 	r.stage = stage
 	r.phase_index = phase_index
@@ -49,6 +53,7 @@ func get_or_create(stage: int, phase_index: int, boss_index: int, character: int
 	if pname != "": r.name = pname
 	if p_phase_data: r.phase_data = p_phase_data
 	if p_boss_scene: r.boss_scene = p_boss_scene
+	if p_boss_name != "": r.boss_name = p_boss_name
 	records.append(r)
 	return r
 
@@ -58,7 +63,7 @@ func record_attempt(stage: int, phase_index: int, boss_index: int, character: in
 	var r := get_or_create(stage, phase_index, boss_index, character, difficulty,
 		extra.get("uid", 0), extra.get("phase_type", 0),
 		extra.get("phase_number", 1), extra.get("name", ""),
-		extra.get("phase_data"), extra.get("boss_scene"))
+		extra.get("phase_data"), extra.get("boss_scene"), extra.get("boss_name", ""))
 	r.attempts += 1
 	if captured:
 		r.captures += 1

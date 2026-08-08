@@ -13,6 +13,7 @@ var phase_index: int       ## 在 phases 数组中的索引（真正的唯一标
 var phase_type: int        ## SpellRecord.PhaseType
 var phase_number: int      ## 第几张非符/第几张符卡
 var name: String           ## 符卡名，非符可为空
+var boss_name: String = ""   ## Boss 名（运行时由 boss.gd 从 boss_data 写入记录）
 var phase_data: PhaseData  ## 阶段配置（解锁时存进记录）
 var boss_scene: PackedScene  ## Boss 视觉（解锁时存进记录）
 

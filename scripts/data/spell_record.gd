@@ -27,6 +27,7 @@ enum PhaseType { NONSPELL, SPELL }
 @export var difficulty: int = 1
 ## 符卡名（非符也存）
 @export var name: String = ""
+@export var boss_name: String = ""  ## Boss 名（左上角显示；练习用）
 ## 第几个 Boss（多 Boss 关卡区分记录；0 = 第一个/唯一）
 @export var boss_index: int = 0
 ## 战斗配置（血量/脚本/时限等）——解锁时自动存，练习菜单直接使用（无需 CardDef）
