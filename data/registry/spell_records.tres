@@ -41,7 +41,7 @@ phase_index = 1
 phase_type = 1
 name = "黄粱「不可测之梦」"
 phase_data = ExtResource("4_ve3lw")
-practice_attempts = 1
+practice_attempts = 2
 practice_captures = 1
 
 [resource]

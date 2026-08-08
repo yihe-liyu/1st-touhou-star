@@ -117,3 +117,33 @@ func test_practice_label_prefers_boss_name():
 	rec.boss_name = ""
 	var label2: String = rec.boss_name if rec.boss_name != "" else rec.name
 	assert_eq(label2, "黄粱「不可测之梦」", "旧记录（无 boss_name）回退符卡名")
+
+
+func test_practice_miss_records_failure():
+	# 练习 miss：practice_attempts+1、captures 不加（防重复：击破路径 _cleared=true 已记）
+	var phase := PhaseData.new()
+	phase.uid = 303
+	phase.name = "黄粱"
+	phase.hp = 1000
+	phase.time_limit = 10.0
+	GameState.is_practice_mode = true
+	GameState.start_practice(phase, null, "卡摩瑞", 1, 1)
+	var boss = load("res://scripts/enemy/boss.gd").new()
+	add_child(boss)
+	boss.start_phase(phase)
+	# 先记录一次击破（_cleared=true）
+	boss._invincible = false
+	boss.take_damage(99999.0)
+	var book: SpellRecordBook = GameState.spell_book
+	var r := book.get_record(1, 1, 0, 0, 1)
+	assert_eq(r.practice_attempts, 1, "击破记 1 次尝试")
+	assert_eq(r.practice_captures, 1, "击破记 1 次收取")
+	# miss：新 Boss（未击破）→ die() → 失败尝试
+	var boss2 = load("res://scripts/enemy/boss.gd").new()
+	add_child(boss2)
+	boss2.start_phase(phase)
+	boss2.die()
+	var r2 := book.get_record(1, 1, 0, 0, 1)
+	assert_eq(r2.practice_attempts, 2, "miss 后再 +1（共 2 次）")
+	assert_eq(r2.practice_captures, 1, "miss 不加收取")
+	GameState.is_practice_mode = false

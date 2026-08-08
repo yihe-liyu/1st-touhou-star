@@ -213,6 +213,8 @@ func die() -> void:
 func _die() -> void:
 	set_process(false)
 	_current_phase = null
+	if GameState.is_practice_mode and _pid and not _cleared:
+		GameState.record_practice(_pid, false)  # 练习 miss：算一次失败尝试（击破路径 _cleared=true 已在 _clear_phase 记过，跳过）
 	GameState.active_enemies.erase(self)
 	GameEvents.boss_defeated.emit(self)
 	if not _exit_controlled:
