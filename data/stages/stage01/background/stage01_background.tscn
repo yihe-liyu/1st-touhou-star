@@ -15,13 +15,13 @@ fog_density = 0.5
 render_priority = 0
 shader = ExtResource("1_g25nt")
 shader_parameter/base_texture = ExtResource("2_4oxri")
-shader_parameter/tiling = Vector2(6, 6)
+shader_parameter/tiling = Vector2(6, 8)
 shader_parameter/uv_offset = Vector2(0, 0)
 shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h8p4f"]
 material = SubResource("Mat_Ground")
-size = Vector2(256, 256)
+size = Vector2(256, 340)
 
 [node name="Stage01Background" type="Node3D" unique_id=1763472797]
 script = ExtResource("1_4oxri")
@@ -35,6 +35,8 @@ mesh = SubResource("PlaneMesh_h8p4f")
 script = ExtResource("3_2145v")
 scroll_speed = Vector2(0, -0.1)
 base_texture = ExtResource("2_4oxri")
+plane_size = Vector2(256, 340)
+tiling = Vector2(6, 8)
 
 [node name="Decor" type="Node" parent="." unique_id=800298208]
 script = ExtResource("5_2145v")

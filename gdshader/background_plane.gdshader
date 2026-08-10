@@ -15,6 +15,11 @@ uniform float fog_start : hint_range(0.0, 200.0) = 55.0;
 uniform float perturb_amount : hint_range(0.0, 0.2) = 0.035;
 uniform float perturb_freq : hint_range(0.0, 4.0) = 0.9;
 
+// ── 远缘渐隐：最后一段（local z）强制融进雾色，与天空球地面色一致 → 水平线无缝 ──
+// （假设平面深 340：local z 范围 ±170，远缘在 -170；树带最远 -220）
+uniform float edge_fade_start : hint_range(-200.0, 0.0) = -140.0;
+uniform float edge_fade_end : hint_range(-200.0, 0.0) = -166.0;
+
 float hash21(vec2 p) {
 	p = fract(p * vec2(123.34, 456.21));
 	p += dot(p, p + 45.32);
@@ -46,6 +51,9 @@ void fragment() {
 	// 指数距离雾：VIEW = 视空间坐标
 	float dist = length(VIEW);
 	float fog = 1.0 - exp(-fog_density * max(dist - fog_start, 0.0));
+	// 远缘渐隐：保证平面末端 100% 雾色（否则边缘线露馅）
+	float far_fade = smoothstep(edge_fade_start, edge_fade_end, VERTEX.z);
+	fog = max(fog, far_fade);
 	vec3 final = mix(col.rgb, fog_color, clamp(fog, 0.0, 1.0));
 	ALBEDO = final * modulate.rgb;
 }
