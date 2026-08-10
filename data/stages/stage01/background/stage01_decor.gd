@@ -99,13 +99,15 @@ func _spawn_sun() -> void:
 	_spawn_screen_fog(sun)
 
 
-## 全屏蒙眼雾：CanvasLayer + ColorRect + canvas_item shader——盖最终画面（背景+弹幕）
-## 太阳屏幕位置处更浓（专门遮太阳）；挂 root（覆盖全窗口）
+## 全屏蒙眼雾：CanvasLayer + ColorRect + canvas_item shader——背景的一部分（挂 bg，随背景销毁/重载）
+## 只蒙背景层（弹幕保持清晰）；太阳屏幕位置处更浓（专门遮太阳）
 func _spawn_screen_fog(sun: Sprite3D) -> void:
+	if bg.get_node_or_null("EyeFogLayer"):
+		return
 	var layer := CanvasLayer.new()
 	layer.name = "EyeFogLayer"
-	layer.layer = 90
-	get_tree().root.add_child(layer)
+	layer.layer = 5  # 背景 SubViewport 内叠在 3D 之上
+	bg.add_child(layer)
 	var rect := ColorRect.new()
 	rect.name = "FogRect"
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
