@@ -26,6 +26,12 @@ func _reset_environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = Sky.new()
 	env.sky.sky_material = sky
+	env.fog_sky_affect = 0.0  # 雾不染黑天空（否则无限远天空被雾全黑）
+	# glow 泛光：太阳 EMISSION HDR 辉光（之前默认关 → 太阳"光"感差）
+	env.glow_enabled = true
+	env.glow_intensity = 0.8
+	env.glow_bloom = 0.1
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	if bg.camera:
 		bg.camera.fov = 55.0
 
