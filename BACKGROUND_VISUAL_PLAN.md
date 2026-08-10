@@ -105,10 +105,12 @@
 
 ## 已完成
 
-### 画面优化（第一批，2026-08-10，待用户看对比图调参）
+### 画面优化（第一批 + 地平线/树墙修复，2026-08-10）
 
-- ✅ **E+G**：`screen_fog.gdshader` 合并为全屏不透明氛围 pass —— 取屏幕底色 → 调色（亮度/对比/饱和/暖亮冷暗）→ 双层噪声蒙眼雾（有机漂移）→ 太阳不规则羽化浓雾 → 边缘渐晕 → 日食漏光亮环 + 呼吸感
-- ✅ **C**：`background_plane.gdshader` 加指数距离雾（近清远朦）+ 双档噪声平铺扰动（打破重复感）
+- ✅ **E+G**：`screen_fog.gdshader` 合并为全屏不透明氛围 pass —— 调色 + 双层噪声蒙眼雾 + 太阳不规则羽化浓雾 + 渐晕 + 日食漏光亮环 + 呼吸感
+- ✅ **C**：`background_plane.gdshader` 距离雾 + 平铺扰动；后续修：`fog_disabled` 摆脱环境黑雾、距离改为 vertex 插值（**fragment 的 VIEW 内置在本项目环境返回 0**，需传 cam_pos uniform）、远缘带渐变到天球色（0.29,0.32,0.35）→ 水平线无缝
+- ✅ **D3**：`decor_fade.gdshader` 新 shader —— 树按距离融进雾色/天球色，远处树海不再是硬剪影墙；SCISSOR 层改用此 shader，cam_pos 每帧同步
+- ✅ 地面平面加深 256→340 盖住树带、tiling.y 6→8 保持密度
 - ✅ 新增 `tools/background_capture`：背景截图工具（视口线性→sRGB 修正后存 PNG）
 
 ### 性能优化（2026-08-10）
