@@ -8,10 +8,15 @@
 [ext_resource type="Script" uid="uid://b5ytro1ivmhjt" path="res://scripts/background/background_sun.gd" id="6_sun"]
 [ext_resource type="Script" uid="uid://cesyonb11jo8h" path="res://scripts/background/screen_fog_fx.gd" id="7_fog"]
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_hkq61"]
+
+[sub_resource type="Sky" id="Sky_hevmp"]
+sky_material = SubResource("ProceduralSkyMaterial_hkq61")
+
 [sub_resource type="Environment" id="Environment_wqyen"]
+sky = SubResource("Sky_hevmp")
 fog_enabled = true
 fog_light_color = Color(0.18, 0.2, 0.23, 1)
-fog_density = 0.5
 
 [sub_resource type="ShaderMaterial" id="Mat_Ground"]
 render_priority = 0
@@ -35,16 +40,16 @@ environment = SubResource("Environment_wqyen")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -62)
 mesh = SubResource("PlaneMesh_h8p4f")
 script = ExtResource("3_2145v")
-scroll_speed = Vector2(0, -0.1)
-base_texture = ExtResource("2_4oxri")
 plane_size = Vector2(256, 512)
 tiling = Vector2(6, 12)
+scroll_speed = Vector2(0, -0.1)
+base_texture = ExtResource("2_4oxri")
 
 [node name="Decor" type="Node" parent="." unique_id=800298208]
 script = ExtResource("5_2145v")
 
-[node name="Sun" type="Node3D" parent="."]
+[node name="Sun" type="Node3D" parent="." unique_id=1833933599]
 script = ExtResource("6_sun")
 
-[node name="FogFX" type="Node" parent="."]
+[node name="FogFX" type="Node" parent="." unique_id=1583144616]
 script = ExtResource("7_fog")

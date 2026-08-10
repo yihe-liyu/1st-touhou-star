@@ -1,63 +1,55 @@
 class_name BackgroundEnvPreset
 extends Resource
 
-## 背景环境预设：一套参数构建全新 Environment（雾/天空/glow）
-## - build_environment() 每次返回全新实例 → 多实例/重跑零共享污染（根治"越重跑越暗"）
-## - 联动内建：link_ground_to_fog=true 时天球地面水平色自动跟随雾色（防"改雾色露地平线"）
-## 用途：新建关卡背景 = 新建一个 .tres 预设 + 场景拼装，不再手写环境代码
+## 背景环境预设：持有完整 Environment 模板（Godot 原生 Environment 编辑器调全部参数：
+## 雾/天空/glow/体积雾/tonemap/adjustment 等全成员可用，无需维护参数镜像）
+## - build_environment() 深拷贝 → 每次全新实例，根治共享污染（越重跑越暗）
+## - 联动内建：build 时天球地面水平色强制跟随雾色（改雾色不露地平线）
+## - environment 为 null 时自动构建默认暗环境（自愈）
+## 用途：新建关卡背景 = 新建 .tres 预设（含 Environment）+ 场景拼装
 
-# ── 雾 ──
-@export var fog_enabled: bool = true
-@export var fog_color: Color = Color(0.18, 0.20, 0.23)
-@export var fog_density: float = 0.15
-@export var fog_sky_affect: float = 0.0
+@export var environment: Environment
 
-# ── 天空 ──
-@export var sky_top: Color = Color(0.20, 0.24, 0.30)
-@export var sky_horizon: Color = Color(0.26, 0.28, 0.31)
-@export var sky_curve: float = 0.35
-@export var sky_energy_multiplier: float = 1.0
-@export var ground_energy_multiplier: float = 1.0
-
-## 联动开关：天球地面水平色 = 雾色（默认开，改雾色不露地平线）
+## 联动开关：build 时天球地面水平色 = 雾色（默认开，防改雾色露地平线）
 @export var link_ground_to_fog: bool = true
-## 天球地面水平色（link_ground_to_fog=false 时用独立值）
-@export var ground_horizon_color: Color = Color(0.18, 0.20, 0.23)
-## 天球地面底色（更深，独立值——约雾色×0.75）
-@export var ground_bottom_color: Color = Color(0.14, 0.15, 0.17)
-
-# ── 泛光 ──
-@export var glow_enabled: bool = true
-@export var glow_intensity: float = 0.8
-@export var glow_bloom: float = 0.1
-@export var glow_blend_mode: Environment.GlowBlendMode = Environment.GLOW_BLEND_MODE_ADDITIVE
 
 
-## 构建全新 Environment（每次 new → 实例私有，无共享污染）
+## 构建全新 Environment：深拷贝模板 + 联动规则（每次 new → 实例私有，无共享污染）
 func build_environment() -> Environment:
+	var e := environment.duplicate(true) if environment else _default_environment()
+	if link_ground_to_fog and e.sky and e.sky.sky_material is ProceduralSkyMaterial:
+		(e.sky.sky_material as ProceduralSkyMaterial).ground_horizon_color = e.fog_light_color
+	return e
+
+
+## 便捷读取：雾色（读自 environment.fog_light_color；无环境时返回默认值）
+var fog_color: Color:
+	get: return environment.fog_light_color if environment else Color(0.18, 0.20, 0.23)
+
+
+## 默认暗环境（environment 未设置时的自愈值，对应 stage01 的暗蓝灰基调）
+func _default_environment() -> Environment:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = sky_top
-	sky_mat.sky_horizon_color = sky_horizon
-	sky_mat.sky_curve = sky_curve
-	sky_mat.sky_energy_multiplier = sky_energy_multiplier
-	sky_mat.ground_energy_multiplier = ground_energy_multiplier
-	sky_mat.ground_horizon_color = fog_color if link_ground_to_fog else ground_horizon_color
-	sky_mat.ground_bottom_color = ground_bottom_color
+	sky_mat.sky_top_color = Color(0.20, 0.24, 0.30)
+	sky_mat.sky_horizon_color = Color(0.26, 0.28, 0.31)
+	sky_mat.sky_curve = 0.35
+	sky_mat.ground_horizon_color = Color(0.18, 0.20, 0.23)
+	sky_mat.ground_bottom_color = Color(0.14, 0.15, 0.17)
 
 	env.sky = Sky.new()
 	env.sky.sky_material = sky_mat
 
-	env.fog_enabled = fog_enabled
-	env.fog_light_color = fog_color
-	env.fog_density = fog_density
-	env.fog_sky_affect = fog_sky_affect
+	env.fog_enabled = true
+	env.fog_light_color = Color(0.18, 0.20, 0.23)
+	env.fog_density = 0.15
+	env.fog_sky_affect = 0.0
 
-	env.glow_enabled = glow_enabled
-	env.glow_intensity = glow_intensity
-	env.glow_bloom = glow_bloom
-	env.glow_blend_mode = glow_blend_mode
+	env.glow_enabled = true
+	env.glow_intensity = 0.8
+	env.glow_bloom = 0.1
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 
 	return env
