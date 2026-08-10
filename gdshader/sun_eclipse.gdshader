@@ -3,10 +3,12 @@ render_mode unshaded, cull_disabled, fog_disabled, blend_mix;
 
 // 伪日食太阳：不规则的黑色圆遮住太阳，边缘漏出较亮的光芒
 // 此 fork 阉割了 GeometryInstance3D.billboard_mode → 手动 shader billboard
+// 关键：4 顶点必须用同一深度（quad 中心深度），否则相机俯仰时上下缘深度不同
+// → 透视缩放不同 → 圆形被拉成不圆的透视形
 void vertex() {
-	vec4 wpos = MODEL_MATRIX * vec4(VERTEX, 1.0);
-	vec4 vpos = VIEW_MATRIX * wpos;
-	POSITION = PROJECTION_MATRIX * vec4(VERTEX.xy, vpos.z, 1.0);
+	vec4 center_w = MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0);
+	float depth = (VIEW_MATRIX * center_w).z;
+	POSITION = PROJECTION_MATRIX * vec4(VERTEX.xy, depth, 1.0);
 }
 
 uniform vec3 glow_color : source_color = vec3(1.0, 0.92, 0.72);   // 漏光暖白（阳光色）
