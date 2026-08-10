@@ -16,7 +16,6 @@ class DecorEntry:
 class _LayerGroup:
 	var multi_mesh: MultiMesh
 	var mmi: MultiMeshInstance3D
-	var mat: Material                     # 层材质（SCISSOR=decor_fade shader，需每帧更新 cam_pos）
 	var entries: Array[DecorEntry] = []   # 槽位数组（静态层）：索引稳定、死亡槽占位复用
 	var free_slots: Array[int] = []       # 静态层：可复用槽位栈
 	var layer: DecorLayer
@@ -101,7 +100,6 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_elapsed += delta
-	_update_cam_pos()
 	for key in _groups:
 		var g: _LayerGroup = _groups[key]
 		if g.layer.alpha_mode == DecorLayer.AlphaMode.BLEND:
@@ -243,23 +241,16 @@ func _build_mesh(g: _LayerGroup, layer: DecorLayer) -> void:
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(1, 1)
 	mesh.orientation = QuadMesh.FACE_Z
-	var mat: Material
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = layer.texture
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	if layer.alpha_mode == DecorLayer.AlphaMode.BLEND:
-		# 半透明层：StandardMaterial（billboard 支持）
-		var smat := StandardMaterial3D.new()
-		smat.albedo_texture = layer.texture
-		smat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		smat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED if layer.billboard else BaseMaterial3D.BILLBOARD_DISABLED
-		smat.cull_mode = BaseMaterial3D.CULL_DISABLED
-		mat = smat
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	else:
-		# 不透明层：自定义 shader（scissor + 远处融进雾色，不形成硬剪影墙）
-		var shader_mat := ShaderMaterial.new()
-		shader_mat.shader = preload("res://gdshader/decor_fade.gdshader")
-		shader_mat.set_shader_parameter("albedo_tex", layer.texture)
-		shader_mat.set_shader_parameter("alpha_threshold", layer.alpha_threshold)
-		mat = shader_mat
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		mat.alpha_scissor_threshold = layer.alpha_threshold
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED if layer.billboard else BaseMaterial3D.BILLBOARD_DISABLED
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mesh.material = mat
 	mm.mesh = mesh
 	var mmi := MultiMeshInstance3D.new()
@@ -268,20 +259,6 @@ func _build_mesh(g: _LayerGroup, layer: DecorLayer) -> void:
 	add_child(mmi)
 	g.multi_mesh = mm
 	g.mmi = mmi
-	g.mat = mat
-
-
-## 每帧同步相机位置到装饰 shader（距离雾用）
-func _update_cam_pos() -> void:
-	if _camera == null or not is_instance_valid(_camera):
-		_camera = get_viewport().get_camera_3d()
-	if _camera == null:
-		return
-	var pos: Vector3 = _camera.global_position
-	for key in _groups:
-		var m: Material = _groups[key].mat
-		if m is ShaderMaterial:
-			(m as ShaderMaterial).set_shader_parameter("cam_pos", pos)
 
 
 func _find_camera() -> void:

@@ -17,11 +17,9 @@ extends MeshInstance3D
 @export var base_texture: Texture2D
 
 var _scroll_mult: float = 1.0
-var _cam: Camera3D
 
 
 func _ready() -> void:
-	_cam = get_viewport().get_camera_3d()
 	if not mesh:
 		var plane_mesh := PlaneMesh.new()
 		plane_mesh.size = plane_size
@@ -60,11 +58,6 @@ func _process(delta: float) -> void:
 	var mat := _get_material()
 	if not mat:
 		return
-	# 相机位置（shader 距离雾用；VIEW 内置在本项目环境返回 0）
-	if _cam == null or not is_instance_valid(_cam):
-		_cam = get_viewport().get_camera_3d()
-	if _cam:
-		mat.set_shader_parameter("cam_pos", _cam.global_position)
 	var uv: Vector2 = mat.get_shader_parameter("uv_offset")
 	uv += scroll_speed * delta * _scroll_mult
 	mat.set_shader_parameter("uv_offset", uv)

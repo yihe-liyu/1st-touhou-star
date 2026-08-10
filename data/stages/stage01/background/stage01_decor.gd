@@ -25,10 +25,8 @@ func _reset_environment() -> void:
 	sky.sky_top_color = Color(0.20, 0.24, 0.30)       # 天顶：暗蓝灰
 	sky.sky_horizon_color = Color(0.42, 0.44, 0.46)   # 地平线：稍亮
 	sky.sky_curve = 0.35
-	# 地面色与 background_plane 的 fog_color(0.12,0.13,0.15) 对齐：
-	# 射线落到平面之外时显示天空球地面色 → 水平线无缝（改其中一边记得同步另一边）
-	sky.ground_horizon_color = Color(0.12, 0.13, 0.15)
-	sky.ground_bottom_color = Color(0.09, 0.10, 0.11)
+	sky.ground_horizon_color = Color(0.30, 0.33, 0.30)
+	sky.ground_bottom_color = Color(0.16, 0.18, 0.14)
 	env.background_mode = Environment.BG_SKY
 	env.sky = Sky.new()
 	env.sky.sky_material = sky
@@ -36,7 +34,7 @@ func _reset_environment() -> void:
 	# glow 泛光：太阳 EMISSION HDR 辉光（之前默认关 → 太阳"光"感差）
 	env.glow_enabled = true
 	env.glow_intensity = 0.8
-	env.glow_bloom = 0.06  # 收窄太阳辉光扩散：天空亮度更均匀，避免太阳侧"亮天空+暗远地面"对比过强
+	env.glow_bloom = 0.1
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	if bg.camera:
 		bg.camera.fov = 55.0
@@ -131,14 +129,6 @@ func _process(_delta: float) -> void:
 	var vp: Vector2 = bg.get_viewport().get_visible_rect().size
 	if vp.x > 0 and vp.y > 0:
 		_fog_mat.set_shader_parameter("sun_pos", sp / vp)
-		# 地平线位置 + 倾斜：无限远地面点的屏幕投影（雾层远地面带融天空用，含相机侧倾）
-		var hp: Vector2 = bg.camera.unproject_position(Vector3(0, 1, -100000.0))
-		var hr: Vector2 = bg.camera.unproject_position(Vector3(500, 1, -100000.0))
-		var tilt := 0.0
-		if absf(hr.x - hp.x) > 1.0:
-			tilt = (hr.y - hp.y) / (hr.x - hp.x) * vp.x  # 归一化斜率（每 x 单位的 y 变化）
-		_fog_mat.set_shader_parameter("horizon_y", hp.y / vp.y)
-		_fog_mat.set_shader_parameter("horizon_tilt", tilt)
 
 
 ## 值噪声云斑纹理（fbm 多频叠加，格点按周期取模 → 四方无缝可平铺）：有机雾斑，非正弦波浪
