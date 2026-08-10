@@ -131,7 +131,7 @@ func _process(_delta: float) -> void:
 		_fog_mat.set_shader_parameter("sun_pos", sp / vp)
 
 
-## 值噪声云斑纹理（fbm 多频叠加）：有机雾斑，非正弦波浪
+## 值噪声云斑纹理（fbm 多频叠加，格点按周期取模 → 四方无缝可平铺）：有机雾斑，非正弦波浪
 func _make_cloud_texture(size: int) -> ImageTexture:
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	var layers: Array[int] = [6, 12, 24]
@@ -142,25 +142,26 @@ func _make_cloud_texture(size: int) -> ImageTexture:
 			var v := 0.0
 			for i in layers.size():
 				var f := float(layers[i]) / size
-				v += _value_noise(x * f, y * f, noise_seed + i) * weights[i]
+				v += _value_noise(x * f, y * f, layers[i], noise_seed + i) * weights[i]
 			# 增强对比（云斑更分明）
 			v = clampf((v - 0.5) * 1.8 + 0.5, 0.0, 1.0)
 			img.set_pixel(x, y, Color(v, v, v, 1.0))
 	return ImageTexture.create_from_image(img)
 
 
-## 平滑值噪声：格点随机 + 双线性平滑插值
-func _value_noise(u: float, v: float, s: int) -> float:
+## 平滑值噪声：格点随机 + 双线性平滑插值；格点按 period 取模 → 纹理四方无缝
+## （u/v 范围 [0, period)，晶格 0..period-1，邻居晶格 period 折回 0）
+func _value_noise(u: float, v: float, period: int, s: int) -> float:
 	var x0 := int(floor(u))
 	var y0 := int(floor(v))
 	var fx: float = u - floor(u)
 	var fy: float = v - floor(v)
 	fx = fx * fx * (3.0 - 2.0 * fx)
 	fy = fy * fy * (3.0 - 2.0 * fy)
-	var a := _noise_hash(x0, y0, s)
-	var b := _noise_hash(x0 + 1, y0, s)
-	var c := _noise_hash(x0, y0 + 1, s)
-	var d2 := _noise_hash(x0 + 1, y0 + 1, s)
+	var a := _noise_hash(x0 % period, y0 % period, s)
+	var b := _noise_hash((x0 + 1) % period, y0 % period, s)
+	var c := _noise_hash(x0 % period, (y0 + 1) % period, s)
+	var d2 := _noise_hash((x0 + 1) % period, (y0 + 1) % period, s)
 	return lerpf(lerpf(a, b, fx), lerpf(c, d2, fx), fy)
 
 
