@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://40gibb6sxa5f"]
+
+[ext_resource type="Script" uid="uid://cgdh8dcpq8e33" path="res://data/stages/stage01/background/stage01_background.gd" id="1_4oxri"]
+[ext_resource type="Shader" uid="uid://dk0cc5a6lkcd0" path="res://gdshader/background_plane.gdshader" id="1_g25nt"]
+[ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="2_4oxri"]
+[ext_resource type="Script" uid="uid://cys5ctkx6l5h8" path="res://scripts/background/background_plane.gd" id="3_2145v"]
+[ext_resource type="Script" uid="uid://c3a5hfx0ggmx5" path="res://data/stages/stage01/background/stage01_decor.gd" id="5_2145v"]
+
+[sub_resource type="Environment" id="Environment_wqyen"]
+background_energy_multiplier = 2.0
+fog_enabled = true
+fog_light_color = Color(0.18, 0.2, 0.23, 1)
+fog_density = 0.5
+
+[sub_resource type="ShaderMaterial" id="Mat_Ground"]
+render_priority = 0
+shader = ExtResource("1_g25nt")
+shader_parameter/base_texture = ExtResource("2_4oxri")
+shader_parameter/tiling = Vector2(6, 12)
+shader_parameter/uv_offset = Vector2(0, 0)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_h8p4f"]
+material = SubResource("Mat_Ground")
+size = Vector2(256, 512)
+
+[node name="Stage01Background" type="Node3D" unique_id=1763472797]
+script = ExtResource("1_4oxri")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=650303097]
+environment = SubResource("Environment_wqyen")
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=1690319242]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -62)
+mesh = SubResource("PlaneMesh_h8p4f")
+script = ExtResource("3_2145v")
+plane_size = Vector2(256, 512)
+tiling = Vector2(6, 12)
+scroll_speed = Vector2(0, -0.1)
+base_texture = ExtResource("2_4oxri")
+
+[node name="Decor" type="Node" parent="." unique_id=800298208]
+script = ExtResource("5_2145v")
