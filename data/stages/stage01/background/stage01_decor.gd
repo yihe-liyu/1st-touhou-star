@@ -100,8 +100,48 @@ func _spawn_sun() -> void:
 	shade.position = sun.position
 	var hmat := ShaderMaterial.new()
 	hmat.shader = preload("res://gdshader/eclipse_shade.gdshader")
+	hmat.set_shader_parameter("cloud_tex", _make_cloud_texture(256))
 	shade.material_override = hmat
 	bg.add_child(shade)
+
+
+## 值噪声云斑纹理（fbm 多频叠加）：有机雾斑，非正弦波浪
+func _make_cloud_texture(size: int) -> ImageTexture:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var layers: Array[int] = [6, 12, 24]
+	var weights: Array[float] = [0.55, 0.30, 0.15]
+	var seed := 20240808
+	for y in range(size):
+		for x in range(size):
+			var v := 0.0
+			for i in layers.size():
+				var f := float(layers[i]) / size
+				v += _value_noise(x * f, y * f, seed + i) * weights[i]
+			# 增强对比（云斑更分明）
+			v = clampf((v - 0.5) * 1.8 + 0.5, 0.0, 1.0)
+			img.set_pixel(x, y, Color(v, v, v, 1.0))
+	return ImageTexture.create_from_image(img)
+
+
+## 平滑值噪声：格点随机 + 双线性平滑插值
+func _value_noise(u: float, v: float, s: int) -> float:
+	var x0 := int(floor(u))
+	var y0 := int(floor(v))
+	var fx: float = u - floor(u)
+	var fy: float = v - floor(v)
+	fx = fx * fx * (3.0 - 2.0 * fx)
+	fy = fy * fy * (3.0 - 2.0 * fy)
+	var a := _noise_hash(x0, y0, s)
+	var b := _noise_hash(x0 + 1, y0, s)
+	var c := _noise_hash(x0, y0 + 1, s)
+	var d2 := _noise_hash(x0 + 1, y0 + 1, s)
+	return lerpf(lerpf(a, b, fx), lerpf(c, d2, fx), fy)
+
+
+func _noise_hash(x: int, y: int, s: int) -> float:
+	# sin 小数 hash（经典 GLSL 技巧）：无溢出、确定性、0~1
+	var n: float = sin(float(x * 127.1 + y * 311.7 + s * 74.7)) * 43758.5453
+	return n - floor(n)
 
 
 ## 规则圆太阳纹理：中心亮暖白、边缘柔和、外圈光晕——干净的正圆（黑雾层负责遮）
