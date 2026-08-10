@@ -59,22 +59,42 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	super.start(ctx, target)
 
 
-## 伪日食太阳：独立 billboard quad（黑圆+亮环 shader），fog_disabled 不被雾吞掉
+## 伪日食太阳（2D）：CanvasLayer + 程序生成纹理——天然正圆、不受雾影响、固定屏幕位置（天文视差≈0）
 func _spawn_sun() -> void:
-	if bg.get_node_or_null("EclipseSun"):
+	if bg.get_node_or_null("SunLayer"):
 		return
-	var sun := MeshInstance3D.new()
-	sun.name = "EclipseSun"
-	var qm := QuadMesh.new()
-	qm.size = Vector2(320, 320)
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://gdshader/sun_eclipse.gdshader")
-	mat.render_priority = 1
-	qm.material = mat
-	sun.mesh = qm
-	sun.position = Vector3(0, 62, -300)
-	bg.add_child(sun)
+	var layer := CanvasLayer.new()
+	layer.name = "SunLayer"
+	layer.layer = 5  # 叠在 3D 背景之上
+	bg.add_child(layer)
+	var tr := TextureRect.new()
+	tr.texture = _make_sun_texture(256)
+	tr.size = Vector2(280, 280)
+	var vp_size: Vector2 = bg.get_viewport().get_visible_rect().size
+	tr.position = Vector2(vp_size.x * 0.5 - 140.0, vp_size.y * 0.10)
+	layer.add_child(tr)
 
+
+## 逐像素生成太阳纹理：暗暖本体（被遮的太阳）+ 边缘漏光 + 日冕光晕
+func _make_sun_texture(size: int) -> ImageTexture:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var r: float = 0.30      # 黑圆半径（归一化）
+	var edge: float = 0.015  # 边缘过渡
+	for y in range(size):
+		for x in range(size):
+			var p := Vector2((x + 0.5) / size, (y + 0.5) / size) - Vector2(0.5, 0.5)
+			var d: float = p.length() * 2.0
+			# 黑圆本体（暗暖太阳表面，被黑圆遮住但仍"发着被压暗的光"）
+			var body: float = 1.0 - smoothstep(r - edge, r + edge, d)
+			# 边缘漏光 + 日冕光晕（指数衰减，画进纹理无需 HDR glow）
+			var ring: float = exp(-max(d - r, 0.0) * 12.0) * 0.95
+			var halo: float = exp(-max(d - r, 0.0) * 2.5) * 0.38
+			var c := Color(1.0, 0.92, 0.72) * (ring + halo)
+			if body > 0.0:
+				c = c.lerp(Color(0.07, 0.05, 0.035), body)
+			var a: float = clampf(max(body, ring + halo), 0.0, 1.0)
+			img.set_pixel(x, y, Color(c.r, c.g, c.b, a))
+	return ImageTexture.create_from_image(img)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
