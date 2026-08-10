@@ -8,7 +8,7 @@
 
 [sub_resource type="Environment" id="Environment_wqyen"]
 fog_enabled = true
-fog_light_color = Color(0, 0, 0, 1)
+fog_light_color = Color(0.18, 0.20, 0.23, 1)
 fog_density = 0.5
 
 [sub_resource type="ShaderMaterial" id="Mat_Ground"]

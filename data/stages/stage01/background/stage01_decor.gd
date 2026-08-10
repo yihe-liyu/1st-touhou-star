@@ -18,7 +18,7 @@ func _ready() -> void:
 func _reset_environment() -> void:
 	if not bg.world_environment: return
 	var env := bg.world_environment.environment
-	env.fog_light_color = Color.BLACK
+	env.fog_light_color = Color(0.18, 0.20, 0.23)  # 雾色=暗蓝灰雾：远处地面/树融进雾里而非黑色（原为纯黑→远区发黑）
 	env.fog_density = 0.15  # 背景正常（日食感集中在太阳，不全局浓雾）
 	# 程序化天空：微暗蒙眼的白天（伪日食下"黑蒙蒙的天"，但看得出是白天）
 	var sky := ProceduralSkyMaterial.new()
@@ -54,7 +54,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# ① 雾散光来 (0→6s, tween 12s)
 	tl.at(0.0).do(func():
-		_fog_to(Color(0.0, 0.0, 0.0, 0.5), 0.04, 68.0, 12)
+		_fog_to(Color(0.18, 0.20, 0.23, 1.0), 0.04, 68.0, 12)
 	)
 
 	# ② 相机移动 + 旋转 (6s)
