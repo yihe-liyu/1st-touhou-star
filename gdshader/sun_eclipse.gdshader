@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_disabled, fog_disabled, billboard, blend_mix;
+render_mode unshaded, cull_disabled, fog_disabled, blend_mix;
 
 // 伪日食太阳：不规则的黑色圆遮住太阳，边缘漏出较亮的光芒
 // 独立 quad 元素（billboard），黑圆可偏移/缩放做日食错位动画

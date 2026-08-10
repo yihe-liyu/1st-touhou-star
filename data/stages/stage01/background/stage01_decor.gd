@@ -72,6 +72,7 @@ func _spawn_sun() -> void:
 	mat.render_priority = 1
 	qm.material = mat
 	sun.mesh = qm
+	sun.billboard_mode = GeometryInstance3D.BILLBOARD_ENABLED  # Godot4: billboard 是节点属性不是 render_mode
 	sun.position = Vector3(0, 62, -300)
 	bg.add_child(sun)
 
