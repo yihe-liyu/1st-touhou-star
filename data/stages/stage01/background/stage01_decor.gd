@@ -57,7 +57,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# ① 雾散光来 (0→6s, tween 12s)
 	tl.at(0.0).do(func():
-		_fog_to(Color(0.18, 0.20, 0.23, 1.0), 0.04, 68.0, 12)
+		_fog_to(Color(0.18, 0.20, 0.23, 1.0), 0.014, 68.0, 12)  # 密度0.014：近处草纹清晰(30m≈25%雾)，远处230m≈89%雾（融进雾色）
 	)
 
 	# ② 相机移动 + 旋转 (6s)
