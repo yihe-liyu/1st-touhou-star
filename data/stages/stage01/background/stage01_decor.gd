@@ -15,7 +15,7 @@ func _reset_environment() -> void:
 	if not bg.world_environment: return
 	var env := bg.world_environment.environment
 	env.fog_light_color = Color.BLACK
-	env.fog_density = 0.5
+	env.fog_density = 0.15  # 背景正常（日食感集中在太阳，不全局浓雾）
 	if bg.camera:
 		bg.camera.fov = 55.0
 
@@ -59,25 +59,42 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	super.start(ctx, target)
 
 
-## 伪日食太阳：SphereMesh 球体——轮廓天然正圆（任何视角），无需 billboard
-## fog_disabled 雾不吞太阳（剧情"太阳亮度根本没有减少"）
+## 伪日食太阳（Sprite3D）：背景正常、太阳专门被遮——黑圆+漏光纹理（绝对正圆）
+## billboard 用 SpriteBase3D 原生属性（此 fork 未阉割）；雾豁免用极简 shader
 func _spawn_sun() -> void:
 	if bg.get_node_or_null("EclipseSun"):
 		return
-	var sun := MeshInstance3D.new()
+	var sun := Sprite3D.new()
 	sun.name = "EclipseSun"
-	var sm := SphereMesh.new()
-	sm.radius = 40.0
-	sm.height = 80.0
-	sm.radial_segments = 48
-	sm.rings = 24
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://gdshader/sun_eclipse.gdshader")
-	mat.render_priority = 1
-	sm.material = mat
-	sun.mesh = sm
+	sun.texture = _make_sun_texture(256)
+	sun.pixel_size = 0.31  # 256px → 世界直径约 80
+	sun.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # SpriteBase3D 原生属性
 	sun.position = Vector3(0, 100, -320)
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://gdshader/sun_sprite.gdshader")
+	mat.set_shader_parameter("sun_tex", sun.texture)
+	sun.material_override = mat
 	bg.add_child(sun)
+
+
+## 逐像素生成太阳纹理：暗暖本体（被遮的太阳）+ 边缘漏光 + 日冕光晕
+func _make_sun_texture(size: int) -> ImageTexture:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var r: float = 0.30      # 黑圆半径（归一化）
+	var edge: float = 0.015  # 边缘过渡
+	for y in range(size):
+		for x in range(size):
+			var p := Vector2((x + 0.5) / size, (y + 0.5) / size) - Vector2(0.5, 0.5)
+			var d: float = p.length() * 2.0
+			var body: float = 1.0 - smoothstep(r - edge, r + edge, d)
+			var ring: float = exp(-max(d - r, 0.0) * 12.0) * 0.95
+			var halo: float = exp(-max(d - r, 0.0) * 2.5) * 0.38
+			var c := Color(1.0, 0.92, 0.72) * (ring + halo)
+			if body > 0.0:
+				c = c.lerp(Color(0.07, 0.05, 0.035), body)
+			var a: float = clampf(max(body, ring + halo), 0.0, 1.0)
+			img.set_pixel(x, y, Color(c.r, c.g, c.b, a))
+	return ImageTexture.create_from_image(img)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
 	var env := bg.world_environment.environment
