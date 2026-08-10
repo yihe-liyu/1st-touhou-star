@@ -25,8 +25,9 @@ func _reset_environment() -> void:
 	sky.sky_top_color = Color(0.20, 0.24, 0.30)       # 天顶：暗蓝灰
 	sky.sky_horizon_color = Color(0.42, 0.44, 0.46)   # 地平线：稍亮
 	sky.sky_curve = 0.35
-	# 天空球地面色=雾色：平面边缘（z=-190）之外的区域显示天球地面色，
-	# 必须与雾色一致，否则"地面没盖住"的地方露馅（与 fog_light_color 同步改）
+	# 地平线亮带压暗：sky_horizon 太亮会在远处形成"亮天空→暗天球"的分界线（隐藏地面也可见）
+	sky.sky_horizon_color = Color(0.26, 0.28, 0.31)
+	# 天空球地面色=雾色：平面边缘外的区域显示天球地面色，必须与雾色一致（与 fog_light_color 同步改）
 	sky.ground_horizon_color = Color(0.18, 0.20, 0.23)
 	sky.ground_bottom_color = Color(0.14, 0.15, 0.17)
 	env.background_mode = Environment.BG_SKY
@@ -62,7 +63,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	# ② 相机移动 + 旋转 (6s)
 	tl.at(6.0).do(func():
 		bg.pan_camera(Vector3(0, 20, -3), 8.0, Tween.EASE_IN_OUT, Tween.TRANS_QUAD)
-		bg.rotate_camera(Vector3(deg_to_rad(-22), 0, deg_to_rad(6)), 6.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
+		bg.rotate_camera(Vector3(deg_to_rad(-30), 0, 0), 6.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
 	)
 
 	# ③ 地面加速 (10s)
@@ -73,8 +74,8 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# ④ 每 4 帧喷一棵树（持续）
 	tl.at(0.0).every(4.0 / Engine.physics_ticks_per_second).do(func():
-		var x: float = RNG.randf_range(-90, 90)
-		var z: float = RNG.randf_range(-220, -180)
+		var x: float = RNG.randf_range(-190, 190)
+		var z: float = RNG.randf_range(-420, -180)
 		ctx.decor.spawn("橡树", Vector3(x, 8.0, z), Vector2.ZERO, ground)
 	)
 
