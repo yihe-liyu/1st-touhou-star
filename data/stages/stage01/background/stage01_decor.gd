@@ -122,7 +122,7 @@ func _spawn_screen_fog(sun: Sprite3D) -> void:
 	_fog_sun = sun
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if not _fog_mat or not _fog_sun or not bg.camera:
 		return
 	var sp: Vector2 = bg.camera.unproject_position(_fog_sun.global_position)
