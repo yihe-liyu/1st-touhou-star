@@ -25,7 +25,6 @@ class _LayerGroup:
 
 var _groups: Dictionary = {}
 var _elapsed: float = 0.0
-var _camera: Camera3D
 
 ## 实例 transform 写入计数（调试/回归测试用）：
 ## 静态路径稳态（无生成/无死亡）必须为 0 —— 保证"节点平移代替逐实例更新"不被回归
@@ -93,10 +92,6 @@ func fade_out_layer(layer_name: String, duration: float) -> void:
 
 
 # ═══ 生命周期 ═══
-
-func _ready() -> void:
-	_find_camera()
-
 
 func _process(delta: float) -> void:
 	_elapsed += delta
@@ -259,15 +254,3 @@ func _build_mesh(g: _LayerGroup, layer: DecorLayer) -> void:
 	add_child(mmi)
 	g.multi_mesh = mm
 	g.mmi = mmi
-
-
-func _find_camera() -> void:
-	var bg := get_parent()
-	if not bg: return
-	var subviewport := bg.get_parent()
-	if subviewport:
-		_camera = subviewport.get_node_or_null("Camera3D") as Camera3D
-	if not _camera:
-		var root := get_tree().current_scene
-		if root:
-			_camera = root.find_child("Camera3D", true, false) as Camera3D

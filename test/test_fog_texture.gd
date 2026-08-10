@@ -3,8 +3,9 @@ extends GutTest
 ## 若纹理左右/上下边缘不连续会出可见接缝线（曾 0.39~0.44 随机跳变 → 修复后 <0.03）
 
 func test_cloud_texture_seamless():
-	var decor: Node = (load("res://data/stages/stage01/background/stage01_decor.gd") as GDScript).new()
-	var tex: ImageTexture = decor._make_cloud_texture(128)
+	var fog := ScreenFogFX.new()
+	var tex: ImageTexture = fog._make_cloud_texture(128)
+	fog.free()
 	var img := tex.get_image()
 
 	var lr := 0.0

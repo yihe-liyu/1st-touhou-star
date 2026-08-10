@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BackgroundEnvPreset" format=3]
+
+[ext_resource type="Script" uid="uid://d8soul1cjjam" path="res://scripts/background/env_preset.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+fog_color = Color(0.18, 0.2, 0.23, 1)
+fog_density = 0.15
+fog_sky_affect = 0.0
+sky_top = Color(0.2, 0.24, 0.3, 1)
+sky_horizon = Color(0.26, 0.28, 0.31, 1)
+sky_curve = 0.35
+link_ground_to_fog = true
+ground_horizon_color = Color(0.18, 0.2, 0.23, 1)
+ground_bottom_color = Color(0.14, 0.15, 0.17, 1)
+glow_enabled = true
+glow_intensity = 0.8
+glow_bloom = 0.1
+glow_blend_mode = 0

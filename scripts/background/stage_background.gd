@@ -5,7 +5,6 @@ class_name StageBackground
 var camera: Camera3D
 var world_environment: WorldEnvironment
 var _elapsed: float = 0.0
-var _events: Dictionary = {}
 var _active: bool = false
 
 func _ready():
@@ -29,7 +28,7 @@ func _own_camera() -> void:
 	cam.name = "Camera3D"
 	cam.position = Vector3(0, 10, 6)
 	cam.rotation_degrees = Vector3(-30, 0, 0)
-	cam.fov = 55.0
+	cam.fov = 90.0
 	add_child(cam)
 	camera = cam
 
@@ -37,11 +36,9 @@ func _process(delta):
 	if not _active:
 		_active = true
 	_elapsed += delta
-	_process_events()
 	_on_update(delta, _elapsed)
 
 func _exit_tree():
-	_events.clear()
 	_on_cleanup()
 
 func _find_camera() -> Camera3D:
@@ -63,21 +60,6 @@ func _find_world_environment() -> WorldEnvironment:
 		if child is WorldEnvironment:
 			return child
 	return null
-
-func schedule(time_sec: float, callback: Callable):
-	if not _events.has(time_sec):
-		_events[time_sec] = []
-	_events[time_sec].append(callback)
-
-func _process_events():
-	var expired: Array = []
-	for time in _events:
-		if _elapsed >= time:
-			for cb in _events[time]:
-				cb.call()
-			expired.append(time)
-	for time in expired:
-		_events.erase(time)
 
 func set_camera_fov(fov: float):
 	if camera:
@@ -110,9 +92,6 @@ func set_camera_pos(pos: Vector3):
 		var t = camera.transform
 		t.origin = pos
 		camera.transform = t
-
-## 广播滚动倍率给所有子节点
-var scroll_mult: float = 1.0
 
 func get_camera_offset() -> Vector3:
 	if camera:
@@ -194,3 +173,47 @@ func set_sun_rotation(rot: Vector3, duration: float = 2.0) -> void:
 	if not sun_light: return
 	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(sun_light, "rotation", rot, duration)
+
+
+# ═══ 环境服务（预设 + 联动 tween）═══
+
+## 应用环境预设：替换为全新 Environment（每次全新实例 → 重跑/多背景零共享污染）
+## 配套 BackgroundEnvPreset（.tres）：初始环境一律从预设来，不手写裸属性
+func apply_env_preset(preset: BackgroundEnvPreset) -> void:
+	if not world_environment:
+		return
+	world_environment.environment = preset.build_environment()
+
+## 联动 tween：雾色/密度 + 天球地面水平色一起变（改雾色不露地平线）
+## 地面底色按雾色暗化 25%（与预设默认 ground_bottom ≈ 雾色×0.75 一致）
+func tween_env_fog(color: Color, density: float, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE) -> void:
+	var env := world_environment.environment if world_environment else null
+	if not env:
+		return
+	var sm := _sky_material(env)
+	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS).set_parallel(true)
+	tw.tween_property(env, "fog_light_color", color, duration)
+	tw.tween_property(env, "fog_density", density, duration)
+	if sm:
+		tw.tween_property(sm, "ground_horizon_color", color, duration)
+		tw.tween_property(sm, "ground_bottom_color", color.darkened(0.25), duration)
+	tw.set_ease(ease_type).set_trans(trans_type)
+
+## FOV tween（相机）
+func tween_env_fov(fov: float, duration: float, ease_type: int = Tween.EASE_IN_OUT, trans_type: int = Tween.TRANS_SINE) -> void:
+	if not camera:
+		return
+	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	tw.set_ease(ease_type).set_trans(trans_type)
+	tw.tween_property(camera, "fov", fov, duration)
+
+## 重置相机 FOV 到初始值（重跑防 tween 残留；position/rotation 由场景/自建相机保持，与旧行为一致）
+func reset_camera() -> void:
+	if not camera:
+		return
+	camera.fov = 90.0
+
+func _sky_material(env: Environment) -> ProceduralSkyMaterial:
+	if env.sky and env.sky.sky_material is ProceduralSkyMaterial:
+		return env.sky.sky_material
+	return null

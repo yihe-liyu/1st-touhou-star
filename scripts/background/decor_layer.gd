@@ -26,9 +26,6 @@ extends Resource
 ## LOD 裁剪距离——超过此距离跳过渲染更新（纯性能）
 @export var lod_distance: float = 150.0
 
-## 滚动倍率（相对于 BackgroundPlane 的滚动速度）
-@export var scroll_mult: float = 1.0
-
 ## Alpha 模式
 enum AlphaMode { SCISSOR, BLEND }
 @export var alpha_mode: AlphaMode = AlphaMode.SCISSOR

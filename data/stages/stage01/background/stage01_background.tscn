@@ -1,10 +1,12 @@
 [gd_scene format=3 uid="uid://40gibb6sxa5f"]
 
-[ext_resource type="Script" uid="uid://cgdh8dcpq8e33" path="res://data/stages/stage01/background/stage01_background.gd" id="1_4oxri"]
+[ext_resource type="Script" uid="uid://voqjqe6tw5cm" path="res://scripts/background/stage_background.gd" id="1_4oxri"]
 [ext_resource type="Shader" uid="uid://dk0cc5a6lkcd0" path="res://gdshader/background_plane.gdshader" id="1_g25nt"]
 [ext_resource type="Texture2D" uid="uid://ca1r30cua01ig" path="res://assets/Textures/background/stage01/grass.jpeg" id="2_4oxri"]
 [ext_resource type="Script" uid="uid://cys5ctkx6l5h8" path="res://scripts/background/background_plane.gd" id="3_2145v"]
 [ext_resource type="Script" uid="uid://c3a5hfx0ggmx5" path="res://data/stages/stage01/background/stage01_decor.gd" id="5_2145v"]
+[ext_resource type="Script" uid="uid://b5ytro1ivmhjt" path="res://scripts/background/background_sun.gd" id="6_sun"]
+[ext_resource type="Script" uid="uid://cesyonb11jo8h" path="res://scripts/background/screen_fog_fx.gd" id="7_fog"]
 
 [sub_resource type="Environment" id="Environment_wqyen"]
 fog_enabled = true
@@ -40,3 +42,9 @@ tiling = Vector2(6, 12)
 
 [node name="Decor" type="Node" parent="." unique_id=800298208]
 script = ExtResource("5_2145v")
+
+[node name="Sun" type="Node3D" parent="."]
+script = ExtResource("6_sun")
+
+[node name="FogFX" type="Node" parent="."]
+script = ExtResource("7_fog")
