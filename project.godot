@@ -38,6 +38,10 @@ window/stretch/mode="viewport"
 window/show_image=true
 window/image=""
 
+[gui]
+
+gui/theme/custom="res://themes/ui_theme.tres"
+
 [input]
 
 ui_accept={
@@ -142,7 +146,3 @@ memory_release={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
-
-[gui]
-
-gui/theme/custom="res://themes/ui_theme.tres"

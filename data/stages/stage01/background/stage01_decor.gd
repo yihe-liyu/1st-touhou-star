@@ -26,6 +26,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		target = p_target
 	
 	_reset_environment()
+	_spawn_sun()
 	ctx.decor.add_layer(OAK_LAYER)
 	ctx.decor.batch_spawn("橡树", 160, Vector2(-90, 90), Vector2(-220, -50), ground)
 	
@@ -56,6 +57,23 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	)
 
 	super.start(ctx, target)
+
+
+## 伪日食太阳：独立 billboard quad（黑圆+亮环 shader），fog_disabled 不被雾吞掉
+func _spawn_sun() -> void:
+	if bg.get_node_or_null("EclipseSun"):
+		return
+	var sun := MeshInstance3D.new()
+	sun.name = "EclipseSun"
+	var qm := QuadMesh.new()
+	qm.size = Vector2(320, 320)
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://gdshader/sun_eclipse.gdshader")
+	mat.render_priority = 1
+	qm.material = mat
+	sun.mesh = qm
+	sun.position = Vector3(0, 62, -300)
+	bg.add_child(sun)
 
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
