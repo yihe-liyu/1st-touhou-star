@@ -17,6 +17,8 @@ func _ready() -> void:
 
 func _reset_environment() -> void:
 	if not bg.world_environment: return
+	if not bg.world_environment.environment:  # 手操丢资源时自愈：重建环境，防止崩溃
+		bg.world_environment.environment = Environment.new()
 	var env := bg.world_environment.environment
 	env.fog_light_color = Color(0.18, 0.20, 0.23)  # 雾色=暗蓝灰雾：远处地面/树融进雾里而非黑色（原为纯黑→远区发黑）
 	env.fog_density = 0.15  # 背景正常（日食感集中在太阳，不全局浓雾）
