@@ -16,6 +16,16 @@ func _reset_environment() -> void:
 	var env := bg.world_environment.environment
 	env.fog_light_color = Color.BLACK
 	env.fog_density = 0.15  # 背景正常（日食感集中在太阳，不全局浓雾）
+	# 程序化天空：微暗蒙眼的白天（伪日食下"黑蒙蒙的天"，但看得出是白天）
+	var sky := ProceduralSkyMaterial.new()
+	sky.sky_top_color = Color(0.20, 0.24, 0.30)       # 天顶：暗蓝灰
+	sky.sky_horizon_color = Color(0.42, 0.44, 0.46)   # 地平线：稍亮
+	sky.sky_curve = 0.35
+	sky.ground_horizon_color = Color(0.30, 0.33, 0.30)
+	sky.ground_bottom_color = Color(0.16, 0.18, 0.14)
+	env.background_mode = Environment.BG_SKY
+	env.sky = Sky.new()
+	env.sky.sky_material = sky
 	if bg.camera:
 		bg.camera.fov = 55.0
 
@@ -88,7 +98,8 @@ func _make_sun_texture(size: int) -> ImageTexture:
 			var d: float = p.length() * 2.0
 			var body: float = 1.0 - smoothstep(r - edge, r + edge, d)
 			var ring: float = exp(-max(d - r, 0.0) * 12.0) * 0.95
-			var halo: float = exp(-max(d - r, 0.0) * 2.5) * 0.38
+			# 光晕只延伸到圆外 0.42（d<0.72）——超出区域 alpha 归零，避免方形纹理边缘可见
+			var halo: float = exp(-max(d - r, 0.0) * 2.5) * 0.38 * (1.0 - smoothstep(0.55, 0.72, d))
 			var c := Color(1.0, 0.92, 0.72) * (ring + halo)
 			if body > 0.0:
 				c = c.lerp(Color(0.07, 0.05, 0.035), body)
