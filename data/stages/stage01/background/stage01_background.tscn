@@ -48,3 +48,9 @@ script = ExtResource("6_sun")
 
 [node name="FogFX" type="Node" parent="." unique_id=1583144616]
 script = ExtResource("7_fog")
+fog_dark = 0.8
+sun_fog_extra = 1.2
+breath_amplitude = 0.1
+ring_strength = 0.5
+ring_radius = 0.08
+ring_width = 0.015

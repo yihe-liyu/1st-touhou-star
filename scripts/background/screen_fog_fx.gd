@@ -13,7 +13,7 @@ extends Node
 
 # ── 整体蒙眼 ──
 @export var fog_dark: float = 0.65           ## 整体蒙眼浓度
-@export var fog_color: Color = Color(0.02, 0.02, 0.03)  ## 雾色（暗蓝灰）
+@export var fog_color: Color = Color(0.0, 0.0, 0.0, 1.0)  ## 雾色（暗蓝灰）
 @export var flow_speed: float = 0.03         ## 流动速度
 @export var noise_scale: float = 1.0         ## 云斑大小
 
