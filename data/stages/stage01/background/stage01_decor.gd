@@ -6,6 +6,10 @@ extends CoroutineScript
 
 const OAK_LAYER = preload("res://data/stages/stage01/background/oak.tres")
 
+var _fog_rect: ColorRect = null
+var _fog_mat: ShaderMaterial = null
+var _fog_sun: Sprite3D = null
+
 
 func _ready() -> void:
 	_reset_environment()
@@ -91,18 +95,38 @@ func _spawn_sun() -> void:
 	smat.set_shader_parameter("sun_tex", sun.texture)
 	sun.material_override = smat
 	bg.add_child(sun)
-	# 层②：不规则黑雾（盖住太阳中心，边缘漏出规则的圆太阳边）
-	var shade := Sprite3D.new()
-	shade.name = "EclipseShade"
-	shade.texture = sun.texture  # 占位（黑雾 shader 不采样纹理）
-	shade.pixel_size = 0.31
-	shade.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	shade.position = sun.position
-	var hmat := ShaderMaterial.new()
-	hmat.shader = preload("res://gdshader/eclipse_shade.gdshader")
-	hmat.set_shader_parameter("cloud_tex", _make_cloud_texture(256))
-	shade.material_override = hmat
-	bg.add_child(shade)
+	# 全屏 2D 蒙眼雾层：盖整个游戏画面（背景+弹幕）——玩家被蒙眼
+	_spawn_screen_fog(sun)
+
+
+## 全屏蒙眼雾：CanvasLayer + ColorRect + canvas_item shader——盖最终画面（背景+弹幕）
+## 太阳屏幕位置处更浓（专门遮太阳）；挂 root（覆盖全窗口）
+func _spawn_screen_fog(sun: Sprite3D) -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "EyeFogLayer"
+	layer.layer = 90
+	get_tree().root.add_child(layer)
+	var rect := ColorRect.new()
+	rect.name = "FogRect"
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://gdshader/screen_fog.gdshader")
+	mat.set_shader_parameter("noise_tex", _make_cloud_texture(256))
+	layer.add_child(rect)
+	rect.material = mat
+	# 太阳 3D 位置 → 屏幕坐标（每帧更新：相机动太阳也跟着动）
+	_fog_rect = rect
+	_fog_mat = mat
+	_fog_sun = sun
+
+
+func _process(delta: float) -> void:
+	if not _fog_mat or not _fog_sun or not bg.camera:
+		return
+	var sp: Vector2 = bg.camera.unproject_position(_fog_sun.global_position)
+	var vp: Vector2 = bg.get_viewport().get_visible_rect().size
+	if vp.x > 0 and vp.y > 0:
+		_fog_mat.set_shader_parameter("sun_pos", sp / vp)
 
 
 ## 值噪声云斑纹理（fbm 多频叠加）：有机雾斑，非正弦波浪
@@ -110,13 +134,13 @@ func _make_cloud_texture(size: int) -> ImageTexture:
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	var layers: Array[int] = [6, 12, 24]
 	var weights: Array[float] = [0.55, 0.30, 0.15]
-	var seed := 20240808
+	var noise_seed := 20240808
 	for y in range(size):
 		for x in range(size):
 			var v := 0.0
 			for i in layers.size():
 				var f := float(layers[i]) / size
-				v += _value_noise(x * f, y * f, seed + i) * weights[i]
+				v += _value_noise(x * f, y * f, noise_seed + i) * weights[i]
 			# 增强对比（云斑更分明）
 			v = clampf((v - 0.5) * 1.8 + 0.5, 0.0, 1.0)
 			img.set_pixel(x, y, Color(v, v, v, 1.0))
