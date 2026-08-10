@@ -75,41 +75,46 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	super.start(ctx, target)
 
 
-## 伪日食太阳（Sprite3D）：背景正常、太阳专门被遮——黑圆+漏光纹理（绝对正圆）
-## billboard 用 SpriteBase3D 原生属性（此 fork 未阉割）；雾豁免用极简 shader
+## 伪日食太阳（两层分开）：① 规则亮圆太阳 + ② 不规则黑雾（shader 噪声边缘 + 时间驱动飘动）
 func _spawn_sun() -> void:
 	if bg.get_node_or_null("EclipseSun"):
 		return
+	# 层①：规则圆太阳（Image 画的正圆，干净发光）
 	var sun := Sprite3D.new()
 	sun.name = "EclipseSun"
-	sun.texture = _make_sun_texture(256)
-	sun.pixel_size = 0.31  # 256px → 世界直径约 80
-	sun.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # SpriteBase3D 原生属性
+	sun.texture = _make_sun_disc(256)
+	sun.pixel_size = 0.31
+	sun.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	sun.position = Vector3(0, 100, -320)
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://gdshader/sun_sprite.gdshader")
-	mat.set_shader_parameter("sun_tex", sun.texture)
-	sun.material_override = mat
+	var smat := ShaderMaterial.new()
+	smat.shader = preload("res://gdshader/sun_sprite.gdshader")
+	smat.set_shader_parameter("sun_tex", sun.texture)
+	sun.material_override = smat
 	bg.add_child(sun)
+	# 层②：不规则黑雾（盖住太阳中心，边缘漏出规则的圆太阳边）
+	var shade := Sprite3D.new()
+	shade.name = "EclipseShade"
+	shade.texture = sun.texture  # 占位（黑雾 shader 不采样纹理）
+	shade.pixel_size = 0.31
+	shade.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	shade.position = sun.position
+	var hmat := ShaderMaterial.new()
+	hmat.shader = preload("res://gdshader/eclipse_shade.gdshader")
+	shade.material_override = hmat
+	bg.add_child(shade)
 
 
-## 逐像素生成太阳纹理：暗暖本体（被遮的太阳）+ 边缘漏光 + 日冕光晕
-func _make_sun_texture(size: int) -> ImageTexture:
+## 规则圆太阳纹理：中心亮暖白、边缘柔和、外圈光晕——干净的正圆（黑雾层负责遮）
+func _make_sun_disc(size: int) -> ImageTexture:
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var r: float = 0.30      # 黑圆半径（归一化）
-	var edge: float = 0.015  # 边缘过渡
 	for y in range(size):
 		for x in range(size):
 			var p := Vector2((x + 0.5) / size, (y + 0.5) / size) - Vector2(0.5, 0.5)
 			var d: float = p.length() * 2.0
-			var body: float = 1.0 - smoothstep(r - edge, r + edge, d)
-			var ring: float = exp(-max(d - r, 0.0) * 12.0) * 0.95
-			# 光晕只延伸到圆外 0.42（d<0.72）——超出区域 alpha 归零，避免方形纹理边缘可见
-			var halo: float = exp(-max(d - r, 0.0) * 2.5) * 0.38 * (1.0 - smoothstep(0.55, 0.72, d))
-			var c := Color(1.0, 0.92, 0.72) * (ring + halo)
-			if body > 0.0:
-				c = c.lerp(Color(0.07, 0.05, 0.035), body)
-			var a: float = clampf(max(body, ring + halo), 0.0, 1.0)
+			var disc: float = 1.0 - smoothstep(0.40, 0.48, d)      # 规则圆盘
+			var glow: float = exp(-max(d - 0.46, 0.0) * 6.0) * 0.5  # 外圈光晕
+			var c := Color(1.0, 0.96, 0.84) * (0.45 + 0.55 * disc) + Color(1.0, 0.85, 0.55) * glow
+			var a: float = clampf(disc + glow, 0.0, 1.0)
 			img.set_pixel(x, y, Color(c.r, c.g, c.b, a))
 	return ImageTexture.create_from_image(img)
 
