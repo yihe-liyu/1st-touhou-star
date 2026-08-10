@@ -27,7 +27,7 @@ void fragment() {
 	float r = sun_radius * (1.0 + edge_rough * sin(p.x * 60.0 + p.y * 47.0));
 	float body = smoothstep(r, r - 0.01, d);
 	// ① 日冕光晕：大范围柔和扩散（太阳被压暗但光仍在）
-	float halo = exp(-d * (3.0 / maxf(halo_size, 0.01)));
+	float halo = exp(-d * (3.0 / max(halo_size, 0.01)));
 	// ② 边缘漏光：黑圆边缘溢出明亮的阳光
 	float ring = exp(-(d - r) * ring_density) * step(d, r + glow_width);
 	vec3 col = glow_color * (ring * hdr_gain + halo * hdr_gain * 0.35);
