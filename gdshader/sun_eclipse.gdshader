@@ -1,32 +1,27 @@
 shader_type spatial;
 render_mode unshaded, cull_disabled, fog_disabled, blend_mix;
 
-// 伪日食太阳（3D 版）：挂在 3D 背景里的发光体，随相机有景深视差
+// 伪日食太阳：SphereMesh 球体——轮廓天然正圆（任何视角），无需 billboard
 // fog_disabled：剧情"太阳的亮度根本没有减少"——雾不吞太阳
-// 此 fork 阉割了 GeometryInstance3D.billboard_mode → 手动 shader billboard
-void vertex() {
-	// 4 顶点统一用 quad 中心深度 → 相机俯仰时透视缩放一致 → 正圆
-	vec4 center_w = MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0);
-	float depth = (VIEW_MATRIX * center_w).z;
-	POSITION = PROJECTION_MATRIX * vec4(VERTEX.xy, depth, 1.0);
-}
+// fragment 用球面 UV 中心距离画黑圆（小角度近似平面圆）
 
 uniform vec3 glow_color : source_color = vec3(1.0, 0.92, 0.72);   // 漏光暖白（阳光色）
 uniform vec3 body_color : source_color = vec3(0.07, 0.05, 0.035);  // 被遮住的太阳本体（暗暖）
-uniform float sun_radius : hint_range(0.0, 1.0) = 0.24;            // 黑圆半径（相对 quad）
-uniform float edge_rough : hint_range(0.0, 0.1) = 0.008;           // 黑圆边缘不规则度（低频低幅→圆）
-uniform float glow_width : hint_range(0.0, 1.0) = 0.10;            // 边缘漏光带宽
+uniform float sun_radius : hint_range(0.0, 1.0) = 0.24;            // 黑圆半径（球面 UV）
+uniform float edge_rough : hint_range(0.0, 0.1) = 0.006;           // 黑圆边缘不规则度
+uniform float glow_width : hint_range(0.0, 1.0) = 0.12;            // 边缘漏光带宽
 uniform float halo_size : hint_range(0.0, 2.0) = 0.9;              // 日冕光晕范围
-uniform float hdr_gain : hint_range(1.0, 8.0) = 4.0;               // HDR 亮度（吃 Environment glow）
+uniform float hdr_gain : hint_range(1.0, 8.0) = 3.0;               // HDR 亮度
 uniform vec2 sun_offset = vec2(0.0);                               // 黑圆错位（日食偏移动画）
-uniform float ring_density : hint_range(1.0, 60.0) = 18.0;         // 漏光衰减速度
+uniform float ring_density : hint_range(1.0, 60.0) = 14.0;         // 漏光衰减速度
 
 void fragment() {
-	vec2 p = UV - 0.5 - sun_offset;
+	vec2 p = UV - vec2(0.5, 0.5) - sun_offset;
 	float d = length(p);
-	// 不规则黑圆边缘（低频 sin → 微凹凸，仍是圆形）
+	// 球面弧长修正（小角度近似）：d_arc = 2*asin(d) ≈ d
+	// 不规则黑圆边缘（低频 sin → 微凹凸）
 	float r = sun_radius * (1.0 + edge_rough * sin(p.x * 24.0 + p.y * 19.0));
-	// 圆内 body=1：smoothstep 参数升序（edge0 < edge1）
+	// 圆内 body=1（smoothstep 升序）
 	float body = 1.0 - smoothstep(r - 0.02, r, d);
 	// ① 日冕光晕：大范围柔和扩散
 	float halo = exp(-d * (3.0 / max(halo_size, 0.01)));

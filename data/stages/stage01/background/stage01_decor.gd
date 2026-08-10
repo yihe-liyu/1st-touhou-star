@@ -59,20 +59,24 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	super.start(ctx, target)
 
 
-## 伪日食太阳（3D）：billboard quad + shader（fog_disabled 雾不吞太阳——剧情"太阳亮度根本没有减少"）
+## 伪日食太阳：SphereMesh 球体——轮廓天然正圆（任何视角），无需 billboard
+## fog_disabled 雾不吞太阳（剧情"太阳亮度根本没有减少"）
 func _spawn_sun() -> void:
 	if bg.get_node_or_null("EclipseSun"):
 		return
 	var sun := MeshInstance3D.new()
 	sun.name = "EclipseSun"
-	var qm := QuadMesh.new()
-	qm.size = Vector2(320, 320)
+	var sm := SphereMesh.new()
+	sm.radius = 40.0
+	sm.height = 80.0
+	sm.radial_segments = 48
+	sm.rings = 24
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/sun_eclipse.gdshader")
 	mat.render_priority = 1
-	qm.material = mat
-	sun.mesh = qm
-	sun.position = Vector3(0, 62, -300)
+	sm.material = mat
+	sun.mesh = sm
+	sun.position = Vector3(0, 100, -320)
 	bg.add_child(sun)
 
 func _fog_to(color: Color, density: float, fov: float, sec: float):
