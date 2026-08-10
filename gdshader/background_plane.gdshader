@@ -8,9 +8,9 @@ uniform vec2 tiling = vec2(6.0);
 uniform vec2 uv_offset = vec2(0.0);
 uniform vec4 modulate : source_color = vec4(1.0);
 
-// ── 距离雾：近清远朦，远处融进暗雾 ──
-uniform vec3 fog_color : source_color = vec3(0.12, 0.13, 0.15);
-uniform float fog_density : hint_range(0.0, 0.1) = 0.012;
+// ── 距离雾：近清远朦，远处融进亮天球雾（避免"黑远地面"）──
+uniform vec3 fog_color : source_color = vec3(0.20, 0.21, 0.24);
+uniform float fog_density : hint_range(0.0, 0.1) = 0.009;
 uniform float fog_start : hint_range(0.0, 200.0) = 55.0;
 
 // ── 平铺扰动：双档噪声随时间缓慢流动，减轻重复感 ──
@@ -22,7 +22,7 @@ uniform float perturb_freq : hint_range(0.0, 4.0) = 0.9;
 uniform float edge_fade_start : hint_range(-200.0, 0.0) = -120.0;
 uniform float edge_fade_end : hint_range(-200.0, 0.0) = -166.0;
 // 天球水平线以下颜色（实测 0.29,0.32,0.35）——平面边缘必须融进它才无缝
-uniform vec3 edge_fade_color : source_color = vec3(0.29, 0.32, 0.35);
+uniform vec3 edge_fade_color : source_color = vec3(0.42, 0.44, 0.47);
 
 // 相机世界位置（脚本每帧更新）。注意：本项目环境下 fragment 的 VIEW 内置返回 0，
 // 所以距离在 vertex 里用 MODEL_MATRIX 手动计算再插值
@@ -68,7 +68,7 @@ void fragment() {
 	// 远缘渐隐：保证平面末端 100% 融进天球色（否则边缘线露馅）
 	float far_fade = smoothstep(edge_fade_start, edge_fade_end, VERTEX.z);
 	fog = max(fog, far_fade);
-	// 远缘带从暗雾渐变为天球色 → 与天空无缝衔接
+	// 远缘带从暗雾渐变为亮天球雾 → 与天空衔接，避免"黑远地面"
 	vec3 haze = mix(fog_color, edge_fade_color, far_fade);
 	vec3 final = mix(col.rgb, haze, clamp(fog, 0.0, 1.0));
 	ALBEDO = final * modulate.rgb;

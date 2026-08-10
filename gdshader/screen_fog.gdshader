@@ -8,6 +8,12 @@ render_mode blend_mix;
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
 uniform sampler2D noise_tex;
 
+// 地平线屏幕位置（归一化 y，脚本每帧更新）：地平线以下一小条"远地面带"融进上方天空色，
+// 解决"亮天空+暗远地面"分界线（左右两侧一起无缝）
+uniform float horizon_y = 0.3;
+uniform float horizon_tilt = 0.0;  // 相机侧倾导致地平线倾斜：每 x 归一化单位的 y 偏移
+uniform float horizon_band : hint_range(0.0, 0.3) = 0.15;
+
 // ── 蒙眼雾 ──
 uniform float fog_dark : hint_range(0.0, 1.0) = 0.5;
 uniform vec2 sun_pos = vec2(0.5, 0.18);
@@ -32,6 +38,12 @@ uniform vec3 grade_gain : source_color = vec3(1.0, 0.975, 0.93);    // 亮部偏
 void fragment() {
 	// ① 取屏幕底色（3D 背景 + 辉光后的结果）
 	vec3 col = texture(screen_tex, SCREEN_UV).rgb;
+
+	// ①⑤ 地平线远地面带：融进上方天空色（太阳侧/非太阳侧都无缝；考虑相机侧倾的斜地平线）
+	float hy = horizon_y + (SCREEN_UV.x - 0.5) * horizon_tilt;
+	float hb = smoothstep(hy, hy + horizon_band, SCREEN_UV.y);
+	vec3 sky_ref = texture(screen_tex, vec2(SCREEN_UV.x, max(hy - 0.02, 0.01))).rgb;
+	col = mix(col, sky_ref, hb * 0.95);
 
 	// ② 全局调色：亮度 → 对比度 → 饱和度 → lift/gamma/gain
 	col *= grade_brightness;

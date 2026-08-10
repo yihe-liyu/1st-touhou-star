@@ -6,9 +6,9 @@ render_mode unshaded, cull_disabled, fog_disabled;
 
 uniform sampler2D albedo_tex : source_color;
 uniform float alpha_threshold : hint_range(0.0, 1.0) = 0.5;
-uniform vec3 fog_color : source_color = vec3(0.12, 0.13, 0.15);       // 中距雾色（与地面一致）
-uniform vec3 edge_fade_color : source_color = vec3(0.29, 0.32, 0.35);  // 远处天球色（与地面远缘一致）
-uniform float fog_density : hint_range(0.0, 0.1) = 0.012;
+uniform vec3 fog_color : source_color = vec3(0.20, 0.21, 0.24);       // 中距雾色（与地面一致）
+uniform vec3 edge_fade_color : source_color = vec3(0.42, 0.44, 0.47);  // 远处亮天球雾（与地面远缘一致）
+uniform float fog_density : hint_range(0.0, 0.1) = 0.018;
 uniform float fog_start : hint_range(0.0, 200.0) = 55.0;
 uniform float fog_full : hint_range(0.0, 400.0) = 230.0;  // 距离到达此值时完全融进天球色
 uniform vec3 cam_pos = vec3(0.0, 10.0, 6.0);
@@ -25,7 +25,7 @@ void fragment() {
 	if (c.a < alpha_threshold) {
 		discard;
 	}
-	// 远处融进雾色/天球色：颜色逐渐变成背景色 → 视觉上"退进雾里"，无硬墙
+	// 远处融进亮天球雾：颜色逐渐变成背景色 → 视觉上"退进雾里"，无硬墙、无生成 pop-in
 	float fog = 1.0 - exp(-fog_density * max(v_dist - fog_start, 0.0));
 	float t = smoothstep(fog_start, fog_full, v_dist);
 	vec3 haze = mix(fog_color, edge_fade_color, t);

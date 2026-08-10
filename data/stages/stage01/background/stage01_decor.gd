@@ -36,7 +36,7 @@ func _reset_environment() -> void:
 	# glow 泛光：太阳 EMISSION HDR 辉光（之前默认关 → 太阳"光"感差）
 	env.glow_enabled = true
 	env.glow_intensity = 0.8
-	env.glow_bloom = 0.1
+	env.glow_bloom = 0.06  # 收窄太阳辉光扩散：天空亮度更均匀，避免太阳侧"亮天空+暗远地面"对比过强
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	if bg.camera:
 		bg.camera.fov = 55.0
@@ -131,6 +131,14 @@ func _process(_delta: float) -> void:
 	var vp: Vector2 = bg.get_viewport().get_visible_rect().size
 	if vp.x > 0 and vp.y > 0:
 		_fog_mat.set_shader_parameter("sun_pos", sp / vp)
+		# 地平线位置 + 倾斜：无限远地面点的屏幕投影（雾层远地面带融天空用，含相机侧倾）
+		var hp: Vector2 = bg.camera.unproject_position(Vector3(0, 1, -100000.0))
+		var hr: Vector2 = bg.camera.unproject_position(Vector3(500, 1, -100000.0))
+		var tilt := 0.0
+		if absf(hr.x - hp.x) > 1.0:
+			tilt = (hr.y - hp.y) / (hr.x - hp.x) * vp.x  # 归一化斜率（每 x 单位的 y 变化）
+		_fog_mat.set_shader_parameter("horizon_y", hp.y / vp.y)
+		_fog_mat.set_shader_parameter("horizon_tilt", tilt)
 
 
 ## 值噪声云斑纹理（fbm 多频叠加，格点按周期取模 → 四方无缝可平铺）：有机雾斑，非正弦波浪
