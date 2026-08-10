@@ -25,8 +25,10 @@ func _reset_environment() -> void:
 	sky.sky_top_color = Color(0.20, 0.24, 0.30)       # 天顶：暗蓝灰
 	sky.sky_horizon_color = Color(0.42, 0.44, 0.46)   # 地平线：稍亮
 	sky.sky_curve = 0.35
-	sky.ground_horizon_color = Color(0.30, 0.33, 0.30)
-	sky.ground_bottom_color = Color(0.16, 0.18, 0.14)
+	# 天空球地面色=雾色：平面边缘（z=-190）之外的区域显示天球地面色，
+	# 必须与雾色一致，否则"地面没盖住"的地方露馅（与 fog_light_color 同步改）
+	sky.ground_horizon_color = Color(0.18, 0.20, 0.23)
+	sky.ground_bottom_color = Color(0.14, 0.15, 0.17)
 	env.background_mode = Environment.BG_SKY
 	env.sky = Sky.new()
 	env.sky.sky_material = sky
