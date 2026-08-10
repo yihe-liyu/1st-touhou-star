@@ -33,7 +33,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# ① 雾散光来 (0→6s, tween 12s)
 	tl.at(0.0).do(func():
-		bg.tween_env_fog(ENV_PRESET.fog_color, 0.05, 12.0)  # 密度 0.014：近处草纹清晰，远处融进雾色
+		bg.tween_env_fog(Color(0.7, 0.6, 0.6, 0.75), 0.02, 12.0)  # 密度 0.014：近处草纹清晰，远处融进雾色
 		bg.tween_env_fov(68.0, 12.0)
 	)
 

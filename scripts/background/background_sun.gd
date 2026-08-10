@@ -7,7 +7,7 @@ extends Node3D
 
 @export var sun_position: Vector3 = Vector3(0, 100, -320)
 @export var pixel_size: float = 0.31
-@export var texture_size: int = 256
+@export var texture_size: int = 384
 
 var sprite: Sprite3D
 

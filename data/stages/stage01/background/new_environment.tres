@@ -1,0 +1,9 @@
+[gd_resource type="Environment" format=3 uid="uid://dddw3br8s3bw8"]
+
+[resource]
+glow_intensity = 0.8
+glow_bloom = 0.1
+glow_blend_mode = 0
+fog_light_color = Color(0.1498392, 0.16701496, 0.1944969, 1)
+fog_density = 0.035
+fog_sky_affect = 0.0
