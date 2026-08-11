@@ -9,6 +9,7 @@ const POS_INDICATOR_TEX := preload("res://assets/Textures/front/boss_position.pn
 const INDICATOR_FADE_NEAR := 60.0    ## |dx| ≤ 60px 时最淡
 const INDICATOR_FADE_FAR := 400.0    ## |dx| ≥ 400px 时完全清晰（更早变亮）
 const INDICATOR_ALPHA_NEAR := 0.25   ## 最近处透明度（半透明但可见）
+const INDICATOR_FADE_POW := 0.5      ## 透明度缓动指数：<1 → 越近透明得越快（近处斜率陡）
 
 signal phase_cleared(captured: bool, bonus: int)
 
@@ -124,6 +125,8 @@ func _update_indicator_alpha() -> void:
 		return
 	var dx := absf(global_position.x - player.global_position.x)
 	var t := clampf((dx - INDICATOR_FADE_NEAR) / maxf(INDICATOR_FADE_FAR - INDICATOR_FADE_NEAR, 1.0), 0.0, 1.0)
+	# 缓动：pow<1 → 低 t 区间（Boss 靠近）斜率陡，透明得越快；远处保持清晰
+	t = pow(t, INDICATOR_FADE_POW)
 	_pos_indicator.modulate.a = lerpf(INDICATOR_ALPHA_NEAR, 1.0, t)
 
 

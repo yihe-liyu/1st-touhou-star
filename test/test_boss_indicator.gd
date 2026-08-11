@@ -74,11 +74,11 @@ func test_boss_indicator_alpha_fades_with_distance():
 	boss._process(0.016)
 	assert_eq(indicator.modulate.a, 1.0, "远离时指示器应完全清晰")
 
-	# 中间距离 → 半透明过渡
-	boss.global_position = Vector2(448 + 260.0, 200)  # dx=260，t=(260-60)/340≈0.588
+	# 中间距离 → 缓动过渡（pow 0.5：越近透明得越快）
+	boss.global_position = Vector2(448 + 260.0, 200)  # dx=260，t=(260-60)/340≈0.588 → pow=0.767
 	boss._process(0.016)
-	var expected_a: float = 0.25 + (1.0 - 0.25) * (260.0 - 60.0) / (400.0 - 60.0)
-	assert_almost_eq(indicator.modulate.a, expected_a, 0.01, "中间距离应线性过渡")
+	var expected_a: float = 0.25 + (1.0 - 0.25) * pow((260.0 - 60.0) / (400.0 - 60.0), 0.5)
+	assert_almost_eq(indicator.modulate.a, expected_a, 0.01, "中间距离应缓动过渡")
 
 	# 还原
 	GameState.player = prev
