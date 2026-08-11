@@ -34,9 +34,9 @@ func is_unlocked(music_id: int) -> bool:
 
 ## 通过 BGM key 解锁（返回是否实际解锁，幂等）
 func unlock_by_bgm_key(bgm_key: String) -> bool:
-	var changed := false
+	var did_change := false
 	for r in records:
 		if r.bgm_key == bgm_key and not r.unlocked:
 			r.unlocked = true
-			changed = true
-	return changed
+			did_change = true
+	return did_change
