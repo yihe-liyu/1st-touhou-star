@@ -98,4 +98,12 @@ func record_practice(stage: int, phase_index: int, boss_index: int, character: i
 		r.practice_captures += 1
 
 
+## 练习收取补记：只 +capture（attempt 已在开始练习时记过，防重复）
+func record_practice_capture(stage: int, phase_index: int, boss_index: int, character: int, difficulty: int) -> void:
+	var r := get_record(stage, phase_index, boss_index, character, difficulty)
+	if not r:
+		return
+	r.practice_captures += 1
+
+
 

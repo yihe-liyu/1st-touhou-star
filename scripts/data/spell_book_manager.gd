@@ -54,3 +54,9 @@ func record_capture(pid: PhaseIdentity, score: int, elapsed: float) -> void:
 func record_practice(pid: PhaseIdentity, captured: bool) -> void:
 	spell_book.record_practice(pid.stage_id, pid.phase_index, pid.boss_index, pid.character, pid.difficulty, captured)
 	save()
+
+
+## 练习收取补记（attempt 已在开始练习时记过，防重复）
+func record_practice_capture(pid: PhaseIdentity) -> void:
+	spell_book.record_practice_capture(pid.stage_id, pid.phase_index, pid.boss_index, pid.character, pid.difficulty)
+	save()

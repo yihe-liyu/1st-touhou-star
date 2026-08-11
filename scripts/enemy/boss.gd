@@ -118,6 +118,8 @@ func start_phase(data: PhaseData) -> void:
 	if not GameState.is_practice_mode:
 		GameState.unlock_spell(_pid)
 		GameState.record_spell(_pid, false, 0, 0.0)  # 进入符卡即记一次尝试（挑战开始）
+	else:
+		GameState.record_practice(_pid, false)  # 练习：进入即记一次尝试（覆盖击破/玩家死/退出所有结束路径）
 	
 	if data.name != "":
 		GameEvents.phase_start.emit(data)
@@ -203,7 +205,7 @@ func _clear_phase(captured: bool) -> void:
 	if _pid:
 		# 阶段已开始（_pid 已生成）才记录；Ctrl+G 在阶段开始前触发时只跳阶段不落盘
 		if GameState.is_practice_mode:
-			GameState.record_practice(_pid, captured)
+			GameState.record_practice_capture(_pid)  # 练习收取：attempt 已在进入时记过，这里只补 capture
 		elif captured and not _phase_missed:
 			# 干净收取：attempts 已在进入阶段时记过，这里只补收取
 			GameState.record_capture(_pid, _bonus, _elapsed)
@@ -229,7 +231,7 @@ func _die() -> void:
 	set_process(false)
 	_current_phase = null
 	if GameState.is_practice_mode and _pid and not _cleared:
-		GameState.record_practice(_pid, false)  # 练习 miss：算一次失败尝试（击破路径 _cleared=true 已在 _clear_phase 记过，跳过）
+		pass  # 练习 attempt 已在进入阶段时记过（玩家 miss/超时退出也覆盖），这里不再重复记
 	GameState.active_enemies.erase(self)
 	GameEvents.boss_defeated.emit(self)
 	if not _exit_controlled:

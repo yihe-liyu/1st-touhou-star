@@ -176,6 +176,11 @@ func record_capture(pid: PhaseIdentity, score: int, elapsed: float) -> void:
 func record_practice(pid: PhaseIdentity, captured: bool) -> void:
 	spell_book_mgr.record_practice(pid, captured)
 
+
+## 练习收取补记（委托）：attempt 已在开始练习时记过，防重复
+func record_practice_capture(pid: PhaseIdentity) -> void:
+	spell_book_mgr.record_practice_capture(pid)
+
 # ══════════════════════════════════════════════
 # 得分 & High Score
 # ══════════════════════════════════════════════
