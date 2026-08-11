@@ -6,7 +6,7 @@ const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
 ## 命中音效音量表（key → dB；未列出的默认 -14）：专属音效可单独调
 const HIT_SFX_VOLUME := {
-	"marisa_damage": -8.0,
+	"marisa_damage": -10.0,
 }
 
 var _pool: BulletPool
