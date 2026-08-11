@@ -110,11 +110,23 @@ func get_bgm(key: String) -> AudioStream:
 
 
 ## 播放 BGM 视为听过 → 解锁音乐室对应曲目（幂等，仅首次解锁写盘）
+## 按路径关联：游戏 key（stage1）与音乐室 key（music_2）指向同一文件时视为同一曲
 func _unlock_music_by_key(bgm_key: String) -> void:
 	var registry: MusicRegistry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
 	if not registry:
 		return
-	if registry.unlock_by_bgm_key(bgm_key):
+	var path: String = BGM_PATHS.get(bgm_key, "")
+	if path.is_empty():
+		return
+	var changed := false
+	for r in registry.records:
+		if r.unlocked:
+			continue
+		# 该曲目的注册器路径 == 当前播放路径 → 听过
+		if BGM_PATHS.get(r.bgm_key, "") == path:
+			r.unlocked = true
+			changed = true
+	if changed:
 		ResourceSaver.save(registry, MUSIC_REGISTRY_PATH)
 
 func get_bullet_tex(key: String) -> Texture2D:
