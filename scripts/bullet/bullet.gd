@@ -89,6 +89,7 @@ func bind(data: BulletData, direction: Vector2):
 	faction = data.faction
 	tint_mode = data.tint_mode
 	damage = data.damage
+	extra["hit_sfx"] = data.hit_sfx  # 命中音效 key（空 = 默认）
 	
 	# 自机弹 2 倍大，敌弹 1 倍
 	scale = Vector2.ONE

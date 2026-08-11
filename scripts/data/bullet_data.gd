@@ -24,6 +24,7 @@ var spawn_fog: bool = false                          ## 是否播弹雾特效
 var fog_texture: Texture2D                           ## 弹雾贴图
 var coroutine_script: Script                         ## 移动协程脚本（如诱导跟踪）
 var params: Dictionary = {}                          ## 注入给移动协程脚本的参数（行为脚本同名 var 覆盖）
+var hit_sfx: String = ""                             ## 命中音效注册器 key（空 = 默认 normal_damage）
 var out_grace: float = 0.0                           ## 出界宽限（秒）：出界后仍存活这段时间再回收；0 = 出界立即回收
 
 ## ---- 构造链方法 ----
