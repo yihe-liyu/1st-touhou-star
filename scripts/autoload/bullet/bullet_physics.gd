@@ -83,7 +83,11 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 			GameState.add_memory(GameState.MEMORY_HIT_BY_BULLET)
 			# 命中音效：按子弹标记选（marisa focus → marisa_damage），默认 normal_damage
 			var sfx_key: String = bullet.extra.get("hit_sfx", "")
-			var sfx: AudioStream = AssetRegistry.sounds.get(sfx_key, AssetRegistry.sounds["normal_damage"])
+			var sfx: AudioStream = AssetRegistry.sounds.get(sfx_key, null)
+			if sfx == null:
+				if sfx_key != "":
+					push_warning("BulletPhysics: 未知命中音效 key '%s'（回退 normal_damage）" % sfx_key)
+				sfx = AssetRegistry.sounds["normal_damage"]
 			AudioManager.play_sfx(sfx, -14.0, 0.05)  # 间隔 50ms：高频命中音防挤兑
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
