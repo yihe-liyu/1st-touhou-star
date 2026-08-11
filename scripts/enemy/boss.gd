@@ -38,6 +38,13 @@ var _exit_controlled: bool = false
 var _cleared: bool = false
 
 func current_phase() -> PhaseData: return _current_phase
+
+
+## Boss 残血（供命中音效等）：血量 < 当前阶段满血的 30%，且非无敌/非时符
+func is_low_hp() -> bool:
+	if _invincible or not _current_phase or _current_phase.is_timeout_only:
+		return false
+	return _current_phase.hp > 0 and float(hp) < _current_phase.hp * 0.3
 func current_bonus() -> int: return _bonus
 func get_elapsed() -> float: return _elapsed
 func get_phase_id() -> PhaseIdentity: return _pid

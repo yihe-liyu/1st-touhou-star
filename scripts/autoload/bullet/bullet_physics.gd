@@ -86,15 +86,20 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(bullet.damage * bonus)  # float 伤害，Enemy 内部累积
 			GameState.add_memory(GameState.MEMORY_HIT_BY_BULLET)
-			# 命中音效：按子弹标记选（marisa focus → marisa_damage），默认 normal_damage
+			# 命中音效规则：
+			# - 专属音效（hit_sfx 非空，如 marisa_damage）：任何敌人命中都播（保持现状）
+			# - 默认 normal_damage：仅 Boss 残血（<30%）时播，作为残血警报；普通敌人命中静音
 			var sfx_key: String = bullet.extra.get("hit_sfx", "")
-			var sfx: AudioStream = AssetRegistry.sounds.get(sfx_key, null)
-			if sfx == null:
-				if sfx_key != "":
+			if sfx_key == "":
+				if enemy is Boss and (enemy as Boss).is_low_hp():
+					AudioManager.play_sfx(AssetRegistry.sounds["normal_damage"], -14.0, 0.05)
+			else:
+				var sfx: AudioStream = AssetRegistry.sounds.get(sfx_key, null)
+				if sfx == null:
 					push_warning("BulletPhysics: 未知命中音效 key '%s'（回退 normal_damage）" % sfx_key)
-				sfx = AssetRegistry.sounds["normal_damage"]
-			var vol: float = HIT_SFX_VOLUME.get(sfx_key, -14.0)
-			AudioManager.play_sfx(sfx, vol, 0.05)  # 间隔 50ms：高频命中音防挤兑
+					sfx = AssetRegistry.sounds["normal_damage"]
+				var vol: float = HIT_SFX_VOLUME.get(sfx_key, -14.0)
+				AudioManager.play_sfx(sfx, vol, 0.05)  # 间隔 50ms：高频命中音防挤兑
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
 			return
@@ -167,4 +172,6 @@ func on_graze() -> void:
 # ── 击中特效 ──
 
 func _spawn_effect(effect_scene: PackedScene, pos: Vector2, velocity: Vector2 = Vector2.ZERO, tint: Color = Color.WHITE) -> void:
+	if effect_scene == null:
+		return  # 无特效的子弹（测试构造/漏配置）跳过，防崩
 	HitEffectPool.play(effect_scene, pos, velocity, tint)
