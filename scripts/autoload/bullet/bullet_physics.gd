@@ -6,6 +6,7 @@ const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
 var _pool: BulletPool
 var _graze_sfx_played: bool = false
+var _hit_sfx_played: bool = false  # 自机弹命中音效：每帧限 1 次（命中频率高，节流防嘈杂）
 var _enemy_hash: SpatialHash = SpatialHash.new()  # 敌人登记（玩家弹查询）
 var _bullet_hash: SpatialHash = SpatialHash.new() # 敌弹登记（自机查询）
 
@@ -16,6 +17,7 @@ func setup(p_pool) -> void:
 
 func reset_frame() -> void:
 	_graze_sfx_played = false
+	_hit_sfx_played = false
 
 
 func process_collisions() -> void:
@@ -85,6 +87,9 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(bullet.damage * bonus)  # float 伤害，Enemy 内部累积
 			GameState.add_memory(GameState.MEMORY_HIT_BY_BULLET)
+			if not _hit_sfx_played:
+				_hit_sfx_played = true
+				AudioManager.play_sfx(AssetRegistry.sounds["normal_damage"], -10.0)
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
 			return
