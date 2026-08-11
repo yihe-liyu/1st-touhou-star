@@ -81,7 +81,7 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 		if _hit_target(bullet, enemy):
 			enemy.take_damage(bullet.damage * bonus)  # float 伤害，Enemy 内部累积
 			GameState.add_memory(GameState.MEMORY_HIT_BY_BULLET)
-			AudioManager.play_sfx(AssetRegistry.sounds["normal_damage"], -10.0)  # 同帧去重由 AudioManager 处理
+			AudioManager.play_sfx(AssetRegistry.sounds["normal_damage"], -14.0, 0.05)  # 间隔 50ms：高频命中音防挤兑
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
 			return
@@ -148,7 +148,7 @@ func on_graze() -> void:
 	GameState.graze_count += 1
 	GameState.add_score(10)
 	GameState.add_memory(GameState.MEMORY_GRAZE)
-	AudioManager.play_sfx(AssetRegistry.sounds["graze"], -2.0)  # 同帧去重由 AudioManager 处理
+	AudioManager.play_sfx(AssetRegistry.sounds["graze"], -2.0, 0.03)  # 间隔 30ms：高频擦弹音防挤兑
 
 
 # ── 击中特效 ──

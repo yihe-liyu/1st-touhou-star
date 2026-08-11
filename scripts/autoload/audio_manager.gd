@@ -1,14 +1,16 @@
 extends Node
 ## 音频管理器 autoload
-## BGM 单路（无需 crossfade），SFX 8 路池 + 同帧去重
+## BGM 单路（无需 crossfade），SFX 16 路池 + 同帧去重 + 最小间隔节流
 
 # ── 声道 ──
 var _bgm_player: AudioStreamPlayer
 var _sfx_players: Array[AudioStreamPlayer] = []
-const SFX_POOL_SIZE := 8
+const SFX_POOL_SIZE := 16
 
 ## 每帧已播放的音效流，防止同帧重复播放
 var _played_this_frame: Array[AudioStream] = []
+## 各音效上次播放时间（秒），配合 min_interval 限制高频音效频率
+var _last_played_at: Dictionary = {}
 
 # ── 音量 ──
 var master_volume: float = 1.0:
@@ -117,8 +119,9 @@ func _bgm_sync_volume() -> void:
 
 # ═══ SFX ═══
 
-## 播一次音效，返回播放器（返回值通常不用）。同帧同一流不重复。
-func play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
+## 播一次音效，返回播放器（返回值通常不用）。
+## 同帧同一流不重复；min_interval > 0 时限制该流最小播放间隔（秒，高频音效防挤兑用）
+func play_sfx(stream: AudioStream, volume_db: float = 0.0, min_interval: float = 0.0) -> void:
 	if _sfx_players.is_empty():
 		_init_players()
 	
@@ -126,6 +129,14 @@ func play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
 	if stream in _played_this_frame:
 		return
 	_played_this_frame.append(stream)
+	
+	# 最小间隔节流（跨帧限频）：命中/擦弹这类高频音效避免持续占满池
+	if min_interval > 0.0:
+		var now := Time.get_ticks_msec() / 1000.0
+		var last: float = _last_played_at.get(stream, -INF)
+		if now - last < min_interval:
+			return
+		_last_played_at[stream] = now
 	
 	var player := _pick_sfx_player()
 	if not player:

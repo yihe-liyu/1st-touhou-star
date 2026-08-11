@@ -28,7 +28,7 @@ const MARISA_FOCUS_DMG := 4.0      # option·聚焦
 const MARISA_FOCUS_INTERVAL := 5
 const MARISA_FOCUS_LANES := 1
 
-const MARISA_LASER_DMG := 1.1      # option·激光 每段伤害
+const MARISA_LASER_DMG := 1.2      # option·激光 每段伤害
 const MARISA_LASER_DRIFT := 2000.0 # 激光漂移速度 px/s
 const MARISA_LASER_SEG_W := 64.0   # 激光段宽 px
 const MARISA_LASER_OVERLAP := 0.85 # 段间距系数（间距 = 段宽×系数）
