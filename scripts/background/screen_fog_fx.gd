@@ -6,11 +6,14 @@ extends Node
 ## 由演出脚本调用 setup(sun) 创建（practice 模式不调 → 无雾层，与旧行为一致）
 ## setup() 幂等：重复调用不重复创建（重跑安全）
 ## 全部参数 @export → 场景里选中本节点即可在 Inspector 调（每关可配不同雾）
-## 噪声纹理：格点预计算加速 + 后台线程生成（512² 不阻塞主线程，进关卡不卡）
+## 噪声纹理：预生成资源（cloud_noise.tres），setup 即用 → 零生成等待/零卡顿/无过渡期
+## 改纹理参数（texture_size/contrast）后重跑 tools/regenerate_fog_tex.gd
 
-# ── 雾纹理（setup 时线程生成一次）──
-@export var texture_size: int = 512          ## 云斑纹理分辨率（原 256 写死 → 提高消除像素感）
-@export var texture_contrast: float = 1.8    ## 云斑对比度（原写死 1.8）
+const CLOUD_NOISE_PATH := "res://assets/Textures/background/stage01/cloud_noise.tres"
+
+# ── 雾纹理（预生成资源；参数供 regenerate 工具用，运行时读资源）──
+@export var texture_size: int = 512          ## 云斑纹理分辨率（预生成用）
+@export var texture_contrast: float = 1.8    ## 云斑对比度（预生成用）
 
 # ── 整体蒙眼 ──
 @export var fog_dark: float = 0.65           ## 整体蒙眼浓度
@@ -35,8 +38,6 @@ var _rect: ColorRect
 var _mat: ShaderMaterial
 var sun: Node3D
 var _bg: StageBackground
-var _thread: Thread
-var _noise_ready: bool = false
 
 
 func setup(p_sun: Node3D = null) -> void:
@@ -52,34 +53,22 @@ func setup(p_sun: Node3D = null) -> void:
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://gdshader/screen_fog.gdshader")
+	# 预生成纹理：毫秒级就绪，雾层一次性完整出现（无均匀雾过渡/无卡顿）
+	var img: Image = load(CLOUD_NOISE_PATH)
+	if img == null:
+		push_error("ScreenFogFX: 预生成纹理缺失，请运行 tools/regenerate_fog_tex.gd；本次用同步生成兜底")
+		img = _make_cloud_image(texture_size, texture_contrast)
+	mat.set_shader_parameter("noise_tex", ImageTexture.create_from_image(img))
 	rect.material = mat
 	layer.add_child(rect)
 	_rect = rect
 	_mat = mat
 	_apply_params()
-	# 太阳位置立即同步一次（不等 _process 首帧，消除"卡一下"）
-	_update_sun_pos()
-	# 噪声纹理后台线程生成（不阻塞主线程）
-	_thread = Thread.new()
-	_thread.start(_make_cloud_image.bind(texture_size, texture_contrast))
+	_update_sun_pos()  # 立即同步太阳位置（不等 _process 首帧，消除覆盖延迟）
 
 
 func _process(_delta: float) -> void:
-	# 线程完成：主线程上传纹理 + 显示就绪（纹理就绪前雾层是均匀雾，百毫秒级）
-	if _thread and not _thread.is_alive():
-		var img: Image = _thread.wait_to_finish()
-		_thread = null
-		_mat.set_shader_parameter("noise_tex", ImageTexture.create_from_image(img))
-		_noise_ready = true
-		_update_sun_pos()  # 纹理就绪后再同步一次（此时相机/视口必然可用）
-	if _noise_ready:
-		_update_sun_pos()
-
-
-func _exit_tree() -> void:
-	if _thread and _thread.is_alive():
-		_thread.wait_to_finish()
-	_thread = null
+	_update_sun_pos()
 
 
 func _update_sun_pos() -> void:
@@ -127,8 +116,7 @@ func _make_cloud_texture(size: int) -> ImageTexture:
 
 
 ## 值噪声云斑纹理（fbm 多频叠加，格点按周期取模 → 四方无缝可平铺）：有机雾斑，非正弦波浪
-## 线程安全：纯函数 + 局部数据，可后台生成
-## 加速：格点值预计算（sin hash 每层只算 period² 次），逐像素纯插值 → 512² 约百毫秒
+## 供预生成工具 tools/regenerate_fog_tex.gd 使用；格点预计算加速（512² 约 350ms 一次性）
 func _make_cloud_image(size: int, contrast: float) -> Image:
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	var layers: Array[int] = [6, 12, 24]
