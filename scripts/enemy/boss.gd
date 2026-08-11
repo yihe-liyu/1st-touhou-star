@@ -84,20 +84,24 @@ func start_boss() -> void:
 	_create_pos_indicator()
 
 
-## 创建 Boss 位置指示器：挂父节点（World），x 跟随 Boss，y 对齐游戏框底
+## 创建 Boss 位置指示器：挂 UI 层（CanvasLayer 32，层级高于所有游戏元素），
+## x 跟随 Boss，y 在游戏框底线之下（完全在框外）
 func _create_pos_indicator() -> void:
 	if _pos_indicator:
 		return
-	var parent := get_parent()
-	if not parent:
-		return
+	var scene := get_tree().current_scene
+	var ui: CanvasLayer = scene.get_node_or_null("UI") if scene else null
+	if ui == null:
+		ui = get_tree().root.find_child("UI", true, false) as CanvasLayer
+	if ui == null:
+		return  # 无 UI 层的场景（工作台等）不显示指示器
 	var spr := Sprite2D.new()
 	spr.name = "PosIndicator"
 	spr.texture = POS_INDICATOR_TEX
-	spr.z_index = LayerConfig.BOSS_INDICATOR
-	# 贴图中心压在游戏框底线（视觉：指示条骑在框底边上）
-	spr.position = Vector2(global_position.x, GameConfig.FIELD_BOTTOM)
-	parent.add_child(spr)
+	spr.z_index = LayerConfig.UI_TOP
+	# 完全在游戏框外：贴图整体在 FIELD_BOTTOM 之下（上边缘贴框底线）
+	spr.position = Vector2(global_position.x, GameConfig.FIELD_BOTTOM + POS_INDICATOR_TEX.get_height() / 2.0)
+	ui.add_child(spr)
 	_pos_indicator = spr
 
 

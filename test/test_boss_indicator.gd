@@ -1,7 +1,13 @@
 extends GutTest
-## Boss 位置指示器回归测试：生成/跟随 x/对齐框底/随 Boss 销毁
+## Boss 位置指示器回归测试：生成/跟随 x/框外对齐/随 Boss 销毁
 
 func test_boss_indicator_follows_boss():
+	# 测试环境需要 UI 层（游戏里是 game_scene 的 "UI" CanvasLayer layer=32）
+	var ui := CanvasLayer.new()
+	ui.name = "UI"
+	get_tree().root.add_child(ui)
+	autofree(ui)
+
 	var boss = load("res://scripts/enemy/boss.gd").new()
 	add_child(boss)
 	boss.start_boss()
@@ -11,14 +17,17 @@ func test_boss_indicator_follows_boss():
 	if indicator == null:
 		return
 
+	# 挂 UI 层（层级高于游戏元素）
+	assert_eq(indicator.get_parent(), ui, "指示器应挂在 UI 层")
+
 	# x 跟随 Boss（y 固定）
 	boss.global_position = Vector2(300, 150)
 	boss._process(0.016)
 	assert_eq(indicator.global_position.x, 300.0, "指示器 x 应跟随 Boss")
 
-	# y 对齐游戏框底线（贴图中心压线）
-	var expected_y: float = GameConfig.FIELD_BOTTOM
-	assert_eq(indicator.global_position.y, expected_y, "指示器 y 应对齐游戏框底线")
+	# y 在游戏框底线之下（完全在框外，贴图中心 = FIELD_BOTTOM + 半高）
+	var expected_y: float = GameConfig.FIELD_BOTTOM + indicator.texture.get_height() / 2.0
+	assert_eq(indicator.global_position.y, expected_y, "指示器 y 应在游戏框底线之下（框外）")
 
 	# Boss 移动后指示器 x 继续跟随
 	boss.global_position = Vector2(600, 400)

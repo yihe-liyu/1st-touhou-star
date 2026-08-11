@@ -11,7 +11,6 @@ const ENEMY         := 5    ## 敌人
 const ENEMY_BULLET  := 10   ## 敌弹
 const BOSS          := 15   ## Boss
 const BOSS_HP_RING  := 20   ## Boss 血量环
-const BOSS_INDICATOR := 45  ## Boss 位置指示器（弹幕之上可见，特效之下）
 const EFFECT        := 50   ## 击中/消弹等特效（弹幕之上）
 const BOMB          := 100  ## 炸弹特效
 
