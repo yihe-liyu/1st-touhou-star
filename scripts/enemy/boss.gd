@@ -7,8 +7,8 @@ const POS_INDICATOR_TEX := preload("res://assets/Textures/front/boss_position.pn
 
 ## Boss 位置指示器距离淡出：离自机 x 越远越清晰（近处半透明，远处醒目）
 const INDICATOR_FADE_NEAR := 60.0    ## |dx| ≤ 60px 时最淡
-const INDICATOR_FADE_FAR := 520.0    ## |dx| ≥ 520px 时完全清晰（框宽 768，覆盖大半）
-const INDICATOR_ALPHA_NEAR := 0.15   ## 最近处透明度
+const INDICATOR_FADE_FAR := 400.0    ## |dx| ≥ 400px 时完全清晰（更早变亮）
+const INDICATOR_ALPHA_NEAR := 0.25   ## 最近处透明度（半透明但可见）
 
 signal phase_cleared(captured: bool, bonus: int)
 

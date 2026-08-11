@@ -67,17 +67,17 @@ func test_boss_indicator_alpha_fades_with_distance():
 	# 自机与 Boss 同 x → 最淡
 	boss.global_position = Vector2(448, 200)
 	boss._process(0.016)
-	assert_almost_eq(indicator.modulate.a, 0.15, 0.01, "同 x 时指示器应最淡")
+	assert_almost_eq(indicator.modulate.a, 0.25, 0.01, "同 x 时指示器应最淡")
 
-	# 自机远离 Boss（dx > 520）→ 完全清晰
-	boss.global_position = Vector2(1100, 200)  # dx = 652 > 520
+	# 自机远离 Boss（dx > 400）→ 完全清晰
+	boss.global_position = Vector2(1100, 200)  # dx = 652 > 400
 	boss._process(0.016)
 	assert_eq(indicator.modulate.a, 1.0, "远离时指示器应完全清晰")
 
 	# 中间距离 → 半透明过渡
-	boss.global_position = Vector2(448 + 260.0, 200)  # dx=260，t=(260-60)/460≈0.43
+	boss.global_position = Vector2(448 + 260.0, 200)  # dx=260，t=(260-60)/340≈0.588
 	boss._process(0.016)
-	var expected_a: float = 0.15 + (1.0 - 0.15) * (260.0 - 60.0) / (520.0 - 60.0)
+	var expected_a: float = 0.25 + (1.0 - 0.25) * (260.0 - 60.0) / (400.0 - 60.0)
 	assert_almost_eq(indicator.modulate.a, expected_a, 0.01, "中间距离应线性过渡")
 
 	# 还原
