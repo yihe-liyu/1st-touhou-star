@@ -11,11 +11,11 @@ const REIMU_MAIN_DMG := 6.0        # 主射击单发伤害
 const REIMU_MAIN_INTERVAL := 3     # 主射击间隔（物理帧）
 const REIMU_MAIN_LANES := 2        # 主射击路数
 
-const REIMU_FOCUS_DMG := 1.0       # option·聚焦
+const REIMU_FOCUS_DMG := 1.4       # option·聚焦
 const REIMU_FOCUS_INTERVAL := 4
 const REIMU_FOCUS_LANES := 2
 
-const REIMU_SPREAD_DMG := 3.0      # option·散开（homing）
+const REIMU_SPREAD_DMG := 3.5      # option·散开（homing）
 const REIMU_SPREAD_INTERVAL := 6
 const REIMU_SPREAD_LANES := 1
 
@@ -28,7 +28,7 @@ const MARISA_FOCUS_DMG := 4.0      # option·聚焦
 const MARISA_FOCUS_INTERVAL := 5
 const MARISA_FOCUS_LANES := 1
 
-const MARISA_LASER_DMG := 2.0      # option·激光 每段伤害
+const MARISA_LASER_DMG := 1.1      # option·激光 每段伤害
 const MARISA_LASER_DRIFT := 2000.0 # 激光漂移速度 px/s
 const MARISA_LASER_SEG_W := 64.0   # 激光段宽 px
 const MARISA_LASER_OVERLAP := 0.85 # 段间距系数（间距 = 段宽×系数）

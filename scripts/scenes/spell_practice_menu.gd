@@ -167,7 +167,13 @@ func _build_phase_list() -> void:
 	_clear(_phase_box)
 
 	for info in _phases:
-		_phase_box.add_child(_make_label(info["label"]))
+		var lbl := _make_label(info["label"])
+		# 练习收取过（任一难度）→ 符卡名蓝色（含非符，与符卡记录页一致）
+		for d in info["diffs"]:
+			if (info["diffs"][d] as SpellRecord).practice_captures > 0:
+				lbl.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))
+				break
+		_phase_box.add_child(lbl)
 
 
 func _build_diff_list() -> void:
@@ -187,6 +193,9 @@ func _build_diff_list() -> void:
 		nl.text = r.name if r.name != "" else "-"
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.add_theme_font_size_override("font_size", 30)
+		# 练习收取过 → 符卡名蓝色（含非符，与符卡记录页一致）
+		if r.practice_captures > 0:
+			nl.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))
 		vbox.add_child(nl)
 
 		var hrow := HBoxContainer.new()
