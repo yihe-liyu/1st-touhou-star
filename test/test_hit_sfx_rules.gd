@@ -96,10 +96,10 @@ func test_boss_is_low_hp_bounds():
 	boss._invincible = false
 	boss.hp = 100
 	assert_false(boss.is_low_hp(), "满血不残")
-	boss.hp = 30
-	assert_false(boss.is_low_hp(), "恰好 30% 不算残血")
-	boss.hp = 29
-	assert_true(boss.is_low_hp(), "29% 算残血")
+	boss.hp = 45
+	assert_false(boss.is_low_hp(), "恰好 45% 不算残血")
+	boss.hp = 44
+	assert_true(boss.is_low_hp(), "44% 算残血")
 	# 时符阶段不判定
 	var tp := PhaseData.new()
 	tp.hp = 100
