@@ -18,6 +18,10 @@ const DIFF_NAMES = SpellRecord.DIFF_NAMES
 const DIFF_VALUES = SpellRecord.DIFF_VALUES
 const CHAR_NAMES = SpellRecord.CHAR_NAMES
 
+# 练习收取进度色（与符卡记录页同色系）：全收正蓝 / 部分淡蓝
+const CAPTURE_FULL := Color(0.4, 0.7, 1.0)
+const CAPTURE_PARTIAL := Color(0.45, 0.6, 0.8)
+
 
 func diff_name(v: int) -> String:
 	var idx := DIFF_VALUES.find(v)
@@ -159,7 +163,11 @@ func _build_lists() -> void:
 		return
 
 	for st in _stages:
-		_stage_box.add_child(_make_label("Stage %d" % st))
+		var lbl := _make_label("Stage %d" % st)
+		match _stage_capture_state(st):
+			2: lbl.add_theme_color_override("font_color", CAPTURE_FULL)     # 全部 phase 全收
+			1: lbl.add_theme_color_override("font_color", CAPTURE_PARTIAL)  # 有收取但未全收
+		_stage_box.add_child(lbl)
 	_build_phase_list()
 
 
@@ -168,11 +176,9 @@ func _build_phase_list() -> void:
 
 	for info in _phases:
 		var lbl := _make_label(info["label"])
-		# 练习收取过（任一难度）→ 符卡名蓝色（含非符，与符卡记录页一致）
-		for d in info["diffs"]:
-			if (info["diffs"][d] as SpellRecord).practice_captures > 0:
-				lbl.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))
-				break
+		match _phase_state_from_diffs(info["diffs"]):
+			2: lbl.add_theme_color_override("font_color", CAPTURE_FULL)     # 所有难度全收
+			1: lbl.add_theme_color_override("font_color", CAPTURE_PARTIAL)  # 部分难度收过
 		_phase_box.add_child(lbl)
 
 
@@ -237,6 +243,70 @@ func _make_label(text: String) -> Label:
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.add_theme_font_size_override("font_size", 28)
 	return lbl
+
+
+# ═══ 练习收取进度（0=无 1=部分 2=全收）═══
+
+## phase 状态：该 phase 所有难度（记录）的 practice_captures
+func _phase_state_from_diffs(diffs: Dictionary) -> int:
+	var total := diffs.size()
+	if total == 0:
+		return 0
+	var captured := 0
+	for d in diffs:
+		if (diffs[d] as SpellRecord).practice_captures > 0:
+			captured += 1
+	if captured == total:
+		return 2
+	if captured > 0:
+		return 1
+	return 0
+
+
+## phase 状态（按 stage+boss+phase 分组，用于 stage 汇总）
+func _phase_capture_state(st: int, boss: int, phase_idx: int) -> int:
+	var book := GameState.spell_book
+	var total := 0
+	var captured := 0
+	for rec in book.records:
+		if rec.stage == st and rec.boss_index == boss and rec.phase_index == phase_idx and rec.character == _char_index:
+			total += 1
+			if rec.practice_captures > 0:
+				captured += 1
+	if total == 0:
+		return 0
+	if captured == total:
+		return 2
+	if captured > 0:
+		return 1
+	return 0
+
+
+## stage 状态：所有 phase 全收 → 2；有任意收取 → 1；无 → 0
+func _stage_capture_state(st: int) -> int:
+	var book := GameState.spell_book
+	var keys: Array = []
+	var any_captured := false
+	for rec in book.records:
+		if rec.stage != st or rec.character != _char_index:
+			continue
+		if rec.practice_captures > 0:
+			any_captured = true
+		if not keys.any(func(k): return k.boss == rec.boss_index and k.phase == rec.phase_index):
+			keys.append({boss = rec.boss_index, phase = rec.phase_index})
+	if keys.is_empty():
+		return 0
+	var total := 0
+	var done := 0
+	for k in keys:
+		total += 1
+		if _phase_capture_state(st, k.boss, k.phase) == 2:
+			done += 1
+	if done == total:
+		return 2
+	if any_captured:
+		return 1
+	return 0
 
 
 # ═══ 高亮 ═══
