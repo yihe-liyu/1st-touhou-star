@@ -3,7 +3,8 @@ class_name MarisaShoot
 
 const OPTION_VISUAL = preload("res://scripts/coroutine/player/ov_marisa.gd")
 const LASER_FOLLOW = preload("res://scripts/coroutine/player/marisa_laser_follow.gd")
-const LASER_TEX = preload("res://assets/Textures/player/marisa_option_bullet1.png")
+## 激光贴图：从注册器取（与 bullet_configs marisa_opt1 同源）
+var LASER_TEX: Texture2D = AssetRegistry.get_bullet_tex("marisa_opt1")
 
 const MAIN_INTERVAL: int = 3
 const OPTION_INTERVAL: int = 6

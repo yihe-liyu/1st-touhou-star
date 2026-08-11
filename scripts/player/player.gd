@@ -166,7 +166,7 @@ func _memory_release() -> void:
 	
 	# 视觉特效：反色圈（走服务）
 	_miss_circle(pos, MEM_RELEASE_DURATION, MEM_RELEASE_RANGE, 30, 0.0, 0.25)
-	_play_sfx(preload("res://assets/Sound/kira.wav"), -6.0)
+	_play_sfx(AssetRegistry.sounds["kira"], -6.0)
 	
 	# 消弹 + 每颗弹原地掉道具（碎片有上限）
 	var limits := {life = 0, bomb = 0}
@@ -234,7 +234,7 @@ func miss() -> void:
 	if is_invincible:
 		return
 	
-	_play_sfx(preload("res://assets/Sound/player_dead.wav"), -6.0)
+	_play_sfx(AssetRegistry.sounds["player_die"], -6.0)
 	var pos: Vector2 = global_position
 	_miss_circle(pos, 2.5, 1280)
 	_miss_circle(pos + Vector2(100, 0), 2.5, 1280)

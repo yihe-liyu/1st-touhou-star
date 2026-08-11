@@ -47,24 +47,36 @@ const bullet_configs := {
 	"marisa_main":    {"tex": preload("res://assets/Textures/player/marisa_main_bullet.png"),   "hitbox": {"rect": {"w": 48, "h": 24}, "offset": {"x": 0, "y": 0}}},
 	"marisa_opt1":    {"tex": preload("res://assets/Textures/player/marisa_option_bullet1.png"), "hitbox": {"rect": {"w": 32, "h": 32}, "offset": {"x": 0, "y": 0}}},
 	"marisa_opt2":    {"tex": preload("res://assets/Textures/player/marisa_option_bullet2.png"), "hitbox": {"rect": {"w": 48, "h": 24}, "offset": {"x": 0, "y": 0}}},
+	# 激光贴图（碰撞由激光系统自行处理，这里只提供贴图）
+	"laser":    {"tex": preload("res://assets/Textures/bullet/laser.png"), "hitbox": {"circle": 0.0, "offset": {"x": 0, "y": 0}}},
 }
 
 const sounds := {
-	"shoot":    preload("res://assets/Sound/bullet01.wav"),
+	"shoot":        preload("res://assets/Sound/shoot.wav"),
 	"player_shoot": preload("res://assets/Sound/player_shoot.wav"),
-	"kira":     preload("res://assets/Sound/kira.wav"),
-	"enemy_die": preload("res://assets/Sound/enemy_dead.wav"),
-	"player_die": preload("res://assets/Sound/player_dead.wav"),
-	"graze":    preload("res://assets/Sound/graze.wav"),
-	"item":     preload("res://assets/Sound/item.wav"),
+	"kira":         preload("res://assets/Sound/kira.wav"),
+	"enemy_die":    preload("res://assets/Sound/enemy_die.wav"),
+	"player_die":   preload("res://assets/Sound/player_die.wav"),
+	"graze":        preload("res://assets/Sound/graze.wav"),
+	"item":         preload("res://assets/Sound/item.wav"),
+	# ── UI ──
+	"select":       preload("res://assets/Sound/select.wav"),
+	"ok":           preload("res://assets/Sound/ok.wav"),
+	"cancel":       preload("res://assets/Sound/cancel.wav"),
+	"pause":        preload("res://assets/Sound/pause.wav"),
+	# ── 备用（当前无引用，注册备用）──
+	"lazer":          preload("res://assets/Sound/lazer.wav"),
+	"marisa_damage":  preload("res://assets/Sound/marisa_damage.wav"),
+	"msl":            preload("res://assets/Sound/msl.wav"),
+	"normal_damage":  preload("res://assets/Sound/normal_damage.wav"),
 }
 
 ## BGM 路径表 —— 按需加载（load 而非 preload，避免启动即解码大文件）
 const BGM_PATHS := {
 	"menu":     "res://assets/Music/THq01_01.无缘故之回.mp3",
 	"stage1":   "res://assets/Music/THq01_02.夜间漫步.mp3",
-	"stage1_b": "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3",
-	"stage1_c": "res://assets/Music/THq01_12.不尽记忆的天空.mp3",
+	"stage1B":  "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3",
+	"stage5":   "res://assets/Music/THq01_12.不尽记忆的天空.mp3",
 }
 
 var _bgm_cache: Dictionary = {}

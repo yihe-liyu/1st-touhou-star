@@ -60,7 +60,7 @@ func _main_step(_ctx: StageContext) -> Variant:
 	if not is_instance_valid(player):
 		return true
 	var interval := _main_shoot(_ctx, player)
-	AudioManager.play_sfx(preload("res://assets/Sound/player_shoot.wav"), -12.0)
+	AudioManager.play_sfx(AssetRegistry.sounds["player_shoot"], -12.0)
 	return interval
 
 

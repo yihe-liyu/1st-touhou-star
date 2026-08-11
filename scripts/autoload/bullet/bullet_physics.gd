@@ -154,7 +154,7 @@ func on_graze() -> void:
 	
 	if not _graze_sfx_played:
 		_graze_sfx_played = true
-		AudioManager.play_sfx(preload("res://assets/Sound/graze.wav"), -2.0)
+		AudioManager.play_sfx(AssetRegistry.sounds["graze"], -2.0)
 
 
 # ── 击中特效 ──

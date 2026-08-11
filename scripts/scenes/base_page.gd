@@ -163,10 +163,10 @@ func _overlay_leave(content: Control) -> void:
 # ═══ 音效快捷 ═══
 
 func sfx_nav() -> void:
-	AudioManager.play_sfx(preload("res://assets/Sound/select.wav"))
+	AudioManager.play_sfx(AssetRegistry.sounds["select"])
 
 func sfx_confirm() -> void:
-	AudioManager.play_sfx(preload("res://assets/Sound/ok.wav"))
+	AudioManager.play_sfx(AssetRegistry.sounds["ok"])
 
 func sfx_back() -> void:
-	AudioManager.play_sfx(preload("res://assets/Sound/cancel.wav"))
+	AudioManager.play_sfx(AssetRegistry.sounds["cancel"])

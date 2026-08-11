@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://uey4epxfvg5j"
-path="res://.godot/imported/enemy_dead.wav-5e120617d79f317d0c5d781bf1dc7815.sample"
+path="res://.godot/imported/enemy_die.wav-f5aae59c2ab201c62cf2e1a3bdfe8a03.sample"
 
 [deps]
 
-source_file="res://assets/Sound/enemy_dead.wav"
-dest_files=["res://.godot/imported/enemy_dead.wav-5e120617d79f317d0c5d781bf1dc7815.sample"]
+source_file="res://assets/Sound/enemy_die.wav"
+dest_files=["res://.godot/imported/enemy_die.wav-f5aae59c2ab201c62cf2e1a3bdfe8a03.sample"]
 
 [params]
 

@@ -17,7 +17,7 @@ func _on_enter() -> void:
 			resume.set_meta("locked", true)
 			refresh_colors()
 
-	AudioManager.play_sfx(preload("res://assets/Sound/pause.wav"))
+	AudioManager.play_sfx(AssetRegistry.sounds["pause"])
 
 
 func _on_leave() -> void:
