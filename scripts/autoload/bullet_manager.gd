@@ -65,7 +65,6 @@ func _physics_process(_delta: float) -> void:
 		return
 	# 统一用引擎时钟：time_scale 生效（工作台快进时激光/清弹同步加速）
 	var dt := get_physics_process_delta_time()
-	_physics.reset_frame()
 	
 	# 死亡清弹
 	_death_clear.process(dt)
