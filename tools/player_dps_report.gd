@@ -46,6 +46,14 @@ const SPELL_TIME_LIMIT := 40.0          # 符卡时间限制（秒）
 # ═══════════════════ 公式（一般不用改）═══════════════════
 
 const FPS := 60.0
+const REPORT_PATH := "res://tools/dps_report.txt"  # 输出同时保存到这里
+
+var _buf: Array[String] = []
+
+
+func _say(s: String) -> void:
+	print(s)
+	_buf.append(s)
 
 
 func _dps(dmg: float, lanes: int, interval: int) -> float:
@@ -53,11 +61,11 @@ func _dps(dmg: float, lanes: int, interval: int) -> float:
 
 
 func _init() -> void:
-	print("")
-	print("════════════════════════════════════════════════════")
-	print("  自机伤害数值计算器（全命中 · 60fps 基准）")
-	print("  改顶部数值输入后重跑: godot --headless --path . -s tools/player_dps_report.gd")
-	print("════════════════════════════════════════════════════")
+	_say("")
+	_say("════════════════════════════════════════════════════")
+	_say("  自机伤害数值计算器（全命中 · 60fps 基准）")
+	_say("  改顶部数值输入后重跑: godot --headless --path . -s tools/player_dps_report.gd")
+	_say("════════════════════════════════════════════════════")
 
 	_print_shooter("灵梦 Reimu",
 		REIMU_MAIN_DMG, REIMU_MAIN_INTERVAL, REIMU_MAIN_LANES,
@@ -72,11 +80,21 @@ func _init() -> void:
 		MARISA_LASER_DMG, MARISA_LASER_DRIFT, MARISA_LASER_SEG_W, MARISA_LASER_OVERLAP,
 		false)
 
-	print("")
-	print("  [记忆加成] 高记忆(≥50): ×1.00   低记忆: ×%.2f~%.2f（仅玩家弹）" % [MEMORY_BONUS[0], MEMORY_BONUS[1]])
-	print("  [命中提示] 全命中理论值；高弹速窄判定/激光段命中率 <100% 时实际 DPS 更低")
-	print("════════════════════════════════════════════════════")
+	_say("")
+	_say("  [记忆加成] 高记忆(≥50): ×1.00   低记忆: ×%.2f~%.2f（仅玩家弹）" % [MEMORY_BONUS[0], MEMORY_BONUS[1]])
+	_say("  [命中提示] 全命中理论值；高弹速窄判定/激光段命中率 <100% 时实际 DPS 更低")
+	_say("════════════════════════════════════════════════════")
+	_save_report()
 	quit(0)
+
+
+func _save_report() -> void:
+	var f := FileAccess.open(REPORT_PATH, FileAccess.WRITE)
+	if f:
+		f.store_string("\n".join(_buf) + "\n")
+		print("\n[已保存] 报告写入: ", REPORT_PATH)
+	else:
+		push_error("无法写入报告文件: " + REPORT_PATH)
 
 
 func _print_shooter(name: String, main_dmg: float, main_int: int, main_lanes: int,
@@ -86,19 +104,19 @@ func _print_shooter(name: String, main_dmg: float, main_int: int, main_lanes: in
 		has_spread: bool) -> void:
 	var main_dps: float = _dps(main_dmg, main_lanes, main_int)
 	var focus_dps: float = _dps(focus_dmg, focus_lanes, focus_int)
-	print("")
-	print("── %s ──" % name)
-	print("  主射击     : %.0f伤 ×%d路 @%d帧 = %.1f DPS" % [main_dmg, main_lanes, main_int, main_dps])
+	_say("")
+	_say("── %s ──" % name)
+	_say("  主射击     : %.0f伤 ×%d路 @%d帧 = %.1f DPS" % [main_dmg, main_lanes, main_int, main_dps])
 	if has_spread:
 		var spread_dps: float = _dps(spread_dmg, spread_lanes, spread_int)
-		print("  option聚焦 : %.0f伤 ×%d路 @%d帧 = %.1f DPS/子机" % [focus_dmg, focus_lanes, focus_int, focus_dps])
-		print("  option散开 : %.0f伤 ×%d路 @%d帧 = %.1f DPS/子机 (homing)" % [spread_dmg, spread_lanes, spread_int, spread_dps])
+		_say("  option聚焦 : %.0f伤 ×%d路 @%d帧 = %.1f DPS/子机" % [focus_dmg, focus_lanes, focus_int, focus_dps])
+		_say("  option散开 : %.0f伤 ×%d路 @%d帧 = %.1f DPS/子机 (homing)" % [spread_dmg, spread_lanes, spread_int, spread_dps])
 		_print_power_summary(main_dps, focus_dps, spread_dps, laser_dmg, laser_drift, laser_seg_w, laser_overlap, true)
 	else:
 		var seg_per_s: float = laser_drift / (laser_seg_w * laser_overlap)
 		var laser_dps: float = laser_dmg * seg_per_s
-		print("  option聚焦 : %.0f伤 ×%d路 @%d帧 = %.1f DPS/子机" % [focus_dmg, focus_lanes, focus_int, focus_dps])
-		print("  option激光 : %.1f伤/段 × %.1f段/s = %.1f DPS/子机" % [laser_dmg, seg_per_s, laser_dps])
+		_say("  option聚焦 : %.0f伤 ×%d路 @%d帧 = %.1f DPS/子机" % [focus_dmg, focus_lanes, focus_int, focus_dps])
+		_say("  option激光 : %.1f伤/段 × %.1f段/s = %.1f DPS/子机" % [laser_dmg, seg_per_s, laser_dps])
 		_print_power_summary(main_dps, focus_dps, 0.0, laser_dmg, laser_drift, laser_seg_w, laser_overlap, false)
 
 
@@ -118,13 +136,13 @@ func _print_power_summary(main_dps: float, focus_dps: float, spread_dps: float,
 		else:
 			total = main_dps + laser_dps * n
 			mode = "激光"
-		print("    power%d (%d子机): 聚焦 %.0f | %s %.0f DPS" % [p * 100, n, focus_total, mode, total])
+		_say("    power%d (%d子机): 聚焦 %.0f | %s %.0f DPS" % [p * 100, n, focus_total, mode, total])
 		# power300 击杀时间（取强势模式，高记忆无加成）
 		if n == OPTIONS_BY_POWER[OPTIONS_BY_POWER.size() - 1]:
 			for label in TARGET_HP:
 				var hp: float = TARGET_HP[label]
 				var t_hi: float = hp / (total * 1.0)
 				var t_lo: float = hp / (total * MEMORY_BONUS[0])
-				print("      击杀 %s: %.1fs（低记忆 %.1fs）" % [label, t_hi, t_lo])
+				_say("      击杀 %s: %.1fs（低记忆 %.1fs）" % [label, t_hi, t_lo])
 			var ratio: float = SPELL_TIME_LIMIT / (4000.0 / (total * 1.0))
-			print("      40s符卡(4000hp)余裕: %.1f 倍" % ratio)
+			_say("      40s符卡(4000hp)余裕: %.1f 倍" % ratio)
