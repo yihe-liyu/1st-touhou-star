@@ -4,6 +4,11 @@ extends RefCounted
 
 const _CLEAR_EFFECT = preload("res://scenes/effect/enemy_bullet_clear.tscn")
 
+## 命中音效音量表（key → dB；未列出的默认 -14）：专属音效可单独调
+const HIT_SFX_VOLUME := {
+	"marisa_damage": -8.0,
+}
+
 var _pool: BulletPool
 var _enemy_hash: SpatialHash = SpatialHash.new()  # 敌人登记（玩家弹查询）
 var _bullet_hash: SpatialHash = SpatialHash.new() # 敌弹登记（自机查询）
@@ -88,7 +93,8 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 				if sfx_key != "":
 					push_warning("BulletPhysics: 未知命中音效 key '%s'（回退 normal_damage）" % sfx_key)
 				sfx = AssetRegistry.sounds["normal_damage"]
-			AudioManager.play_sfx(sfx, -14.0, 0.05)  # 间隔 50ms：高频命中音防挤兑
+			var vol: float = HIT_SFX_VOLUME.get(sfx_key, -14.0)
+			AudioManager.play_sfx(sfx, vol, 0.05)  # 间隔 50ms：高频命中音防挤兑
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
 			return
