@@ -16,9 +16,9 @@ func test_boss_indicator_follows_boss():
 	boss._process(0.016)
 	assert_eq(indicator.global_position.x, 300.0, "指示器 x 应跟随 Boss")
 
-	# y 对齐游戏框底（贴图下边缘贴底线）
-	var expected_y: float = GameConfig.FIELD_BOTTOM - indicator.texture.get_height() / 2.0
-	assert_eq(indicator.global_position.y, expected_y, "指示器 y 应对齐游戏框底")
+	# y 对齐游戏框底线（贴图中心压线）
+	var expected_y: float = GameConfig.FIELD_BOTTOM
+	assert_eq(indicator.global_position.y, expected_y, "指示器 y 应对齐游戏框底线")
 
 	# Boss 移动后指示器 x 继续跟随
 	boss.global_position = Vector2(600, 400)

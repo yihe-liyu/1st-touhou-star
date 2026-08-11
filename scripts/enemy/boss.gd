@@ -95,8 +95,8 @@ func _create_pos_indicator() -> void:
 	spr.name = "PosIndicator"
 	spr.texture = POS_INDICATOR_TEX
 	spr.z_index = LayerConfig.BOSS_INDICATOR
-	# 贴图下边缘贴游戏框底线（centered 默认：position 为中心 → 下移半高）
-	spr.position = Vector2(global_position.x, GameConfig.FIELD_BOTTOM - POS_INDICATOR_TEX.get_height() / 2.0)
+	# 贴图中心压在游戏框底线（视觉：指示条骑在框底边上）
+	spr.position = Vector2(global_position.x, GameConfig.FIELD_BOTTOM)
 	parent.add_child(spr)
 	_pos_indicator = spr
 
