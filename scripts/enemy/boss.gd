@@ -3,6 +3,7 @@ class_name Boss
 extends Area2D
 
 const HPRingClass = preload("res://scripts/scenes/boss_hp_ring.gd")
+const POS_INDICATOR_TEX := preload("res://assets/Textures/front/boss_position.png")
 
 signal phase_cleared(captured: bool, bonus: int)
 
@@ -13,6 +14,7 @@ var hitbox_radius: float
 var _ctx: StageContext
 var _phase_index: int = -1
 var _current_phase: PhaseData
+var _pos_indicator: Sprite2D  # Boss 位置指示器（x 跟随 Boss，y 固定游戏框底）
 var _bonus: int = 0
 var _elapsed: float = 0.0
 var _invincible: bool = false
@@ -75,9 +77,34 @@ func start_boss() -> void:
 	set_process(true)
 	GameState.active_enemies.append(self)
 	tree_exited.connect(func(): GameState.active_enemies.erase(self))
+	tree_exited.connect(_free_pos_indicator)
 	GameEvents.boss_spawned.emit(self)
 	collision_layer = 4
 	collision_mask = 2
+	_create_pos_indicator()
+
+
+## 创建 Boss 位置指示器：挂父节点（World），x 跟随 Boss，y 对齐游戏框底
+func _create_pos_indicator() -> void:
+	if _pos_indicator:
+		return
+	var parent := get_parent()
+	if not parent:
+		return
+	var spr := Sprite2D.new()
+	spr.name = "PosIndicator"
+	spr.texture = POS_INDICATOR_TEX
+	spr.z_index = LayerConfig.BOSS_INDICATOR
+	# 贴图下边缘贴游戏框底线（centered 默认：position 为中心 → 下移半高）
+	spr.position = Vector2(global_position.x, GameConfig.FIELD_BOTTOM - POS_INDICATOR_TEX.get_height() / 2.0)
+	parent.add_child(spr)
+	_pos_indicator = spr
+
+
+func _free_pos_indicator() -> void:
+	if _pos_indicator and is_instance_valid(_pos_indicator):
+		_pos_indicator.queue_free()
+	_pos_indicator = null
 
 
 func start_phase(data: PhaseData) -> void:
@@ -150,6 +177,9 @@ func start_phase(data: PhaseData) -> void:
 
 
 func _process(delta: float) -> void:
+	# Boss 位置指示器：x 始终跟随 Boss，y 固定游戏框底（在 phase 开始前也显示）
+	if _pos_indicator and is_instance_valid(_pos_indicator):
+		_pos_indicator.global_position.x = global_position.x
 	if not _current_phase: return
 	_elapsed += delta
 	
