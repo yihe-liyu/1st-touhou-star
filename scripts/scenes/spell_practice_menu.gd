@@ -20,7 +20,7 @@ const CHAR_NAMES = SpellRecord.CHAR_NAMES
 
 # 练习收取进度色（与符卡记录页同色系）：全收正蓝 / 部分淡蓝
 const CAPTURE_FULL := Color(0.4, 0.7, 1.0)
-const CAPTURE_PARTIAL := Color(0.45, 0.6, 0.8)
+const CAPTURE_PARTIAL := Color(0.55, 0.75, 0.95)
 
 
 func diff_name(v: int) -> String:
@@ -297,12 +297,12 @@ func _stage_capture_state(st: int) -> int:
 	if keys.is_empty():
 		return 0
 	var total := 0
-	var done := 0
+	var done_count := 0
 	for k in keys:
 		total += 1
 		if _phase_capture_state(st, k.boss, k.phase) == 2:
-			done += 1
-	if done == total:
+			done_count += 1
+	if done_count == total:
 		return 2
 	if any_captured:
 		return 1
@@ -334,13 +334,23 @@ func _highlight() -> void:
 
 func _dim_all_vbox(vbox: VBoxContainer) -> void:
 	for child in vbox.get_children():
-		child.modulate = Color(0.3, 0.3, 0.3)
+		child.modulate = _dim_for(child)
+
+
+## 有进度色（蓝/淡蓝）的行：压暗放宽，保持蓝可辨（否则淡蓝糊进灰里）
+func _dim_for(child: Control) -> Color:
+	if child is Label and child.get_theme_color("font_color") in [CAPTURE_FULL, CAPTURE_PARTIAL]:
+		return Color(0.55, 0.55, 0.6)
+	return Color(0.3, 0.3, 0.3)
 
 
 func _highlight_one_vbox(vbox: VBoxContainer, idx: int) -> void:
 	var children := vbox.get_children()
 	for i in children.size():
-		children[i].modulate = Color.WHITE if i == idx else Color(0.4, 0.4, 0.4)
+		if i == idx:
+			children[i].modulate = Color.WHITE
+		else:
+			children[i].modulate = _dim_for(children[i])
 
 
 func _dim_diff() -> void:
