@@ -5,6 +5,11 @@ extends Area2D
 const HPRingClass = preload("res://scripts/scenes/boss_hp_ring.gd")
 const POS_INDICATOR_TEX := preload("res://assets/Textures/front/boss_position.png")
 
+## Boss 位置指示器距离淡出：离自机 x 越远越清晰（近处半透明，远处醒目）
+const INDICATOR_FADE_NEAR := 60.0    ## |dx| ≤ 60px 时最淡
+const INDICATOR_FADE_FAR := 520.0    ## |dx| ≥ 520px 时完全清晰（框宽 768，覆盖大半）
+const INDICATOR_ALPHA_NEAR := 0.15   ## 最近处透明度
+
 signal phase_cleared(captured: bool, bonus: int)
 
 var boss_data: BossData
@@ -111,6 +116,17 @@ func _free_pos_indicator() -> void:
 	_pos_indicator = null
 
 
+## 指示器透明度随 |boss.x - 自机.x| 变化：越远越清晰
+func _update_indicator_alpha() -> void:
+	var player: Player = GameState.player
+	if player == null or not is_instance_valid(player):
+		_pos_indicator.modulate.a = 1.0
+		return
+	var dx := absf(global_position.x - player.global_position.x)
+	var t := clampf((dx - INDICATOR_FADE_NEAR) / maxf(INDICATOR_FADE_FAR - INDICATOR_FADE_NEAR, 1.0), 0.0, 1.0)
+	_pos_indicator.modulate.a = lerpf(INDICATOR_ALPHA_NEAR, 1.0, t)
+
+
 func start_phase(data: PhaseData) -> void:
 	# 配置校验：time_limit<=0 会除零/立即超时，防御性拒绝
 	for e in data.validate():
@@ -184,6 +200,7 @@ func _process(delta: float) -> void:
 	# Boss 位置指示器：x 始终跟随 Boss，y 固定游戏框底（在 phase 开始前也显示）
 	if _pos_indicator and is_instance_valid(_pos_indicator):
 		_pos_indicator.global_position.x = global_position.x
+		_update_indicator_alpha()
 	if not _current_phase: return
 	_elapsed += delta
 	

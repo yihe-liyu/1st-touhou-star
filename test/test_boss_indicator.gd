@@ -39,3 +39,48 @@ func test_boss_indicator_follows_boss():
 	boss.queue_free()
 	await wait_physics_frames(2)
 	assert_false(is_instance_valid(indicator), "Boss 销毁后指示器应被删除")
+
+
+func test_boss_indicator_alpha_fades_with_distance():
+	# 测试环境需要 UI 层 + 假玩家
+	var ui := CanvasLayer.new()
+	ui.name = "UI"
+	get_tree().root.add_child(ui)
+	autofree(ui)
+	var fake_player := Player.new()
+	fake_player.global_position = Vector2(448, 800)
+	# 注意：不 add_child（Player._ready 依赖场景子节点，裸 new 进树会报错）；
+	# 未进树时 global_position == position，足够测 alpha
+	var prev: Player = GameState.player
+	GameState.player = fake_player
+	if prev != null:
+		autofree(prev)
+
+	var boss = load("res://scripts/enemy/boss.gd").new()
+	add_child(boss)
+	boss.start_boss()
+	var indicator: Sprite2D = boss._pos_indicator
+	assert_not_null(indicator, "start_boss 后应创建指示器")
+	if indicator == null:
+		return
+
+	# 自机与 Boss 同 x → 最淡
+	boss.global_position = Vector2(448, 200)
+	boss._process(0.016)
+	assert_almost_eq(indicator.modulate.a, 0.15, 0.01, "同 x 时指示器应最淡")
+
+	# 自机远离 Boss（dx > 520）→ 完全清晰
+	boss.global_position = Vector2(1100, 200)  # dx = 652 > 520
+	boss._process(0.016)
+	assert_eq(indicator.modulate.a, 1.0, "远离时指示器应完全清晰")
+
+	# 中间距离 → 半透明过渡
+	boss.global_position = Vector2(448 + 260.0, 200)  # dx=260，t=(260-60)/460≈0.43
+	boss._process(0.016)
+	var expected_a: float = 0.15 + (1.0 - 0.15) * (260.0 - 60.0) / (520.0 - 60.0)
+	assert_almost_eq(indicator.modulate.a, expected_a, 0.01, "中间距离应线性过渡")
+
+	# 还原
+	GameState.player = prev
+	boss.queue_free()
+	fake_player.free()
