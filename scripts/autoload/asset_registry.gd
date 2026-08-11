@@ -64,7 +64,7 @@ const sounds := {
 	"ok":           preload("res://assets/Sound/ok.wav"),
 	"cancel":       preload("res://assets/Sound/cancel.wav"),
 	"pause":        preload("res://assets/Sound/pause.wav"),
-	# ── 备用（当前无引用，注册备用）──
+
 	"lazer":          preload("res://assets/Sound/lazer.wav"),
 	"marisa_damage":  preload("res://assets/Sound/marisa_damage.wav"),
 	"msl":            preload("res://assets/Sound/msl.wav"),

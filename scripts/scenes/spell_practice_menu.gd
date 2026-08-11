@@ -328,7 +328,7 @@ func _highlight() -> void:
 			_dim_diff()
 		Section.DIFF:
 			_highlight_diff(_diff_index)
-			_pulse_on_diff(_diff_index)
+			# diff 选项不闪烁（符卡名+统计+难度内容多，闪烁晃眼），只保留高亮
 
 
 func _dim_all_vbox(vbox: VBoxContainer) -> void:
