@@ -11,6 +11,8 @@ const SFX_POOL_SIZE := 16
 var _played_this_frame: Array[AudioStream] = []
 ## 各音效上次播放时间（秒），配合 min_interval 限制高频音效频率
 var _last_played_at: Dictionary = {}
+## 受保护音效：播放中不被池抢占（重要反馈，如玩家被击中）
+var _protected_streams: Array = []
 
 # ── 音量 ──
 var master_volume: float = 1.0:
@@ -29,6 +31,8 @@ var sfx_volume: float = 0.7:
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	_init_players()
+	# 受保护音效：播放中不被池抢占（重要反馈，如玩家被击中）
+	_protected_streams = [AssetRegistry.sounds["player_die"]]
 	GameManager.game_state_changed.connect(_on_game_state_changed)
 
 
@@ -142,22 +146,37 @@ func play_sfx(stream: AudioStream, volume_db: float = 0.0, min_interval: float =
 	if not player:
 		return
 	
+	player.set_meta("protected", stream in _protected_streams)
 	player.stream = stream
 	player.volume_db = clampf(volume_db + _to_db(sfx_volume), -80.0, 24.0)
 	player.play()
 
 
 ## 从池中挑一个可用的播放器。
-## 优先空闲的，其次找播放时间最久远的那个。
+## 优先空闲；全忙时先踢不受保护的（最老的），全被保护才踢最老——重要音效不被挤掉。
 func _pick_sfx_player() -> AudioStreamPlayer:
 	# 1) 有空闲 → 用它
 	for p in _sfx_players:
 		if not p.playing:
 			return p
 	
-	# 2) 全忙 → 踢掉最老的（最早开始播放的那个）
+	# 2) 全忙 → 先踢不受保护的（最早开始播放的那个）
+	var oldest_free: AudioStreamPlayer = null
+	var oldest_tick := -INF
+	for p in _sfx_players:
+		if p.get_meta("protected", false):
+			continue
+		var tick := p.get_playback_position()
+		if tick > oldest_tick:
+			oldest_free = p
+			oldest_tick = tick
+	if oldest_free:
+		oldest_free.stop()
+		return oldest_free
+	
+	# 3) 全被保护（罕见：16 路全被保护音效占用）→ 踢最老
 	var oldest := _sfx_players[0]
-	var oldest_tick := oldest.get_playback_position()
+	oldest_tick = oldest.get_playback_position()
 	for i in range(1, _sfx_players.size()):
 		var p := _sfx_players[i]
 		var tick := p.get_playback_position()
