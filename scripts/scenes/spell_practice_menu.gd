@@ -18,9 +18,8 @@ const DIFF_NAMES = SpellRecord.DIFF_NAMES
 const DIFF_VALUES = SpellRecord.DIFF_VALUES
 const CHAR_NAMES = SpellRecord.CHAR_NAMES
 
-# 练习收取进度色（与符卡记录页同色系）：全收正蓝 / 部分淡蓝
+# 练习收取进度色（与符卡记录页同色）：全收正蓝（无中间态，未全收保持灰）
 const CAPTURE_FULL := Color(0.4, 0.7, 1.0)
-const CAPTURE_PARTIAL := Color(0.55, 0.75, 0.95)
 
 
 func diff_name(v: int) -> String:
@@ -164,9 +163,9 @@ func _build_lists() -> void:
 
 	for st in _stages:
 		var lbl := _make_label("Stage %d" % st)
-		match _stage_capture_state(st):
-			2: lbl.add_theme_color_override("font_color", CAPTURE_FULL)     # 全部 phase 全收
-			1: lbl.add_theme_color_override("font_color", CAPTURE_PARTIAL)  # 有收取但未全收
+		# 级联：该 stage 所有 phase 全收 → 正蓝（部分完成不显示中间色）
+		if _stage_capture_state(st) == 2:
+			lbl.add_theme_color_override("font_color", CAPTURE_FULL)
 		_stage_box.add_child(lbl)
 	_build_phase_list()
 
@@ -176,9 +175,9 @@ func _build_phase_list() -> void:
 
 	for info in _phases:
 		var lbl := _make_label(info["label"])
-		match _phase_state_from_diffs(info["diffs"]):
-			2: lbl.add_theme_color_override("font_color", CAPTURE_FULL)     # 所有难度全收
-			1: lbl.add_theme_color_override("font_color", CAPTURE_PARTIAL)  # 部分难度收过
+		# 级联：该 phase 所有难度全收 → 正蓝（部分完成不显示中间色）
+		if _phase_state_from_diffs(info["diffs"]) == 2:
+			lbl.add_theme_color_override("font_color", CAPTURE_FULL)
 		_phase_box.add_child(lbl)
 
 
@@ -337,9 +336,9 @@ func _dim_all_vbox(vbox: VBoxContainer) -> void:
 		child.modulate = _dim_for(child)
 
 
-## 有进度色（蓝/淡蓝）的行：压暗放宽，保持蓝可辨（否则淡蓝糊进灰里）
+## 有进度色（正蓝）的行：压暗放宽，保持蓝可辨（未选中时也能看出全收）
 func _dim_for(child: Control) -> Color:
-	if child is Label and child.get_theme_color("font_color") in [CAPTURE_FULL, CAPTURE_PARTIAL]:
+	if child is Label and child.get_theme_color("font_color") == CAPTURE_FULL:
 		return Color(0.55, 0.55, 0.6)
 	return Color(0.3, 0.3, 0.3)
 
