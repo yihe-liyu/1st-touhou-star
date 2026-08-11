@@ -80,27 +80,9 @@ func _play_bgm_at(stream: AudioStream, from: float) -> void:
 	_bgm_player.stream = stream
 	_bgm_player.volume_db = _to_db(bgm_volume * master_volume)
 	_bgm_player.play(from)
-	
-	# 音乐解锁：如果该音频有关联的音乐记录，解锁之
-	_unlock_music_by_stream(stream)
+	# 音乐解锁已由 AssetRegistry.get_bgm 统一处理（播放即听过）
 
 
-## 根据 AudioStream 查找对应的音乐记录并解锁
-func _unlock_music_by_stream(stream: AudioStream) -> void:
-	if not ResourceLoader.exists(MUSIC_REGISTRY_PATH):
-		return
-	var registry: MusicRegistry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
-	if not registry:
-		return
-	# 通过音频资源路径匹配
-	var path := stream.resource_path
-	if path.is_empty():
-		return
-	if registry.unlock_by_path(path):
-		ResourceSaver.save(registry, MUSIC_REGISTRY_PATH)
-
-
-## 停止 BGM（无渐弱）
 func stop_bgm() -> void:
 	if not _bgm_player or not is_instance_valid(_bgm_player):
 		return

@@ -32,10 +32,11 @@ func is_unlocked(music_id: int) -> bool:
 	return r != null and r.unlocked
 
 
-## 通过音频路径解锁（返回是否找到了匹配项）
-func unlock_by_path(audio_path: String) -> bool:
+## 通过 BGM key 解锁（返回是否实际解锁，幂等）
+func unlock_by_bgm_key(bgm_key: String) -> bool:
+	var changed := false
 	for r in records:
-		if r.audio_path == audio_path:
+		if r.bgm_key == bgm_key and not r.unlocked:
 			r.unlocked = true
-			return true
-	return false
+			changed = true
+	return changed

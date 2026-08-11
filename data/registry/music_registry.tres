@@ -12,7 +12,7 @@ comment = "无缘故之回
 较为平平的音乐，即使有一些高昂，那也是无缘故的。
 毕竟，从未谋面，自然没有回忆；没有回忆，那么所谓“回”也自然是无缘故的了。
 一面之缘的感情的起伏又有多少真实呢。"
-audio_path = "res://assets/Music/THq01_01.无缘故之回.mp3"
+bgm_key = "music_1"
 unlocked = true
 
 [sub_resource type="Resource" id="MusicRecord_02"]
@@ -25,7 +25,7 @@ comment = "夜间漫步
 于是就这样，主要是漫步的感觉了，夜不夜间的不是重点了，反正人类也不是能够每时每刻都生活在光明里的吧。
 总之异变就是这样的不是吗？
 "
-audio_path = "res://assets/Music/THq01_02.夜间漫步.mp3"
+bgm_key = "music_2"
 unlocked = true
 
 [sub_resource type="Resource" id="Resource_n7uf7"]
@@ -34,7 +34,7 @@ music_id = 3
 title = "洞窟蝙蝠"
 comment = "洞窟蝙蝠
 卡摩瑞的主题曲"
-audio_path = "res://assets/Music/THq01_03.洞窟蝙蝠.mp3"
+bgm_key = "music_3"
 unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
 
@@ -45,7 +45,7 @@ title = "就在那里的不思议宇宙"
 comment = "就在那里的不思议宇宙
 ３Ｂ面道中的音乐
 改自《东方绀珠传》的三面道中音乐——《飞翔于宇宙的不可思议巫女》"
-audio_path = "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3"
+bgm_key = "music_7"
 unlocked = true
 
 [sub_resource type="Resource" id="Resource_lemic"]
@@ -54,7 +54,7 @@ music_id = 10
 title = "寂寥记忆界"
 comment = "寂寥记忆界
 ４面道中的音乐"
-audio_path = "res://assets/Music/THq01_10.寂寥记忆界.mp3"
+bgm_key = "music_10"
 unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
 
@@ -65,7 +65,7 @@ title = "不尽记忆的天空"
 comment = "不尽记忆的天空
 ５面道中的音乐
 "
-audio_path = "res://assets/Music/THq01_12.不尽记忆的天空.mp3"
+bgm_key = "music_12"
 unlocked = true
 
 [sub_resource type="Resource" id="Resource_mnbxo"]
@@ -74,7 +74,7 @@ music_id = 17
 title = "朝夕之阳，在远在洋"
 comment = "朝夕之阳，在远在洋
 ＥＸ面道中的音乐"
-audio_path = "res://assets/Music/THq01_17.朝夕之阳，在远在洋.mp3"
+bgm_key = "music_17"
 unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
 
@@ -84,7 +84,7 @@ music_id = 18
 title = "以空为核，抽丝剥茧"
 comment = "以空为核，抽丝剥茧
 似新存的主题曲"
-audio_path = "res://assets/Music/THq01_18.以空为核，抽丝剥茧.mp3"
+bgm_key = "music_18"
 unlocked = true
 metadata/_custom_type_script = "uid://be08pe8s61ass"
 

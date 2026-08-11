@@ -71,34 +71,51 @@ const sounds := {
 	"normal_damage":  preload("res://assets/Sound/normal_damage.wav"),
 }
 
-## BGM key → 音乐室曲目 id（audio_path 以 music_registry.tres 为单一来源，不再双写路径）
-const BGM_KEYS := {
-	"menu":    1,
-	"stage1":  2,
-	"stage1B": 7,
-	"stage5":  12,
+## BGM 资源表 —— 按需加载（load 而非 preload，避免启动即解码大文件）
+## 路径唯一来源：音乐室（music_registry.tres）与游戏内播放共用此表；
+## MusicRecord 只存 bgm_key 引用（展示数据），不再存路径
+const BGM_PATHS := {
+	# 音乐室曲目（与 music_registry.tres 的 bgm_key 对应）
+	"music_1":  "res://assets/Music/THq01_01.无缘故之回.mp3",
+	"music_2":  "res://assets/Music/THq01_02.夜间漫步.mp3",
+	"music_3":  "res://assets/Music/THq01_03.洞窟蝙蝠.mp3",
+	"music_7":  "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3",
+	"music_10": "res://assets/Music/THq01_10.寂寥记忆界.mp3",
+	"music_12": "res://assets/Music/THq01_12.不尽记忆的天空.mp3",
+	"music_17": "res://assets/Music/THq01_17.朝夕之阳，在远在洋.mp3",
+	"music_18": "res://assets/Music/THq01_18.以空为核，抽丝剥茧.mp3",
+	# 游戏内场景 BGM（语义 key，可指向音乐室曲目）
+	"menu":     "res://assets/Music/THq01_01.无缘故之回.mp3",
+	"stage1":   "res://assets/Music/THq01_02.夜间漫步.mp3",
+	"stage1B":  "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3",
+	"stage5":   "res://assets/Music/THq01_12.不尽记忆的天空.mp3",
 }
 
 const MUSIC_REGISTRY_PATH := "res://data/registry/music_registry.tres"
 
 var _bgm_cache: Dictionary = {}
 
-## 按需加载 BGM（带缓存，首次访问后复用）；路径从 MusicRegistry 解析（单一数据源）
+## 按需加载 BGM（带缓存，首次访问后复用）；播放视为听过 → 顺带解锁音乐室对应曲目
 func get_bgm(key: String) -> AudioStream:
 	if _bgm_cache.has(key):
 		return _bgm_cache[key]
-	var music_id: int = BGM_KEYS.get(key, 0)
-	if music_id <= 0:
+	var path: String = BGM_PATHS.get(key, "")
+	if path.is_empty():
 		push_warning("AssetRegistry.get_bgm: 未知 BGM key '%s'" % key)
 		return null
-	var registry: MusicRegistry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
-	var rec: MusicRecord = registry.get_by_id(music_id) if registry else null
-	if not rec or rec.audio_path.is_empty():
-		push_warning("AssetRegistry.get_bgm: 音乐室无曲目 id=%d（key '%s'）" % [music_id, key])
-		return null
-	var stream: AudioStream = load(rec.audio_path)
+	var stream: AudioStream = load(path)
 	_bgm_cache[key] = stream
+	_unlock_music_by_key(key)
 	return stream
+
+
+## 播放 BGM 视为听过 → 解锁音乐室对应曲目（幂等，仅首次解锁写盘）
+func _unlock_music_by_key(bgm_key: String) -> void:
+	var registry: MusicRegistry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
+	if not registry:
+		return
+	if registry.unlock_by_bgm_key(bgm_key):
+		ResourceSaver.save(registry, MUSIC_REGISTRY_PATH)
 
 func get_bullet_tex(key: String) -> Texture2D:
 	var cfg: Dictionary = bullet_configs.get(key, {})

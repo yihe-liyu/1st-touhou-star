@@ -136,7 +136,7 @@ func _play_preview(record: MusicRecord) -> void:
 	# 确保外部 BGM 也停掉
 	AudioManager.stop_bgm()
 	
-	var stream := ResourceLoader.load(record.audio_path)
+	var stream: AudioStream = AssetRegistry.get_bgm(record.bgm_key)
 	if not stream:
 		return
 	
