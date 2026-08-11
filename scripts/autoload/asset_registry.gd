@@ -71,25 +71,32 @@ const sounds := {
 	"normal_damage":  preload("res://assets/Sound/normal_damage.wav"),
 }
 
-## BGM 路径表 —— 按需加载（load 而非 preload，避免启动即解码大文件）
-const BGM_PATHS := {
-	"menu":     "res://assets/Music/THq01_01.无缘故之回.mp3",
-	"stage1":   "res://assets/Music/THq01_02.夜间漫步.mp3",
-	"stage1B":  "res://assets/Music/THq01_07.就在那里的不思议宇宙.mp3",
-	"stage5":   "res://assets/Music/THq01_12.不尽记忆的天空.mp3",
+## BGM key → 音乐室曲目 id（audio_path 以 music_registry.tres 为单一来源，不再双写路径）
+const BGM_KEYS := {
+	"menu":    1,
+	"stage1":  2,
+	"stage1B": 7,
+	"stage5":  12,
 }
+
+const MUSIC_REGISTRY_PATH := "res://data/registry/music_registry.tres"
 
 var _bgm_cache: Dictionary = {}
 
-## 按需加载 BGM（带缓存，首次访问后复用）
+## 按需加载 BGM（带缓存，首次访问后复用）；路径从 MusicRegistry 解析（单一数据源）
 func get_bgm(key: String) -> AudioStream:
 	if _bgm_cache.has(key):
 		return _bgm_cache[key]
-	var path: String = BGM_PATHS.get(key, "")
-	if path.is_empty():
+	var music_id: int = BGM_KEYS.get(key, 0)
+	if music_id <= 0:
 		push_warning("AssetRegistry.get_bgm: 未知 BGM key '%s'" % key)
 		return null
-	var stream: AudioStream = load(path)
+	var registry: MusicRegistry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
+	var rec: MusicRecord = registry.get_by_id(music_id) if registry else null
+	if not rec or rec.audio_path.is_empty():
+		push_warning("AssetRegistry.get_bgm: 音乐室无曲目 id=%d（key '%s'）" % [music_id, key])
+		return null
+	var stream: AudioStream = load(rec.audio_path)
 	_bgm_cache[key] = stream
 	return stream
 
