@@ -128,34 +128,51 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# Boss 后增援波次（设计：提前击破 Boss → 固定时刻增援趁 Boss 已死触发，
 	# 打得快增援多、打得慢被 if 吞掉 —— 内容/资源节奏由玩家速度决定）
-	for i in 12:
-		tl.at(52.0 + i * 0.5).do(func():
+	for i in 9:
+		tl.at(52.0 + i).do(func():
 			if GameState.get_boss() == null:
-				_spawn_mid_enemy(0, i)
+				_spawn_mid_enemy(0, i, true)
 		)
-	for i in 12:
-		tl.at(55.0 + i * 0.5).do(func():
+	for i in 7:
+		tl.at(54.5 + i).do(func():
 			if GameState.get_boss() == null:
-				_spawn_mid_enemy(1, i)
+				_spawn_mid_enemy(1, i, true)
 		)
+		
+	for i in 20:
+		tl.at(63.0 + i * 0.5).do(func():
+			_spawn_mid_enemy(0, i, false, 1)
+		)
+	for i in 20:
+		tl.at(63.25 + i * 0.5).do(func():
+			_spawn_mid_enemy(1, i, false, 1)
+		)
+	
+	tl.at(64.0).do(func():
+		EnemyData.new().blue_big_fairy()
+	)
 
 	super.start(ctx, target)
 
 
 ## Boss 后横穿增援：side 0=右→左，1=左→右（i 决定颜色/位置随机偏移）
-func _spawn_mid_enemy(side: int, i: int) -> void:
+func _spawn_mid_enemy(side: int, i: int, heavy_wave: bool, start_time: float = 2.0) -> void:
 	var from_right := side == 0
 	var x: float = GameConfig.FIELD_RIGHT + 50 if from_right else GameConfig.FIELD_LEFT - 50
 	var tx: float = GameConfig.FIELD_LEFT + 175 if from_right else GameConfig.FIELD_RIGHT - 175
 	var y: float = 431
-	var off: int = RNG.randi() % 150 - 75
+	var off: int = RNG.randi() % 200 - 100
 	var e := EnemyData.new()
 	if i % 2:
 		e.red_little_fairy()
 	else:
 		e.blue_little_fairy()
+	if !heavy_wave:
+		e.param("rate", 4)
 	e.with_script(ENEMY03) \
 		.pos(Vector2(x, y + off - 175)) \
 		.param("target_pos", Vector2(tx + off, y + off)) \
 		.param("bullet_color", Color.RED if i % 2 else Color.BLUE) \
+		.param("heavy_wave", heavy_wave) \
+		.param("start_time", start_time) \
 		.spawn(ctx)

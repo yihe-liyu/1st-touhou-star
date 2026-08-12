@@ -8,6 +8,7 @@ var target_pos: Vector2
 var heavy_wave: bool = true  ## 强化波：Hard+ 时额外发射金色重力弹
 var rate: int = 1
 var bullet_color: Color = Color.RED
+var start_time: float = 2.0
 
 ## 延迟初始化（等父节点完成 add_child 链）
 func _ready() -> void:
@@ -29,7 +30,7 @@ func _init_enemy() -> void:
 
 	var tl := start_timeline()
 
-	tl.at(1.0).every(3.5).times(2).do(func():
+	tl.at(start_time).every(3.0).times(2).do(func():
 		bullet.tex("小玉").color(bullet_color).grace(0)
 		var player := ctx.player.get_player()
 		var dir := Vector2.DOWN
@@ -46,8 +47,8 @@ func _init_enemy() -> void:
 			bullet.tex("棱弹").color(Color.GOLD).grace(3)
 			bullet.coroutine_script = GRAVITY_BULLET
 			for i in diff_pick([0, 0, 1, 2]):
-				bullet.velocity = Vector2(0, 175 + i * 25)
-				ctx.bullets.shoot_spread(bullet, diff_pick([0, 0, 3, 6]), PI / (3 - i), -dir,
+				bullet.velocity = Vector2(0, 200 + i * 25)
+				ctx.bullets.shoot_spread(bullet, diff_pick([0, 0, 2, 4]), PI / (3 - i), -dir,
 					target.global_position)
 			bullet.coroutine_script = null  # 清掉，不污染后续小玉
 	)

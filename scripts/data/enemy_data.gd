@@ -74,23 +74,23 @@ func yellow_little_fairy() -> EnemyData:
 	return self
 
 func red_middle_fairy() -> EnemyData:
-	self.visual("red_middle_fairy").hbox(35).hp(200).power(7).point(2)
+	self.visual("red_middle_fairy").hbox(35).hp(190).power(7).point(2)
 	return self
 
 func blue_middle_fairy() -> EnemyData:
-	self.visual("blue_middle_fairy").hbox(35).hp(200).power(2).point(7)
+	self.visual("blue_middle_fairy").hbox(35).hp(190).power(2).point(7)
 	return self
 
 func red_big_fairy() -> EnemyData:
-	self.visual("red_big_fairy").hbox(48).hp(400).power(12).point(5)
+	self.visual("red_big_fairy").hbox(48).hp(300).power(12).point(5)
 	return self
 
 func blue_big_fairy() -> EnemyData:
-	self.visual("blue_big_fairy").hbox(48).hp(400).power(5).point(12)
+	self.visual("blue_big_fairy").hbox(48).hp(300).power(5).point(12)
 	return self
 
 func white_huge_fairy() -> EnemyData:
-	self.visual("white_huge_fairy").hbox(56).hp(900).power(20).point(20)
+	self.visual("white_huge_fairy").hbox(56).hp(600).power(20).point(20)
 	return self
 
 func red_YY_jade() -> EnemyData:
