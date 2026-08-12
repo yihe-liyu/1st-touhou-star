@@ -20,7 +20,7 @@ func _init_enemy() -> void:
 
 	var tl := start_timeline()
 
-	tl.at(3.5).every(5.0).times(2).do(func():
+	tl.at(2.0).every(3.5).times(3).do(func():
 		bullet.tex("棱弹").color(Color.FUCHSIA)
 		bullet.coroutine_script = RADIAL_ACCEL  # 沿各自发射角度加速扩散
 		var dir = Vector2.ONE.rotated(RNG.randf_range(-PI, PI))
@@ -34,8 +34,15 @@ func _init_enemy() -> void:
 	auto_stop = true
 
 
-## 移动：匀速下移（恒定速度，配合 timeline 边下边射；8s 后由退场飘走）
+## 移动：匀速下移直到离开屏幕（弹幕 timeline 并行推进，发完后移动不中断）
 func _tick(_ctx: StageContext) -> Variant:
 	if target and is_instance_valid(target):
 		target.global_position.y += move_speed * get_dt()
-	return super._tick(_ctx)
+		# 离开屏幕（下缘 + 90px 宽限）：销毁
+		if target.global_position.y > GameConfig.VIEW_HEIGHT + 90.0:
+			target.queue_free()
+			return false
+	# 弹幕 timeline 照常推进（事件发完即停，但移动持续到出屏）
+	if _tl:
+		_tl.tick(get_dt())
+	return true

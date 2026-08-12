@@ -28,17 +28,8 @@ func _tick(_ctx: StageContext) -> Variant:
 
 ## 生成竖直向下匀速弹（保留速度大小与外观/判定），回收自己
 func _spawn_downward(bullet: Bullet, _ctx: StageContext) -> void:
-	var data := BulletData.new().enemy()
-	data.texture = bullet.sprite.texture
-	data.tint = bullet.sprite.modulate
-	data.tint_mode = bullet.tint_mode as BulletData.TintMode
-	data.damage = bullet.damage
-	data.hitbox_shape = bullet.hitbox_shape as BulletData.HitboxShape
-	data.hitbox_radius = bullet.hitbox_radius
-	data.hitbox_size = bullet.hitbox_size
-	data.out_grace = bullet.out_grace
-	data.velocity = Vector2(0, bullet.velocity.length())  # 保留速度大小，方向竖直向下
-	data.accel = Vector2.ZERO          # 匀速（无加速度）
-	data.coroutine_script = null       # 纯直线弹（bullet 自身移动）
-	_ctx.bullets.shoot_single(data, Vector2(bullet.global_position.x, GameConfig.FIELD_TOP), Vector2.DOWN)
+	var b := BulletData.new().enemy()
+	b.tex("米弹").color(Color.FUCHSIA).blend(true)
+	b.velocity = Vector2(0, bullet.velocity.length())  # 保留速度大小，方向竖直向下
+	_ctx.bullets.shoot_single(b, Vector2(bullet.global_position.x, GameConfig.FIELD_TOP), Vector2.DOWN)
 	BulletManager.return_bullet(bullet)
