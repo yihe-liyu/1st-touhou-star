@@ -57,6 +57,8 @@ const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
 @onready var _world: Node2D = $World
 ## 3D 背景专用子视口（768x896，与真游戏 SubViewport 同规格 → 纵横比/构图一致）
 @onready var _bg_viewport: SubViewport = %BgViewport
+## phase 倒计时（与真游戏 BossUI 同款：两位秒数、框顶中央）
+var _phase_timer_label: Label
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
 var _playback: PlaybackBar
@@ -113,11 +115,41 @@ func _ready() -> void:
 	get_window().size = Vector2i(1600, 960)
 	%Title.text = "内容工作台 %s" % VERSION
 	_build_ui()
+	_setup_phase_timer()
 	_setup_world()
 	_load_stage()
 	_check_phase_uid_conflicts()
 	# 初始面板宽度校正（延迟一帧：等窗口/布局就绪，基于实际窗口宽）
 	_clamp_panel_width.call_deferred()
+
+
+## phase 倒计时（仿真游戏 BossUI）：两位秒数、框顶中央，间隙/无 Boss 隐藏
+func _setup_phase_timer() -> void:
+	_phase_timer_label = Label.new()
+	_phase_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_phase_timer_label.add_theme_font_size_override("font_size", 32)
+	_phase_timer_label.position = Vector2(
+		GameConfig.FIELD_LEFT + (GameConfig.FIELD_RIGHT - GameConfig.FIELD_LEFT) / 2.0 - 16.0,
+		GameConfig.FIELD_TOP + 16.0)
+	_phase_timer_label.visible = false
+	$UI.add_child(_phase_timer_label)
+
+
+## 倒计时更新（与 boss_ui._process 相同逻辑：超时归零、间隙隐藏）
+func _update_phase_timer() -> void:
+	if _phase_timer_label == null:
+		return
+	var boss: Boss = GameState.get_boss()
+	if boss == null or not is_instance_valid(boss):
+		_phase_timer_label.visible = false
+		return
+	var phase := boss.current_phase()
+	if not phase or phase.time_limit <= 0 or boss.is_in_gap():
+		_phase_timer_label.visible = false
+		return
+	_phase_timer_label.visible = true
+	var rem := maxf(phase.time_limit - boss.get_elapsed(), 0.0)
+	_phase_timer_label.text = "%02d" % int(ceil(rem))
 
 
 func _process(_delta: float) -> void:
@@ -127,6 +159,7 @@ func _process(_delta: float) -> void:
 		if runner == null or runner.game_time() >= _ff_target:
 			_stop_fast_forward()
 	_update_ui()
+	_update_phase_timer()
 
 
 func _draw() -> void:
