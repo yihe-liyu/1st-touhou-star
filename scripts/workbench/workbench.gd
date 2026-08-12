@@ -55,6 +55,8 @@ const SPEEDS: Array[float] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
 @onready var _timeline: TimelineBar = %Timeline
 @onready var _stage_grid: GridContainer = %StageGrid
 @onready var _world: Node2D = $World
+## 3D 背景专用子视口（768x896，与真游戏 SubViewport 同规格 → 纵横比/构图一致）
+@onready var _bg_viewport: SubViewport = %BgViewport
 
 # ═══ 组件（代码挂载到 .tscn 槽位）═══
 var _playback: PlaybackBar
@@ -292,13 +294,14 @@ func _load_stage() -> void:
 	if _ghost:
 		_ghost.reset()
 	# 背景：必须先设 current_background（load_stage 会启动背景里的协程脚本）
+	# 挂 3D 专用 SubViewport（与真游戏同规格）→ 纵横比/相机/构图一致
 	if _show_bg and _stage_data.background_scene:
 		_background = _stage_data.background_scene.instantiate()
 		if _background is StageBackground:
 			StageManager.current_background = _background
 		# 显式 PAUSABLE：背景演出也随暂停冻结（否则继承 root 的 ALWAYS）
 		_background.process_mode = Node.PROCESS_MODE_PAUSABLE
-		add_child(_background)
+		_bg_viewport.add_child(_background)
 	# 真实加载（跑 stage01.gd 的 Timeline）
 	StageManager.load_stage(_stage_data)
 	# 时间轴 + 书签（协程关卡静态提取 tl.at() 时刻）
