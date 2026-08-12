@@ -18,6 +18,7 @@ func test_stage_registry_has_stage1():
 
 
 ## 非符阶段数据：time_limit > 0, hp > 0（非符无 bonus 是设计模式）
+## 注：non01 已改为无脚本非符（内容管线调整，move/shoot 脚本移除）
 func test_non_spell_phase_valid():
 	var phase: PhaseData = load("res://data/stages/stage01/phase/non01/non01.tres")
 	assert_not_null(phase, "non01.tres 应存在")
@@ -25,14 +26,12 @@ func test_non_spell_phase_valid():
 		assert_eq(phase.uid, 0, "非符的 uid 应为 0")
 		assert_gt(phase.hp, 0, "非符 hp 应 > 0")
 		assert_gt(phase.time_limit, 0, "非符时限应 > 0")
-		assert_not_null(phase.move_script, "非符需要移动脚本")
-		assert_not_null(phase.shoot_script, "非符需要弹幕脚本")
 
 
-## 符卡阶段（黄粱「不可测之梦」spell56）：uid 非 0, 有名字, 血量/时限合法, 挂移动/弹幕脚本
+## 符卡阶段（黄粱「不可测之梦」spell056）：uid 非 0, 有名字, 血量/时限合法, 挂移动/弹幕脚本
 func test_spell_phase_valid():
-	var phase: PhaseData = load("res://data/stages/stage03B/phase/spell03/spell56.tres")
-	assert_not_null(phase, "spell56.tres 应存在")
+	var phase: PhaseData = load("res://data/stages/stage03B/phase/spell03/spell056.tres")
+	assert_not_null(phase, "spell056.tres 应存在")
 	if phase:
 		assert_ne(phase.uid, 0, "符卡 uid 不应为 0")
 		assert_ne(phase.name, "", "符卡应有名字")
