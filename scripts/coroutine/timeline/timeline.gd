@@ -76,11 +76,11 @@ func start_phase(boss_getter: Callable, data: PhaseData) -> Timeline:
 		# 现改为：仅 wait 事件等待 phase_cleared 激活，绝对时间事件（at/t）战斗期间照常触发
 		boss.phase_cleared.connect(func(_captured: bool, _bonus: int):
 			_cursor = _elapsed
-			# 激活下一个未触发的 wait 事件
+			# 激活全部未触发的 wait 事件（多个 wait 各自按 _cursor + offset 触发，
+			# 支持 Boss 击破后编排多段相对波次/演出）
 			for ev in _events:
 				if ev.wait_offset >= 0 and not ev.wait_armed and not ev.fired:
 					ev.wait_armed = true
-					break
 		, CONNECT_ONE_SHOT)
 	)
 

@@ -111,7 +111,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 250), 1.5)
 	)
 
-	# 非符 1 (Timeline 冻结中，等击破)
+	# 非符 1
 	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_MID01)
 	# ← 非符 被击破后 1s → 符卡（phase 继承 wait 偏移，击破后激活）
 	#tl.wait(1.0).start_phase(func(): return boss_holder[0], diff_pick(SPELL03))
@@ -125,16 +125,37 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, -150), 2.0)
 		tw.tween_callback(b.queue_free)
 	)
-	
+
+	# Boss 后增援波次（设计：提前击破 Boss → 固定时刻增援趁 Boss 已死触发，
+	# 打得快增援多、打得慢被 if 吞掉 —— 内容/资源节奏由玩家速度决定）
 	for i in 12:
-		tl.at(60.0 + i * 0.25).do(func():
+		tl.at(52.0 + i * 0.5).do(func():
 			if GameState.get_boss() == null:
-				var x: float = GameConfig.FIELD_RIGHT + 50
-				var y: float = 384
-				EnemyData.new().red_little_fairy().with_script(ENEMY03) \
-				.pos(Vector2(x, y)) \
-				.param("target_pos", Vector2(GameConfig.FIELD_LEFT + 125, y + 125)) \
-				.spawn(ctx)
+				_spawn_mid_enemy(0, i)
+		)
+	for i in 12:
+		tl.at(55.0 + i * 0.5).do(func():
+			if GameState.get_boss() == null:
+				_spawn_mid_enemy(1, i)
 		)
 
 	super.start(ctx, target)
+
+
+## Boss 后横穿增援：side 0=右→左，1=左→右（i 决定颜色/位置随机偏移）
+func _spawn_mid_enemy(side: int, i: int) -> void:
+	var from_right := side == 0
+	var x: float = GameConfig.FIELD_RIGHT + 50 if from_right else GameConfig.FIELD_LEFT - 50
+	var tx: float = GameConfig.FIELD_LEFT + 175 if from_right else GameConfig.FIELD_RIGHT - 175
+	var y: float = 431
+	var off: int = RNG.randi() % 150 - 75
+	var e := EnemyData.new()
+	if i % 2:
+		e.red_little_fairy()
+	else:
+		e.blue_little_fairy()
+	e.with_script(ENEMY03) \
+		.pos(Vector2(x, y + off - 175)) \
+		.param("target_pos", Vector2(tx + off, y + off)) \
+		.param("bullet_color", Color.RED if i % 2 else Color.BLUE) \
+		.spawn(ctx)

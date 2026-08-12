@@ -7,6 +7,7 @@ const FLY_AWAY = preload("res://data/stages/stage01/enemy/fly_away.gd")
 var target_pos: Vector2
 var heavy_wave: bool = true  ## 强化波：Hard+ 时额外发射金色重力弹
 var rate: int = 1
+var bullet_color: Color = Color.RED
 
 ## 延迟初始化（等父节点完成 add_child 链）
 func _ready() -> void:
@@ -28,8 +29,8 @@ func _init_enemy() -> void:
 
 	var tl := start_timeline()
 
-	tl.at(0.0).every(2.5).times(3).do(func():
-		bullet.tex("小玉").color(Color.RED).grace(0)
+	tl.at(1.0).every(3.5).times(2).do(func():
+		bullet.tex("小玉").color(bullet_color).grace(0)
 		var player := ctx.player.get_player()
 		var dir := Vector2.DOWN
 		if is_instance_valid(player):
