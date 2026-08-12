@@ -60,8 +60,8 @@ func set_window(seconds: float) -> void:
 	queue_redraw()
 
 
-func add_bookmark(t: float, label: String) -> void:
-	bookmarks.append({"t": t, "label": label})
+func add_bookmark(t: float, label: String, bm_type: String = "") -> void:
+	bookmarks.append({"t": t, "label": label, "type": bm_type})
 	bookmarks.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.t < b.t)
 	queue_redraw()
 
@@ -113,12 +113,14 @@ func _draw_ticks(w: float, y0: float, y1: float) -> void:
 
 
 func _draw_bookmark_diamonds(w: float, cy: float) -> void:
+	# 颜色：自动书签统一青色；人工书签（用户右键标记）金色区分
 	for bm in bookmarks:
 		var x := (float(bm.t) - window_start) / maxf(window_len, 0.001) * w
 		if x < -6.0 or x > w + 6.0:
 			continue
-		var is_boss: bool = float(bm.t) >= 35.0
-		var col: Color = Color(1.0, 0.4, 0.3, 0.9) if is_boss else Color(0.4, 0.8, 1.0, 0.9)
+		var col: Color = Color(0.4, 0.8, 1.0, 0.9)
+		if str(bm.get("type", "")) == "manual":
+			col = Color(1.0, 0.8, 0.3, 0.9)
 		draw_colored_polygon(PackedVector2Array([
 			Vector2(x, cy - 5), Vector2(x + 5, cy), Vector2(x, cy + 5), Vector2(x - 5, cy)
 		]), col)

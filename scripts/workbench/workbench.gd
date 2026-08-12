@@ -370,7 +370,7 @@ func _static_extract() -> Array:
 func _refresh_timeline_bookmarks() -> void:
 	_timeline.clear_bookmarks()
 	for it in BookmarkPanel.merged(_auto_bookmarks, _manual_bookmarks):
-		_timeline.add_bookmark(it.t, it.label)
+		_timeline.add_bookmark(it.t, it.label, "manual" if it.get("is_manual", false) else "")
 
 ## 书签被编辑（BookmarkPanel data_changed）→ 持久化 + 刷时间轴
 func _on_bookmarks_changed(auto: Array, manual: Array) -> void:
