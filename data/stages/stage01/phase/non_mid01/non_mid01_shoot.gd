@@ -13,7 +13,7 @@ func _tick(p_ctx: StageContext):
 		.color(Color(0.0, 0.906, 1.353, 0.25))\
 		.blend(true)\
 		.enemy()\
-		.behavior(preload("res://data/stages/stage01/phase/non01/non_01_bullet.gd"))
+		.behavior(preload("res://data/stages/stage01/phase/non_mid01/non_mid01_bullet.gd"))
 	
 	# 射一圈，随机初始旋转
 	var rand_dir := Vector2.DOWN.rotated(RNG.randf() * TAU)

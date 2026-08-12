@@ -66,16 +66,16 @@ func wait(n: float) -> Timeline:
 	return self
 
 
-## 启动 Boss 阶段 + 冻结时间直到击破/超时
+## 启动 Boss 阶段（战斗不冻结时间轴：绝对时间事件照常推进，仅 wait() 等待阶段击破）
 ## 注意：与 BossData.phase()（静态声明 Boss 有哪些阶段）区分——这里是运行驱动"此刻进入该阶段"
 func start_phase(boss_getter: Callable, data: PhaseData) -> Timeline:
 	return do(func():
 		var boss := boss_getter.call() as Boss
 		boss.start_phase(data)
-		_paused = true
+		# 旧行为：_paused = true 冻结整个时间轴直到击破（Boss 战期间后续 tl 事件全部失效）
+		# 现改为：仅 wait 事件等待 phase_cleared 激活，绝对时间事件（at/t）战斗期间照常触发
 		boss.phase_cleared.connect(func(_captured: bool, _bonus: int):
 			_cursor = _elapsed
-			_paused = false
 			# 激活下一个未触发的 wait 事件
 			for ev in _events:
 				if ev.wait_offset >= 0 and not ev.wait_armed and not ev.fired:

@@ -1,17 +1,22 @@
 extends CoroutineScript
 ## 第一面——新的 Timeline API
 
-const ENEMY01 = preload("res://data/enemy_scripts/enemy01.gd")
-const ENEMY02 = preload("res://data/enemy_scripts/enemy02.gd")
-const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
-const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
-const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
-const NON_01 = preload("res://data/stages/stage01/phase/non01/non01.tres")
+const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy01.gd")
+const ENEMY02 = preload("res://data/stages/stage01/enemy/enemy02.gd")
+const ENEMY03 = preload("res://data/stages/stage01/enemy/enemy03.gd")
 
-#const SPELL03 = [preload("res://data/stages/stage03B/phase/spell53.tres"),\
-				#preload("res://data/stages/stage03B/phase/spell54.tres"),\
-				#preload("res://data/stages/stage03B/phase/spell55.tres"),\
-				#preload("res://data/stages/stage03B/phase/spell56.tres")]
+const FLY_AWAY = preload("res://data/stages/stage01/enemy/fly_away.gd")
+
+const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
+
+const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
+
+const NON_MID01 = preload("res://data/stages/stage01/phase/non_mid01/non_mid01.tres")
+const NON01 = preload("res://data/stages/stage01/phase/non01/non01.tres")
+#const SPELL01 = [preload("res://data/stages/stage01/phase/spell01/spell001.tres"),\
+				 #preload("res://data/stages/stage01/phase/spell01/spell002.tres"),\
+				 #preload("res://data/stages/stage01/phase/spell01/spell003.tres"),\
+				 #preload("res://data/stages/stage01/phase/spell01/spell004.tres")]
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
@@ -95,7 +100,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		)
 
 	# ── Boss ──
-	var kamorui := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_01)#.phase(diff_pick(SPELL03))
+	var kamorui := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_MID01)#.phase(diff_pick(SPELL03))
 	var boss_holder := [null]
 
 	tl.at(35.0).do(func():
@@ -107,7 +112,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	)
 
 	# 非符 1 (Timeline 冻结中，等击破)
-	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_01)
+	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_MID01)
 	# ← 非符 被击破后 1s → 符卡（phase 继承 wait 偏移，击破后激活）
 	#tl.wait(1.0).start_phase(func(): return boss_holder[0], diff_pick(SPELL03))
 	# ← 符卡被击破后 2s → 退场
@@ -119,6 +124,15 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, -150), 2.0)
 		tw.tween_callback(b.queue_free)
+	)
+	
+	tl.at(69.0).do(func():
+		var x: float = GameConfig.FIELD_RIGHT + 50
+		var y: float = 256
+		EnemyData.new().red_little_fairy().with_script(ENEMY03) \
+		.pos(Vector2(x, y)) \
+		.param("target_pos", Vector2(GameConfig.FIELD_LEFT - 50, y)) \
+		.spawn(ctx)
 	)
 
 	super.start(ctx, target)

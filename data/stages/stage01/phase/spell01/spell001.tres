@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PhaseData" format=3 uid="uid://u2yvwos7wamo"]
+
+[ext_resource type="Script" uid="uid://70htyyc4o2hu" path="res://scripts/data/phase_data.gd" id="1_o3sb8"]
+
+[resource]
+script = ExtResource("1_o3sb8")
+uid = 1
+bonus = 100000
+time_limit = 40.0
+hp = 4000
+item_power = 25
+item_point = 25
+item_life = 1
+open_reduce_time = 3.0
+metadata/_custom_type_script = "uid://70htyyc4o2hu"

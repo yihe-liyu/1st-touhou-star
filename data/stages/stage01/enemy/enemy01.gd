@@ -1,8 +1,8 @@
 extends CoroutineScript
 ## 红杂鱼: 向下减速 + 自机狙 + 散射
 
-const GRAVITY_BULLET = preload("res://data/bullet_scripts/gravity_bullet.gd")
-const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
+const GRAVITY_BULLET = preload("res://data/stages/stage01/bullet/gravity_bullet.gd")
+const FLY_AWAY = preload("res://data/stages/stage01/enemy/fly_away.gd")
 
 var target_y: float = 300
 var heavy_wave: bool = true  ## 强化波：Hard+ 时额外发射金色重力弹
@@ -19,8 +19,10 @@ func _init_enemy() -> void:
 		return
 
 	# 移动:向下减速
-	parent.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS).tween_property(parent, "global_position",
-		Vector2(parent.global_position.x, target_y), 1.5) \
+	parent.create_tween() \
+		.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS) \
+		.tween_property(parent, "global_position",
+			Vector2(parent.global_position.x, target_y), 1.5) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 
 	# 弹幕
@@ -45,11 +47,10 @@ func _init_enemy() -> void:
 			bullet.tex("棱弹").color(Color.GOLD).grace(3)
 			bullet.coroutine_script = GRAVITY_BULLET
 			for i in diff_pick([0, 0, 1, 2]):
-				bullet.velocity = Vector2(0, 200 + i * 25)
+				bullet.velocity = Vector2(0, 175 + i * 25)
 				ctx.bullets.shoot_spread(bullet, diff_pick([0, 0, 3, 6]), PI / (3 - i), -dir,
 					target.global_position)
-
-				bullet.coroutine_script = null  # 清掉，不污染后续小玉
+			bullet.coroutine_script = null  # 清掉，不污染后续小玉
 	)
 
 	# 射完后加速飘走退场
