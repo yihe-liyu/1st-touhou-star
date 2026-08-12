@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 # 一键验证：真实启动零错误 + GUT 全绿 + 文件所有权恢复 + git 状态
-# 用法: ./tools/verify.sh
+# 用法: ./tools/verify.sh [可选: 启动验证的场景]
+#   默认验证 res://scenes/game_scene.tscn
+#   例:  ./tools/verify.sh res://scenes/workbench.tscn
+#        ./tools/verify.sh scenes/workbench.tscn
 set -e
 cd "$(dirname "$0")/.."
 
+TARGET_SCENE="${1:-res://scenes/game_scene.tscn}"
+if [[ "$TARGET_SCENE" != res://* ]]; then
+	TARGET_SCENE="res://$TARGET_SCENE"
+fi
+
 echo "═══════════════════════════════════════"
-echo "  🔧 一键验证"
+echo "  🔧 一键验证（场景: $TARGET_SCENE）"
 echo "═══════════════════════════════════════"
 
 echo ""
@@ -13,8 +21,8 @@ echo "== [1/4] 秒级语法检查 =="
 ./tools/check_syntax.sh
 
 echo ""
-echo "== [2/4] 真实启动验证（game_scene） =="
-START_ERR=$(godot --headless --path "$PWD" res://scenes/game_scene.tscn --quit 2>&1 | grep -E "SCRIPT ERROR|Compile Error|^ERROR:" | grep -vE "resources still in use|RID allocations" || true)
+echo "== [2/4] 真实启动验证（$TARGET_SCENE） =="
+START_ERR=$(godot --headless --path "$PWD" "$TARGET_SCENE" --quit 2>&1 | grep -E "SCRIPT ERROR|Compile Error|^ERROR:" | grep -vE "resources still in use|RID allocations" || true)
 if [ -n "$START_ERR" ]; then
 	echo "❌ 启动有错误："
 	echo "$START_ERR"
@@ -33,7 +41,7 @@ echo "✅ GUT 全绿"
 echo ""
 echo "== [4/4] 文件所有权恢复 =="
 if [ "$(id -u)" = "0" ]; then
-	chown -R cirno:cirno .godot/ scripts/ data/ test/ tools/ 2>/dev/null || true
+	chown -R cirno:cirno .godot/ scripts/ data/ test/ tools/ scenes/ 2>/dev/null || true
 	echo "✅ 已恢复 cirno 所有权（root 运行，防污染）"
 else
 	echo "✅ 非 root 运行，跳过 chown"

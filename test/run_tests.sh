@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # 一键运行全部测试（GUT）
-# 用法: ./test/run_tests.sh
+# 用法: ./test/run_tests.sh [GUT 参数...]
+#   全量:  ./test/run_tests.sh
+#   单文件: ./test/run_tests.sh -gtest=res://test/test_boss_indicator.gd（约 1.4s）
+#   单测试: ./test/run_tests.sh -gtest=res://test/test_x.gd -gtest_func=test_xxx
 set -e
 cd "$(dirname "$0")/.."
 
@@ -11,6 +14,12 @@ echo "════════════════════════�
 # 测试隔离：临时 user:// 目录（XDG_DATA_HOME 重定向，save_data.cfg 等写入不碰真实存档）
 TMP_USER="$(mktemp -d)"
 export XDG_DATA_HOME="$TMP_USER"
+# 默认扫 res://test 全量；指定了 -gtest（单文件/单测试）时不叠加默认目录
+if [[ "$*" == *"-gtest"* ]]; then
+	GUT_ARGS=("$@")
+else
+	GUT_ARGS=(-gdir=res://test "$@")
+fi
 # 测试是只读的：备份符卡记录，跑完恢复（测试内 unlock/record 的 save 副作用不落盘——res:// 写入不受 user 隔离影响）
 RECORDS_BACKUP="$(mktemp)"
 HAD_RECORDS=0
@@ -19,7 +28,7 @@ if [ -f "$PWD/data/registry/spell_records.tres" ]; then
 	HAD_RECORDS=1
 fi
 
-if ! godot --headless --path "$PWD" -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit "$@"; then
+if ! godot --headless --path "$PWD" -s addons/gut/gut_cmdln.gd "${GUT_ARGS[@]}" -gexit "$@"; then
 	GUT_EXIT=1
 else
 	GUT_EXIT=0
