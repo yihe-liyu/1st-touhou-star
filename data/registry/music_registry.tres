@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="MusicRegistry" format=3]
+[gd_resource type="Resource" script_class="MusicRegistry" format=3 uid="uid://btk6st60li480"]
 
-[ext_resource type="Script" path="res://scripts/data/music_record.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/data/music_registry.gd" id="2"]
+[ext_resource type="Script" uid="uid://be08pe8s61ass" path="res://scripts/data/music_record.gd" id="1"]
+[ext_resource type="Script" uid="uid://cn2j4wrr5x2lm" path="res://scripts/data/music_registry.gd" id="2"]
 
 [sub_resource type="Resource" id="MusicRecord_01"]
 script = ExtResource("1")

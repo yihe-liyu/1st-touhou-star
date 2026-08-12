@@ -6,12 +6,12 @@ const ENEMY02 = preload("res://data/enemy_scripts/enemy02.gd")
 const FLY_AWAY = preload("res://data/enemy_scripts/fly_away.gd")
 const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
 const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
-const NON_01 = preload("res://data/stages/stage01/phase/non01.tres")
+const NON_01 = preload("res://data/stages/stage01/phase/non01/non01.tres")
 
-const SPELL03 = [preload("res://data/stages/stage03B/phase/spell53.tres"),\
-				preload("res://data/stages/stage03B/phase/spell54.tres"),\
-				preload("res://data/stages/stage03B/phase/spell55.tres"),\
-				preload("res://data/stages/stage03B/phase/spell56.tres")]
+#const SPELL03 = [preload("res://data/stages/stage03B/phase/spell53.tres"),\
+				#preload("res://data/stages/stage03B/phase/spell54.tres"),\
+				#preload("res://data/stages/stage03B/phase/spell55.tres"),\
+				#preload("res://data/stages/stage03B/phase/spell56.tres")]
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx

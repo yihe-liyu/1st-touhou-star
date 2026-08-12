@@ -84,3 +84,26 @@ func test_boss_indicator_alpha_fades_with_distance():
 	GameState.player = prev
 	boss.queue_free()
 	fake_player.free()
+
+
+func test_indicator_follows_after_die():
+	# Boss 击破后（外部控制离场，不 queue_free）：指示器仍应跟随 Boss 移动
+	var ui := CanvasLayer.new()
+	ui.name = "UI"
+	get_tree().root.add_child(ui)
+	autofree(ui)
+
+	var boss = load("res://scripts/enemy/boss.gd").new()
+	add_child(boss)
+	boss.start_boss()
+	var indicator: Sprite2D = boss._pos_indicator
+	assert_not_null(indicator, "start_boss 后应创建指示器")
+	if indicator == null:
+		return
+
+	boss.set_exit_controlled()  # 离场演出由外部控制 → 不 queue_free
+	boss.die()
+	boss.global_position = Vector2(700, 300)
+	boss._process(0.016)
+	assert_eq(indicator.global_position.x, 700.0, "死后离场移动指示器仍应跟随")
+	boss.queue_free()

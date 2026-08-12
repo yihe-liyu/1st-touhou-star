@@ -29,7 +29,7 @@ func _init_enemy() -> void:
 	var tl := start_timeline()
 
 	tl.at(0.0).every(2.5).times(3).do(func():
-		bullet.tex("小玉").color(Color.RED)
+		bullet.tex("小玉").color(Color.RED).grace(0)
 		var player := ctx.player.get_player()
 		var dir := Vector2.DOWN
 		if is_instance_valid(player):
@@ -42,10 +42,10 @@ func _init_enemy() -> void:
 				target.global_position, AssetRegistry.sounds["shoot"])
 
 		if GameState.selected_difficulty >= 2 and heavy_wave:
+			bullet.tex("棱弹").color(Color.GOLD).grace(3)
+			bullet.coroutine_script = GRAVITY_BULLET
 			for i in diff_pick([0, 0, 1, 2]):
-				bullet.velocity = Vector2(0, 300 + i * 50)
-				bullet.tex("棱弹").color(Color.GOLD)
-				bullet.coroutine_script = GRAVITY_BULLET
+				bullet.velocity = Vector2(0, 200 + i * 25)
 				ctx.bullets.shoot_spread(bullet, diff_pick([0, 0, 3, 6]), PI / (3 - i), -dir,
 					target.global_position)
 

@@ -289,7 +289,8 @@ func die() -> void:
 
 
 func _die() -> void:
-	set_process(false)
+	# 注意：不停 _process——指示器 x 跟随在其中，死后离场演出期间仍需跟随 Boss
+	# （阶段逻辑由 _process 开头的 `if not _current_phase: return` 自然跳过）
 	_current_phase = null
 	if GameState.is_practice_mode and _pid and not _cleared:
 		pass  # 练习 attempt 已在进入阶段时记过（玩家 miss/超时退出也覆盖），这里不再重复记
