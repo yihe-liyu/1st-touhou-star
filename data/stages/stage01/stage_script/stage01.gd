@@ -4,6 +4,7 @@ extends CoroutineScript
 const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy01.gd")
 const ENEMY02 = preload("res://data/stages/stage01/enemy/enemy02.gd")
 const ENEMY03 = preload("res://data/stages/stage01/enemy/enemy03.gd")
+const ENEMY04 = preload("res://data/stages/stage01/enemy/enemy04.gd")
 
 const FLY_AWAY = preload("res://data/stages/stage01/enemy/fly_away.gd")
 
@@ -148,8 +149,10 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 			_spawn_mid_enemy(1, i, false, 1)
 		)
 	
-	tl.at(64.0).do(func():
-		EnemyData.new().blue_big_fairy()
+	tl.at(1.0).do(func():
+		EnemyData.new().blue_big_fairy().with_script(ENEMY04) \
+			.pos(Vector2(GameConfig.FIELD_CENTER_X, -32)) \
+			.spawn(ctx)
 	)
 
 	super.start(ctx, target)
