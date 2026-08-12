@@ -126,14 +126,15 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tw.tween_callback(b.queue_free)
 	)
 	
-	tl.at(60.0).do(func():
-		if GameState.get_boss() == null:
-			var x: float = GameConfig.FIELD_RIGHT + 50
-			var y: float = 384
-			EnemyData.new().red_little_fairy().with_script(ENEMY03) \
-			.pos(Vector2(x, y)) \
-			.param("target_pos", Vector2(GameConfig.FIELD_LEFT + 125, y + 125)) \
-			.spawn(ctx)
-	)
+	for i in 12:
+		tl.at(60.0 + i * 0.25).do(func():
+			if GameState.get_boss() == null:
+				var x: float = GameConfig.FIELD_RIGHT + 50
+				var y: float = 384
+				EnemyData.new().red_little_fairy().with_script(ENEMY03) \
+				.pos(Vector2(x, y)) \
+				.param("target_pos", Vector2(GameConfig.FIELD_LEFT + 125, y + 125)) \
+				.spawn(ctx)
+		)
 
 	super.start(ctx, target)

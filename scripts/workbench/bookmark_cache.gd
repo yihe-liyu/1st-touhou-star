@@ -18,36 +18,6 @@ static func stage_content_hash(stage: StageData) -> int:
 		h = h * 31 + stage.create_script.source_code.hash()
 		var stage_dir: String = stage.create_script.resource_path.get_base_dir().get_base_dir()
 		h = _hash_dir_files(stage_dir, h)
-		# 数据关卡：优先关卡自己的 timeline（stage.timeline），否则脚本常量
-		# （否则 hash 不区分各关卡数据 → 缓存永不按关卡失效）
-		var tl: Resource = null
-		if stage.timeline:
-			tl = stage.timeline
-		elif "TIMELINE" in stage.create_script:
-			tl = stage.create_script.TIMELINE
-		if tl:
-			# 直接读 res:// 数据（开发可写；编辑即默认，无 user:// 副本）
-			if tl:
-				h = h * 31 + _stable_waves_hash(tl.get("waves"))
-	return h
-
-
-## 波次数据稳定哈希：键排序 + 波次排序 + 稳定字符串表示
-## （消除 var_to_str 对字典键序/浮点表示敏感的差异——副本保存/反序列化
-##  往返后键序可能变化，导致缓存每次都判"数据已变化"）
-static func _stable_waves_hash(waves: Variant) -> int:
-	if waves == null:
-		return 0
-	var parts: Array = []
-	for w in waves:
-		if w is Dictionary:
-			parts.append(_stable_dict_str(w))
-		else:
-			parts.append(str(w))
-	parts.sort()
-	var h := 0
-	for p in parts:
-		h = h * 31 + p.hash()
 	return h
 
 
