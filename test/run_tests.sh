@@ -33,5 +33,7 @@ rm -f "$RECORDS_BACKUP"
 rm -rf "$TMP_USER"
 
 echo "═══════════════════════════════════════"
+
 echo "  ✅ 测试结束（exit=$GUT_EXIT，记录已还原）"
 echo "═══════════════════════════════════════"
+exit $GUT_EXIT
