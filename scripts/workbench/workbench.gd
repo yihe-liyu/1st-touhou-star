@@ -278,7 +278,10 @@ func _load_stage() -> void:
 	if _background and is_instance_valid(_background):
 		# 立即脱离树（不能只 queue_free 延迟删除）：
 		# 旧背景的协程/Tween 会和新背景抢同一个 Camera3D（相机数据错乱）
-		remove_child(_background)
+		# 背景挂在 BgViewport（3D 子视口）下，从实际父节点移除
+		var bg_parent := _background.get_parent()
+		if bg_parent:
+			bg_parent.remove_child(_background)
 		_background.queue_free()
 		_background = null
 	GameState.restarting = false

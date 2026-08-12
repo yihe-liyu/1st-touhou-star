@@ -153,6 +153,7 @@ layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
+z_index = 200
 offset_left = 64.0
 offset_top = -32.0
 offset_right = 832.0
