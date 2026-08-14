@@ -140,20 +140,50 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 				_spawn_mid_enemy(1, i, true)
 		)
 		
-	for i in 20:
-		tl.at(63.0 + i * 0.5).do(func():
+	for i in 18:
+		tl.at(63.0 + i * 0.7).do(func():
 			_spawn_mid_enemy(0, i, false, 1)
 		)
-	for i in 20:
-		tl.at(63.25 + i * 0.5).do(func():
+	for i in 18:
+		tl.at(63.3 + i * 0.7).do(func():
 			_spawn_mid_enemy(1, i, false, 1)
 		)
 	
-	tl.at(1.0).do(func():
-		EnemyData.new().blue_big_fairy().with_script(ENEMY04) \
-			.pos(Vector2(GameConfig.FIELD_CENTER_X, -32)) \
+	tl.at(60.0).do(func():
+		EnemyData.new().blue_big_fairy() \
+			.with_script(ENEMY04) \
+			.pos(Vector2(GameConfig.FIELD_CENTER_X - 64, -32)) \
+			.hp(500) \
 			.spawn(ctx)
 	)
+	tl.at(68.5).do(func():
+		EnemyData.new().blue_big_fairy() \
+			.with_script(ENEMY04) \
+			.pos(Vector2(GameConfig.FIELD_CENTER_X + 64, -32)) \
+			.hp(600) \
+			.spawn(ctx)
+	)
+	tl.at(77.0).do(func():
+		EnemyData.new().blue_big_fairy() \
+			.with_script(ENEMY04) \
+			.pos(Vector2(GameConfig.FIELD_CENTER_X - 192, -32)) \
+			.hp(500) \
+			.spawn(ctx)
+		EnemyData.new().blue_big_fairy() \
+			.with_script(ENEMY04) \
+			.pos(Vector2(GameConfig.FIELD_CENTER_X + 192, -32)) \
+			.hp(600) \
+			.spawn(ctx)
+	)
+	
+	for i in 18:
+		tl.at(80.0 + i * 0.3).do(func():
+			_spawn_mid_enemy(0, i, false, 1)
+		)
+	for i in 18:
+		tl.at(80.0 + i * 0.3).do(func():
+			_spawn_mid_enemy(1, i, false, 1)
+		)
 
 	super.start(ctx, target)
 

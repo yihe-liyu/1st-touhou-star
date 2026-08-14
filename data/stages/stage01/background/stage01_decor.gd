@@ -55,6 +55,16 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		var z: float = RNG.randf_range(-220, -180)
 		ctx.decor.spawn("橡树", Vector3(x, 8.0, z), Vector2.ZERO, ground)
 	)
+	
+	tl.at(50.0).do(func():
+		bg.tween_env_fog(Color(0.331, 0.58, 0.77, 1.0), 0.01, 35.0)
+	)
+	
+	tl.at(60.0).do(func():
+		var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+		t.tween_method(_camera_accel, 7.0, 5.0, 25.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		bg.rotate_camera(Vector3(deg_to_rad(-25), 0, 0), 25.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
+	)
 
 	super.start(ctx, target)
 

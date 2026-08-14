@@ -12,22 +12,23 @@ func test_moves_down_until_offscreen() -> void:
 	cs.target = tgt
 	cs.start_fast(null, tgt)
 
-	# 中途：持续下移、返回 true（未出屏）
+	# 匀速下移 120px/s：每 0.1s 推进 12px。前 50 帧（y=100→700）应仍在屏内
 	var frames := 0
 	var alive := true
-	while frames < 100:
+	while frames < 50:
 		alive = cs.tick_fast(0.1)
 		frames += 1
 		if not alive:
 			break
 	assert_true(alive, "出屏前应持续移动")
-	assert_gt(tgt.global_position.y, 100.0 + 60.0, "应已下移（60px/s × 10s）")
+	assert_gt(tgt.global_position.y, 100.0 + 120.0, "应已下移（120px/s × 等价推进）")
 
-	# 继续：直到离开屏幕 → 返回 false
+	# 继续：直到离开屏幕（下缘 + 32px 宽限）→ 返回 false
+	# 从 y=100 到 VIEW_HEIGHT+32=992，120px/s 需 ~75 帧，200 内应绰绰有余
 	var out_frames := 0
 	while cs.tick_fast(0.1) and out_frames < 2000:
 		out_frames += 1
-		assert_lt(out_frames, 2000, "应在出屏后结束")
 		if out_frames >= 1999:
 			break
-	assert_gt(tgt.global_position.y, GameConfig.VIEW_HEIGHT + 80.0, "结束时应在屏幕之外")
+	assert_lt(out_frames, 200, "应在 200 帧内出屏")
+	assert_gt(tgt.global_position.y, GameConfig.VIEW_HEIGHT + 32.0, "结束时应在屏幕之外（下缘 + 32px）")
