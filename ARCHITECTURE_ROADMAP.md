@@ -14,7 +14,7 @@
 - 信号生命周期：场景 `_exit_tree` 统一断开 autoload 连接
 - 协程约定：游戏逻辑用 CoroutineRunner（可暂停/可复现），UI 用 await（SPEC §10）
 - 常量集中：GameConfig（东方框边界）+ LayerConfig（z_index）
-- 测试保护：GUT 34 个用例覆盖碰撞/掉落/符卡/时间线/RNG
+- 测试保护：GUT 159 个用例 / 28 个脚本覆盖碰撞/掉落/符卡/时间线/RNG
 
 ---
 

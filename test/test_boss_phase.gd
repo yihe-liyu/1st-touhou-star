@@ -22,12 +22,10 @@ class CtxSpy:
 func before_each():
 	_boss = BOSS_CLASS.new()
 	autofree(_boss)
-	# 隔离所有 autoload 副作用
-	stub("BulletManager", "start_death_clear").to_do_nothing()
-	stub("GameState", "record_spell").to_do_nothing()
-	stub("GameState", "record_practice").to_do_nothing()
-	stub("GameState", "add_score").to_do_nothing()
-	stub("GameState", "unlock_spell").to_do_nothing()
+	# 注：这里不再 stub autoload —— 传字符串名如 stub("GameState", ...) 在 GUT 里不是
+	# 有效路径，是静默 no-op（stub_target 保持 null），只会产生假警告还给人"已隔离"的错觉。
+	# 真实调用 GameState.record_spell / unlock_spell / BulletManager.start_death_clear 的
+	# 副作用由 run_tests.sh 兜底隔离：XDG_DATA_HOME 重定向 user:// + spell_records.tres 备份还原。
 
 
 func _make_phase(hp: int = 100, time_limit: float = 10.0, timeout_only: bool = false, bonus: int = 10000) -> PhaseData:

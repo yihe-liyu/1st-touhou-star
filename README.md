@@ -36,7 +36,7 @@
 ### 跑测试（重构/改动后的安全带）
 
 ```bash
-# 一键运行全部测试（34 个，GUT 框架）
+# 一键运行全部测试（159 个用例 / 28 个脚本，GUT 框架）
 ./test/run_tests.sh
 ```
 
@@ -82,7 +82,7 @@ grep -rn "关键词" --include="*.gd" scripts/ data/
 ## 🏗️ 技术栈
 
 - **引擎**: Godot 4.7
-- **测试**: GUT 9.7.1（`test/` 目录，34 个用例覆盖核心系统）
+- **测试**: GUT 9.7.1（`test/` 目录，159 个用例 / 28 个脚本覆盖核心系统）
 - **协程框架**: CoroutineScript + Timeline（游戏逻辑） / await（UI 过渡，见 SPEC §10）
 - **服务层**: StageContext（clock/bullets/player/dialogue/items/audio/effects）
 - **弹幕**: BulletPool (4000) + MultiMesh
