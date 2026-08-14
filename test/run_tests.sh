@@ -14,6 +14,8 @@ echo "════════════════════════�
 # 测试隔离：临时 user:// 目录（XDG_DATA_HOME 重定向，save_data.cfg 等写入不碰真实存档）
 TMP_USER="$(mktemp -d)"
 export XDG_DATA_HOME="$TMP_USER"
+# 预建 logs 子目录：避免 godot 打不开 user://logs → SIGSEGV 崩溃出 coredump（与 check_syntax/verify 一致）
+mkdir -p "$TMP_USER/logs"
 # 默认扫 res://test 全量；指定了 -gtest（单文件/单测试）时不叠加默认目录
 if [[ "$*" == *"-gtest"* ]]; then
 	GUT_ARGS=("$@")

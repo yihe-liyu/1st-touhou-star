@@ -4,8 +4,14 @@
 set -e
 cd "$(dirname "$0")/.."
 
+# 隔离 user:// 到 /tmp（不污染真实玩家数据）。用 XDG_DATA_HOME 指向临时区，
+# 并在临时区预建 logs 子目录：避免 godot 打不开 user://logs 日志 → SIGSEGV 崩溃出 coredump。
+TMP_USER="$(mktemp -d)"
+mkdir -p "$TMP_USER/logs"
+
 # godot 退出码非 0（有失败）不能让 set -e 吞掉后续输出，用 || true 兜底
-OUT=$(timeout 120 godot --headless --path "$PWD" res://tools/check_syntax_scene.tscn 2>&1 || true)
+OUT=$(XDG_DATA_HOME="$TMP_USER" timeout 120 godot --headless --path "$PWD" res://tools/check_syntax_scene.tscn 2>&1 || true)
+rm -rf "$TMP_USER"
 echo "$OUT" | grep -E "SCRIPT ERROR|SYNTAX FAIL|check_syntax:" || true
 
 # 信号：SYNTAX FAIL（load 现场编译失败，非 class_name 脚本）或 SCRIPT ERROR

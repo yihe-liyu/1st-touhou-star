@@ -22,8 +22,10 @@ echo "== [1/4] 秒级语法检查 =="
 
 echo ""
 echo "== [2/4] 真实启动验证（$TARGET_SCENE） =="
-# 隔离 user://（与 run_tests.sh 一致）：启动会写 user://logs 日志，不隔离会污染真实玩家目录
+# 隔离 user://（与 run_tests.sh 一致）：启动会写 user://logs 日志，不隔离会污染真实玩家目录。
+# 预建 logs 子目录：避免 godot 打不开 user://logs → SIGSEGV 崩溃出 coredump。
 TMP_USER="$(mktemp -d)"
+mkdir -p "$TMP_USER/logs"
 START_ERR=$(XDG_DATA_HOME="$TMP_USER" godot --headless --path "$PWD" "$TARGET_SCENE" --quit 2>&1 | grep -E "SCRIPT ERROR|Compile Error|^ERROR:" | grep -vE "resources still in use|RID allocations" || true)
 rm -rf "$TMP_USER"
 if [ -n "$START_ERR" ]; then
