@@ -14,3 +14,6 @@ data/registry/spell_records.tres
 
 # 本地恢复备份（勿提交）
 .recovery_backup/
+
+# Godot/编辑器临时 object store 工作目录
+.objstore_work*/
