@@ -1,2 +1,3 @@
-## Boss 脚本自动发现目录：把 .gd 扔进这里，工作台自动出现（文件名=显示名）
-## 例：data/boss_scripts/shoot/spiral.gd → 符卡下拉「spiral」
+## 可复用 Boss 移动脚本仓库（无"自动发现/零注册"机制——2026-08 已移除）
+## 脚本由各阶段的 PhaseData.tres 用 `move_script = ExtResource("res://data/boss_scripts/move/xxx.gd")` 显式引用。
+## 例：data/stages/stage03B/phase/spell03/spell05x.tres 引用本目录 random_dir_move.gd。

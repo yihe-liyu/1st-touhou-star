@@ -95,3 +95,34 @@ func test_reset_restarts():
 	tl.reset()
 	tl.tick(1.0)
 	assert_eq(_fired.size(), 2, "reset 后应可重新触发")
+
+
+## loop 重置时间戳精度：大 delta 跨过循环点时，下一轮事件按 _loop_start 重排，
+## 而不是按跨点后的 _elapsed 重排（旧实现会让下一轮整体推迟 overshoot 量）
+func test_loop_reset_uses_loop_start_not_overshoot():
+	var tl := _make_timeline()
+	var fired: Array = []
+	tl.at(1.0).do(func(): fired.append("a"))
+	tl.at(2.0).do(func(): fired.append("b"))
+	tl.loop()
+
+	tl.tick(1.5)   # t=1.5 → a
+	assert_eq(fired, ["a"], "t=1.5 应触发 a")
+	tl.tick(1.5)   # t=3.0 → b，并重置到 loop_start=2.0（跨点 1.0s）
+	assert_eq(fired, ["a", "b"], "t=3.0 应触发 b 并进入下一轮")
+	tl.tick(1.0)   # t=3.0 → 新一轮 a 应恰好在 loop_start+1.0 触发
+	assert_eq(fired, ["a", "b", "a"], "跨点后下一轮事件应精确定时（不随 overshoot 漂移）")
+
+
+## loop 应恢复重复事件配置：times(2) 每轮都触发 2 次，而不是重置后变成单次
+func test_loop_restores_repeat_config():
+	var tl := _make_timeline()
+	tl.at(0.0).every(1.0).times(2).do(func(): _fired.append("x"))
+	tl.loop()
+
+	tl.tick(0.5)   # t=0.5 → x1
+	tl.tick(1.5)   # t=2.0 → x2，重复完成，_loop_start=1.0，重置
+	assert_eq(_fired.size(), 2, "第一轮应触发 2 次")
+	tl.tick(1.0)   # t=3.0 → 新一轮 x1
+	tl.tick(1.0)   # t=4.0 → 新一轮 x2
+	assert_eq(_fired.size(), 4, "loop 重置后应恢复重复配置，每轮都触发 2 次")

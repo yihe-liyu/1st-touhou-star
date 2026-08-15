@@ -27,7 +27,8 @@ func test_100_static_lasers_bench():
 	_spawn_many(engine, 100, false)
 	var us := _bench_steps(engine, 120)
 	print("激光基准 [100 静止]: %.1f us/帧 (%.2f ms)" % [us, us / 1000.0])
-	push_warning("基准记录完成（静止 >500us 需优化）")
+	assert_gt(us, 0.0, "100 静止激光基准应完成有效计时")
+	assert_lt(us, 50000.0, "100 静止激光基准异常：%.1f us/帧（>50ms）" % us)
 
 func test_100_growing_lasers_bench():
 	var engine := LaserEngine.new()
@@ -36,4 +37,5 @@ func test_100_growing_lasers_bench():
 	_spawn_many(engine, 100, true)
 	var us := _bench_steps(engine, 60)
 	print("激光基准 [100 生长]: %.1f us/帧 (%.2f ms)" % [us, us / 1000.0])
-	push_warning("基准记录完成（生长 >3000us 需优化）")
+	assert_gt(us, 0.0, "100 生长激光基准应完成有效计时")
+	assert_lt(us, 50000.0, "100 生长激光基准异常：%.1f us/帧（>50ms）" % us)

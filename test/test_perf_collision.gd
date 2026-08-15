@@ -53,8 +53,9 @@ func test_enemy_bullets_vs_player_bench():
 		_scatter_enemy_bullets(count)
 		var us := _bench_frames(60)
 		print("碰撞基准 [敌弹%d vs 玩家]: %.1f us/帧 (%.2f ms)" % [count, us, us / 1000.0])
+		assert_gt(us, 0.0, "敌弹%d 碰撞基准应完成有效计时" % count)
+		assert_lt(us, 50000.0, "敌弹%d 碰撞基准异常：%.1f us/帧（>50ms）" % [count, us])
 		_pool.clear()
-	push_warning("基准记录完成（>300us@4000 需优化）")
 
 ## 玩家弹 vs 敌人（每颗玩家弹遍历所有敌人）
 func test_player_bullets_vs_enemies_bench():
@@ -78,5 +79,6 @@ func test_player_bullets_vs_enemies_bench():
 			_pool.shoot(d, Vector2(float(i % 28) * 32.0 + 16.0, 500.0), Vector2.UP)
 		var us := _bench_frames(60)
 		print("碰撞基准 [玩家弹%d vs 敌20]: %.1f us/帧 (%.2f ms)" % [count, us, us / 1000.0])
+		assert_gt(us, 0.0, "玩家弹%d 碰撞基准应完成有效计时" % count)
+		assert_lt(us, 50000.0, "玩家弹%d 碰撞基准异常：%.1f us/帧（>50ms）" % [count, us])
 		_pool.clear()
-	push_warning("基准记录完成（>300us@1000 需优化）")

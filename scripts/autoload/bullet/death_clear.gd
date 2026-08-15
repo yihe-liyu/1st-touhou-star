@@ -47,7 +47,7 @@ func process(delta: float) -> void:
 		# 清除圆内的敌弹
 		for j in range(_pool.active_bullets.size() - 1, -1, -1):
 			var bullet: Bullet = _pool.active_bullets[j]
-			if not is_instance_valid(bullet) or bullet.faction != 1 or not bullet.is_ready:
+			if not is_instance_valid(bullet) or bullet.is_queued_for_deletion() or bullet.faction != 1 or not bullet.is_ready:
 				continue
 			if bullet.global_position.distance_squared_to(center) <= radius_sq:
 				if circle.on_clear.is_valid():

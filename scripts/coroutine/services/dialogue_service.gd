@@ -2,7 +2,13 @@ class_name DialogueService
 extends RefCounted
 ## 对话服务
 
-var ctx: StageContext
+## 弱引用 ctx：避免 StageContext ↔ DialogueService 形成 RefCounted 环导致关卡退出后泄漏
+var _ctx_ref: WeakRef
+var ctx: StageContext:
+	get:
+		return _ctx_ref.get_ref() as StageContext if _ctx_ref else null
+	set(value):
+		_ctx_ref = weakref(value) if value else null
 
 const DialogueBoxScene = preload("res://scenes/ui/dialogue_box.tscn")
 

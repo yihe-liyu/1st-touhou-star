@@ -29,7 +29,7 @@ func _draw() -> void:
 		return
 	# 子弹判定（红）
 	for bullet in BulletManager.active_bullets:
-		if not is_instance_valid(bullet) or not bullet.visible or not bullet.is_ready:
+		if not is_instance_valid(bullet) or bullet.is_queued_for_deletion() or not bullet.visible or not bullet.is_ready:
 			continue
 		var center: Vector2 = bullet.global_position + bullet.hitbox_offset.rotated(bullet.rotation)
 		match bullet.hitbox_shape:
@@ -41,7 +41,7 @@ func _draw() -> void:
 				draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 	# 敌人判定（绿）
 	for enemy in GameState.get_active_enemies():
-		if not is_instance_valid(enemy):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
 		var er: float = enemy.get("hitbox_radius") if "hitbox_radius" in enemy else 8.0
 		draw_arc(enemy.global_position, er, 0, TAU, 12, Color.GREEN, 1.5)

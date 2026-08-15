@@ -379,13 +379,13 @@ func get_active_enemies() -> Array:
 
 func get_boss():
 	for enemy in active_enemies:
-		if is_instance_valid(enemy) and enemy.get_script() == BossScript:
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and enemy.get_script() == BossScript:
 			return enemy
 	return null
 
 
 func clear_enemies():
 	for enemy in active_enemies:
-		if is_instance_valid(enemy):
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
 			enemy.queue_free()
 	active_enemies.clear()

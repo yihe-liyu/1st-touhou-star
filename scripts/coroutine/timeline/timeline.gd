@@ -146,7 +146,12 @@ func tick(delta: float) -> bool:
 		_reset_onetime()
 		_elapsed = _loop_start
 	
-	return _events.any(func(e): return not e.fired) or _loop_start >= 0
+	if _loop_start >= 0:
+		return true
+	for ev in _events:
+		if not ev.fired:
+			return true
+	return false
 
 
 func _all_onetime_fired() -> bool:
@@ -158,8 +163,11 @@ func _all_onetime_fired() -> bool:
 func _reset_onetime() -> void:
 	for ev in _events:
 		ev.fired = false
-		ev.time = _elapsed + ev._original_time
+		# 用 _loop_start 而非当前 _elapsed：大 delta 跨过循环点时不会把下一轮事件时间戳推远
+		ev.time = _loop_start + ev._original_time
 		ev.fired_count = 0
+		ev.repeat_every = ev._original_repeat_every
+		ev.repeat_times = ev._original_repeat_times
 
 
 func pause() -> void: _paused = true
@@ -177,4 +185,16 @@ func seek(time: float) -> void:
 
 func loop() -> void:
 	if _events.is_empty(): return
-	_loop_start = _events.back().time
+	_loop_start = _compute_loop_start()
+
+
+## 计算循环终点：取所有事件"最后一次触发"的最大时刻。
+## 重复事件按 repeat_every × (times-1) 计算，避免 loop_start 落在首次触发时刻导致循环周期错误。
+func _compute_loop_start() -> float:
+	var end_time := -INF
+	for ev in _events:
+		var last := ev._original_time
+		if ev._original_repeat_every > 0.0 and ev._original_repeat_times > 0:
+			last = ev._original_time + ev._original_repeat_every * float(ev._original_repeat_times - 1)
+		end_time = maxf(end_time, last)
+	return end_time

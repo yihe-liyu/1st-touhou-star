@@ -6,7 +6,7 @@ class_name DeathEffect
 func _setup() -> void:
 	ani.play("default")
 	ani.animation_finished.connect(_finish, CONNECT_ONE_SHOT)
-	velocity = Vector2.RIGHT.rotated(randf_range(0, TAU)) * 180.0
+	velocity = Vector2.RIGHT.rotated(RNG.randf_range(0, TAU)) * 180.0
 	rotation = velocity.angle()
 
 func set_tint(color: Color) -> void:

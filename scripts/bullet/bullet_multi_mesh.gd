@@ -26,7 +26,7 @@ func _sync():
 	
 	var active_groups: Dictionary = {}
 	for bullet in bulbs:
-		if not is_instance_valid(bullet) or not bullet.visible or not bullet.is_ready:
+		if not is_instance_valid(bullet) or bullet.is_queued_for_deletion() or not bullet.visible or not bullet.is_ready:
 			continue
 		var tex = bullet.batch_texture()
 		if not tex:

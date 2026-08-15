@@ -1,7 +1,7 @@
 # 📐 东方星 STG 引擎 — 系统规格书（代码真实现状）
 ## 版本 2.0 · 2026-06-24
 ## 基于实际代码逆向整理
-## ⚠️ 最后校验：2026-07-31（重构阶段 0-3 后，含 §10 协程约定）
+## ⚠️ 最后校验：2026-08（同步 8 月目录重组 / 空间哈希 / LaserEngine / 练习单驱动，含 §10 协程约定）
 
 > **维护提示**：本规格书声称描述代码现状，若你改动了架构，请同步更新本文档。
 > 检查点：输入映射在 project.godot 而非代码注入；GameState 已拆分出 SpellBookManager/SaveManager。
@@ -30,17 +30,16 @@
 ├─────────────────────────────────────────┤
 │             实体层                       │
 │  Player  Enemy  Boss  Bullet           │
-│  Laser  Item  ItemPool                │
+│  LaserBeam  Item  ItemPool              │
 │  EnemyVisual  HitEffect                │
 │  BackgroundStage  BackgroundPlane      │
-│  BackgroundCylinder  DecorManager      │
+│  DecorManager  LaserEngine             │
 ├─────────────────────────────────────────┤
 │             数据层                       │
 │  StageData  PhaseData  BossData        │
 │  EnemyData  BulletData  PlayerData     │
 │  StageRegistry                         │
 │  SpellRecord  SpellRecordBook          │
-│  CardDef  CardRegistry                 │
 │  CharacterProfile  DialogueData        │
 └─────────────────────────────────────────┘
 ```
@@ -79,7 +78,7 @@ CoroutineScript → StageContext → 系统 → 实体
 | **职责** | 全局游戏数据 **唯一真源** |
 | **拥有** | `current_score`, `lives(bound 0~8)`, `bomb_count(bound 0~8)`, `power_raw(bound 0~300)`, `max_point`, `memory_value(bound 0~100)`, `graze_count`, `selected_difficulty`, `selected_character`, `current_stage_id` |
 | **附加** | `active_enemies(Array)`, `player(Player弱引用)`, `spell_book`, `stage_registry`, `high_scores(Dictionary)` |
-| **练习模式** | `is_practice_mode`, `is_stage_practice`, `practice_card(CardDef)`, `practice_stage_id`, `practice_background(PackedScene)` |
+| **练习模式** | `is_practice_mode`, `is_stage_practice`, `practice_phase(PhaseData)`, `practice_boss_scene(PackedScene)`, `practice_name`, `practice_stage_id`, `practice_phase_index`, `practice_background(PackedScene)`；入口 `start_practice(phase, boss_scene, p_name, stage_id, phase_index)` |
 | **读写规则** | 系统通过方法读写（`add_score()`, `add_power()`, `collect_life_fragment()`），不直接改属性 |
 | **禁止** | 协程/实体直接改 `current_score` / `lives` / `power_raw` |
 | **reset_all()** | 关卡开始时调用，清零运行时数据；`reset_practice()` 设置满P/0命 |
@@ -103,8 +102,8 @@ CoroutineScript → StageContext → 系统 → 实体
 | 项目 | 内容 |
 |------|------|
 | **职责** | 子弹/激光门面 |
-| **子模块** | BulletPool, BulletPhysics, LaserSystem, DeathClear |
-| **每帧** | `_physics_process`: DeathClear.process → LaserSystem.step → BulletPhysics.process_collisions → 出屏回收 |
+| **子模块** | BulletPool, BulletPhysics, LaserEngine, DeathClear |
+| **每帧** | `_physics_process`: DeathClear.process → LaserEngine.step → BulletPhysics.process_collisions → 出屏回收 |
 | **多网格** | `use_multi_mesh`（默认 true），通过 BulletMultiMesh 批量渲染 |
 | **暂停** | `_processing_paused` 时跳过 `_physics_process` |
 
@@ -116,12 +115,18 @@ CoroutineScript → StageContext → 系统 → 实体
 - `is_offscreen()` 使用 90px 边距扩展判定
 
 #### 2.4.2 BulletPhysics
-- 每帧遍历 `active_bullets`，按 faction 分流
+- 碰撞见 §2.4.2.1（空间哈希）
 - 命中检测：圆形（半径和）/ 矩形（OBB 最近点）
-- 擦弹：`on_graze()` → graze+1, score+10, memory+0.15
+- 擦弹：`on_graze()` → graze+1, score+10, memory+`MEMORY_GRAZE=0.25`
 
-#### 2.4.3 LaserSystem
-- 池大小 32
+#### 2.4.2.1 空间哈希（SpatialHash）
+- `SpatialHash`（`scripts/bullet/spatial_hash.gd`）：网格分区，把 O(n×m) 碰撞降到 O(n+k)
+- `process_collisions` 每帧重建 `_enemy_hash`（敌人）与 `_bullet_hash`（敌弹），
+  玩家弹通过 `_enemy_hash.query(pos, 半径)` 取候选敌人，敌弹通过 `_bullet_hash.query(player, graze_r+8)` 取候选
+- 自机为中心一次 `query`，覆盖命中半径（~11px）与擦弹半径（~46px）
+
+#### 2.4.3 LaserEngine
+- 池大小 64（`POOL_SIZE`）
 - `step(delta)`：激光更新 → 玩家碰撞检测 + 擦弹
 - `clear()` 让所有激光立即淡出
 
@@ -133,7 +138,7 @@ CoroutineScript → StageContext → 系统 → 实体
 | 项目 | 内容 |
 |------|------|
 | **BGM** | 单路 AudioStreamPlayer；`play_bgm(stream, gap=0.0)` — 同流不重复，无 crossfade |
-| **SFX** | 8 路池；`play_sfx(stream, vol_db)` → 同帧同流去重（`_played_this_frame`），全忙时踢最老的 |
+| **SFX** | 16 路池（`SFX_POOL_SIZE=16`）；`play_sfx(stream, vol_db)` → 同帧同流去重（`_played_this_frame`），全忙时踢最老的 |
 | **音量** | `master_volume`, `bgm_volume`, `sfx_volume`（线性 0~1 → dB 转换）|
 | **暂停** | 监听 `game_state_changed` → BGM `stream_paused = true/false`（SFX 由 tree.paused 自动处理） |
 | **stop_bgm()** | 直接停止，无渐弱 |
@@ -269,7 +274,7 @@ CoroutineScript → StageContext → 系统 → 实体
 | 项目 | 内容 |
 |------|------|
 | **职责** | 资源注册表 |
-| **拥有** | `enemy_visuals(Dictionary)`, `bullet_configs(Dictionary)`, `sounds(Dictionary)`, `ui_textures(Dictionary)`, `enemies(Dictionary)` |
+| **拥有** | `enemy_visuals(Dictionary)`, `bullet_configs(Dictionary)`, `sounds(Dictionary)`, `BGM_PATHS(Dictionary)`, `FOG_TEXTURE(Texture2D)`, `_bgm_cache`（BGM 懒加载缓存）|
 | **子弹配置** | `bullet_configs` 含贴图+判定盒信息；`BulletData.tex(key)` 通过此查找 |
 | **敌人视觉** | `enemy_visuals` 存 PackedScene（蓝色/红色/绿色/黄色妖精、玉等）|
 
@@ -277,18 +282,20 @@ CoroutineScript → StageContext → 系统 → 实体
 | 项目 | 内容 |
 |------|------|
 | **职责** | 全局 z_index 常量 |
-| **值** | `PLAYER_BULLET=-10`, `ITEM=-5`, `PLAYER=0`, `ENEMY=5`, `ENEMY_BULLET=10`, `BOSS=15`, `BOSS_HP_RING=20`, `BOMB=100`, `GAME_UI=1000`, `OVERLAY=2000`, `DEBUG=9999` |
+| **值** | `PLAYER_BULLET=-10`, `ITEM=-5`, `PLAYER=0`, `OPTION=6`, `ENEMY=5`, `ENEMY_BULLET=10`, `BOSS=15`, `BOSS_HP_RING=20`, `EFFECT=50`, `BOMB=100`, `GAME_UI=1000`, `UI_TOP=128`, `OVERLAY=2000`, `DEBUG=9999` |
 
 ### 2.14 GameEvents — Autoload 单例
 | 信号 | 说明 |
 |------|------|
 | `enemy_killed(score, pos)` | 敌人被击破 |
 | `player_death()` | 残机为 0，Game Over |
+| `player_missed()` | 每次 miss（中弹掉残机）都发——Boss 按东方规则累计 |
 | `boss_spawned(boss)` | Boss 生成 |
 | `boss_defeated(boss)` | Boss 被击败 |
 | `phase_start(phase_data)` | 阶段开始（非符/符卡）|
 | `phase_end(captured, bonus)` | 阶段结束 |
 | `phase_bonus_tick(bonus)` | 奖励分每帧递减 |
+| `dialogue_event(event)` | 对话事件 |
 
 ---
 
@@ -444,7 +451,7 @@ tl.loop()                          — 循环模式（最后一个事件触发�
 | **每帧** | `_process`: `_elapsed` 累积 + `_bonus` 递减 tick + 超时检测 |
 | **符卡** | `unlock_spell(pid)` 见到即记；`record_spell(pid, captured, bonus, elapsed)` 记录尝试 |
 | **时间** | `_elapsed >= time_limit` → `_on_phase_clear(is_timeout_only)` |
-| **阶段间间隔** | 2 秒 gap（`create_timer(2.0)`）|
+| **阶段间间隔** | 由关卡 Timeline 驱动：阶段 `is_phase_cleared` 后 `wait()` 偏移继承 → `start_phase` 进下一阶段（非 Boss 内定时；见 §10）|
 | **`_die_boss()`** | 清状态 + `boss_defeated` 信号 + queue_free |
 | **练习模式** | 不掉落 Item |
 
@@ -459,19 +466,20 @@ tl.loop()                          — 循环模式（最后一个事件触发�
 | **雾** | `BulletFog` 子节点；`spawn_fog=true` 时播雾，雾结束才显示子弹 |
 | **染色** | 自机弹根据 `memory_value` 染色（<50 时偏红）|
 
-### 5.6 Laser — Node2D (class_name Laser)
+### 5.6 Laser — 激光（LaserEngine / LaserBeam）
 | 项目 | 内容 |
 |------|------|
-| **类型** | 实际代码中 `fire_growing_laser / fire_line_laser / fire_fixed_laser / fire_homing_laser` 四种 |
+| **实体** | 无 `Laser` 类；用 `LaserEngine`（`scripts/laser/laser_engine.gd`，池 64）+ `LaserBeam`（`laser_beam.gd`, class_name LaserBeam）+ `LaserSkeleton` + `LaserPresets` |
+| **创建** | `LaserEngine.fire_growing_laser / fire_line_laser / fire_fixed_laser / fire_homing_laser` 四种 |
 | **状态** | `ALIVE → FADE(0.15s) → DEAD` |
 | **碰撞** | 沿曲线采样做线段最近点检测 |
 
 ### 5.7 BackgroundStage — Node (class_name StageBackground)
 | 项目 | 内容 |
 |------|------|
-| **子类** | `BackgroundPlane`（着色器平面）、`BackgroundCylinder`（圆柱环绕）|
+| **子类** | `BackgroundPlane`（着色器平面）、`BackgroundSun`、`ScreenFogFX`、`EnvPreset` |
 | **装饰** | `DecorManager` + `DecorLayer`（MultiMesh 批量渲染）|
-| **着色器** | `background_plane.gdshader`, `background_cylinder.gdshader`, `water_flow.gdshader`, `ground.gdshader` |
+| **着色器** | `background_plane.gdshader`, `water_flow.gdshader`, `ground.gdshader`, `sun_sprite.gdshader` 等共 16 个（`gdshader/`）|
 
 ---
 
@@ -535,9 +543,10 @@ tl.loop()                          — 循环模式（最后一个事件触发�
 | 字段 | 说明 |
 |------|------|
 | stage_id | 关卡编号 |
-| difficulty | 难度枚举(EASY/NORMAL/HARD/LUNATIC/EXTRA) |
 | create_script | 关卡 CoroutineScript |
 | background_scene | 背景 PackedScene |
+
+> ⚠️ 无 `difficulty` 字段：难度差分由关卡协程脚本运行时用 `diff_pick()/diff_get()` 处理（见 §5 难度差分），不是 StageData 静态字段。
 
 ### 6.6 PlayerData — Resource (class_name, @export)
 | 字段 | 说明 |
@@ -549,14 +558,14 @@ tl.loop()                          — 循环模式（最后一个事件触发�
 ### 6.7 SpellRecord / SpellRecordBook
 | 项目 | 内容 |
 |------|------|
-| SpellRecord | uid, character, stage, phase_type, phase_number, difficulty, spell_name, attempts, captures, practice_attempts, practice_captures, best_score, best_time |
-| SpellRecordBook | 主键 (uid, character, difficulty) |
+| SpellRecord | uid, character, stage, phase_type, phase_number, difficulty, spell_name, attempts, captures, practice_attempts, practice_captures, best_score, best_time, boss_name, boss_index |
+| SpellRecordBook | 主键 `(stage_id, phase_index, boss_index, character, difficulty)`（无 uid —— uid 是展示/练习用键，主键按这段元组）|
 
-### 6.8 CardDef / CardRegistry
-| 项目 | 内容 |
-|------|------|
-| CardDef | 符卡定义（含 phase_data, boss_scene, background_scene, stage_id）|
-| CardRegistry | 符卡注册表（供练习菜单使用）|
+### 6.8 练习模式配置（CardDef 已废弃）
+> ⚠️ 2026-08 起废弃 `CardDef` / `CardRegistry` / `spell_registry.tres`（无此类、无该文件）。
+> 练习模式改为**单驱动**：解锁时把战斗配置（`phase_data` + `boss_scene` + `background`）**内联存进符卡记录**
+> （`spell_record.gd` 注释"无需 CardDef"）；练习菜单读 `spell_records.tres` 决定"能练哪张"，再 `GameState.start_practice(phase, boss_scene, ...)` 进练习。
+> 入口：MainMenu「Spell Practice」在符卡簿为空时锁定。
 
 ### 6.9 CharacterProfile / DialogueData / DialogueLine / DialogueBubble
 | 项目 | 内容 |
@@ -794,7 +803,7 @@ ItemPool.recycle(item):
 | character | GameState | CharacterScreen | GameScene._setup_player() |
 | active_enemies | GameState | Enemy._ready/_exit_tree, Boss | StageContext |
 | active_bullets | BulletPool | shoot/return_bullet | BulletPhysics, BulletMultiMesh |
-| active_lasers | LaserSystem | fire_*/clear | LaserSystem.step |
+| active_lasers | LaserEngine | fire_*/clear | LaserEngine.step |
 | item_pool | World/ItemPool | spawn/recycle | Enemy._drop_item, Boss._drop_items |
 | current_stage | StageManager | load/stop_stage | 各处只读 |
 | current_background | StageManager | GameScene._load_background | StageContext.get_decor() |
@@ -856,19 +865,22 @@ IDLE ──press L/R──→ LEFTING/RIGHTING ──播完──→ LEFT/RIGHT
 ```
 scripts/
 ├── autoload/              # Autoload 层
-│   ├── bullet/            # 子弹子模块（BulletPool, BulletPhysics, LaserSystem, DeathClear）
+│   ├── bullet/            # 子弹子模块（BulletPool, BulletPhysics, LaserEngine, DeathClear）
 │   └── game/              # 游戏模块（SceneTransition, MenuNav）
 ├── background/            # 背景系统
 │   ├── background_plane.gd
-│   ├── background_cylinder.gd
+│   ├── background_sun.gd
 │   ├── stage_background.gd (基类)
 │   ├── decor_layer.gd
-│   └── decor_manager.gd
+│   ├── decor_manager.gd
+│   ├── env_preset.gd
+│   └── screen_fog_fx.gd
 ├── bullet/                # 子弹实体
 │   ├── bullet.gd
 │   ├── bullet_fog.gd
 │   ├── bullet_multi_mesh.gd
-│   └── laser.gd
+│   └── spatial_hash.gd
+├── laser/                 # 激光系统（LaserEngine/LaserBeam/LaserPresets/LaserSkeleton）
 ├── components/            # 组件
 │   ├── number_sprite.gd
 │   ├── ui_separator.gd
@@ -906,18 +918,21 @@ scripts/
 └── scenes/
 
 data/
-├── dialogue/
+├── boss_scripts/          # 可复用 Boss 移动脚本（move/random_dir_move.gd 等，被 PhaseData.tres 显式引用）
+├── dialogue/              # 对白 .tres
+│   ├── reimu/
 │   └── profile/
-├── enemy_visual/          # 14种敌人视觉 .tscn
-├── phase_data/            # 示例符卡配置 .tres
-├── player_data/           # 角色数据 .tres + 子弹 .tres + 动画 .tres
-├── registry/              # spell_records.tres, spell_registry.tres, stage_registry.tres
+├── enemy_visual/          # 敌人/Boss 视觉 .tscn
+├── player_data/           # 角色数据 .tres + 动画 .tres
+├── registry/              # spell_records.tres, music_registry.tres, stage_registry.tres
 └── stages/
     └── stage01/
-        ├── background/    # 背景场景+装饰+着色器
-        ├── coroutine_script/  # 4个弹幕脚本
-        ├── stage_data/    # 4个难度 StageData .tres
-        └── stage_script/  # 关卡脚本
+        ├── background/    # 背景场景 + 装饰 + 环境预设
+        ├── bullet/        # 弹丸行为脚本（gravity_bullet.gd / radial_accel_bullet.gd）
+        ├── enemy/         # 敌人行为脚本（enemy01~04 / fly_away）
+        ├── phase/         # Boss 阶段（non01 / non_mid01 / spell01，每个含 .tres + *_move/_shoot.gd）
+        ├── stage_data/    # StageData .tres
+        └── stage_script/  # 关卡编排脚本（stage01.gd Timeline）
 ```
 
 ---
@@ -1056,36 +1071,36 @@ ItemPool:
 - 菜单框架（BasePage + NavPage + MenuNav 页面栈）
 - 对话系统（DialogueBox + 独立 BubblePanel）
 - 记忆释放系统（C 键消弹+道具+渐隐圈+碎片上限+衰减）
-- 着色器 14 个
+- 着色器 16 个
 - 数据类全部 Resource
 - Stage 1 关卡雏形
 
 ### ⏳ 待完善
-- **关卡内容**：只有 Stage 1 有数据，缺少 2~6 面
-- **Boss 战**：框架就绪，但缺少实际 Boss 配置（只有 2 个示例符卡）
-- **美术资源**：SVG 素材尚未导入 Godot，目前使用占位图
-- **BGM 集成**：音乐文件已导入但关卡/菜单尚未完整串联
+- **关卡内容**：只有 Stage 1 有数据，缺少 2~6 面（`data/stages/stage03B` 为测试符卡资源，未接入主流程）
+- **Boss 战**：框架 + Stage1 Boss（卡摩瑞）就绪，第 3 面测试符卡在 `stage03B`，其余面缺
+- **美术资源**：已在用正式图（logo/角色/敌人/背景），部分占位
+- **BGM 集成**：音乐文件已导入并串联（`music_registry.tres` + `AssetRegistry.get_bgm` 懒加载）
 
 ### 🐛 已知技术债务
 | 问题 | 位置 | 严重度 | 状态 |
 |------|------|--------|------|
-| ~~激光池 clear() queue_free 池对象~~ | laser.gd | 高 | ✅ fixed |
+| ~~激光池 clear() queue_free 池对象~~ | laser_engine.gd | 高 | ✅ fixed |
 | ~~Boss phase 同帧双掉落~~ | boss.gd | 高 | ✅ fixed |
 | ~~默认弹双倍速~~ | bullet.gd | 高 | ✅ fixed |
-| StageContext 每弹创建 | bullet.gd | 中 | P0 |
+| ~~StageContext 每弹创建~~ | bullet.gd | 中 | ✅ fixed（2026-08 共享 `get_bullet_ctx()`）|
+| ~~Enemy take_damage 缺 negative guard~~ | enemy.gd | 低 | ✅ fixed（hp<=0 判定）|
+| ~~.tres 配置无校验~~ | PhaseData 等 | 低 | ✅ fixed（`validate()` + test_config_validation）|
 | 关卡退出时 RefCounted 残留 | 全局 | 低 | |
-| Enemy take_damage 缺 negative guard | enemy.gd | 低 | |
 | Timeline loop 重置时间戳 | timeline.gd | 低 | |
-| .tres 配置无校验 | PhaseData 等 | 低 | |
 | DifficultyScreen 覆写 NavPage 90% | difficulty_screen.gd | 设计 | |
 | PauseMenu/GameOverMenu _on_leave 重复 | 两处 | 低 | |
 
 ### 🚧 缺失功能
-- **Bomb 系统**：FACTION_BOMB 存在，无实现
+- **Bomb 系统**：FACTION_BOMB 存在，bomb_count 计数已有，但无玩家触发的 bomb 释放（X 键输入 `cancel&bomb` 未接读取）
 - **Stage 2~6**：只有 Stage 1
-- **Stage Practice**：菜单入口存在，未实现
-- **Replay**：RNG 就绪，缺录制/回放
-- **Continue / Result 结算**
+- **Stage Practice**：菜单是占位（`stage_practice_menu.gd` 仅设 is_stage_practice + 标题渐显）
+- **Replay 回放**：录制器 `ReplayRecorder` 已写好但有测试、未接 gameplay，无回放播放器（Replay 菜单是空壳）
+- **Continue / Result 结算**：GameOver 只有 Retry/Title；通关直回菜单
 
 ### 🔮 架构改进方向
 - **MenuLogic 拆分**：NavPage 的导航逻辑（选项收集/锁定跳过/冷却）与视觉呈现（modulate颜色/scale脉冲）分离，让自定义菜单只复用逻辑部分。（触发时机：第三个需要大量覆写 NavPage 的菜单出现时）
@@ -1107,7 +1122,7 @@ ItemPool:
 | **MissEffectManager** | 未详述 | 8 圈上限，Shader 实现，支持延迟/起始半径 |
 | **DialogueService** | 未详述 | 通过暂停/恢复 CoroutineRunner.is_running 实现等待 |
 | **Timeline** | 有 seek() | 有 seek() |
-| **CardDef/CardRegistry** | 未提及 | 实际存在，用于练习模式 |
+| **CardDef/CardRegistry** | 未提及 | ⚠️ 曾用于练习模式，**2026-08 已废弃**（改 spell_records.tres 单驱动 + 记录内联战斗配置）|
 }
 ---
 

@@ -27,7 +27,7 @@ func process_collisions() -> void:
 			_enemy_hash.insert(enemy)
 	_bullet_hash.clear()
 	for bullet in _pool.active_bullets:
-		if bullet.is_ready and bullet.faction == Bullet.FACTION_ENEMY:
+		if is_instance_valid(bullet) and not bullet.is_queued_for_deletion() and bullet.is_ready and bullet.faction == Bullet.FACTION_ENEMY:
 			_bullet_hash.insert(bullet)
 	# 玩家弹 vs 敌人（倒序，命中回收安全）
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):

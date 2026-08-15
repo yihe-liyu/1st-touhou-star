@@ -1,2 +1,2 @@
-## Boss 脚本自动发现目录：把 .gd 扔进这里，工作台自动出现（文件名=显示名）
-## 例：data/boss_scripts/shoot/spiral.gd → 符卡下拉「spiral」
+## Boss 退场脚本仓库（当前为空；无"自动发现/零注册"机制——2026-08 已移除）
+## 此目录仅作占位保留；Boss 退场由关卡脚本/BossData 处理，或经 PhaseData 显式引用脚本。

@@ -31,7 +31,7 @@ script = ExtResource("2")
 container_path = NodePath("LeftPanel/ListContainer")
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=679117683]
-layout_mode = 0
+layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
@@ -69,6 +69,7 @@ theme_override_styles/panel = SubResource("StyleBoxLeft")
 layout_mode = 2
 
 [node name="RecordView" type="Control" parent="." unique_id=1936456073]
+layout_mode = 1
 visible = false
 anchors_preset = 0
 anchor_right = 1.0

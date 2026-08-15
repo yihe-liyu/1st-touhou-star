@@ -62,8 +62,8 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	
 	tl.at(60.0).do(func():
 		var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-		t.tween_method(_camera_accel, 7.0, 5.0, 25.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-		bg.rotate_camera(Vector3(deg_to_rad(-25), 0, 0), 25.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
+		t.tween_method(_camera_accel, 7.0, 4.0, 25.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		bg.rotate_camera(Vector3(deg_to_rad(-22), 0, 0), 25.0, Tween.EASE_IN_OUT, Tween.TRANS_SINE)
 	)
 
 	super.start(ctx, target)

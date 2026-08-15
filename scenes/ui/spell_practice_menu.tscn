@@ -14,7 +14,7 @@ script = ExtResource("1_script")
 auto_overlay = false
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=1621601733]
-layout_mode = 0
+layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
@@ -75,6 +75,7 @@ grow_vertical = 2
 theme_override_constants/separation = 6
 
 [node name="CharPanel" type="Control" parent="." unique_id=1959503935]
+layout_mode = 1
 anchors_preset = 0
 anchor_left = 0.3
 anchor_top = 0.88

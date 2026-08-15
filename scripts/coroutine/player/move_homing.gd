@@ -89,7 +89,7 @@ func _find_nearest_enemy() -> Node2D:
 	var nearest: Node2D = null
 	var nearest_dist := INF
 	for enemy: Node2D in GameState.active_enemies:
-		if not is_instance_valid(enemy):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
 		if enemy is Boss:
 			var phase := (enemy as Boss).current_phase()

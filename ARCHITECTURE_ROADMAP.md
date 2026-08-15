@@ -14,7 +14,7 @@
 - 信号生命周期：场景 `_exit_tree` 统一断开 autoload 连接
 - 协程约定：游戏逻辑用 CoroutineRunner（可暂停/可复现），UI 用 await（SPEC §10）
 - 常量集中：GameConfig（东方框边界）+ LayerConfig（z_index）
-- 测试保护：GUT 159 个用例 / 28 个脚本覆盖碰撞/掉落/符卡/时间线/RNG
+- 测试保护：GUT 163 个用例 / 29 个脚本覆盖碰撞/掉落/符卡/时间线/RNG
 
 ---
 
@@ -177,7 +177,8 @@ BulletManager
 - ~~S5+ 个体行为表（敌人内部）~~ —— ❌ 已放弃：敌人行为 = 写协程 .gd 注册 BEHAVIORS，不拆标准件
 
 **终局形态（2026-08 收窄后）**：Stage 1 = 协程版（stage01.gd Timeline）；测试符卡已搬入
-（phase/test_01.tres + 阶段链）；练习模式记录/CardDef 不受影响；GUT 127 通过。
+（stage03B/phase/spell03/spell053~056.tres + 阶段链）；练习模式记录不受影响（CardDef 随双驱动一并移除）；
+GUT 现为 163 用例 / 29 脚本全绿。
 
 **清理标记（更新）**：
 - [x] 书签"运行时收集 + 缓存" → 静默收集已随数据关卡移除；BookmarkCache 保留（人工打点持久化）
@@ -212,10 +213,10 @@ BulletManager
 | 优先级 | 改进 | 说明 |
 |--------|------|------|
 | 🔴 P0 | ~~共享 StageContext~~ | 已由阶段 2 服务层落地（Enemy/Boss/Player 注入 ctx） |
-| 🟡 P1 | **Replay 录输入基础设施** | 每帧记录 Input + RNG 种子，为 replay 打地基 |
+| 🟡 P1 | ~~Replay 录输入基础设施~~ | ✅ 已完成（`ReplayRecorder` + `test_replay_recorder` 就绪；仍缺 gameplay 接线 + 回放播放器） |
 | 🟡 P1 | **高频路径禁 RefCounted 规则** | bullet.bind() / _physics_process 碰撞 / return_bullet 禁止 new() |
 | 🟢 P2 | **MenuLogic 拆分** | NavPage 逻辑与视觉分离（等第三个需要大量覆写 NavPage 的菜单出现时） |
-| 🟢 P2 | **配置校验层** | PhaseData/StageData 加载时校验合法性（含除零防护） |
+| 🟢 P2 | ~~配置校验层~~ | ✅ 已完成（PhaseData `validate()` 含 time_limit 防除零，已接线多个加载点） |
 | ⚪ P3 | ~~批量子弹渲染优化~~ | ~~利用 MultiMesh 减少 draw call~~（use_multi_mesh 已启用） |
 | ⚪ P3 | **PauseMenu/GameOverMenu 去重** | 抽 OverlayPage 基类 |
 
@@ -227,24 +228,25 @@ BulletManager
 
 | 问题 | 位置 | 严重度 | 状态 |
 |------|------|--------|------|
-| ~~激光池 clear() queue_free 池对象~~ | laser.gd | 高 | ✅ fixed |
+| ~~激光池 clear() queue_free 池对象~~ | laser_engine.gd | 高 | ✅ fixed |
 | ~~Boss phase 同帧双掉落~~ | boss.gd | 高 | ✅ fixed |
 | ~~默认弹双倍速~~ | bullet.gd | 高 | ✅ fixed |
-| StageContext 每弹创建 | bullet.gd | 中 | P0 |
-| 关卡退出时 RefCounted 残留 | 全局 | 低 | P0 可缓解 |
+| ~~SpatialHash（P-10 全量碰撞）~~ | bullet_physics.gd | 中 | ✅ 已启用（O(n×m)→O(n+k)，spatial_hash.gd）|
+| ~~StageContext 每弹创建~~ | bullet.gd | 中 | ✅ fixed（2026-08 共享 `get_bullet_ctx()`）|
+| ~~关卡退出时 RefCounted 残留~~ | 全局 | 低 | ✅ 已修复（StageContext 服务环改为 WeakRef；新增生命周期回归测试）|
 | ~~Enemy take_damage 缺 negative guard~~ | enemy.gd | 低 | ✅ 已修复（hp<=0 判定） |
-| is_queued_for_deletion 检查不全 | 多处 | 低 | |
-| Timeline loop 重置时间戳精度 | timeline.gd | 低 | |
+| ~~is_queued_for_deletion 检查不全~~ | 多处 | 低 | ✅ 已补全（active_enemies/active_bullets 遍历点全部覆盖）|
+| ~~Timeline loop 重置时间戳精度~~ | timeline.gd | 低 | ✅ 已修复（按 _loop_start 重排 + 恢复 repeat 配置 + 去每帧 lambda）|
 | DifficultyScreen 覆写 NavPage 90% | difficulty_screen.gd | 设计 | P2 |
-| layout_mode 混用 0/1/3 | 部分 UI .tscn | 低 | Godot 4 遗留 |
+| ~~layout_mode 混用 0/1/3~~ | 部分 UI .tscn | 低 | ✅ 已规范化（0=position/1=anchors/2=container/3=uncontrolled）|
 
 ### 数据层面
 
-| 问题 | 位置 |
-|------|------|
-| .tres 配置无校验（time_limit=0 会除零） | PhaseData 等 |
-| SpellRecord @export 字段缺注释 | spell_record.gd |
-| ARCHITECTURE_ROADMAP 文档残留 EnemyService（已移除） | 本文档 |
+| 问题 | 位置 | 状态 |
+|------|------|------|
+| ~~.tres 配置无校验（time_limit=0 会除零）~~ | PhaseData 等 | ✅ fixed（`validate()`）|
+| ~~SpellRecord @export 字段缺注释~~ | spell_record.gd | ✅ fixed（已补 ## 注释）|
+| ARCHITECTURE_ROADMAP 文档残留 EnemyService（已移除） | 本文档 | ✅ 正文已清（本条为技术债自述）|
 
 ---
 
@@ -252,13 +254,13 @@ BulletManager
 
 | 功能 | 优先级 | 说明 |
 |------|--------|------|
-| **Bomb 系统** | 🔴 高 | FACTION_BOMB 存在，无实现 |
-| **Stage 2~6** | 🔴 高 | 只有 Stage 1 |
-| **Stage Practice** | 🟡 中 | 菜单入口存在，未实现 |
-| **Replay 播放器** | 🟡 中 | RNG 就绪，缺录制/回放 |
+| **Bomb 系统** | 🔴 高 | FACTION_BOMB / bomb_count 已有，X 键输入未接读取，无释放 |
+| **Stage 2~6** | 🔴 高 | 只有 Stage 1（stage03B 是测试符卡资源，未接入主流程）|
+| **Stage Practice** | 🟡 中 | 菜单是占位（仅设 is_stage_practice + 标题渐显）|
+| **Replay 播放器** | 🟡 中 | 录制器 ReplayRecorder 已写好（未接 gameplay），缺回放播放器 |
 | **Continue 系统** | 🟢 低 | GameOver 只有 Retry/Title |
 | **Result 结算画面** | 🟢 低 | 通关直接回菜单 |
-| **Option 音量滑条** | 🟢 低 | UI 存在，未绑定 |
+| ~~Option 音量~~ | 🟢 低 | ✅ 已绑定（Option 菜单 ←/→ 键调 value → AudioManager.bgm/sfx_volume）|
 
 ---
 

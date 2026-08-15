@@ -39,7 +39,7 @@ script = ExtResource("1_script")
 container_path = NodePath("Container")
 
 [node name="Background" type="TextureRect" parent="." unique_id=627389897]
-layout_mode = 0
+layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -56,7 +56,7 @@ lifetime = 0.5
 process_material = SubResource("ParticleProcessMaterial_wb0q5")
 
 [node name="Container" type="VBoxContainer" parent="." unique_id=343449348]
-layout_mode = 0
+layout_mode = 1
 anchor_left = 0.5
 anchor_top = 0.65
 anchor_right = 0.5
@@ -121,7 +121,7 @@ text = "Quit"
 
 [node name="logo" type="TextureRect" parent="." unique_id=1922387977]
 material = SubResource("ShaderMaterial_vs4v7")
-layout_mode = 0
+layout_mode = 1
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -300.0

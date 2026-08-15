@@ -92,6 +92,7 @@ script = ExtResource("9_script")
 layer = -1
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="Background" unique_id=1683698703]
+layout_mode = 3
 unique_name_in_owner = true
 offset_left = 64.0
 offset_top = 32.0
@@ -182,6 +183,7 @@ texture = SubResource("AtlasTexture_liy57")
 layer = 32
 
 [node name="OutlineRect" type="ColorRect" parent="UI/Memory" unique_id=1632815897]
+layout_mode = 3
 material = SubResource("RectOutlineMat")
 anchors_preset = 15
 anchor_right = 1.0

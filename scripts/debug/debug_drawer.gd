@@ -31,14 +31,14 @@ func _draw():
 	# ── 画所有子弹判定 ──
 	if bullet_manager:
 		for bullet in bullet_manager.active_bullets:
-			if not is_instance_valid(bullet) or not bullet.visible or not bullet.is_ready:
+			if not is_instance_valid(bullet) or bullet.is_queued_for_deletion() or not bullet.visible or not bullet.is_ready:
 				continue
 			_draw_bullet_hitbox(bullet)
 	
 	# ── 画所有敌人判定 ──
 	if game_state:
 		for enemy in game_state.get_active_enemies():
-			if not is_instance_valid(enemy):
+			if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 				continue
 			var radius: float = enemy.get("hitbox_radius") if "hitbox_radius" in enemy else 8.0
 			draw_arc(enemy.global_position, radius, 0, TAU, 12, Color.GREEN, 1.5)

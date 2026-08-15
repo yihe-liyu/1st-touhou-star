@@ -10,7 +10,7 @@
 2. 加 `tl.at(时刻).do(func(): EnemyData.new().with_script(...).pos(...).spawn(ctx))`
    或给 Boss 加阶段（`BossData.new().phase(...)` + `tl.start_phase(...)` 阶段链）
 3. F6 运行工作台 → 命中框/固定种子/逐帧看效果；改完代码**重启工作台**生效
-4. 弹幕脚本（`data/boss_scripts/`）改完同样重启工作台看
+4. Boss 阶段/弹幕脚本（阶段目录下，如 `data/stages/stage01/phase/non_mid01/`）改完同样重启工作台看
 
 > 工作台**不是编辑器**：不写数据、不热重载，是「跑真实代码看效果」的预览沙盒。
 > 数据（关卡/Boss/阶段）全部以代码 + .tres 形式存在，由 AI/人直接写。
@@ -36,9 +36,9 @@
 位置：`data/stages/stage01/stage_script/stage01.gd`（`extends CoroutineScript`）
 
 ```gdscript
-const ENEMY01 = preload("res://data/stages/stage01/coroutine_script/enemy01.gd")
-const NON_01  = preload("res://data/stages/stage01/phase/non_01.tres")
-const TEST_01 = preload("res://data/stages/stage01/phase/test_01.tres")
+const ENEMY01 = preload("res://data/stages/stage01/enemy/enemy01.gd")
+const NON_01  = preload("res://data/stages/stage01/phase/non01/non01.tres")
+const NON_MID_01 = preload("res://data/stages/stage01/phase/non_mid01/non_mid01.tres")
 
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
@@ -48,14 +48,14 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		.pos(Vector2(...)).red_little_fairy().param("target_y", 200).spawn(ctx))
 	# Boss + 阶段链（phase 击破后 Timeline 冻结 → 击破继续 → 激活下一个 wait 事件）
 	tl.at(35.0).do(func(): boss_holder[0] = StageManager.spawn_boss(kamorui, ...))
-	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_01)
-	tl.wait(1.0).start_phase(func(): return boss_holder[0], TEST_01)   # 非符1 击破后 1s 进测试
+	tl.at(38.0).start_phase(func(): return boss_holder[0], NON_01)   # 非符1
+	tl.wait(1.0).start_phase(func(): return boss_holder[0], NON_MID_01)  # 道中非符
 	tl.wait(2.0).do(func(): 退场)
 	super.start(ctx, target)
 ```
 
 Timeline 链式 API：`at(t)` 绝对时刻 · `wait(n)` 相对上一 blocking 结束 · `do(cb)` 任意逻辑 ·
-`phase(getter, PhaseData)` 起阶段并冻结直到击破 · `every(times)` 重复 · `play_bgm/spawn_enemy/spawn_boss` 快捷。
+`start_phase(boss_getter, PhaseData)` 起阶段并冻结直到击破 · `every(times)` 重复 · `play_bgm/spawn_enemy/spawn_boss/dialogue` 快捷。
 
 > ⚠️ start_phase 链注意：`wait()` 后接 `start_phase()` 必须直接链（`tl.wait(1.0).start_phase(...)`），
 > 中间插 `do(pass)` 会破坏 wait 偏移继承（阶段会立即触发）。
@@ -71,7 +71,7 @@ Timeline 链式 API：`at(t)` 绝对时刻 · `wait(n)` 相对上一 blocking �
 
 ### 行为脚本
 
-位置：`data/stages/stage01/coroutine_script/`（enemy01/02、fly_away 等）。
+位置：`data/stages/stage01/enemy/`（enemy01/02/03/04、fly_away 等）。
 **直接引用**：关卡脚本 `preload()` 敌人行为，`EnemyData.new().with_script(ENEMY01)...` 构建——
 无注册表、无中间层（EnemyTemplateRegistry/BossScriptRegistry 已随编辑器移除，2026-08）。
 
@@ -84,15 +84,15 @@ Timeline 链式 API：`at(t)` 绝对时刻 · `wait(n)` 相对上一 blocking �
 - `BossData`（`data/stages/stage01/phase/` 参照）：`boss_name` / `visual` / `phases`（Normal 组）/ `phases_easy/hard/lunatic` / `enter_script` / `exit_script` / `score_value`
 - `PhaseData`：`name`（空串 = 非符）、`uid`（0 = 非符不记；真符卡全局唯一，建议 1 面 100-199 / 2 面 200-299 / 3 面 300-399 / Extra 1000+）、`hp` / `time_limit` / `bonus`、`is_timeout_only`、`move_script` / `shoot_script`、掉落 item 系列、`params`
 
-阶段示例（`data/stages/stage01/phase/test_01.tres`——黄粱「不可测之梦」）：
+阶段示例（`data/stages/stage03B/phase/spell03/spell055.tres`——黄粱「不可测之梦」）：
 ```gdscript
 [gd_resource type="Resource" script_class="PhaseData" format=3]
 ...
 name = "黄粱「不可测之梦」"
-uid = 303
-time_limit = 90.0
-hp = 3001
-move_script = ExtResource("...test_move.gd")
+uid = 55
+time_limit = 40.0
+hp = 4000
+move_script = ExtResource("...random_dir_move.gd")
 shoot_script = ExtResource("...orbit_spiral.gd")
 ```
 
@@ -110,18 +110,33 @@ params = {
 
 > 惯例：参数默认直接写在脚本 var 里（调参即改脚本）；`params` 只用于"同一脚本多形态"的覆盖场景。
 
-### Boss 脚本（目录自动发现）
+### Boss 阶段脚本（协程 .gd + .tres 显式引用）
+
+> ⚠️ 纠正（2026-08 目录重组后）：**没有"目录自动发现"**。阶段脚本由 `PhaseData.tres` 的
+> `move_script` / `shoot_script` 字段**显式引用**，脚本与 `.tres` 放同一阶段的目录下就行。
+> `data/boss_scripts/` 只是个别可复用移动脚本的存放处，不是自动扫描目录。
+
+**惯例**：每个 Boss 阶段（非符/符卡）一个子目录，含 `.tres` + 它引用的 `*_move.gd` / `*_shoot.gd`（弹丸逻辑用 `bullet/` 或同目录脚本）：
 
 ```
-data/boss_scripts/move/   移动脚本（test_move.gd：随机跳场）
-data/boss_scripts/shoot/  弹幕脚本（orbit_spiral.gd：环绕发射器 + 探测弹）
-data/boss_scripts/enter/  入场
-data/boss_scripts/exit/   退场
-data/boss_scripts/bullet/ 弹丸行为（探测弹 orbit_probe.gd 等）
+data/stages/stage01/phase/
+├── non01/           卡摩瑞的非符1
+│   └── non01.tres
+├── non_mid01/       道中非符1
+│   ├── non_mid01.tres
+│   ├── non_mid01_move.gd      # move_script
+│   ├── non_mid01_shoot.gd     # shoot_script
+│   └── non_mid01_bullet.gd    # 弹丸行为（被 shoot 引用）
+└── spell01/
+    └── spell001.tres
+data/stages/stage03B/phase/spell03/      # 测试符卡（3 面 Boss「梦外见/黄粱」）
+├── spell053~056.tres
+├── orbit_spiral.gd                       # shoot_script（环绕发射器 + 探测弹）
+└── orbit_probe.gd                        # 探测弹行为
 ```
 
-**加新 Boss 脚本 = 写 .gd 扔进对应目录，文件名即显示名，零注册。**
-旧位置：`data/stages/stage01/coroutine_script/boss/`（non_01_move/shoot/bullet）。
+**加新阶段 = 建目录 + 写 .gd + 建 .tres，`.tres` 里用 `move_script=ExtResource(...)` 指脚本**，
+再在关卡脚本 `start_phase(boss_getter, that_tres)` 引用。脚本文件即复用单元，跨阶段复用用 `params` 覆盖。
 
 ---
 
@@ -148,10 +163,10 @@ return false                 # 结束协程
 ### 脚本文件地图
 
 ```
-敌人行为   data/enemy_scripts/   enemy01.gd / enemy02.gd / fly_away.gd（关卡脚本 preload 即用）
-Boss 脚本   data/boss_scripts/    move/ shoot/ enter/ exit/（目录即约定，零注册）
-弹丸行为   data/bullet_scripts/   gravity_bullet.gd / non_01_bullet.gd / orbit_probe.gd
-关卡专属   data/stages/stage01/    stage_script(stage01.gd) + phase/ + stage_data/ + background/
+敌人行为   data/stages/stage01/enemy/   enemy01.gd / enemy02.gd / enemy03.gd / enemy04.gd / fly_away.gd（关卡脚本 preload 即用）
+弹丸行为   data/stages/stage01/bullet/   gravity_bullet.gd / radial_accel_bullet.gd（被行为脚本 preload）
+Boss 阶段  data/stages/?/phase/*/        每阶段一个目录：*.tres + *_{move,shoot,bullet}.gd（.tres 显式引用）
+关卡专属   data/stages/stage01/          stage_script(stage01.gd) + phase/ + enemy/ + bullet/ + background/ + stage_data/
 ```
 
 ### 行为脚本示例
@@ -197,14 +212,18 @@ func _init_enemy() -> void:
 1. MainMenu → Start → 选难度 → 选角色 → `GameManager.change_scene("game_scene")`
 2. `GameScene._ready()` → `_resolve_stage_data()` → `StageManager.load_stage(data)`
    （`data/registry/stage_registry.tres`：Stage 1 → `stage01.tres` 协程版）
-3. 练习模式：从 CardDef 构建单 phase Boss，走 `_start_practice_game()`
+3. 练习模式：从符卡记录（`spell_records.tres` 解锁后内联存的 phase_data + boss_scene）构建单 phase Boss，
+   走 `GameState.start_practice()` → `_start_practice_game()`
 
 ---
 
 ## 九、符卡练习 / 菜单 / 对话
 
 - **符卡簿**：`data/registry/spell_records.tres`，见到即记（unlock_spell），自动按 UID 记录尝试/捕获/最佳
-- **符卡练习（双驱动）**：练习菜单 = 符卡簿记录（自动）决定"能练哪张" + `data/registry/spell_registry.tres`（CardDef）提供战斗配置。CardDef 手写 .tres 或由代码/脚本生成（工作台「注册练习」按钮已随编排页移除）
+- **符卡练习（单驱动）**：练习菜单 = 符卡簿记录决定"能练哪张"，记录里**内联存战斗配置**
+  （phase_data + boss_scene，见 `spell_record.gd` 注释"无需 CardDef"）。已解锁的符卡可选任意难度进入。
+  `CardDef` / `spell_registry.tres` 早已移除（2026-08，放弃"双驱动"）。练习入口默认锁定：
+  MainMenu 的 Spell Practice 在符卡簿为空时锁定，有记录（解锁过符卡）才可进入。
 - **菜单页**：`scenes/ui/*_menu.tscn` 继承 BasePage（`scripts/autoload/game/menu_nav.gd` 导航）
 - **对话**：`data/dialogue/` .tres（lines 数组）；关卡里 `tl.at(t).dialogue(...)` 触发
 
