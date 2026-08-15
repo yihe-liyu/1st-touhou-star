@@ -65,6 +65,7 @@ BulletManager
 | 2026-07 重构阶段 2：输入映射入 project.godot / GameConfig / 服务层 / 数据解耦 / GameState 拆分 | ✅ |
 | 2026-07 重构阶段 3：%UniqueName / SceneTransition 健壮化 / BGM 懒加载 / 协程约定 / 菜单场景化 | ✅ |
 | 2026-08 工作台 v2 关卡沙盒（真实运行时预览）—— 见下方专节 | ✅ |
+| 2026-08 六项技术债清理（RNG 规约 / 基准断言 / queued 防护 / Timeline loop / layout_mode / RefCounted 环） | ✅ |
 
 ---
 

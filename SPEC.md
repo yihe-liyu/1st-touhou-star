@@ -218,7 +218,7 @@ CoroutineScript → StageContext → 系统 → 实体
 |------|------|
 | **职责** | 协程与系统的唯一桥梁 |
 | **持有** | `runner: CoroutineRunner`（弱引用通过 is_instance_valid 检查）|
-| **子服务** | `clock`, `bullets`, `player`, `dialogue`, `items`, `audio` |
+| **子服务** | `clock`, `bullets`, `player`, `dialogue`, `items`, `audio`（dialogue/items 以 WeakRef 持 ctx，防 RefCounted 环）|
 | **active()** | runner 存在且 `is_running` |
 
 **ClockService**
@@ -380,7 +380,7 @@ tl.at(10.0).spawn_enemy(script, pos)
 tl.at(12.0).spawn_boss(data, pos)
 tl.at(13.0).play_bgm(stream)
 tl.at(14.0).play_dialogue(data)
-tl.loop()                          — 循环模式（最后一个事件触发时重置）
+tl.loop()                          — 循环模式（按所有事件末次触发时刻的最大值循环）
 ```
 
 | 方法 | 说明 |
@@ -398,7 +398,7 @@ tl.loop()                          — 循环模式（最后一个事件触发�
 | `pause() / resume()` | 暂停/恢复 |
 | `reset()` | 重置到初始 |
 | `seek(time)` | 跳到指定时间 |
-| `loop()` | 循环模式 |
+| `loop()` | 循环模式（终点 = max(末次触发时刻)，重置时按 `_loop_start` 重排并恢复 repeat 配置）|
 
 ---
 
@@ -1090,8 +1090,8 @@ ItemPool:
 | ~~StageContext 每弹创建~~ | bullet.gd | 中 | ✅ fixed（2026-08 共享 `get_bullet_ctx()`）|
 | ~~Enemy take_damage 缺 negative guard~~ | enemy.gd | 低 | ✅ fixed（hp<=0 判定）|
 | ~~.tres 配置无校验~~ | PhaseData 等 | 低 | ✅ fixed（`validate()` + test_config_validation）|
-| 关卡退出时 RefCounted 残留 | 全局 | 低 | |
-| Timeline loop 重置时间戳 | timeline.gd | 低 | |
+| ~~关卡退出时 RefCounted 残留~~ | 全局 | 低 | ✅ fixed（DialogueService/ItemService 弱引用 ctx + 生命周期回归测试）|
+| ~~Timeline loop 重置时间戳~~ | timeline.gd | 低 | ✅ fixed（按 `_loop_start` 重排 + 恢复 repeat 配置）|
 | DifficultyScreen 覆写 NavPage 90% | difficulty_screen.gd | 设计 | |
 | PauseMenu/GameOverMenu _on_leave 重复 | 两处 | 低 | |
 

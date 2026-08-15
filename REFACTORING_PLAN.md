@@ -315,7 +315,7 @@ Stage（关卡 = 顶级生命周期）──────── 时间轴：0 ─
 | 2026-07-31 | 阶段2 | ✅ 阶段 2 完成（P-05/06/07/11/12）；Player 服务化完成，BulletData 检查通过，技术债清零 |
 | 2026-07-31 | 阶段3 | P-08：game_scene 深层路径改 %UniqueName；SceneTransition 错误处理；BGM 懒加载；协程约定入 SPEC；菜单场景化审计+补 Overlay |
 | 2026-07-31 | 阶段3 | ✅ 阶段 3 完成（5 项） |
-| | | |
+| 2026-08-15 | 技术债清理 | ✅ 六项修复：RNG 规约 / 基准断言 / queued 防护 / Timeline loop 精度 / layout_mode / RefCounted 环（163 用例全绿） |
 
 ---
 
