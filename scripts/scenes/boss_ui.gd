@@ -13,7 +13,7 @@ const DOT_SIZE := 16.0
 
 var _dots: Array[ColorRect] = []
 var _phase_idx: int = 0
-var _announce_label: Label
+var _announce_label: AnnounceLabel
 var _bonus_label: Label
 var _capture_label: Label
 var _boss_ref: Boss
@@ -104,50 +104,19 @@ func _on_phase_end(captured: bool, _bonus: int) -> void:
 
 func _clear_announce() -> void:
 	if _announce_label and is_instance_valid(_announce_label):
-		_announce_label.queue_free()
+		_announce_label.clear()
 		_announce_label = null
 	_bonus_label = null
 	_capture_label = null
 
-# ═══ 符卡名入场动画 ═══
-
-const ANNOUNCE_FADE := 0.5
-const ANNOUNCE_INITIAL_SCALE := 3.0
-const ANNOUNCE_SHRINK := 0.6
 
 
 func _play_spell_announce(spell_name: String) -> void:
 	_clear_announce()
-	_announce_label = _make_announce_label(spell_name)
+	_announce_label = AnnounceLabel.new()
 	$Control.add_child(_announce_label)
-	
-	var size: Vector2 = $Control.size
-	var center: Vector2 = size * 0.5
-	var label_size := _announce_label.get_minimum_size()
-	
-	_announce_label.scale = Vector2(ANNOUNCE_INITIAL_SCALE, ANNOUNCE_INITIAL_SCALE)
-	_announce_label.position = center - label_size * ANNOUNCE_INITIAL_SCALE / 2.0
-	
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(_announce_label, "modulate:a", 1.0, ANNOUNCE_FADE)
-	tw.tween_property(_announce_label, "scale", Vector2(ANNOUNCE_SHRINK, ANNOUNCE_SHRINK), ANNOUNCE_FADE).set_trans(Tween.TRANS_QUAD)
-	tw.tween_property(_announce_label, "position", center - label_size * ANNOUNCE_SHRINK / 2.0, ANNOUNCE_FADE).set_trans(Tween.TRANS_QUAD)
-	tw.set_parallel(false)
-	tw.tween_interval(0.2)
-	tw.tween_property(_announce_label, "position", size - label_size * ANNOUNCE_SHRINK, 1.0).set_trans(Tween.TRANS_QUAD)
-	tw.tween_property(_announce_label, "position", Vector2(size.x - (label_size * ANNOUNCE_SHRINK).x, 0), 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_callback(_add_info_labels)
-
-
-func _make_announce_label(text: String) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 48)
-	label.modulate.a = 0.0
-	return label
+	_announce_label.finished.connect(_add_info_labels, CONNECT_ONE_SHOT)
+	_announce_label.play(spell_name, $Control.size)
 
 
 func _add_info_labels() -> void:

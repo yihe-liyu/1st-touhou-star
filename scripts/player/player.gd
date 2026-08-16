@@ -161,7 +161,7 @@ const BOMB_SPAWN_INTERVAL: float = 0.1
 const BOMB_SPEED: float = 220.0
 const BOMB_DAMAGE: float = 50.0
 const BOMB_RADIUS: float = 45.0
-const BOMB_INVINCIBLE_TIME: float = 2.5
+const BOMB_INVINCIBLE_TIME: float = 4.0
 const BOMB_BEHAVIOR = preload("res://scripts/bullet/bomb_behavior.gd")
 
 func _bomb() -> void:
