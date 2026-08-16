@@ -86,6 +86,8 @@ func bomb() -> BulletData:
 	damage = 50
 	hitbox_shape = HitboxShape.CIRCLE
 	hitbox_radius = 45.0
+	# 旋转/追踪阶段可能暂时出框，不能被 BulletManager 提前回收；由 BombBehavior 自己爆炸消失
+	out_grace = 9999.0
 	return self
 
 func behavior(v: Script) -> BulletData:
