@@ -157,10 +157,11 @@ func _on_animation_finished() -> void:
 # ═══ Bomb（X 键） ═══
 
 const BOMB_SPAWN_COUNT: int = 8
-const BOMB_SPAWN_INTERVAL: float = 0.2
+const BOMB_SPAWN_INTERVAL: float = 0.1
 const BOMB_SPEED: float = 220.0
 const BOMB_DAMAGE: float = 50.0
 const BOMB_RADIUS: float = 45.0
+const BOMB_INVINCIBLE_TIME: float = 2.5
 const BOMB_BEHAVIOR = preload("res://scripts/bullet/bomb_behavior.gd")
 
 func _bomb() -> void:
@@ -168,7 +169,10 @@ func _bomb() -> void:
 		return
 	if not GameState.use_bomb():
 		return
-	_play_sfx(AssetRegistry.sounds["kira"], -6.0)
+	_play_sfx(AssetRegistry.sounds["card"], -6.0)
+	# Bomb 期间短暂无敌
+	is_invincible = true
+	_invincible_timer = BOMB_INVINCIBLE_TIME
 	var base_hue := RNG.randf()
 	var tw := create_tween()
 	for i in BOMB_SPAWN_COUNT:
@@ -183,6 +187,7 @@ func _spawn_bomb_bullet(i: int, base_hue: float) -> void:
 	var color := Color.from_hsv(hue, 1.0, 1.0)
 	var data := BulletData.new().tex("bomb01_white").bomb().behavior(BOMB_BEHAVIOR).color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
 	data.params = {"spawn_delay": float(i) * BOMB_SPAWN_INTERVAL}
+	_play_sfx(AssetRegistry.sounds["shoot"], -6.0)
 	BulletManager.shoot_bomb_bullet(data, global_position, dir)
 
 

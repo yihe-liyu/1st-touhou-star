@@ -61,6 +61,7 @@ const sounds := {
 	"player_die":   preload("res://assets/Sound/player_die.wav"),
 	"graze":        preload("res://assets/Sound/graze.wav"),
 	"item":         preload("res://assets/Sound/item.wav"),
+	"card":         preload("res://assets/Sound/card.wav"),
 	# ── UI ──
 	"select":       preload("res://assets/Sound/select.wav"),
 	"ok":           preload("res://assets/Sound/ok.wav"),
