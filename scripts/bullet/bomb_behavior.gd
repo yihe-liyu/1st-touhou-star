@@ -75,11 +75,12 @@ func _tick(_ctx: StageContext) -> Variant:
 		bullet.global_position = center + Vector2.RIGHT.rotated(_angle) * _radius
 		bullet.rotation = _angle
 
-	# 任何阶段碰到敌人 → 直接爆炸消失
-	var enemy := _find_nearest_enemy()
-	if enemy and bullet.global_position.distance_to(enemy.global_position) <= bullet.hitbox_radius + enemy.hitbox_radius:
-		_explode(bullet, _ctx)
-		return false
+	# 追踪/直线阶段碰到敌人 → 爆炸消失（旋转阶段不爆炸）
+	if _phase == Phase.FLY:
+		var enemy := _find_nearest_enemy()
+		if enemy and bullet.global_position.distance_to(enemy.global_position) <= bullet.hitbox_radius + enemy.hitbox_radius:
+			_explode(bullet, _ctx)
+			return false
 
 	# 无敌人时直线出界 → 爆炸消失
 	if _phase == Phase.FLY and _is_outside_field(bullet.global_position):
