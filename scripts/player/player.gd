@@ -171,7 +171,7 @@ func _bomb() -> void:
 	for i in BOMB_SPAWN_COUNT:
 		var dir := Vector2.RIGHT.rotated(TAU * float(i) / float(BOMB_SPAWN_COUNT))
 		var color := Color.from_hsv(RNG.randf(), 1.0, 1.0)
-		var data := BulletData.new().tex("bomb01").bomb().color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
+		var data := BulletData.new().tex("bomb01_white").bomb().color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
 		BulletManager.shoot_bomb_bullet(data, pos, dir)
 
 

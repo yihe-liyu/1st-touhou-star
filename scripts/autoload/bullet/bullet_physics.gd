@@ -37,10 +37,13 @@ func process_collisions() -> void:
 	# 敌弹 vs 自机（自机为中心查哈希，一次 query）
 	_resolve_enemy_bullets_near_player()
 	# Bomb 弹 vs 敌弹（碰到即消）
-	for i in range(_pool.active_bullets.size() - 1, -1, -1):
-		var bullet: Bullet = _pool.active_bullets[i]
+	# 先收集快照：_bomb_vs_enemy_bullets 会 return_bullet 修改 active_bullets，不能边遍历边删
+	var bomb_bullets: Array[Bullet] = []
+	for bullet in _pool.active_bullets:
 		if bullet.is_ready and bullet.faction == Bullet.FACTION_BOMB:
-			_bomb_vs_enemy_bullets(bullet)
+			bomb_bullets.append(bullet)
+	for bullet in bomb_bullets:
+		_bomb_vs_enemy_bullets(bullet)
 	# Bomb 弹 vs 敌人
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
 		var bullet: Bullet = _pool.active_bullets[i]
