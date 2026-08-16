@@ -85,7 +85,7 @@ func bomb() -> BulletData:
 	can_be_canceled = false
 	damage = 50
 	hitbox_shape = HitboxShape.CIRCLE
-	hitbox_radius = 20.0
+	hitbox_radius = 90.0
 	return self
 
 func behavior(v: Script) -> BulletData:

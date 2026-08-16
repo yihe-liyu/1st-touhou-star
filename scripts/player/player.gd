@@ -156,10 +156,10 @@ func _on_animation_finished() -> void:
 
 # ═══ Bomb（X 键） ═══
 
-const BOMB_SPAWN_COUNT: int = 3
+const BOMB_SPAWN_COUNT: int = 8
 const BOMB_SPEED: float = 220.0
 const BOMB_DAMAGE: float = 50.0
-const BOMB_RADIUS: float = 20.0
+const BOMB_RADIUS: float = 90.0
 
 func _bomb() -> void:
 	if is_invincible:
@@ -170,7 +170,8 @@ func _bomb() -> void:
 	var pos := global_position
 	for i in BOMB_SPAWN_COUNT:
 		var dir := Vector2.RIGHT.rotated(TAU * float(i) / float(BOMB_SPAWN_COUNT))
-		var data := BulletData.new().tex("bomb01").bomb().dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
+		var color := Color.from_hsv(RNG.randf(), RNG.randf_range(0.6, 1.0), 1.0)
+		var data := BulletData.new().tex("bomb01").bomb().color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
 		BulletManager.shoot_bomb_bullet(data, pos, dir)
 
 
