@@ -157,9 +157,11 @@ func _on_animation_finished() -> void:
 # ═══ Bomb（X 键） ═══
 
 const BOMB_SPAWN_COUNT: int = 8
+const BOMB_SPAWN_INTERVAL: float = 0.06
 const BOMB_SPEED: float = 220.0
 const BOMB_DAMAGE: float = 50.0
 const BOMB_RADIUS: float = 90.0
+const BOMB_BEHAVIOR = preload("res://scripts/bullet/bomb_behavior.gd")
 
 func _bomb() -> void:
 	if is_invincible:
@@ -167,15 +169,20 @@ func _bomb() -> void:
 	if not GameState.use_bomb():
 		return
 	_play_sfx(AssetRegistry.sounds["kira"], -6.0)
-	var pos := global_position
 	var base_hue := RNG.randf()
+	var tw := create_tween()
 	for i in BOMB_SPAWN_COUNT:
-		var dir := Vector2.RIGHT.rotated(TAU * float(i) / float(BOMB_SPAWN_COUNT))
-		# 随机一个起始色相，后续按等间隔均匀增加，铺满整个色环
-		var hue := fmod(base_hue + float(i) / float(BOMB_SPAWN_COUNT), 1.0)
-		var color := Color.from_hsv(hue, 1.0, 1.0)
-		var data := BulletData.new().tex("bomb01_white").bomb().color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
-		BulletManager.shoot_bomb_bullet(data, pos, dir)
+		tw.tween_callback(_spawn_bomb_bullet.bind(i, base_hue))
+		tw.tween_interval(BOMB_SPAWN_INTERVAL)
+
+
+func _spawn_bomb_bullet(i: int, base_hue: float) -> void:
+	var dir := Vector2.RIGHT.rotated(TAU * float(i) / float(BOMB_SPAWN_COUNT))
+	# 随机一个起始色相，后续按等间隔均匀增加，铺满整个色环
+	var hue := fmod(base_hue + float(i) / float(BOMB_SPAWN_COUNT), 1.0)
+	var color := Color.from_hsv(hue, 1.0, 1.0)
+	var data := BulletData.new().tex("bomb01_white").bomb().behavior(BOMB_BEHAVIOR).color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
+	BulletManager.shoot_bomb_bullet(data, global_position, dir)
 
 
 # ═══ 释放记忆（C 键） ═══
