@@ -14,7 +14,7 @@ var orbit_speed: float = deg_to_rad(300.0)   ## 绕自机旋转角速度
 var radius_growth: float = 200.0             ## 扩张半径速度（px/s）
 var max_radius: float = 200.0                ## 最大旋转半径
 var hold_time: float = 1.8                   ## 到达最大半径后继续旋转时间（秒）
-var homing_speed: float = 720.0              ## 追踪/直线飞行速度
+var homing_speed: float = 1000.0              ## 追踪/直线飞行速度
 var explode_damage: float = 100.0             ## 爆炸对敌人的伤害
 var spawn_delay: float = 0.0                 ## 相对第一颗的生成延迟（秒），用于让后生成的弹直接出现在当前圆半径上
 
@@ -90,6 +90,23 @@ func _tick(_ctx: StageContext) -> Variant:
 	return true
 
 
+func _spawn_explosion_visual(bullet: Bullet, pos: Vector2) -> void:
+	var scene := BulletManager.get_tree().current_scene
+	if not scene:
+		return
+	var parent: Node = scene.get_node_or_null("World") if scene.has_node("World") else scene
+	var spr := Sprite2D.new()
+	spr.texture = bullet.sprite.texture
+	spr.modulate = bullet.sprite.modulate
+	spr.global_position = pos
+	spr.z_index = LayerConfig.EFFECT
+	parent.add_child(spr)
+	var tw := spr.create_tween()
+	tw.tween_property(spr, "scale", Vector2(2.5, 2.5), EXPLODE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(spr, "modulate:a", 0.0, EXPLODE_DURATION)
+	tw.tween_callback(spr.queue_free)
+
+
 func _find_nearest_enemy() -> Node2D:
 	var nearest: Node2D = null
 	var nearest_dist := INF
@@ -117,11 +134,9 @@ func _is_outside_field(pos: Vector2) -> bool:
 
 func _explode(bullet: Bullet, _ctx: StageContext) -> void:
 	var pos := bullet.global_position
-	# 视觉：小范围 Miss 圈
-	if ctx:
-		ctx.effects.add_miss_circle(pos, EXPLODE_DURATION, EXPLODE_RADIUS, EXPLODE_START_RADIUS, 0.0, 0.2)
-	else:
-		MissEffectManager.add_circle(pos, EXPLODE_DURATION, EXPLODE_RADIUS, EXPLODE_START_RADIUS, 0.0, 0.2)
+	AudioManager.play_sfx(AssetRegistry.sounds["shoot"], -6.0)
+	# 视觉：贴图放大 + 渐隐（不复用 Miss 反色圈）
+	_spawn_explosion_visual(bullet, pos)
 	# 爆炸消弹
 	if ctx:
 		ctx.bullets.death_clear(pos, EXPLODE_RADIUS, EXPLODE_DURATION, EXPLODE_START_RADIUS)
