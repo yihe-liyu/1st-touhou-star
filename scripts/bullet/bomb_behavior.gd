@@ -14,7 +14,7 @@ var orbit_speed: float = deg_to_rad(300.0)   ## 绕自机旋转角速度
 var radius_growth: float = 200.0             ## 扩张半径速度（px/s）
 var max_radius: float = 200.0                ## 最大旋转半径
 var hold_time: float = 1.8                   ## 到达最大半径后继续旋转时间（秒）
-var homing_speed: float = 1200.0              ## 追踪/直线飞行速度
+var homing_speed: float = 1500.0              ## 追踪/直线飞行速度
 var explode_damage: float = 100.0             ## 爆炸对敌人的伤害
 var spawn_delay: float = 0.0                 ## 相对第一颗的生成延迟（秒），用于让后生成的弹直接出现在当前圆半径上
 

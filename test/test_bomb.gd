@@ -56,3 +56,16 @@ func test_bomb_bullet_damages_enemy():
 	_physics.process_collisions()
 
 	assert_lt(enemy.hp, before_hp, "Bomb 弹碰到敌人应造成伤害")
+
+
+func test_bomb_bullet_hits_enemy_only_once():
+	var enemy: Enemy = load("res://scenes/enemy.tscn").instantiate()
+	enemy.enemy_data = EnemyData.new().with_script(preload("res://data/stages/stage01/enemy/enemy01.gd")).hp(100)
+	autofree(enemy)
+	add_child(enemy)
+	enemy.global_position = Vector2(448, 500)
+	var bomb_data := BulletData.new().tex("bomb01_white").bomb()
+	var bomb: Bullet = _pool.shoot(bomb_data, Vector2(448, 500), Vector2.ZERO)
+	_physics.process_collisions()
+	_physics.process_collisions()
+	assert_eq(enemy.hp, 50, "同一颗 Bomb 弹对同一敌人只应造成一次伤害（防帧伤）")

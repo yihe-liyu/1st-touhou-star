@@ -136,6 +136,13 @@ func _bomb_vs_enemies(bullet: Bullet) -> void:
 			if phase and phase.is_timeout_only:
 				continue
 		if _hit_target(bullet, enemy):
+			# A 方案：同一颗 Bomb 弹对同一个敌人只造成一次伤害（防帧伤）
+			var hit_map: Dictionary = bullet.extra.get("bomb_hit", {})
+			var enemy_id: int = enemy.get_instance_id()
+			if hit_map.has(enemy_id):
+				continue
+			hit_map[enemy_id] = true
+			bullet.extra["bomb_hit"] = hit_map
 			enemy.take_damage(bullet.damage)
 			_spawn_effect(bullet.hit_effect, bullet.global_position)
 
