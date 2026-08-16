@@ -80,6 +80,14 @@ func player() -> BulletData:
 	damage = 10
 	return self
 
+func bomb() -> BulletData:
+	faction = Faction.BOMB
+	can_be_canceled = false
+	damage = 50
+	hitbox_shape = HitboxShape.CIRCLE
+	hitbox_radius = 20.0
+	return self
+
 func behavior(v: Script) -> BulletData:
 	coroutine_script = v
 	return self

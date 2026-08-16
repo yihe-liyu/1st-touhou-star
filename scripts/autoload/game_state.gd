@@ -330,6 +330,14 @@ func collect_bomb_full() -> void:
 	for _i in range(5):
 		collect_bomb_fragment()
 
+
+## 使用一个 Bomb：有存货返回 true 并扣除，否则 false
+func use_bomb() -> bool:
+	if bomb_count <= 0:
+		return false
+	bomb_count -= 1
+	return true
+
 # ══════════════════════════════════════════════
 # 关卡生命周期
 # ══════════════════════════════════════════════

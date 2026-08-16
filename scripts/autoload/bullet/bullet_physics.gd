@@ -36,6 +36,11 @@ func process_collisions() -> void:
 			_player_vs_enemies(bullet)
 	# 敌弹 vs 自机（自机为中心查哈希，一次 query）
 	_resolve_enemy_bullets_near_player()
+	# Bomb 弹 vs 敌弹（碰到即消）
+	for i in range(_pool.active_bullets.size() - 1, -1, -1):
+		var bullet: Bullet = _pool.active_bullets[i]
+		if bullet.is_ready and bullet.faction == Bullet.FACTION_BOMB:
+			_bomb_vs_enemy_bullets(bullet)
 	# Bomb 弹 vs 敌人
 	for i in range(_pool.active_bullets.size() - 1, -1, -1):
 		var bullet: Bullet = _pool.active_bullets[i]
@@ -103,6 +108,19 @@ func _player_vs_enemies(bullet: Bullet) -> void:
 			_spawn_effect(bullet.hit_effect, bullet.global_position, bullet.velocity, bullet.sprite.modulate)
 			_pool.return_bullet(bullet)
 			return
+
+
+## Bomb 弹 vs 敌弹：碰撞到就把敌弹消除（Bomb 弹本身不消失，持续飞行可连续消弹）
+func _bomb_vs_enemy_bullets(bullet: Bullet) -> void:
+	var candidates: Array = _bullet_hash.query(bullet.global_position, bullet.hitbox_radius + 12.0)
+	for enemy_bullet in candidates:
+		if not is_instance_valid(enemy_bullet) or enemy_bullet.is_queued_for_deletion():
+			continue
+		if not enemy_bullet.is_ready:
+			continue
+		if _hit_target(bullet, enemy_bullet):
+			HitEffectPool.play(_CLEAR_EFFECT, enemy_bullet.global_position, Vector2.ZERO, enemy_bullet.sprite.modulate)
+			_pool.return_bullet(enemy_bullet)
 
 
 func _bomb_vs_enemies(bullet: Bullet) -> void:

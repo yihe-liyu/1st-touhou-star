@@ -78,6 +78,8 @@ func _physics_process(delta):
 	
 	if Input.is_action_just_pressed("memory_release"):
 		_memory_release()
+	if Input.is_action_just_pressed("cancel&bomb"):
+		_bomb()
 
 	update_hitbox_display()
 	update_animation()
@@ -151,6 +153,26 @@ func _on_animation_finished() -> void:
 			change_state(LEFT)
 		RIGHTING:
 			change_state(RIGHT)
+
+# ═══ Bomb（X 键） ═══
+
+const BOMB_SPAWN_COUNT: int = 3
+const BOMB_SPEED: float = 220.0
+const BOMB_DAMAGE: float = 50.0
+const BOMB_RADIUS: float = 20.0
+
+func _bomb() -> void:
+	if is_invincible:
+		return
+	if not GameState.use_bomb():
+		return
+	_play_sfx(AssetRegistry.sounds["kira"], -6.0)
+	var pos := global_position
+	for i in BOMB_SPAWN_COUNT:
+		var dir := Vector2.RIGHT.rotated(TAU * float(i) / float(BOMB_SPAWN_COUNT))
+		var data := BulletData.new().tex("bomb01").bomb().dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
+		BulletManager.shoot_bomb_bullet(data, pos, dir)
+
 
 # ═══ 释放记忆（C 键） ═══
 
