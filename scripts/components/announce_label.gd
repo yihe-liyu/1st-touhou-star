@@ -18,9 +18,9 @@ var _tween: Tween
 
 ## 播放动画。
 ## parent_size 用于居中；on_finished 可选（也可连接 finished 信号）。
-func play(text: String, parent_size: Vector2) -> void:
+func play(p_text: String, parent_size: Vector2) -> void:
 	_kill_tween()
-	self.text = text
+	self.text = p_text
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_theme_font_size_override("font_size", DEFAULT_FONT_SIZE)
