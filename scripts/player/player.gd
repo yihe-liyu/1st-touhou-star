@@ -168,9 +168,12 @@ func _bomb() -> void:
 		return
 	_play_sfx(AssetRegistry.sounds["kira"], -6.0)
 	var pos := global_position
+	var base_hue := RNG.randf()
 	for i in BOMB_SPAWN_COUNT:
 		var dir := Vector2.RIGHT.rotated(TAU * float(i) / float(BOMB_SPAWN_COUNT))
-		var color := Color.from_hsv(RNG.randf(), 1.0, 1.0)
+		# 随机一个起始色相，后续按等间隔均匀增加，铺满整个色环
+		var hue := fmod(base_hue + float(i) / float(BOMB_SPAWN_COUNT), 1.0)
+		var color := Color.from_hsv(hue, 1.0, 1.0)
 		var data := BulletData.new().tex("bomb01_white").bomb().color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
 		BulletManager.shoot_bomb_bullet(data, pos, dir)
 
