@@ -16,6 +16,7 @@ var max_radius: float = 160.0                ## 最大旋转半径
 var hold_time: float = 0.6                   ## 到达最大半径后继续旋转时间（秒）
 var homing_speed: float = 640.0              ## 追踪/直线飞行速度
 var explode_damage: float = 50.0             ## 爆炸对敌人的伤害
+var spawn_delay: float = 0.0                 ## 相对第一颗的生成延迟（秒），用于让后生成的弹直接出现在当前圆半径上
 
 enum Phase { GROW, HOLD, FLY }
 
@@ -38,6 +39,8 @@ func _tick(_ctx: StageContext) -> Variant:
 		_initialized = true
 		_angle = bullet.velocity.angle()
 		_fly_dir = bullet.velocity.normalized()
+		# 后生成的弹不从 0 开始，而是直接落在当前扩张半径上，保证始终是均匀圆
+		_radius = clampf(spawn_delay * radius_growth, 0.0, max_radius)
 
 	var player: Player = GameState.player
 	if not is_instance_valid(player):

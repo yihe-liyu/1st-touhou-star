@@ -182,6 +182,7 @@ func _spawn_bomb_bullet(i: int, base_hue: float) -> void:
 	var hue := fmod(base_hue + float(i) / float(BOMB_SPAWN_COUNT), 1.0)
 	var color := Color.from_hsv(hue, 1.0, 1.0)
 	var data := BulletData.new().tex("bomb01_white").bomb().behavior(BOMB_BEHAVIOR).color(color).dir(dir.x * BOMB_SPEED, dir.y * BOMB_SPEED)
+	data.params = {"spawn_delay": float(i) * BOMB_SPAWN_INTERVAL}
 	BulletManager.shoot_bomb_bullet(data, global_position, dir)
 
 
