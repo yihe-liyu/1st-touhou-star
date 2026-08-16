@@ -8,9 +8,13 @@ var spell_book: SpellRecordBook
 
 
 func load() -> void:
+	# 全新检出/首启时文件可能不存在：ResourceLoader.load 会打 ERROR，先 exists 避免
+	if not ResourceLoader.exists(SPELL_BOOK_PATH):
+		spell_book = SpellRecordBook.new()  # 首启无记录文件：空簿，解锁时 save 自建
+		return
 	spell_book = ResourceLoader.load(SPELL_BOOK_PATH)
 	if not spell_book:
-		spell_book = SpellRecordBook.new()  # 首启无记录文件：空簿，解锁时 save 自建
+		spell_book = SpellRecordBook.new()  # 加载失败也回退空簿
 		return
 	# 防御：清理幽灵记录并落盘（编辑器旧数据写回的空壳不留）
 	var before: int = spell_book.records.size()
