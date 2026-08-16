@@ -11,9 +11,9 @@ const EXPLODE_START_RADIUS := 20.0
 
 ## 可调参数（可通过 BulletData.params 覆盖）
 var orbit_speed: float = deg_to_rad(300.0)   ## 绕自机旋转角速度
-var radius_growth: float = 150.0             ## 扩张半径速度（px/s）
+var radius_growth: float = 200.0             ## 扩张半径速度（px/s）
 var max_radius: float = 200.0                ## 最大旋转半径
-var hold_time: float = 1.5                   ## 到达最大半径后继续旋转时间（秒）
+var hold_time: float = 1.8                   ## 到达最大半径后继续旋转时间（秒）
 var homing_speed: float = 720.0              ## 追踪/直线飞行速度
 var explode_damage: float = 100.0             ## 爆炸对敌人的伤害
 var spawn_delay: float = 0.0                 ## 相对第一颗的生成延迟（秒），用于让后生成的弹直接出现在当前圆半径上
@@ -64,10 +64,6 @@ func _tick(_ctx: StageContext) -> Variant:
 			var enemy := _find_nearest_enemy()
 			if enemy:
 				_fly_dir = (enemy.global_position - bullet.global_position).normalized()
-				# 命中敌人 → 爆炸消失
-				if bullet.global_position.distance_to(enemy.global_position) <= bullet.hitbox_radius + enemy.hitbox_radius:
-					_explode(bullet, _ctx)
-					return false
 			bullet.velocity = _fly_dir * homing_speed
 
 	# 轨道/飞行位置更新
@@ -78,6 +74,12 @@ func _tick(_ctx: StageContext) -> Variant:
 		var center: Vector2 = player.global_position
 		bullet.global_position = center + Vector2.RIGHT.rotated(_angle) * _radius
 		bullet.rotation = _angle
+
+	# 任何阶段碰到敌人 → 直接爆炸消失
+	var enemy := _find_nearest_enemy()
+	if enemy and bullet.global_position.distance_to(enemy.global_position) <= bullet.hitbox_radius + enemy.hitbox_radius:
+		_explode(bullet, _ctx)
+		return false
 
 	# 无敌人时直线出界 → 爆炸消失
 	if _phase == Phase.FLY and _is_outside_field(bullet.global_position):
