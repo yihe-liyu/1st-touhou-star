@@ -9,6 +9,14 @@ cd "$(dirname "$0")/.."
 TMP_USER="$(mktemp -d)"
 mkdir -p "$TMP_USER/logs"
 
+# 全新检出（CI / 未打开过编辑器）没有 .godot/global_script_class_cache.cfg，
+# 直接 load 脚本会找不到 class_name 全局类型；先跑一次 --import 生成全局类缓存。
+if [ ! -f "$PWD/.godot/global_script_class_cache.cfg" ]; then
+	# 全新检出（CI / 未打开过编辑器）
+	echo "首次运行/CI：生成 Godot 全局类缓存..."
+	XDG_DATA_HOME="$TMP_USER" timeout 120 godot --headless --path "$PWD" --import >/dev/null 2>&1 || true
+fi
+
 # godot 退出码非 0（有失败）不能让 set -e 吞掉后续输出，用 || true 兜底
 OUT=$(XDG_DATA_HOME="$TMP_USER" timeout 120 godot --headless --path "$PWD" res://tools/check_syntax_scene.tscn 2>&1 || true)
 rm -rf "$TMP_USER"
