@@ -14,7 +14,7 @@ var orbit_speed: float = deg_to_rad(300.0)   ## 绕自机旋转角速度
 var radius_growth: float = 200.0             ## 扩张半径速度（px/s）
 var max_radius: float = 200.0                ## 最大旋转半径
 var hold_time: float = 1.8                   ## 到达最大半径后继续旋转时间（秒）
-var homing_speed: float = 1000.0              ## 追踪/直线飞行速度
+var homing_speed: float = 1200.0              ## 追踪/直线飞行速度
 var explode_damage: float = 100.0             ## 爆炸对敌人的伤害
 var spawn_delay: float = 0.0                 ## 相对第一颗的生成延迟（秒），用于让后生成的弹直接出现在当前圆半径上
 
@@ -102,7 +102,7 @@ func _spawn_explosion_visual(bullet: Bullet, pos: Vector2) -> void:
 	spr.z_index = LayerConfig.EFFECT
 	parent.add_child(spr)
 	var tw := spr.create_tween()
-	tw.tween_property(spr, "scale", Vector2(2.5, 2.5), EXPLODE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(spr, "scale", Vector2(4, 4), EXPLODE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(spr, "modulate:a", 0.0, EXPLODE_DURATION)
 	tw.tween_callback(spr.queue_free)
 
@@ -125,11 +125,10 @@ func _find_nearest_enemy() -> Node2D:
 
 
 func _is_outside_field(pos: Vector2) -> bool:
-	const MARGIN := 40.0
-	return pos.x < GameConfig.FIELD_LEFT - MARGIN or \
-		pos.x > GameConfig.FIELD_RIGHT + MARGIN or \
-		pos.y < GameConfig.FIELD_TOP - MARGIN or \
-		pos.y > GameConfig.FIELD_BOTTOM + MARGIN
+	return pos.x < GameConfig.FIELD_LEFT or \
+		pos.x > GameConfig.FIELD_RIGHT or \
+		pos.y < GameConfig.FIELD_TOP or \
+		pos.y > GameConfig.FIELD_BOTTOM
 
 
 func _explode(bullet: Bullet, _ctx: StageContext) -> void:
