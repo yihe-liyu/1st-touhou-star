@@ -7,6 +7,10 @@
 [![CI](https://github.com/yihe-liyu/1st-touhou-star/actions/workflows/verify.yml/badge.svg)](https://github.com/yihe-liyu/1st-touhou-star/actions/workflows/verify.yml)
 [![License](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 
+<p align="center">
+  <img src="东方星尘回封面.png" alt="东方星尘回封面" width="360">
+</p>
+
 ---
 
 ## 🌙 这是什么
@@ -16,7 +20,7 @@
 - 使用 **Godot 4.7** + GDScript 从零搭建
 - 已实现完整的弹幕引擎：对象池、空间哈希碰撞、MultiMesh 批量渲染、激光系统、协程时间线
 - 已有一个可玩的 **Stage 1**（道中 + Boss 卡摩瑞）
-- 世界观与角色设定完整（共 9 位 Boss），见 [omake.txt](omake.txt)
+- 世界观与角色设定完整（共 9 位 Boss），见 [omake.txt](docs/omake.txt)
 - 这是作者 **YiHe** 的 **Discrete Project（离散系列）** 第一作
 
 > 本仓库是作者在 AI 辅助下设计、开发与维护的东方同人 STG 引擎。代码与工程文档均由作者最终验收负责。
@@ -45,9 +49,9 @@
 | **[SPEC.md](SPEC.md)** | 系统规格书 —— 架构、数据流、API 契约、生命周期 | 开发者 |
 | **[REFACTORING_PLAN.md](REFACTORING_PLAN.md)** | 重构专项计划 —— 分阶段路线 + 已完成/待办 | 维护者 |
 | **[CONTENT_GUIDE.md](CONTENT_GUIDE.md)** | 内容制作流程 —— 怎么加关卡/敌人/Boss/符卡 | 关卡设计师 |
-| **[DIALOGUE.md](DIALOGUE.md)** | 对白全集 —— 各面角色台词 | 编剧 |
+| **[DIALOGUE.md](docs/DIALOGUE.md)** | 对白全集 —— 各面角色台词 | 编剧 |
 | **[ARCHITECTURE_ROADMAP.md](ARCHITECTURE_ROADMAP.md)** | 架构路线图 —— 已完成/计划中的改进 + 技术债 | 维护者 |
-| **[omake.txt](omake.txt)** | 附言、Extra Story、全角色设定 | 玩家/读者 |
+| **[omake.txt](docs/omake.txt)** | 附言、Extra Story、全角色设定 | 玩家/读者 |
 
 ### 我在做什么？看哪份？
 
