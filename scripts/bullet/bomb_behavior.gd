@@ -37,7 +37,8 @@ func _tick(_ctx: StageContext) -> Variant:
 	# 首次：记录起始角度（沿用发射方向）
 	if not _initialized:
 		_initialized = true
-		_angle = bullet.velocity.angle()
+		# 预补偿生成延迟：后生成的弹虽然晚出发，但初始角度多转一段，最终仍均匀分布在圆上
+		_angle = bullet.velocity.angle() + orbit_speed * spawn_delay
 		_fly_dir = bullet.velocity.normalized()
 		# 后生成的弹不从 0 开始，而是直接落在当前扩张半径上，保证始终是均匀圆
 		_radius = clampf(spawn_delay * radius_growth, 0.0, max_radius)
