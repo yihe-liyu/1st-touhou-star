@@ -10,9 +10,9 @@ const EXPLODE_DURATION := 0.4
 const EXPLODE_START_RADIUS := 20.0
 
 ## 可调参数（可通过 BulletData.params 覆盖）
-var orbit_speed: float = deg_to_rad(180.0)   ## 绕自机旋转角速度
-var radius_growth: float = 120.0             ## 扩张半径速度（px/s）
-var max_radius: float = 240.0                ## 最大旋转半径
+var orbit_speed: float = deg_to_rad(240.0)   ## 绕自机旋转角速度
+var radius_growth: float = 100.0             ## 扩张半径速度（px/s）
+var max_radius: float = 200.0                ## 最大旋转半径
 var hold_time: float = 2.0                   ## 到达最大半径后继续旋转时间（秒）
 var homing_speed: float = 640.0              ## 追踪/直线飞行速度
 var explode_damage: float = 100.0             ## 爆炸对敌人的伤害
@@ -40,8 +40,7 @@ func _tick(_ctx: StageContext) -> Variant:
 		# 预补偿生成延迟：后生成的弹虽然晚出发，但初始角度多转一段，最终仍均匀分布在圆上
 		_angle = bullet.velocity.angle() + orbit_speed * spawn_delay
 		_fly_dir = bullet.velocity.normalized()
-		# 后生成的弹不从 0 开始，而是直接落在当前扩张半径上，保证始终是均匀圆
-		_radius = clampf(spawn_delay * radius_growth, 0.0, max_radius)
+		# 每颗都从自机位置开始扩张；角度由上面预补偿，保持角度间隔均匀
 
 	var player: Player = GameState.player
 	if not is_instance_valid(player):
