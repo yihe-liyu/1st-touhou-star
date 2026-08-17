@@ -47,11 +47,11 @@ func say(profile: CharacterProfile, text: String, opts: Dictionary = {}) -> Dial
 
 func _build_line(speaker: CharacterProfile, text: String, opts: Dictionary) -> DialogueLine:
 	var line_data := DialogueLine.new()
-	var bubble := DialogueBubble.new()
-	bubble.speaker = speaker
-	bubble.text = text
-	bubble.emotion = opts.get("emotion", "通常")
-	line_data.bubbles = [bubble]
+	var bubble_data := DialogueBubble.new()  # 不叫 bubble：避免遮蔽 DSL 的 bubble() 方法
+	bubble_data.speaker = speaker
+	bubble_data.text = text
+	bubble_data.emotion = opts.get("emotion", "通常")
+	line_data.bubbles = [bubble_data]
 	line_data.skippable = opts.get("skippable", true)
 	line_data.auto_advance = opts.get("auto_advance", 0.0)
 	return line_data
