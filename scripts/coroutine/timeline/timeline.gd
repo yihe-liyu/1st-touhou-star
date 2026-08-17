@@ -89,9 +89,9 @@ func start_phase(boss_getter: Callable, data: PhaseData) -> Timeline:
 func dialogue(data) -> Timeline:
 	return do(func(): ctx.play_dialogue(data.lines))
 
-## 步骤版对话（台词库 + DSL 步骤）—— 新流程入口
-func dialogue_steps(steps: Array, lines: Dictionary) -> Timeline:
-	return do(func(): ctx.play_dialogue_steps(steps, lines))
+## 步骤版对话（DSL 步骤，台词内联）—— 新流程入口
+func dialogue_steps(steps: Array) -> Timeline:
+	return do(func(): ctx.play_dialogue_steps(steps))
 
 func spawn_wave(data: BulletData, count: int, spread: float, dir: Vector2, at_pos: Vector2) -> Timeline:
 	return do(func(): ctx.bullets.shoot_spread(data, count, spread, dir, at_pos))

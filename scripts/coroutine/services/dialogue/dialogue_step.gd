@@ -19,7 +19,7 @@ enum Type {
 var type: Type
 var char_name: String = ""
 var profile: CharacterProfile     # ENTER 用
-var line_id: String = ""          # LINE 用
+var line_data: DialogueLine       # LINE 用（DSL 内联台词构造的一屏数据）
 var pos: Vector2 = Vector2.ZERO   # ENTER/MOVE 用
 var duration: float = 0.0         # MOVE/WAIT 用
 var flip: bool = false            # ENTER(默认 false)/FLIP 用

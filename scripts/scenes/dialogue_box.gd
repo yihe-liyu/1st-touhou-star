@@ -37,8 +37,8 @@ func _ready() -> void:
 	visible = false
 	_root.modulate.a = 0.0
 
-## 播放一段对话（步骤序列 + 台词库）
-func play_steps(steps: Array, lines: Dictionary) -> void:
+## 播放一段对话（DialogueSteps 步骤序列，台词已内联）
+func play_steps(steps: Array) -> void:
 	process_mode = PROCESS_MODE_ALWAYS  # 暂停时也跑
 	_is_closing = false
 	visible = true
@@ -50,7 +50,7 @@ func play_steps(steps: Array, lines: Dictionary) -> void:
 	# 淡入完成后启动步骤（演出立绘在淡入后才开始出现，与旧行为一致）
 	var tw := create_tween()
 	tw.tween_property(_root, "modulate:a", 1.0, 0.3)
-	tw.tween_callback(func(): _runner.start(steps, lines))
+	tw.tween_callback(func(): _runner.start(steps))
 
 	if not GameManager.game_state_changed.is_connected(_on_game_state):
 		GameManager.game_state_changed.connect(_on_game_state)

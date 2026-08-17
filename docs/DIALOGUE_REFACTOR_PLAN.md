@@ -142,7 +142,7 @@ tl.at(92).dialogue(func(d: DialogueSteps):
 | **阶段 2** | `DialogueBox` 改步骤驱动（视觉保留），删 sticky/行内 event | 播放冒烟通过 | test_dialogue.gd 更新 | ✅ |
 | **阶段 3** | 台词库化 .tres + 迁移 `stage01_begin` + `bgm_switch` 改行间触发 | 旧字段删除，效果不变（时机更准） | 数据/时序测试 | ✅ |
 | **阶段 4** | 文档同步（CONTENT_GUIDE 第九节 / SPEC §6.9 / 本计划） | 文档与代码一致 | 全量回归 184 用例 | ✅ |
-| **阶段 5** | DIALOGUE.md 台词 id 标注（可选，随新内容进行） | — | — | ⏳ 后续 |
+| **阶段 5** | **台词代码化终局**：`line(text, opts)` 直接内联台词（`say()` 换人/延续机制），退役台词库 .tres + DialogueData + id 体系 | 代码即真相，与弹幕哲学闭环 | test_dialogue_steps 16 用例 | ✅ |
 
 > 每阶段完成标准：**游戏能跑 + 测试全绿**（沿用 REFACTORING_PLAN 原则）
 
@@ -164,5 +164,6 @@ tl.at(92).dialogue(func(d: DialogueSteps):
 | 日期 | 阶段 | 内容 |
 |------|------|------|
 | 2026-08-17 | 规划 | 方案文档创建（待审） |
-| 2026-08-17 | 阶段 0-3 | ✅ 完成：test_dialogue/test_dialogue_steps（18 用例）、StageState/DialogueSteps/DialogueRunner、DialogueBox 步骤化、stage01_begin 台词库化 + bgm_switch 行间化 |
-| 2026-08-17 | 阶段 4 | ✅ 文档同步：CONTENT_GUIDE 第九节 / SPEC §6.9 / 本计划状态（全量 184 用例全绿） |
+| 2026-08-17 | 阶段 0-3 | ✅ 完成：test_dialogue/test_dialogue_steps、StageState/DialogueSteps/DialogueRunner、DialogueBox 步骤化、stage01_begin 台词库化 + bgm_switch 行间化 |
+| 2026-08-17 | 阶段 4 | ✅ 文档同步：CONTENT_GUIDE 第九节 / SPEC §6.9 / 本计划状态 |
+| 2026-08-17 | 阶段 5 | ✅ 台词代码化终局：line(text) 内联 + say() 换人/延续，退役台词库 .tres/DialogueData/id 体系；DIALOGUE.md 转为剧本归档（全量 187 用例全绿） |

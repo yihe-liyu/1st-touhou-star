@@ -17,7 +17,6 @@ signal finished()
 var state := StageState.new()
 
 var _steps: Array[DialogueStep] = []
-var _lines: Dictionary = {}  # id → DialogueLine（台词库）
 var _idx: int = -1
 var _current_line: DialogueLine = null
 var _wait_left: float = 0.0
@@ -27,10 +26,9 @@ var is_waiting_line: bool = false  ## 停在某句，等 advance / auto_advance
 var is_waiting_time: bool = false  ## 停在 WAIT 计时
 
 
-func start(steps: Array[DialogueStep], lines: Dictionary) -> void:
+func start(steps: Array[DialogueStep]) -> void:
 	state = StageState.new()
 	_steps = steps
-	_lines = lines
 	_idx = -1
 	_current_line = null
 	is_waiting_line = false
@@ -78,14 +76,14 @@ func _advance() -> void:
 func _exec(step: DialogueStep) -> void:
 	match step.type:
 		DialogueStep.Type.LINE:
-			var line: DialogueLine = _lines.get(step.line_id, null)
+			var line: DialogueLine = step.line_data
 			if line == null:
-				push_warning("DialogueRunner: 台词库缺少 id '%s'" % step.line_id)
+				push_warning("DialogueRunner: LINE 步骤缺少台词数据")
 				_advance()
 				return
 			_current_line = line
 			var speakers: Array = state.apply_line(line)
-			_auto_left = float(step.opts.get("auto_advance", line.auto_advance))
+			_auto_left = line.auto_advance
 			state_changed.emit(state, 0.0)
 			line_shown.emit(line, speakers, state)
 			is_waiting_line = true

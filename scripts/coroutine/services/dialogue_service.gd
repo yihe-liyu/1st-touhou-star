@@ -12,38 +12,35 @@ var ctx: StageContext:
 
 const DialogueBoxScene = preload("res://scenes/ui/dialogue_box.tscn")
 
-## 播放一段对话（步骤序列 + 台词库）—— 新流程入口
-func play_steps(steps: Array, lines: Dictionary) -> float:
+## 播放一段对话（DialogueSteps 步骤序列，台词已内联）—— 唯一入口
+func play_steps(steps: Array) -> float:
 	if not ctx or not ctx.active() or not is_instance_valid(ctx.runner):
 		return 0.0
 	var box := DialogueBoxScene.instantiate()
 	ctx.runner.get_tree().current_scene.add_child(box)
 	ctx.runner.pause()
 	box.finished.connect(func(): ctx.runner.resume(), CONNECT_ONE_SHOT)
-	box.play_steps(steps, lines)
+	box.play_steps(steps)
 	return 0.0
 
-## 兼容旧 lines 数组入口：每行转成一个 LINE 步骤（id = 索引）
-## 注意：旧模型的行内演出属性（portrait_pos/move_*）不再生效，迁移到 DSL 步骤
+## 兼容旧 lines 数组入口（DialogueLine 列表 → 步骤序列）
+## 旧模型的行内演出属性已废弃；仅保留"谁说什么、什么表情"
 func play(lines: Array) -> float:
 	var d := DialogueSteps.new()
-	for i in lines.size():
-		d.line(str(i))
-	var lib: Dictionary = {}
-	for i in lines.size():
-		lib[str(i)] = lines[i]
-	return play_steps(d.steps, lib)
+	for line in lines:
+		var b: DialogueBubble = line.bubbles[0] if line.bubbles.size() > 0 else null
+		if b == null or b.speaker == null:
+			continue
+		d.say(b.speaker, b.text, {"emotion": b.emotion})
+	return play_steps(d.steps)
 
 ## 临时/动态台词（调试或运行时内容）：一句单气泡对话
-## 注意：pos 参数仅作兼容保留——新模型立绘位置由 DSL 步骤/Profile.default_pos 决定
+## 位置由 Profile.default_pos 决定（新模型演出归 DSL 步骤）
 func show(char_name: String, text: String, _pos: Vector2 = Vector2(100, 200), portrait: Texture2D = null) -> void:
 	var profile := CharacterProfile.new()
 	profile.char_name = char_name
 	if portrait:
 		profile.portraits["通常"] = portrait
-	var bubble := DialogueBubble.new()
-	bubble.speaker = profile
-	bubble.text = text
-	var line := DialogueLine.new()
-	line.bubbles = [bubble]
-	play([line])
+	var d := DialogueSteps.new()
+	d.say(profile, text)
+	play_steps(d.steps)

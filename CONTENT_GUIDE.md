@@ -225,10 +225,10 @@ func _init_enemy() -> void:
   `CardDef` / `spell_registry.tres` 早已移除（2026-08，放弃"双驱动"）。练习入口默认锁定：
   MainMenu 的 Spell Practice 在符卡簿为空时锁定，有记录（解锁过符卡）才可进入。
 - **菜单页**：`scenes/ui/*_menu.tscn` 继承 BasePage（`scripts/autoload/game/menu_nav.gd` 导航）
-- **对话（步骤版，2026-08 重构）**：台词库 `data/dialogue/` .tres（`lines: {id: DialogueLine}` 字典，只存"谁说什么、什么表情"）+ 关卡里 DSL 编排：
-  `DialogueSteps`（enter/line/exit/move/flip/dim/portrait/bubble/event/wait）→ `ctx.play_dialogue_steps(steps, lines)`。
-  演出（位置/翻转/明暗/表情切换/event 时机）全部由 DSL 步骤表达；`d.event(key)` 是行间事件，时机精确。
-  参考：`data/stages/stage01/stage_script/stage01.gd` 战前对话、`docs/DIALOGUE_REFACTOR_PLAN.md`
+- **对话（DSL 台词内联，2026-08 重构）**：`DialogueSteps` 流程 DSL，**台词直接写在代码里**（与弹幕编排同构）：
+  `enter/say/line/move/flip/dim/portrait/bubble/event/wait` → `ctx.play_dialogue_steps(steps)`。
+  `line()` 延续上一说话者、`say(profile, text)` 换人；`d.event(key)` 是行间事件，时机精确。
+  参考：`data/stages/stage01/stage_script/stage01.gd` 战前对话、`docs/DIALOGUE_REFACTOR_PLAN.md`、剧本归档 `docs/DIALOGUE.md`
 
 ---
 

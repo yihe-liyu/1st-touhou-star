@@ -1,5 +1,6 @@
 extends GutTest
-## 对话重构阶段 1 测试：StageState / DialogueSteps DSL / DialogueRunner（纯逻辑，不进树）
+## 对话系统测试：StageState / DialogueSteps DSL / DialogueRunner（纯逻辑，不进树）
+## 台词内联版：line() 直接收文本，无台词库/无 id
 
 # ═══════════ 辅助 ═══════════
 
@@ -7,20 +8,6 @@ func _make_profile(name: String) -> CharacterProfile:
 	var p := CharacterProfile.new()
 	p.char_name = name
 	return p
-
-
-## 构造台词库：{ id: DialogueLine }
-func _make_lines(pairs: Array) -> Dictionary:
-	var out: Dictionary = {}
-	for pair in pairs:
-		var line := DialogueLine.new()
-		for i in pair.bubbles.size():
-			var b := DialogueBubble.new()
-			b.speaker = pair.bubbles[i]
-			b.text = pair.texts[i]
-			line.bubbles.append(b)
-		out[pair.id] = line
-	return out
 
 
 func _attach(runner: DialogueRunner) -> Dictionary:
@@ -40,7 +27,7 @@ func test_dsl_builds_steps():
 	var p := _make_profile("灵梦")
 	var d := DialogueSteps.new()
 	d.enter(p, Vector2(200, 200), {"flip": true})
-	d.line("r1")
+	d.line("第一句")
 	d.event("bgm_switch")
 	d.wait(0.5)
 	d.flip("灵梦", false)
@@ -51,6 +38,9 @@ func test_dsl_builds_steps():
 	assert_eq(d.steps.size(), 9, "9 个步骤")
 	assert_eq(d.steps[0].type, DialogueStep.Type.ENTER, "0 = enter")
 	assert_eq(d.steps[1].type, DialogueStep.Type.LINE, "1 = line")
+	var line0: DialogueLine = d.steps[1].line_data
+	assert_eq(line0.bubbles[0].text, "第一句", "台词内联")
+	assert_eq(line0.bubbles[0].speaker.char_name, "灵梦", "说话者延续 enter")
 	assert_eq(d.steps[2].type, DialogueStep.Type.EVENT, "2 = event")
 	assert_eq(d.steps[2].event_key, "bgm_switch", "event key")
 	assert_eq(d.steps[3].type, DialogueStep.Type.WAIT, "3 = wait")
@@ -60,6 +50,30 @@ func test_dsl_builds_steps():
 	assert_eq(d.steps[6].emotion, "笑", "portrait 表情")
 	assert_eq(d.steps[7].light, 0.4, "dim 明暗")
 	assert_eq(d.steps[8].type, DialogueStep.Type.EXIT, "8 = exit")
+
+
+func test_dsl_line_continues_speaker_and_say_switches():
+	var r := _make_profile("灵梦")
+	var k := _make_profile("卡摩瑞")
+	var d := DialogueSteps.new()
+	d.enter(r, Vector2(50, 230))
+	d.line("r1 台词")
+	d.line("r2 台词")                       # 延续灵梦
+	d.say(k, "k1 台词", {"emotion": "疑惑"})  # 换卡摩瑞
+	d.line("k2 台词")                       # 延续卡摩瑞
+	assert_eq((d.steps[1].line_data as DialogueLine).bubbles[0].speaker.char_name, "灵梦")
+	assert_eq((d.steps[2].line_data as DialogueLine).bubbles[0].speaker.char_name, "灵梦")
+	assert_eq((d.steps[3].line_data as DialogueLine).bubbles[0].speaker.char_name, "卡摩瑞")
+	assert_eq((d.steps[3].line_data as DialogueLine).bubbles[0].emotion, "疑惑")
+	assert_eq((d.steps[4].line_data as DialogueLine).bubbles[0].speaker.char_name, "卡摩瑞")
+
+
+func test_dsl_line_requires_speaker():
+	# 首句必须指定说话者（say 或 opts.speaker）；无延续者时 DSL 用 assert 拦截——约定由文档保证，这里仅确认 say 路径可用
+	var r := _make_profile("灵梦")
+	var d := DialogueSteps.new()
+	d.say(r, "首句")
+	assert_eq(d.steps.size(), 1, "say 指定说话者正常构建")
 
 
 # ═══════════ 舞台状态 ═══════════
@@ -117,39 +131,23 @@ func test_apply_line_updates_emotion():
 	assert_eq(state.actor("灵梦").emotion, "通常", "无气泡角色保持默认")
 
 
-func test_runner_line_applies_emotion():
-	# runner 集成：LINE 步骤后 actor.emotion 更新（播放器据此换立绘）
-	var runner := DialogueRunner.new()
-	var k := _make_profile("卡摩瑞")
-	var line := DialogueLine.new()
-	var b := DialogueBubble.new(); b.speaker = k; b.text = "在黑暗中"; b.emotion = "耍帅"
-	line.bubbles.append(b)
-	var d := DialogueSteps.new()
-	d.enter(k, Vector2(400, 200))
-	d.line("k6")
-	runner.start(d.steps, {"k6": line})
-	assert_eq(runner.state.actor("卡摩瑞").emotion, "耍帅", "LINE 步骤应用表情")
-	assert_eq(runner.state.actor("卡摩瑞").emotion, "耍帅", "播放器 _apply_emotion 读 actor.emotion")
-
-
 # ═══════════ Runner 状态机 ═══════════
 
 func test_runner_enter_then_line():
 	var runner := DialogueRunner.new()
 	var seen := _attach(runner)
 	var reimu := _make_profile("灵梦")
-	var lines := _make_lines([{id = "r1", bubbles = [reimu], texts = ["台词"]}])
 	var d := DialogueSteps.new()
 	d.enter(reimu, Vector2(200, 200))
-	d.line("r1")
-	runner.start(d.steps, lines)
+	d.line("台词")
+	runner.start(d.steps)
 	assert_true(runner.is_waiting_line, "停在 LINE 等输入")
 	var a: ActorState = runner.state.actor("灵梦")
 	assert_true(a.visible, "在场")
 	assert_eq(a.position, Vector2(200, 200), "位置来自 enter")
 	assert_eq(a.light, 1.0, "说话者亮")
 	assert_eq(seen.shown.size(), 1, "显示了一句")
-	assert_eq(seen.shown[0], lines["r1"], "显示的行来自台词库")
+	assert_eq(seen.shown[0].bubbles[0].text, "台词", "显示内联台词")
 
 
 func test_runner_event_between_lines():
@@ -157,31 +155,26 @@ func test_runner_event_between_lines():
 	var runner := DialogueRunner.new()
 	var seen := _attach(runner)
 	var r := _make_profile("灵梦")
-	var lines := _make_lines([
-		{id = "a", bubbles = [r], texts = ["A"]},
-		{id = "b", bubbles = [r], texts = ["B"]},
-	])
 	var d := DialogueSteps.new()
-	d.line("a")
+	d.say(r, "A")
 	d.event("bgm_switch")
-	d.line("b")
-	runner.start(d.steps, lines)
+	d.say(r, "B")
+	runner.start(d.steps)
 	assert_eq(seen.events, [], "第一句显示时还没事件")
 	runner.advance()  # 说完 A
 	assert_eq(seen.events, ["bgm_switch"], "行与行之间触发事件")
-	assert_eq(runner.current_line(), lines["b"], "事件后进入下一句")
+	assert_eq(runner.current_line().bubbles[0].text, "B", "事件后进入下一句")
 
 
 func test_runner_wait_blocks_then_advances():
 	var runner := DialogueRunner.new()
 	var seen := _attach(runner)
 	var r := _make_profile("灵梦")
-	var lines := _make_lines([{id = "a", bubbles = [r], texts = ["A"]}])
 	var d := DialogueSteps.new()
-	d.line("a")
+	d.say(r, "A")
 	d.wait(0.5)
-	d.line("a")
-	runner.start(d.steps, lines)
+	d.say(r, "B")
+	runner.start(d.steps)
 	runner.advance()
 	assert_true(runner.is_waiting_time, "停在 WAIT 计时")
 	assert_eq(seen.shown.size(), 1, "还没显示第二句")
@@ -196,10 +189,9 @@ func test_runner_finishes_at_end():
 	var runner := DialogueRunner.new()
 	var seen := _attach(runner)
 	var r := _make_profile("灵梦")
-	var lines := _make_lines([{id = "a", bubbles = [r], texts = ["A"]}])
 	var d := DialogueSteps.new()
-	d.line("a")
-	runner.start(d.steps, lines)
+	d.say(r, "A")
+	runner.start(d.steps)
 	assert_eq(seen.finished, 0, "未结束")
 	runner.advance()
 	assert_eq(seen.finished, 1, "最后一句推进后 finished")
@@ -210,11 +202,10 @@ func test_runner_auto_advance():
 	var runner := DialogueRunner.new()
 	var seen := _attach(runner)
 	var r := _make_profile("灵梦")
-	var lines := _make_lines([{id = "a", bubbles = [r], texts = ["A"]}])
 	var d := DialogueSteps.new()
-	d.line("a", {"auto_advance": 0.5})
-	d.line("a")
-	runner.start(d.steps, lines)
+	d.line("A", {"speaker": r, "auto_advance": 0.5})
+	d.say(r, "B")
+	runner.start(d.steps)
 	assert_true(runner.is_waiting_line, "停在第一句")
 	runner.tick(0.6)
 	assert_eq(seen.shown.size(), 2, "auto_advance 到点自动推进到下一句")
@@ -225,7 +216,7 @@ func test_runner_enter_opts_applied():
 	var k := _make_profile("卡摩瑞")
 	var d := DialogueSteps.new()
 	d.enter(k, Vector2(550, 230), {"flip": true, "dim": 0.6, "emotion": "耍帅"})
-	runner.start(d.steps, {})
+	runner.start(d.steps)
 	var a: ActorState = runner.state.actor("卡摩瑞")
 	assert_eq(a.flip_h, true, "flip 生效")
 	assert_eq(a.light, 0.6, "dim 生效")
@@ -244,7 +235,7 @@ func test_runner_stage_ops():
 	d.portrait("灵梦", "笑")
 	d.bubble("灵梦", Vector2(-650, 250))
 	d.exit("灵梦")
-	runner.start(d.steps, {})
+	runner.start(d.steps)
 	assert_true(runner.is_finished(), "全部执行完")
 	var a: ActorState = runner.state.actor("灵梦")
 	assert_eq(a.position, Vector2(300, 300), "move 生效")
@@ -255,29 +246,27 @@ func test_runner_stage_ops():
 	assert_false(a.visible, "exit 后离场")
 
 
-func test_runner_missing_line_id_skips():
-	var runner := DialogueRunner.new()
-	var seen := _attach(runner)
-	var r := _make_profile("灵梦")
-	var lines := _make_lines([{id = "a", bubbles = [r], texts = ["A"]}])
-	var d := DialogueSteps.new()
-	d.line("不存在")
-	d.line("a")
-	runner.start(d.steps, lines)
-	assert_eq(seen.shown.size(), 1, "缺 id 跳过，不崩")
-	assert_eq(seen.shown[0], lines["a"], "落到存在的行")
-
-
 func test_runner_state_not_shared_between_runs():
 	# 每次 start 重建舞台状态（重跑不残留）
 	var runner := DialogueRunner.new()
 	var r := _make_profile("灵梦")
 	var d := DialogueSteps.new()
 	d.enter(r, Vector2(1, 1))
-	runner.start(d.steps, {})
+	runner.start(d.steps)
 	assert_eq(runner.state.actor("灵梦").position, Vector2(1, 1), "第一轮")
 	var d2 := DialogueSteps.new()
 	d2.enter(_make_profile("卡摩瑞"), Vector2(9, 9))
-	runner.start(d2.steps, {})
+	runner.start(d2.steps)
 	assert_false(runner.state.has("灵梦"), "第二轮舞台干净（无残留）")
 	assert_eq(runner.state.actor("卡摩瑞").position, Vector2(9, 9), "第二轮角色就位")
+
+
+func test_runner_line_applies_emotion():
+	# runner 集成：LINE 步骤后 actor.emotion 更新（播放器据此换立绘）
+	var runner := DialogueRunner.new()
+	var k := _make_profile("卡摩瑞")
+	var d := DialogueSteps.new()
+	d.enter(k, Vector2(400, 200))
+	d.line("在黑暗中", {"emotion": "耍帅"})
+	runner.start(d.steps)
+	assert_eq(runner.state.actor("卡摩瑞").emotion, "耍帅", "LINE 步骤应用表情")

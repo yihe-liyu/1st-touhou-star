@@ -220,6 +220,7 @@ GUT 现为 163 用例 / 29 脚本全绿。
 | 🟢 P2 | ~~配置校验层~~ | ✅ 已完成（PhaseData `validate()` 含 time_limit 防除零，已接线多个加载点） |
 | ⚪ P3 | ~~批量子弹渲染优化~~ | ~~利用 MultiMesh 减少 draw call~~（use_multi_mesh 已启用） |
 | ⚪ P3 | **PauseMenu/GameOverMenu 去重** | 抽 OverlayPage 基类 |
+| ⚪ P3 | **对话多语言（远期可选）** | 台词已代码化（`DialogueSteps` 内联）；如未来做多语言，用台词查表 `DialogueL10n.tr(key, fallback)` 包装，不引 id 中间层（2026-08 决策：当前无需求，不落地） |
 
 ---
 
