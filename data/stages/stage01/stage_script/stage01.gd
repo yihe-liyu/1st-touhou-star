@@ -8,7 +8,9 @@ const ENEMY04 = preload("res://data/stages/stage01/enemy/enemy04.gd")
 
 const FLY_AWAY = preload("res://data/stages/stage01/enemy/fly_away.gd")
 
-const DIALOGUE01 = preload("res://data/dialogue/reimu/stage01_before.tres")
+const DIALOGUE_REIMU_BEGIN = preload("res://data/dialogue/reimu/stage01_begin.tres")
+const REIMU_PROFILE = preload("res://data/dialogue/profile/reimu_profile.tres")
+const KA_PROFILE = preload("res://data/dialogue/profile/ka_profile.tres")
 
 const BOSS_POINT = preload("res://data/enemy_visual/boss/stage01/kamorui.tscn")
 
@@ -19,9 +21,17 @@ const NON01 = preload("res://data/stages/stage01/phase/non01/non01.tres")
 				 #preload("res://data/stages/stage01/phase/spell01/spell003.tres"),\
 				 #preload("res://data/stages/stage01/phase/spell01/spell004.tres")]
 
+## 最终 Boss（战前对话中进场）：对话事件回调（_on_dialogue_event）需要跨函数访问
+## _boss_holder 用数组容器（闭包/回调共享引用）
+var _kamorui: BossData
+var _boss_holder: Array = [null]
+
 func start(p_ctx: StageContext, p_target: Node2D = null):
 	ctx = p_ctx
 	if p_target: target = p_target
+	# 监听对话事件（dialogue_event）：战前对话触发切 BGM / Boss 进场 / 开战
+	if not GameEvents.dialogue_event.is_connected(_on_dialogue_event):
+		GameEvents.dialogue_event.connect(_on_dialogue_event)
 	var tl := start_timeline()
 	var bgm: AudioStream = AssetRegistry.get_bgm("stage1")
 	var logo_tex: Texture2D = preload("res://assets/Textures/front/logo/logo1.png")
@@ -101,11 +111,11 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		)
 
 	# ── Boss ──
-	var kamorui := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_MID01)#.phase(diff_pick(SPELL03))
 	var boss_holder := [null]
+	var kamorui_mid := BossData.new().name("卡摩瑞").look(BOSS_POINT).phase(NON_MID01)
 
 	tl.at(35.0).do(func():
-		boss_holder[0] = StageManager.spawn_boss(kamorui, Vector2(-50, 500), ctx)
+		boss_holder[0] = StageManager.spawn_boss(kamorui_mid, Vector2(-50, 500), ctx)
 		var b := boss_holder[0] as Boss
 		var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -184,8 +194,71 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		tl.at(80.0 + i * 0.3).do(func():
 			_spawn_mid_enemy(1, i, false, 1)
 		)
+	
+	# 战前对话（DSL 步骤版）：灵梦左出场 → 卡摩瑞右出场 → 台词 → 行间切 BGM → 结束开打
+	tl.at(93).do(func():
+		var d := DialogueSteps.new()
+		d.enter(REIMU_PROFILE, Vector2(50, 230))
+		d.bubble("灵梦", Vector2(-150, 250))
+		d.line("r1")
+		d.line("r2")
+		d.event("boss_enter")  # ← r2 说完：卡摩瑞本体（Boss 实体）进场
+		d.wait(2.0)
+		d.enter(KA_PROFILE, Vector2(550, 230))
+		d.bubble("卡摩瑞", Vector2(-650, 250))
+		d.line("k1")
+		d.line("k2")
+		d.line("k3")
+		d.line("r3")
+		d.line("r4")
+		d.line("r5")
+		d.line("k4")
+		d.line("r6")
+		d.line("r7")
+		d.line("k5")
+		d.wait(0.1)
+		d.event("bgm_switch")  # 行间事件：该一句说完 → 切 Boss 主题曲
+		d.line("k6")
+		d.event("boss_fight")  # 行间事件：最后一句说完 → Boss 开战
+		ctx.play_dialogue_steps(d.steps, DIALOGUE_REIMU_BEGIN.lines)
+	)
+	
+	_kamorui = BossData.new().name("卡摩瑞").look(BOSS_POINT) \
+	.phase(NON01) #.phase(diff_pick(SPELL03))
 
 	super.start(ctx, target)
+
+
+## 信号生命周期约定：场景 _exit_tree 统一断开 autoload 连接
+func _exit_tree() -> void:
+	if GameEvents.dialogue_event.is_connected(_on_dialogue_event):
+		GameEvents.dialogue_event.disconnect(_on_dialogue_event)
+
+
+## 对话事件处理：DSL 步骤 d.event() 广播（dialogue_box 转发 GameEvents.dialogue_event）
+func _on_dialogue_event(event_name: String) -> void:
+	match event_name:
+		"boss_enter":
+			# r2 说完：最终 Boss 本体从场外飞入（对话期间只就位，不开火）
+			if _boss_holder[0] == null and ctx and ctx.active():
+				_boss_holder[0] = StageManager.spawn_boss(_kamorui, Vector2(1000, 500), ctx)
+				var b := _boss_holder[0] as Boss
+				# 同一 Boss（卡摩瑞）的两段战斗：延续道中计数 → 面非符是"非符2"、记录 phase_index 接续
+				b.continue_from(1, 0)
+				var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+				tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+				tw.tween_property(b, "global_position", Vector2(GameConfig.FIELD_CENTER_X, 250), 1.5)
+		"bgm_switch":
+			# 战前对话最后一句 → 切卡摩瑞主题曲（洞窟蝙蝠），说完即开打
+			if ctx and ctx.active():
+				ctx.audio.play_bgm(AssetRegistry.get_bgm("music_3"))
+		"boss_fight":
+			# 最后一句说完 → Boss 直接开战（start_phase 不冻结时间轴，绝对时刻事件照常）
+			var b := _boss_holder[0] as Boss
+			if b and b.current_phase() == null:
+				b.start_phase(NON01)
+		_:
+			pass  # 未处理事件静默忽略
 
 
 ## Boss 后横穿增援：side 0=右→左，1=左→右（i 决定颜色/位置随机偏移）

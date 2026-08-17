@@ -220,3 +220,41 @@ func test_boss_index_in_phase_identity():
 	assert_eq(pid.boss_index, 2, "boss_index 传入")
 	var pid2 := PhaseIdentity.from_phase(PhaseData.new(), 1, 0, 0, 0)
 	assert_eq(pid2.boss_index, 0, "默认 boss_index = 0")
+
+
+## 同一 Boss 多段战斗（道中战 + 面战）：continue_from 延续阶段编号 → 记录连续、不撞键
+## （回归：stage01 最终 Boss 曾漏设延续，导致 NON01 与道中非符同键被吞 / 或误用 boss_index 拆成两个 Boss）
+func test_same_boss_continued_phases_are_separate_records():
+	GameState.selected_character = 0
+	GameState.selected_difficulty = 1
+	var stage_id := 96  # 独立 stage，避免撞真实记录
+	GameState.current_stage_id = stage_id
+	GameState.is_practice_mode = false
+	var non_mid: PhaseData = preload("res://data/stages/stage01/phase/non_mid01/non_mid01.tres")
+	var non01: PhaseData = preload("res://data/stages/stage01/phase/non01/non01.tres")
+
+	# 道中 Boss：boss_index 默认 0，非符1 → (phase_index 0)
+	var boss1: Boss = load("res://scripts/enemy/boss.gd").new()
+	add_child_autofree(boss1)
+	boss1.setup(BossData.new().name("卡摩瑞"), null)
+	boss1._stage_id = stage_id
+	boss1.start_phase(non_mid)
+	var mid_rec: SpellRecord = GameState.spell_book.get_record(stage_id, 0, 0, 0, 1)
+	assert_not_null(mid_rec, "道中非符应入簿 (phase 0)")
+	if mid_rec:
+		assert_eq(mid_rec.phase_number, 1, "道中非符是'非符1'")
+
+	# 面 Boss：continue_from(1, 0) → 同一 boss_index=0，阶段接续 → (phase_index 1, 非符2)
+	var boss2: Boss = load("res://scripts/enemy/boss.gd").new()
+	add_child_autofree(boss2)
+	boss2.setup(BossData.new().name("卡摩瑞"), null)
+	boss2._stage_id = stage_id
+	boss2.continue_from(1, 0)
+	boss2.start_phase(non01)
+	var final_rec: SpellRecord = GameState.spell_book.get_record(stage_id, 1, 0, 0, 1)
+	assert_not_null(final_rec, "面非符应入簿 (phase 1, boss_index 0)")
+	if final_rec:
+		assert_eq(final_rec.phase_number, 2, "面非符是'非符2'")
+	if mid_rec:
+		assert_eq(mid_rec.phase_number, 1, "道中记录不被覆盖")
+	GameState.current_stage_id = 1

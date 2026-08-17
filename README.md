@@ -3,7 +3,7 @@
 > 东方同人 STG 引擎 · Godot 4.7 · Discrete Project 第一作
 
 [![Godot](https://img.shields.io/badge/Godot-4.7-%23478cbf)](https://godotengine.org)
-[![Tests](https://img.shields.io/badge/GUT-163%20tests%20/%2029%20scripts-green)]()
+[![Tests](https://img.shields.io/badge/GUT-184%20tests%20/%2032%20scripts-green)]()
 [![CI](https://github.com/yihe-liyu/1st-touhou-star/actions/workflows/verify.yml/badge.svg)](https://github.com/yihe-liyu/1st-touhou-star/actions/workflows/verify.yml)
 [![License](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 
@@ -75,7 +75,7 @@
 ### 跑测试（重构/改动后的安全带）
 
 ```bash
-# 一键运行全部测试（163 个用例 / 29 个脚本，GUT 框架）
+# 一键运行全部测试（184 个用例 / 32 个脚本，GUT 框架）
 ./test/run_tests.sh
 ```
 
@@ -127,7 +127,7 @@ grep -rn "关键词" --include="*.gd" scripts/ data/
 ## 🏗️ 技术栈
 
 - **引擎**: Godot 4.7
-- **测试**: GUT 9.7.1（`test/` 目录，163 个用例 / 29 个脚本覆盖核心系统）
+- **测试**: GUT 9.7.1（`test/` 目录，184 个用例 / 32 个脚本覆盖核心系统）
 - **协程框架**: CoroutineScript + Timeline（游戏逻辑） / await（UI 过渡，见 SPEC §10）
 - **服务层**: StageContext（clock/bullets/player/dialogue/items/audio/effects）
 - **弹幕**: BulletPool (4000) + MultiMesh

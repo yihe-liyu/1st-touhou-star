@@ -113,12 +113,6 @@ func _change_stage(idx: int) -> void:
 	seen_keys.sort_custom(func(a, b):
 		return a.boss_index < b.boss_index or (a.boss_index == b.boss_index and a.phase_index < b.phase_index))
 
-	# 该关卡 Boss 数（>1 时 phase 标签加 Boss 前缀）
-	var boss_count := 0
-	for rec in book.records:
-		if rec.stage == st_num and rec.character == _char_index:
-			boss_count = maxi(boss_count, rec.boss_index + 1)
-
 	for key in seen_keys:
 		var phase_idx: int = key.phase_index
 		# 记录即真相：用该 Boss 该 phase 的任一记录判断符卡/非符 + 提供战斗配置
@@ -132,15 +126,15 @@ func _change_stage(idx: int) -> void:
 			continue
 		var is_spell: bool = sample.uid != 0
 
-		# label：per-Boss 编号直接用记录的 phase_number（解锁时已按 Boss 各自计数）
-		var prefix := "B%d·" % (key.boss_index + 1) if boss_count > 1 else ""
-		var label := "%s%s%d" % [prefix, "符卡" if is_spell else "非符", sample.phase_number]
+		# label：二级只显示"非符N / 符卡N"（不带 Boss 前缀；不同 Boss 用三级的名字区分）
+		var label := "%s%d" % ["符卡" if is_spell else "非符", sample.phase_number]
 
 		var info := {rec = sample, boss_index = key.boss_index, phase_index = phase_idx, diffs = {}, label = label}
 
-		# 取出这个 phase 在这角色下所有难度的记录
+		# 取出这个 phase 在这角色 + 该 Boss 下所有难度的记录（防不同 Boss 同 phase_index 混入）
 		for rec in book.records:
-			if rec.stage == st_num and rec.phase_index == phase_idx and rec.character == _char_index:
+			if rec.stage == st_num and rec.boss_index == key.boss_index \
+					and rec.phase_index == phase_idx and rec.character == _char_index:
 				info["diffs"][rec.difficulty] = rec
 
 		_phases.append(info)

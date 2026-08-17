@@ -567,13 +567,25 @@ tl.loop()                          — 循环模式（按所有事件末次触�
 > （`spell_record.gd` 注释"无需 CardDef"）；练习菜单读 `spell_records.tres` 决定"能练哪张"，再 `GameState.start_practice(phase, boss_scene, ...)` 进练习。
 > 入口：MainMenu「Spell Practice」在符卡簿为空时锁定。
 
-### 6.9 CharacterProfile / DialogueData / DialogueLine / DialogueBubble
-| 项目 | 内容 |
+### 6.9 对话系统（2026-08 步骤版重构）
+
+**分层：台词库（数据）→ 舞台状态（真相）→ 步骤 DSL（流程）→ DialogueBox（渲染）**
+
+| 类 | 职责 |
 |------|------|
-| CharacterProfile | char_name, portraits(Dictionary) |
-| DialogueData | lines(Array[DialogueLine]) |
-| DialogueLine | bubbles(Array[DialogueBubble]) |
-| DialogueBubble | speaker(CharacterProfile), text, portrait_pos |
+| `DialogueData` | 台词库 `.tres`：`lines: Dictionary {id: DialogueLine}`，只存"谁说什么、什么表情" |
+| `DialogueLine` | bubbles(Array[DialogueBubble])、skippable、auto_advance |
+| `DialogueBubble` | speaker(CharacterProfile)、text、emotion（演出字段已移除） |
+| `CharacterProfile` | char_name、portraits(Dictionary)、default_pos、default_flip |
+| `StageState` | 运行时唯一真相：actors{char_name → ActorState}；`apply_line` 自动明暗（说话者亮/沉默者暗） |
+| `ActorState` | 单个角色状态：position/flip_h/light/visible/emotion/bubble_offset |
+| `DialogueSteps` | 流程 DSL：`enter/line/exit/move/flip/dim/portrait/bubble/event/wait` |
+| `DialogueRunner` | 步骤解释器（纯逻辑，不进树）：驱动 StageState、`line_shown/state_changed/event_fired/finished` 信号 |
+| `DialogueBox` | 渲染层：消费舞台状态画立绘/气泡/表情/明暗，转发 `event_fired → GameEvents.dialogue_event` |
+
+**时序语义**：`event` 是**行间步骤**（`d.event(key)`），时机精确到任意位置；WAIT 步骤替代旧 auto_advance 行间等待。
+**入口**：`ctx.play_dialogue_steps(steps, lines)` / `tl.dialogue_steps(steps, lines)`；旧 `play(lines)` 保留为兼容（每行转 LINE 步骤）。
+**测试**：`test/test_dialogue.gd` + `test/test_dialogue_steps.gd`（状态机/时序/数据完整性）。
 
 #### 对话气泡（BubblePanel）
 

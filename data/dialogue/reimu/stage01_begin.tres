@@ -1,0 +1,245 @@
+[gd_resource type="Resource" script_class="DialogueData" format=3 uid="uid://n8shmpq2r7ke"]
+
+[ext_resource type="Script" uid="uid://1k1h10sh5obn" path="res://scripts/data/dialogue_line.gd" id="1_y2afn"]
+[ext_resource type="Script" uid="uid://ca60bikjhkwi1" path="res://scripts/data/dialogue_bubble.gd" id="2_4o1qs"]
+[ext_resource type="Script" uid="uid://bohdrx8b2n67l" path="res://scripts/data/dialogue_data.gd" id="2_xaf0u"]
+[ext_resource type="Resource" uid="uid://r856rdotflbq" path="res://data/dialogue/profile/reimu_profile.tres" id="3_4o1qs"]
+[ext_resource type="Resource" uid="uid://cb288be12u388" path="res://data/dialogue/profile/ka_profile.tres" id="4_qd2e5"]
+
+[sub_resource type="Resource" id="Bubble_03"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+emotion = "笑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_04"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+text = "哦呀，弱小的人类怎么会在永夜出门？"
+emotion = "疑惑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_03"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_03"), SubResource("Bubble_04")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_05"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+emotion = "笑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_06"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+text = "快回家去吧。"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_04"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_05"), SubResource("Bubble_06")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_07"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_08"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+text = "虽然我只是蝙蝠，但是再不走的话…"
+emotion = "耍帅"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_05"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_07"), SubResource("Bubble_08")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_15"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+emotion = "叹气"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_16"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+text = "啊，竟然遇到巫女了吗？"
+emotion = "震惊"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_09"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_15"), SubResource("Bubble_16")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_21"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+emotion = "疑惑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_22"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+text = "不，不行。
+如果真见到了传说中的巫女，怎么能不打一场！"
+emotion = "震惊"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_12"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_21"), SubResource("Bubble_22")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_23"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+emotion = "叹气"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_24"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+text = "而且
+在黑暗中，我可更胜一筹！"
+emotion = "耍帅"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_13"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_23"), SubResource("Bubble_24")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_01"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+text = "啊，什么线索都没有，怎么解决异变啊…"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Resource_us2e3"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_01")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_02"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+text = "一般这时候就会有人出现了吧～"
+emotion = "笑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_02"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_02")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_09"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+text = "已经是人形了却不好好长眼睛啊。"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_10"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+emotion = "耍帅"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_06"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_09"), SubResource("Bubble_10")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_11"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+text = "把日食当夜晚吗？"
+emotion = "疑惑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_12"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+emotion = "疑惑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_07"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_11"), SubResource("Bubble_12")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_13"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+text = "我是巫女，我若是回家了，谁来解决异变呐，小小的蝙蝠哟？"
+emotion = "叹气"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_14"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+emotion = "震惊"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_08"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_13"), SubResource("Bubble_14")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_17"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+text = "唉，肯定没有线索啦。"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_18"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+emotion = "疑惑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_10"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_17"), SubResource("Bubble_18")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[sub_resource type="Resource" id="Bubble_19"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("3_4o1qs")
+text = "所以让开吧？"
+emotion = "笑"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Bubble_20"]
+script = ExtResource("2_4o1qs")
+speaker = ExtResource("4_qd2e5")
+emotion = "震惊"
+metadata/_custom_type_script = "uid://ca60bikjhkwi1"
+
+[sub_resource type="Resource" id="Line_11"]
+script = ExtResource("1_y2afn")
+bubbles = Array[ExtResource("2_4o1qs")]([SubResource("Bubble_19"), SubResource("Bubble_20")])
+metadata/_custom_type_script = "uid://1k1h10sh5obn"
+
+[resource]
+script = ExtResource("2_xaf0u")
+lines = {
+"k1": SubResource("Line_03"),
+"k2": SubResource("Line_04"),
+"k3": SubResource("Line_05"),
+"k4": SubResource("Line_09"),
+"k5": SubResource("Line_12"),
+"k6": SubResource("Line_13"),
+"r1": SubResource("Resource_us2e3"),
+"r2": SubResource("Line_02"),
+"r3": SubResource("Line_06"),
+"r4": SubResource("Line_07"),
+"r5": SubResource("Line_08"),
+"r6": SubResource("Line_10"),
+"r7": SubResource("Line_11")
+}
+metadata/_custom_type_script = "uid://bohdrx8b2n67l"

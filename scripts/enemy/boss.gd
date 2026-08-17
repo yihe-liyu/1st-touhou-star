@@ -55,6 +55,15 @@ func set_exit_controlled() -> void:
 	_exit_controlled = true
 
 
+## 延续战斗计数：同一 Boss 多段战斗（如道中战 + 面战）时，把前一段已打的阶段编号接续过来。
+## 例：道中打完 1 个非符 → 面战 continue_from(1, 0) → 面非符是"非符2"、phase_index 从 1 开始。
+## （同一角色的多段战斗共享 boss_index=0；不同角色 Boss 才用 boss_index 区分）
+func continue_from(prev_non: int, prev_spell: int) -> void:
+	_non_count = prev_non
+	_spell_count = prev_spell
+	_phase_index = prev_non + prev_spell - 1  # start_phase 里 _phase_index += 1 → 接续到下一索引
+
+
 func setup(data: BossData, p_ctx: StageContext = null) -> void:
 	boss_data = data
 	_ctx = p_ctx
