@@ -8,7 +8,7 @@ func test_absolute_events_fire_during_boss_phase():
 	tl.at(5.0).do(func(): fired.append("a"))
 
 	var boss: Boss = load("res://scripts/enemy/boss.gd").new()
-	add_child(boss)
+	add_child_autofree(boss)
 	var phase := PhaseData.new()
 	phase.name = "测试阶段"
 	phase.hp = 100
@@ -32,5 +32,3 @@ func test_absolute_events_fire_during_boss_phase():
 	for i in 10:
 		tl.tick(0.6)
 	assert_eq(wait_fired.size(), 1, "击破后 wait 事件应触发")
-
-	boss.queue_free()

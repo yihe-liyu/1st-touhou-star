@@ -6,7 +6,9 @@ const Radial = preload("res://data/stages/stage01/bullet/radial_accel_bullet.gd"
 
 func test_accelerates_along_launch_direction() -> void:
 	var cs: CoroutineScript = Radial.new()
+	autofree(cs)  # CoroutineScript 是 Node，不挂树也不释放会成孤儿
 	var bullet := Bullet.new()
+	autofree(bullet)
 	bullet.velocity = Vector2(0, 150)  # 向下发射
 	bullet.global_position = Vector2(448, 500)  # 远离上版边（不触发撞边）
 	cs.start_fast(null, bullet)
@@ -21,7 +23,9 @@ func test_accelerates_along_launch_direction() -> void:
 
 func test_slanted_launch_stays_on_line() -> void:
 	var cs: CoroutineScript = Radial.new()
+	autofree(cs)
 	var bullet := Bullet.new()
+	autofree(bullet)
 	bullet.velocity = Vector2(100, 0)  # 水平发射
 	bullet.global_position = Vector2(448, 500)  # 远离上版边
 	cs.start_fast(null, bullet)
@@ -42,6 +46,7 @@ func test_bounce_down_on_top_edge() -> void:
 	if bullet == null:
 		return
 	var cs: CoroutineScript = Radial.new()
+	autofree(cs)
 	cs.start_fast(BulletManager.get_bullet_ctx(), bullet)
 
 	# 移到版边附近再 tick → 触发撞边变轨

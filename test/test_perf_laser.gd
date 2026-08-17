@@ -2,6 +2,13 @@ extends GutTest
 ## 激光性能基准：100 条激光每帧 step 开销
 ## 记录数字供对比（静止激光应接近 0，因为 _dirty 不重建）
 
+var _holder: Node
+
+## 激光池 beams 挂 holder，随测试结束释放（LaserEngine.setup 每测试 64 条）
+func before_each():
+	_holder = Node.new()
+	add_child_autofree(_holder)
+
 func _spawn_many(engine: LaserEngine, count: int, grow: bool) -> void:
 	for i in count:
 		var sk: LaserSkeleton
@@ -23,7 +30,7 @@ func _bench_steps(engine: LaserEngine, frames: int) -> float:
 func test_100_static_lasers_bench():
 	var engine := LaserEngine.new()
 	autofree(engine)
-	engine.setup(self)
+	engine.setup(_holder)
 	_spawn_many(engine, 100, false)
 	var us := _bench_steps(engine, 120)
 	print("激光基准 [100 静止]: %.1f us/帧 (%.2f ms)" % [us, us / 1000.0])
@@ -33,7 +40,7 @@ func test_100_static_lasers_bench():
 func test_100_growing_lasers_bench():
 	var engine := LaserEngine.new()
 	autofree(engine)
-	engine.setup(self)
+	engine.setup(_holder)
 	_spawn_many(engine, 100, true)
 	var us := _bench_steps(engine, 60)
 	print("激光基准 [100 生长]: %.1f us/帧 (%.2f ms)" % [us, us / 1000.0])

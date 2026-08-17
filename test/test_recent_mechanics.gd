@@ -63,7 +63,7 @@ func test_open_reduce_default_off():
 
 func _make_boss_with_reduce() -> Node:
 	var boss = load("res://scripts/enemy/boss.gd").new()
-	add_child(boss)  # 需要进树：涨血 tween / _process 才跑
+	add_child_autofree(boss)  # 需要进树：涨血 tween / _process 才跑
 	var phase := PhaseData.new()
 	phase.hp = 1000
 	phase.time_limit = 10.0
@@ -136,7 +136,7 @@ func test_practice_miss_records_failure():
 	GameState.is_practice_mode = true
 	GameState.start_practice(phase, null, "卡摩瑞", 99, 7)
 	var boss = load("res://scripts/enemy/boss.gd").new()
-	add_child(boss)
+	add_child_autofree(boss)
 	boss._stage_id = 99  # 裸 new() 无 setup，直设（spawn_boss 会走 setup 自动取 practice_stage_id）
 	boss.start_phase(phase)
 	# 先记录一次击破（_cleared=true）
@@ -151,6 +151,7 @@ func test_practice_miss_records_failure():
 	boss2._stage_id = 99
 	boss2.start_phase(phase)
 	boss2.die()
+	await get_tree().physics_frame  # 冲掉 boss2 的 queue_free，避免脚本结束时残留子节点
 	var r2 := book.get_record(99, 7, 0, 0, 1)
 	assert_eq(r2.practice_attempts, 2, "miss 后再 +1（共 2 次）")
 	assert_eq(r2.practice_captures, 1, "miss 不加收取")

@@ -6,7 +6,8 @@ const BULLET_SCENE = preload("res://scenes/bullet.tscn")
 
 
 ## 带真实 hitbox_radius 属性的目标（"in" 检查需要真实属性而非动态 set）
-class TestTarget:
+## 命名避开 GUT 的 "Test" 前缀扫描（否则报 Inner Class 警告）
+class HitTarget:
 	extends Node2D
 	var hitbox_radius: float = 8.0
 
@@ -35,8 +36,8 @@ func _make_rect_bullet(size: Vector2, rotation_deg: float) -> Bullet:
 	return b
 
 
-func _make_target(pos: Vector2, radius: float) -> TestTarget:
-	var t := TestTarget.new()
+func _make_target(pos: Vector2, radius: float) -> HitTarget:
+	var t := HitTarget.new()
 	autofree(t)
 	t.position = pos
 	t.hitbox_radius = radius

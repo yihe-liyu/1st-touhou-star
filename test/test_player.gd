@@ -14,8 +14,8 @@ func _make_player() -> Player:
 
 func test_player_data_applied():
 	var player := _make_player()
-	assert_gt(player.normal_speed, 0.0, "常速应 > 0")
-	assert_gt(player.focus_speed, 0.0, "低速应 > 0")
+	assert_gt(player.normal_speed, 0, "常速应 > 0")
+	assert_gt(player.focus_speed, 0, "低速应 > 0")
 	assert_lt(player.focus_speed, player.normal_speed, "低速应小于常速")
 
 func test_move_left():

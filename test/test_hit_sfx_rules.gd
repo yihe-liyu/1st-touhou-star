@@ -21,7 +21,7 @@ func _shoot_player_bullet(pos: Vector2, hit_sfx: String = "") -> Bullet:
 
 func _make_enemy(pos: Vector2) -> Enemy:
 	var enemy: Enemy = load("res://scenes/enemy.tscn").instantiate()
-	add_child(enemy)
+	add_child_autofree(enemy)
 	enemy.enemy_data = EnemyData.new()
 	enemy._apply_enemy_data(enemy.enemy_data)
 	enemy.max_hp = 100
@@ -33,7 +33,7 @@ func _make_enemy(pos: Vector2) -> Enemy:
 
 func _make_boss(pos: Vector2, phase_hp: int) -> Boss:
 	var boss: Boss = load("res://scripts/enemy/boss.gd").new()
-	add_child(boss)
+	add_child_autofree(boss)
 	var phase := PhaseData.new()
 	phase.hp = phase_hp
 	phase.time_limit = 10.0
@@ -88,7 +88,7 @@ func test_marisa_damage_keeps_playing_for_normal_enemy():
 
 func test_boss_is_low_hp_bounds():
 	var boss: Boss = load("res://scripts/enemy/boss.gd").new()
-	add_child(boss)
+	add_child_autofree(boss)
 	var phase := PhaseData.new()
 	phase.hp = 100
 	phase.time_limit = 10.0

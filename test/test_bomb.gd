@@ -3,11 +3,16 @@ extends GutTest
 
 var _pool: BulletPool
 var _physics: BulletPhysics
+var _holder: Node
 
 
 func before_each():
+	# 池子弹挂在独立 holder 上（add_child_autofree 随测试结束释放），
+	# 否则 4000+ 池子弹一直挂在测试脚本下，脚本结束时报 unfreed children
+	_holder = Node.new()
+	add_child_autofree(_holder)
 	_pool = BulletPool.new()
-	_pool.setup(self)
+	_pool.setup(_holder)
 	_physics = BulletPhysics.new()
 	_physics.setup(_pool)
 	GameState.memory_value = 0.0
@@ -19,6 +24,14 @@ func after_each():
 	_pool.clear()
 	GameState.active_enemies.clear()
 	GameState.player = null
+	# 清掉碰撞产生的消弹特效实例（HitEffectPool 池化不自动释放，会成孤儿）
+	for key in HitEffectPool._pools:
+		for eff in HitEffectPool._pools[key]:
+			if is_instance_valid(eff):
+				if eff.get_parent():
+					eff.get_parent().remove_child(eff)
+				eff.free()
+	HitEffectPool._pools.clear()
 
 
 func _enemy_bullet_data() -> BulletData:

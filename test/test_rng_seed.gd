@@ -3,6 +3,7 @@ extends GutTest
 
 func _make_rng(seed_value: int):
 	var rng = load("res://scripts/autoload/rng.gd").new()
+	autofree(rng)  # rng.gd extends Node，裸 new 不释放会成孤儿
 	rng.set_seed(seed_value)
 	return rng
 

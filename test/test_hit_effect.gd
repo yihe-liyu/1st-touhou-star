@@ -4,7 +4,9 @@ extends GutTest
 func test_generic_class_drives_animated_scene():
 	# 动画版场景（marisa 星弹）：AnimatedSprite2D + 通用脚本
 	var scene: PackedScene = preload("res://scenes/effect/hit_effect_marisa.tscn")
-	assert_eq(scene.instantiate().get_script().resource_path,
+	var probe := scene.instantiate()
+	autofree(probe)
+	assert_eq(probe.get_script().resource_path,
 		"res://scripts/effect/player_bullet_hit_effect.gd", "动画版应挂通用类")
 	var eff = scene.instantiate()
 	autofree(eff)
@@ -16,7 +18,9 @@ func test_generic_class_drives_animated_scene():
 func test_generic_class_drives_sprite_scene():
 	# 单帧版场景（魔理沙激光星爆）：Sprite2D + 参数（speed 750 / fade 0.2 / jitter 0.1）
 	var scene: PackedScene = preload("res://scenes/effect/hit_effect_marisa_option01.tscn")
-	assert_eq(scene.instantiate().get_script().resource_path,
+	var probe := scene.instantiate()
+	autofree(probe)
+	assert_eq(probe.get_script().resource_path,
 		"res://scripts/effect/player_bullet_hit_effect.gd", "单帧版应挂通用类")
 	var eff = scene.instantiate()
 	autofree(eff)

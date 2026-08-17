@@ -1,6 +1,14 @@
 extends GutTest
 ## Laser 2.0 骨架 + 状态机 + 判定测试（第 1 步：测试地基）
 
+var _holder: Node
+
+## 激光池 beams 挂在 holder 上，随测试结束 autofree 释放
+## （LaserEngine.setup 每测试建 64 条 beam，直接挂测试脚本会累计成 unfreed children）
+func before_each():
+	_holder = Node.new()
+	add_child_autofree(_holder)
+
 # ── 骨架 ──
 
 func test_skeleton_line_sampling():
@@ -148,7 +156,7 @@ func test_graze():
 func test_engine_pool_reuse():
 	var engine := LaserEngine.new()
 	autofree(engine)
-	engine.setup(self)
+	engine.setup(_holder)
 	for i in 10:
 		var beam := engine.spawn_line(Vector2(0, 0), Vector2(0, 100), Color.RED)
 		assert_not_null(beam, "第 %d 条应生成" % i)
@@ -163,7 +171,7 @@ func test_engine_pool_reuse():
 func test_engine_spawn_curve():
 	var engine := LaserEngine.new()
 	autofree(engine)
-	engine.setup(self)
+	engine.setup(_holder)
 	var curve := Curve2D.new()
 	curve.add_point(Vector2(100, 100))
 	curve.add_point(Vector2(300, 300))
@@ -196,7 +204,7 @@ func _make_engine() -> LaserEngine:
 	autofree(engine)
 	var physics := BulletPhysics.new()
 	physics.setup(BulletPool.new())
-	engine.setup(self, physics)  # 传 physics 委托擦弹计分
+	engine.setup(_holder, physics)  # 传 physics 委托擦弹计分
 	return engine
 
 func _make_engine_player(x: float) -> Player:

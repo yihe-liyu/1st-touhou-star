@@ -6,8 +6,9 @@ const ENEMY04 = preload("res://data/stages/stage01/enemy/enemy04.gd")
 
 func test_moves_down_until_offscreen() -> void:
 	var cs: CoroutineScript = ENEMY04.new()
+	autofree(cs)  # CoroutineScript 是 Node，不挂树也不释放会成孤儿
 	var tgt := Node2D.new()
-	add_child(tgt)
+	add_child_autofree(tgt)
 	tgt.global_position = Vector2(448, 100)
 	cs.target = tgt
 	cs.start_fast(null, tgt)

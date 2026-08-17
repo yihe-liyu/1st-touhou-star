@@ -25,7 +25,7 @@ func test_non_spell_phase_valid():
 	if phase:
 		assert_eq(phase.uid, 0, "非符的 uid 应为 0")
 		assert_gt(phase.hp, 0, "非符 hp 应 > 0")
-		assert_gt(phase.time_limit, 0, "非符时限应 > 0")
+		assert_gt(phase.time_limit, 0.0, "非符时限应 > 0")
 
 
 ## 符卡阶段（黄粱「不可测之梦」spell056）：uid 非 0, 有名字, 血量/时限合法, 挂移动/弹幕脚本
@@ -36,7 +36,7 @@ func test_spell_phase_valid():
 		assert_ne(phase.uid, 0, "符卡 uid 不应为 0")
 		assert_ne(phase.name, "", "符卡应有名字")
 		assert_gt(phase.hp, 0, "符卡 hp 应 > 0")
-		assert_gt(phase.time_limit, 0, "符卡时限应 > 0")
+		assert_gt(phase.time_limit, 0.0, "符卡时限应 > 0")
 		assert_not_null(phase.move_script, "符卡需要移动脚本")
 		assert_not_null(phase.shoot_script, "符卡需要弹幕脚本")
 

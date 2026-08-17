@@ -4,10 +4,14 @@ extends GutTest
 
 var _pool: BulletPool
 var _physics: BulletPhysics
+var _holder: Node
 
 func before_each():
+	# 池子弹挂独立 holder，随测试结束 autofree 释放（5000 上限的池不能挂测试脚本）
+	_holder = Node.new()
+	add_child_autofree(_holder)
 	_pool = BulletPool.new()
-	_pool.setup(self)
+	_pool.setup(_holder)
 	_physics = BulletPhysics.new()
 	_physics.setup(_pool)
 	GameState.memory_value = 0.0  # 避免残留触发擦弹清除特效

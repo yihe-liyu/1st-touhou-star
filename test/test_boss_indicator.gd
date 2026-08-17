@@ -57,7 +57,7 @@ func test_boss_indicator_alpha_fades_with_distance():
 		autofree(prev)
 
 	var boss = load("res://scripts/enemy/boss.gd").new()
-	add_child(boss)
+	add_child_autofree(boss)
 	boss.start_boss()
 	var indicator: Sprite2D = boss._pos_indicator
 	assert_not_null(indicator, "start_boss 后应创建指示器")
@@ -82,7 +82,6 @@ func test_boss_indicator_alpha_fades_with_distance():
 
 	# 还原
 	GameState.player = prev
-	boss.queue_free()
 	fake_player.free()
 
 
@@ -94,7 +93,7 @@ func test_indicator_follows_after_die():
 	autofree(ui)
 
 	var boss = load("res://scripts/enemy/boss.gd").new()
-	add_child(boss)
+	add_child_autofree(boss)
 	boss.start_boss()
 	var indicator: Sprite2D = boss._pos_indicator
 	assert_not_null(indicator, "start_boss 后应创建指示器")
@@ -106,4 +105,3 @@ func test_indicator_follows_after_die():
 	boss.global_position = Vector2(700, 300)
 	boss._process(0.016)
 	assert_eq(indicator.global_position.x, 700.0, "死后离场移动指示器仍应跟随")
-	boss.queue_free()
