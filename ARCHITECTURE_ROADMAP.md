@@ -207,6 +207,67 @@ GUT 现为 163 用例 / 29 脚本全绿。
 
 **性能回归工具**：`test/perf_stress/`（1500 协程弹压力 + 子机/诱导弹功能验证）
 
+### 性能优化专项（2026-08 · NON01 L 卡顿排查记录）
+
+> 背景：卡摩瑞**面非符1（NON01）L 难度 60 帧明显卡顿**。用临时 autoload `scripts/debug/perf_diag.gd` 写 `res://perf_diag.log`（FPS/渲染帧/物理帧耗时）定位。
+> 排查结论：**两类尖峰**——渲染侧（22~97ms，物理闲着）+ 物理侧（8~14ms，弹幕密集时）。
+> 已修复两处渲染侧；剩两处物理侧**结构性成本**待专项优化。
+
+#### 已修复（本次）
+
+| 问题 | 根因 | 修复 | 效果 |
+|------|------|------|------|
+| 雾效贵 | `bullet_fog.gd` 每颗弹 `create_tween` + 每帧 `set_shader_parameter("fog_tint:a")`（GPU 材质上传） | 淡出改用普通属性 `modulate:a`（`tween_property`），`bullet_fog_blend.gdshader` 乘 `COLOR.a`；`fog_tint` 只设一次 | 视觉不变，去每帧材质上传，便宜约 10× |
+| MultiMesh 缓冲抖动 | `bullet_multi_mesh.gd` `instance_count` 从 64 起随子弹涨跌反复 grow/shrink → GPU 缓冲重分配 → 渲染尖峰 | 预分配 `instance_count = max(min_size, 2048)`（只增不减）+ 绘制数改用 `visible_instance_count` | 渲染尖峰 7 次 → 3 次，70ms 那次消失 |
+
+> ⚠️ 注意：雾效**要保留**（不能靠关雾效省性能）。上面的做法是"让雾效变便宜"而非关闭。
+
+#### 剩余待做：物理尖峰 8~14ms（已精确定位）
+
+NON01 L 期间物理帧从 ~0.5ms 飙到 8~14ms。用计时拆分（`process_collisions` + `TIME_PHYSICS_PROCESS`）实测后**推翻早期估算**：
+
+> 关键证据：同样 600+ 颗弹，某帧 total=3.45ms、另一帧 total=12.88ms——差在那帧**是否在同帧分裂**。碰撞（col）700 颗仅 **0.4~1ms**，几乎不花钱。
+
+| 构成 | 实测 | 结论 |
+|------|------|------|
+| 碰撞（空间哈希重建 + 判定） | **0.4~1ms** | ~~早期估 3-5ms~~ ❌ 虚警，**不值得优化** |
+| 协程稳态 tick（360 颗弹） | ~1-2ms | 非主因 |
+| **重新发射回收**（同帧多颗撞墙 → `return_bullet` + `BulletData.new` + 新弹 spawn/雾 Tween） | **~9ms 尖峰** | **主犯** |
+
+> 术语修正：不是"分裂"，是**重新发射一颗新弹**（旧弹回收 + 新弹出射）。机制跟 `radial_accel_bullet` / `non_mid01_bullet` **完全共用**（`BulletData.new().enemy()` → `shoot_spread` → `return_bullet`）——差异仅"发什么/方向/触发"。故优化应打在**共享路径**，三家 + 以后所有重新发射全受益。
+
+#### 优化"重新发射回收"（✅ 部分落地 / 剩余待做）
+
+- **✅ 已完成**：`BulletManager.re_fire(bullet, data, dir, at)`（内部 `bullet.bind(...)` 复用原弹，不回收不新建）。NON01（`bounce_bullet._re_fire`）+ radial（`_spawn_downward`）已接线。单颗重发射省掉 `_request_bullet` + `_return_to_pool`（子节点遍历/is_connected 查询/入池）。
+- **剩余**：
+  - 圈弹（non_mid01 1→N）：重绑定 1 颗 + 只新建 N-1 颗。
+  - `_return_to_pool` 去掉每颗 `get_children()` 遍历 + `is_connected` 查询（雾无信号需断时跳过）。
+  - 雾 Tween 只在确有雾时 `create_tween`。
+- **预期**：尖峰 12ms → ~6ms（re_fire 砍一半；全量在下面的数据驱动）。
+
+#### 备选（内容层，非重构，可即时缓解）
+
+- 降 L 密度：`non01_shoot.gd` `_burst_count=[3,6,9,12]` → `[3,6,8,10]`；`diff_pick([15,20,25,30])` → `[15,20,25,27]`。
+- 直接减少同帧重新发射颗数，物理尖峰立降。
+
+### AoS（数据驱动子弹）改造路线（2026-08 定稿）
+
+> 边界：**只动"高频率、纯逐帧"的子弹行为**（`bounce`/`radial`/`aim_flee`）；**协程系统（关卡时间线/敌人/Boss/玩家射击）完整保留**——它们真用 await/timeline/pause，且是"低数量、复杂"场景。不是"把协程系统拆了"，是"纠正用协程壳子跑简单子弹行为"。
+
+1. **边界**：子弹行为从 `extends CoroutineScript(Node)` → `extends RefCounted`；系统循环调 `behavior.tick(b, dt)`。（注：子弹行为本就走 `tick_fast` 快速路径，从未用 await/timeline/parallel，摘壳子零损失。）
+2. **分发方式**：推荐 **行为对象（③）**——脚本改 RefCounted 即可，逻辑照搬、手感几乎不变、迁移成本最低；或 **注册表（②）**——Callable 表分发，加行为零改 match。（不用手写巨型 match。）
+3. **重新发射**：配合已落地的 `re_fire`，从"拆房重建"→ **改数据**（behavior/参数/方向赋值）。
+4. **迁移顺序**：①试点——先只转 `bounce` 一个行为（③），跑通 + 基准对比；②验证后再铺 `radial`/`aim_flee`/圈弹。
+
+**未定岔路：子弹本体走到哪一层**
+
+| 层级 | 子弹本体 | 改动量 | 收益 |
+|---|---|---|---|
+| **Tier 1（轻）** | 保持 `Bullet` Node，只把行为搬出去 | 中 | 中等 |
+| **Tier 2（重）** | 弹 = 纯数据（无 Node），系统算移动/碰撞/渲染 | 大 | 全量（12ms→~2ms） |
+
+> 建议：先走 **Tier 1 试点**（行为搬出、验证思路），**再定要不要冲 Tier 2**（纯数据）。Tier 2 才是全量收益，但动整条子弹管线（bullet.gd/BulletData/池/渲染/碰撞），试点后看值不值。
+
 ---
 
 ## 🔮 计划中的改进
@@ -216,11 +277,14 @@ GUT 现为 163 用例 / 29 脚本全绿。
 | 🔴 P0 | ~~共享 StageContext~~ | 已由阶段 2 服务层落地（Enemy/Boss/Player 注入 ctx） |
 | 🟡 P1 | ~~Replay 录输入基础设施~~ | ✅ 已完成（`ReplayRecorder` + `test_replay_recorder` 就绪；仍缺 gameplay 接线 + 回放播放器） |
 | 🟡 P1 | **高频路径禁 RefCounted 规则** | bullet.bind() / _physics_process 碰撞 / return_bullet 禁止 new() |
+| 🟡 P1 | **性能优化专项：优化"重新发射回收"（实测主因）** | 见「性能优化专项（2026-08 · NON01 卡顿排查）」专节：实测碰撞仅 0.4-1ms（虚警），12ms 尖峰来自**同帧大量重新发射**（`return_bullet`+`BulletData.new`+雾 Tween）；与 radial/non_mid01 共用，改共享路径；碰撞增量方向已否决。`BulletManager.re_fire()` 已落地（✅） |
+| 🟡 P1 | **子弹数据驱动系统（AoS，ECS 近亲）** | 见「性能优化专项」节的 **AoS 改造路线**：只动高频率逐帧子弹行为（`bounce`/`radial`/`aim_flee`），**协程系统完整保留**；行为改 `RefCounted` + 系统 loop（行为对象/注册表分发）；先 Tier 1 试点再决定 Tier 2 纯数据。全量红利但**大改造**。`re_fire` 已作增量踏板 ✅ |
 | 🟢 P2 | **MenuLogic 拆分** | NavPage 逻辑与视觉分离（等第三个需要大量覆写 NavPage 的菜单出现时） |
 | 🟢 P2 | ~~配置校验层~~ | ✅ 已完成（PhaseData `validate()` 含 time_limit 防除零，已接线多个加载点） |
 | ⚪ P3 | ~~批量子弹渲染优化~~ | ~~利用 MultiMesh 减少 draw call~~（use_multi_mesh 已启用） |
 | ⚪ P3 | **PauseMenu/GameOverMenu 去重** | 抽 OverlayPage 基类 |
 | ⚪ P3 | **对话多语言（远期可选）** | 台词已代码化（`DialogueSteps` 内联）；如未来做多语言，用台词查表 `DialogueL10n.tr(key, fallback)` 包装，不引 id 中间层（2026-08 决策：当前无需求，不落地） |
+| ⚪ P3 | **手机做内容 + 关卡热重载（方向，未启动）** | 手机当代码编辑器改 GDScript（git push）→ PC 跑着的游戏自动重载 `.gd`/`.tres` 实时预览。前提：①内容统一 `load()` 不 `preload()` ②加载前 `remove_from_cache` ③文件 mtime 轮询 / 快捷键触发重载。甜区：阶段式加载（`start_phase` 读 PhaseData）+ 短命子弹协程，天生适合。救不了"在手机上看效果"（需 mobile build + 远端同步）。 |
 
 ---
 

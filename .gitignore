@@ -17,3 +17,4 @@ data/registry/spell_records.tres
 
 # Godot/编辑器临时 object store 工作目录
 .objstore_work*/
+.xdg_data/
