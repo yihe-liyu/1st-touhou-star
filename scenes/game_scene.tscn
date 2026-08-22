@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bumtdee0t8gel" path="res://scenes/ui/boss_ui.tscn" id="8_boss_ui"]
 [ext_resource type="Script" uid="uid://cn71kcmk1m6le" path="res://scripts/scenes/game_scene.gd" id="9_script"]
 [ext_resource type="Script" uid="uid://bn6ekllo6f3ml" path="res://scripts/scenes/game_ui.gd" id="10_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ui/bgm_hint.tscn" id="11_bgm_hint"]
 [ext_resource type="Script" uid="uid://dhos0505bof7l" path="res://scripts/components/rect_outline.gd" id="12_rect_outline"]
 [ext_resource type="Shader" uid="uid://dbi40qjrrq0q4" path="res://gdshader/water_flow.gdshader" id="13_water"]
 
@@ -92,7 +93,6 @@ script = ExtResource("9_script")
 layer = -1
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="Background" unique_id=1683698703]
-layout_mode = 3
 unique_name_in_owner = true
 offset_left = 64.0
 offset_top = 32.0
@@ -183,7 +183,6 @@ texture = SubResource("AtlasTexture_liy57")
 layer = 32
 
 [node name="OutlineRect" type="ColorRect" parent="UI/Memory" unique_id=1632815897]
-layout_mode = 3
 material = SubResource("RectOutlineMat")
 anchors_preset = 15
 anchor_right = 1.0
@@ -207,5 +206,7 @@ texture = ExtResource("6_kk2rg")
 [node name="debug" type="Node2D" parent="UI" unique_id=711685194]
 z_index = 127
 script = ExtResource("7_kk2rg")
+
+[node name="BgmHint" parent="." unique_id=1015514766 instance=ExtResource("11_bgm_hint")]
 
 [node name="BossUI" parent="." unique_id=1480836394 instance=ExtResource("8_boss_ui")]

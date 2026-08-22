@@ -62,6 +62,9 @@ func _init_players() -> void:
 
 const MUSIC_REGISTRY_PATH := "res://data/registry/music_registry.tres"
 
+## 实际切换了 BGM（用于 BGM 提示等 UI 跟随）
+signal bgm_started(stream: AudioStream)
+
 ## 播 BGM（覆盖当前播放）。播放前无间隔、无渐弱。
 func play_bgm(stream: AudioStream, _gap_unused: float = 0.0) -> void:
 	_play_bgm_at(stream, 0.0)
@@ -80,6 +83,7 @@ func _play_bgm_at(stream: AudioStream, from: float) -> void:
 	_bgm_player.stream = stream
 	_bgm_player.volume_db = _to_db(bgm_volume * master_volume)
 	_bgm_player.play(from)
+	bgm_started.emit(stream)
 	# 音乐解锁已由 AssetRegistry.get_bgm 统一处理（播放即听过）
 
 

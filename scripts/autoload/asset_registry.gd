@@ -111,6 +111,23 @@ func get_bgm(key: String) -> AudioStream:
 	return stream
 
 
+## BGM 曲名（BGM 提示 UI 用）：由 stream 的资源路径反查音乐室记录
+## 游戏语义 key（stage1）与音乐室 key（music_2）指向同一文件 → 按路径关联取同一曲名
+func get_bgm_title(stream: AudioStream) -> String:
+	if stream == null:
+		return ""
+	var path: String = stream.resource_path
+	if path.is_empty():
+		return ""
+	var registry: MusicRegistry = ResourceLoader.load(MUSIC_REGISTRY_PATH)
+	if registry == null:
+		return ""
+	for r in registry.records:
+		if BGM_PATHS.get(r.bgm_key, "") == path:
+			return r.title
+	return ""
+
+
 ## 播放 BGM 视为听过 → 解锁音乐室对应曲目（幂等，仅首次解锁写盘）
 ## 按路径关联：游戏 key（stage1）与音乐室 key（music_2）指向同一文件时视为同一曲
 func _unlock_music_by_key(bgm_key: String) -> void:
