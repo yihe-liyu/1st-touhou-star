@@ -98,6 +98,6 @@ func _tick(p_ctx: StageContext):
 		AudioManager.play_sfx(AssetRegistry.sounds["shoot"], -8.0)
 		var step := TAU / count
 		for i in count:
-			p_ctx.bullets.shoot_single(bullet, emit_pos, dir.rotated(step * i))
+			p_ctx.bullets.shoot_spread(bullet, 1, 0.0, dir.rotated(step * i), emit_pos)
 
 	return p_ctx.clock.wait(itv)

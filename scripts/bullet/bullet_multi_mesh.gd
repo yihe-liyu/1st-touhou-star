@@ -21,7 +21,7 @@ func _sync():
 	if bulbs.is_empty():
 		for key in _groups:
 			_groups[key].mmi.visible = false
-			_groups[key].mm.instance_count = 0
+			_groups[key].mm.visible_instance_count = 0
 		return
 	
 	var active_groups: Dictionary = {}
@@ -49,7 +49,10 @@ func _sync():
 		var eg = _get_or_create_group(key, g.tex, g.faction, g.tint_mode, bullets.size())
 
 		var mm: MultiMesh = eg.mm
-		mm.instance_count = bullets.size()
+		# 缓冲只增不减：超过预分配容量才 grow（几何增长，罕见），避免每帧 grow/shrink 重分配 GPU 缓冲
+		if mm.instance_count < bullets.size():
+			mm.instance_count = max(bullets.size() * 2, 2048)
+		mm.visible_instance_count = bullets.size()
 		eg.mmi.visible = true
 
 		for i in bullets.size():
@@ -62,7 +65,7 @@ func _sync():
 	for key in _groups:
 		if not active_groups.has(key):
 			_groups[key].mmi.visible = false
-			_groups[key].mm.instance_count = 0
+			_groups[key].mm.visible_instance_count = 0
 
 func clear():
 	for grp in _groups.values():
@@ -74,7 +77,7 @@ func _get_or_create_group(key: int, tex: Texture2D, faction: int, tint_mode: int
 	if _groups.has(key):
 		var existing = _groups[key]
 		if existing.mm.instance_count < min_size:
-			existing.mm.instance_count = min_size
+			existing.mm.instance_count = max(min_size * 2, 2048)  # 只增不减，几何增长
 		return existing
 
 	# ── 处理 AtlasTexture → 用图集 + UV 偏移 ──
@@ -96,7 +99,8 @@ func _get_or_create_group(key: int, tex: Texture2D, faction: int, tint_mode: int
 	var mm: MultiMesh = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_2D
 	mm.use_colors = true
-	mm.instance_count = max(min_size, 64)
+	mm.instance_count = max(min_size, 2048)  # 预分配大缓冲：之后子弹数在容量内增减不再重分配 GPU 缓冲
+	mm.visible_instance_count = 0  # 初始不绘制，由 _sync 按实际子弹数设置
 
 	# ── 创建 2D 四边形网格 ──
 	# 尺寸匹配纹理像素大小

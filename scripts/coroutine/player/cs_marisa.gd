@@ -130,7 +130,7 @@ func _spawn_laser_segment(player: Player, source: Node2D, frame: int) -> void:
 	b.coroutine_script = LASER_FOLLOW
 
 	# 段在发射口生成（offset=0），drift 从 0 独立累积 → 根部永远在子机
-	var bullet := ctx.bullets.shoot_single(b, source.global_position, Vector2.UP)
+	var bullet := ctx.bullets.shoot_spread(b, 1, 0.0, Vector2.UP, source.global_position)
 	if bullet:
 		# 按火力 + 子机索引查发射角度（LASER_ANGLES 表）
 		var opt_idx: int = _options.find(source)

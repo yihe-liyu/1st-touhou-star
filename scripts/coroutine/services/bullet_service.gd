@@ -5,26 +5,19 @@ extends RefCounted
 var active: bool = true
 
 
-## 发射单颗子弹并返回引用（供需要设置 extra 等参数的弹幕用）
-func shoot_single(data: BulletData, pos: Vector2, dir: Vector2) -> Bullet:
-	if not active:
-		return null
-	return BulletManager.shoot_enemy_bullet(data, pos, dir)
-
-
-## 扇形散弹
-func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2, sfx: AudioStream = null) -> void:
+## 扇形散弹；count == 1 时等价单弹并返回该子弹引用（供设置 extra 等参数的弹幕用），否则返回 null
+func shoot_spread(bullet_data: BulletData, count: int, spread_angle: float, base_dir: Vector2, at: Vector2, sfx: AudioStream = null) -> Bullet:
 	if not active or count <= 0:
-		return
+		return null
 	if sfx:
 		AudioManager.play_sfx(sfx, -8.0)
 	if count == 1:
-		BulletManager.shoot_enemy_bullet(bullet_data, at, base_dir)
-		return
+		return BulletManager.shoot_enemy_bullet(bullet_data, at, base_dir)
 	var step := spread_angle / (count - 1) if spread_angle < TAU - 0.001 else spread_angle / count
 	for i in count:
 		var dir := base_dir.rotated(-spread_angle / 2.0 + step * i)
 		BulletManager.shoot_enemy_bullet(bullet_data, at, dir)
+	return null
 
 
 # ── 激光 ──

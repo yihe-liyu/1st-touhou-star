@@ -31,20 +31,17 @@ func play(p_texture: Texture2D, p_tint: Color = Color.WHITE):
 		var mat = ShaderMaterial.new()
 		mat.shader = BLEND_SHADER
 		material = mat
-	modulate = Color.WHITE
-	material.set_shader_parameter("fog_tint", p_tint)
+	# fog_tint 只设一次（alpha 固定 1），淡出改用 modulate.a（普通属性 tween，无每帧材质上传）
+	modulate = Color(1.0, 1.0, 1.0, p_tint.a)
+	material.set_shader_parameter("fog_tint", Color(p_tint.r, p_tint.g, p_tint.b, 1.0))
 
 	_tween = create_tween()
 	_tween.set_ease(Tween.EASE_OUT)
 	_tween.set_trans(Tween.TRANS_QUAD)
 	_tween.set_parallel(true)
 	_tween.tween_property(self, "scale", Vector2(0.5, 0.5), duration)
-	_tween.tween_method(_set_fog_tint.bind(material), p_tint.a, 0.0, duration)
+	_tween.tween_property(self, "modulate:a", 0.0, duration)
 	_tween.finished.connect(_on_tween_finished)
-
-
-func _set_fog_tint(a: float, mat: ShaderMaterial):
-	mat.set_shader_parameter("fog_tint:a", a)
 
 
 func _on_tween_finished():

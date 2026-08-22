@@ -6,7 +6,7 @@ const ITEMS: Array[Dictionary] = [
 	{"key": "volume_bgm", "zh": "ＢＧＭ音量", "type": "range", "min": 0.0, "max": 1.0, "step": 0.1, "def": 1.0},
 	{"key": "volume_sfx", "zh": "ＳＥ音量",  "type": "range", "min": 0.0, "max": 1.0, "step": 0.1, "def": 0.7},
 	{"key": "fullscreen", "zh": "全屏",     "type": "toggle", "def": false},
-	{"key": "max_fps", "zh": "渲染帧率", "type": "choice", "choices": [60, 120, 144, 0], "def": 60},
+	{"key": "max_fps", "zh": "渲染帧率", "type": "choice", "choices": [0, 60, 120, 144], "def": 0},
 ]
 
 const HIGHLIGHT := Color.WHITE
@@ -58,7 +58,7 @@ func _refresh_values() -> void:
 		if item["type"] == "range":
 			_values[i].text = TextAlign.pad_cn(TextAlign.full(str(int(round(v * 100.0)))), 3) + "％"
 		elif item["type"] == "choice":
-			var txt: String = "无上限" if int(v) == 0 else TextAlign.full(str(int(v)))
+			var txt: String = "自动" if int(v) == 0 else TextAlign.full(str(int(v)))
 			_values[i].text = TextAlign.pad_cn(txt, 3)
 		else:
 			_values[i].text = TextAlign.pad_cn(("开" if v else "关"), 3)
@@ -153,7 +153,13 @@ func _apply_setting(key: String, v: Variant) -> void:
 		"fullscreen":
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if bool(v) else DisplayServer.WINDOW_MODE_WINDOWED)
 		"max_fps":
-			Engine.max_fps = int(v)
+			Engine.max_fps = _auto_fps() if int(v) == 0 else int(v)
+
+
+## 自动帧率：跟显示器刷新率（读系统配置）；读不到则无上限(0)
+func _auto_fps() -> int:
+	var rate := DisplayServer.screen_get_refresh_rate(0)
+	return int(rate) if rate > 0.0 else 0
 
 
 # ═══ 生命周期 ═══

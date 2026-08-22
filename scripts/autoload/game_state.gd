@@ -207,7 +207,13 @@ func _apply_settings() -> void:
 	if s.has("fullscreen"):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if s["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
 	if s.has("max_fps"):
-		Engine.max_fps = int(s["max_fps"])
+		var mf: int = int(s["max_fps"])
+		# 0 = 自动：跟显示器刷新率；读不到则无上限(0)
+		if mf == 0:
+			var rate := DisplayServer.screen_get_refresh_rate(0)
+			Engine.max_fps = int(rate) if rate > 0.0 else 0
+		else:
+			Engine.max_fps = mf
 
 
 func save_high_score(stage_id: int, score: int):

@@ -26,10 +26,10 @@ func _tick(_ctx: StageContext) -> Variant:
 	return true
 
 
-## 生成竖直向下匀速弹（保留速度大小与外观/判定），回收自己
+## 原地重新发射成竖直向下匀速弹（复用原弹，保留速度大小），回收自己（行为协程结束）
 func _spawn_downward(bullet: Bullet, _ctx: StageContext) -> void:
 	var b := BulletData.new().enemy()
 	b.tex("米弹").color(Color.FUCHSIA).blend(true)
 	b.velocity = Vector2(0, bullet.velocity.length())  # 保留速度大小，方向竖直向下
-	_ctx.bullets.shoot_single(b, Vector2(bullet.global_position.x, GameConfig.FIELD_TOP), Vector2.DOWN)
-	BulletManager.return_bullet(bullet)
+	_ctx.audio.play_sfx(AssetRegistry.sounds["kira"], -6)
+	BulletManager.re_fire(bullet, b, Vector2.DOWN, Vector2(bullet.global_position.x, GameConfig.FIELD_TOP))

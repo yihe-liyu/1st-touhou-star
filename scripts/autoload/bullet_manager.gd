@@ -107,6 +107,14 @@ func return_bullet(bullet):
 	_pool.return_bullet(bullet)
 
 
+## 原地重新发射：复用现有子弹（重配置），替代"回收旧弹 + 新建新弹"的拆/建开销。
+## 用于"旧弹变成新弹"这一类（NON01 反弹→直线、radial 撞边→向下等）。
+## 注意：会 stop 掉旧行为协程、重放雾；bullet 仍在 active_bullets 中，不回收不新建。
+func re_fire(bullet: Bullet, data: BulletData, dir: Vector2, at: Vector2) -> void:
+	bullet.bind(data, dir)
+	bullet.global_position = at
+
+
 # ═══ 激光 API（新引擎 Laser 2.0）═══
 # 返回 LaserBeam（可配置 core_width / hitbox_width / graze_width 等）
 

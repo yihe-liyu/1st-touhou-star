@@ -64,4 +64,4 @@ func _spawn_split(p_ctx: StageContext) -> void:
 		.enemy() \
 		.grace(diff_pick([4, 4, 0.75, 0.75]))
 	AudioManager.play_sfx(AssetRegistry.sounds["kira"], -8.0)
-	p_ctx.bullets.shoot_single(red, target.global_position, fire_dir)
+	p_ctx.bullets.shoot_spread(red, 1, 0.0, fire_dir, target.global_position)
