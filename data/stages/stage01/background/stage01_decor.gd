@@ -33,7 +33,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 
 	# ① 雾散光来 (0→6s, tween 12s)
 	tl.at(0.0).do(func():
-		bg.tween_env_fog(Color(0.733, 0.572, 0.402, 1.0), 0.02, 12.0)  # 雾散目标：暖橙（日食结束天光转暖）；密度 0.02：近处清晰远处融雾
+		bg.tween_env_fog(Color.DARK_GRAY, 0.02, 10.0)  # 雾散目标：暖橙（日食结束天光转暖）；密度 0.02：近处清晰远处融雾
 		bg.tween_env_fov(68.0, 12.0)
 	)
 
@@ -47,6 +47,10 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 	tl.at(10.0).do(func():
 		var t := bg.create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		t.tween_method(_camera_accel, 1.0, 7.0, 32).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	)
+	
+	tl.at(25.0).do(func():
+		bg.tween_env_fog(Color(0.733, 0.572, 0.402, 1.0), 0.02, 20.0)
 	)
 
 	# ④ 每 4 帧喷一棵树（持续）

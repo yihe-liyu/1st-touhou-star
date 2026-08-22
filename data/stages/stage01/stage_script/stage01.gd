@@ -200,7 +200,7 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		d.enter(REIMU_PROFILE, Vector2(50, 230))
 		d.bubble("灵梦", Vector2(-150, 250))
 		d.line("啊，什么线索都没有，怎么解决异变啊…")
-		d.line("一般这时候就会有人出现了吧～", {"emotion": "笑"})
+		d.line("除非…\n刚才的小妖怪～", {"emotion": "笑"})
 		d.event("boss_enter")  # ← r2 说完：卡摩瑞本体（Boss 实体）进场
 		d.wait(2.0)
 		d.enter(KA_PROFILE, Vector2(550, 230))
@@ -215,7 +215,6 @@ func start(p_ctx: StageContext, p_target: Node2D = null):
 		d.say(REIMU_PROFILE, "唉，肯定没有线索啦。")
 		d.line("所以让开吧？", {"emotion": "笑"})
 		d.say(KA_PROFILE, "不，不行。\n如果真见到了传说中的巫女，怎么能不打一场！", {"emotion": "震惊"})
-		d.wait(0.5)
 		d.event("bgm_switch")  # 行间事件：该一句说完 → 切 Boss 主题曲
 		d.wait(0.5)
 		d.line("而且\n在黑暗中，我可更胜一筹！", {"emotion": "耍帅"})

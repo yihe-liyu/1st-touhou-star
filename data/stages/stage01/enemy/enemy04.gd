@@ -20,15 +20,17 @@ func _init_enemy() -> void:
 
 	var tl := start_timeline()
 
-	tl.at(2.0).every(4).times(2).do(func():
+	tl.at(1.5).every(2).times(2).do(func():
 		bullet.tex("棱弹").color(Color.FUCHSIA)
 		bullet.coroutine_script = RADIAL_ACCEL  # 沿各自发射角度加速扩散
 		var dir = Vector2.ONE.rotated(RNG.randf_range(-PI, PI))
+		var count = diff_pick([15, 20, 20, 30])
 		for i in diff_pick([1, 1, 2, 2]):
-			bullet.velocity = Vector2(0, 75 + i * 75)
-			ctx.bullets.shoot_spread(bullet, diff_pick([15, 20, 20, 30]),
+			bullet.velocity = Vector2(0, 50 + i * 50)
+			ctx.bullets.shoot_spread(bullet, count,
 				TAU, dir,
 				target.global_position, AssetRegistry.sounds["shoot"])
+			dir = dir.rotated(TAU / count / 2)
 	)
 
 	auto_stop = true
